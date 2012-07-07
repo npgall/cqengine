@@ -75,12 +75,13 @@ For the sake of the example, let's say the collection of Cars is created by the 
 }}}
 
 As such, some statistics about the collection:
-|| *Color (aka Colour :)* || *% of cars* || *Number of doors* || *% of cars* ||
-|| Red || 30% || 5 || 50% ||
-|| Green || 30% || 4 || 20% ||
-|| Blue || 20% || 3 || 20% ||
-|| Black || 10% || 2 || 10% ||
-|| White || 10% || || ||
+|| *Color (aka Colour :)* || *% of cars* || *Manufacturer* || *% of cars* || *Number of doors* || *% of cars* ||
+|| Red || 30% || Ford || 30% || 5 || 50% ||
+|| Green || 30% || Honda || 30% || 4 || 20% ||
+|| Blue || 20% || Toyota || 30% || 3 || 20% ||
+|| Black || 10% || BMW || 10% || 2 || 10% ||
+|| White || 10% ||  ||  || || ||
+
 
 || Cars which are green and are manufactured by Ford || 10% ||
 || Cars which are blue and have 2 doors || 10% ||
