@@ -4,7 +4,7 @@ CQEngine is a NoSQL database engine for performing SQL-like queries on standard 
 CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], or [http://code.google.com/p/lambdaj/ LambdaJ for Java], but internally CQEngine uses indexing and set theory rather than iteration to process queries.
 
 == Performance and Time Complexity ==
-To compare the performance of CQEngine versus iteration, consider an example.
+To compare the performance of CQEngine versus iteration, lets consider an example.
 
 Lets assume we have an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, number of doors etc. For the purpose of the example, let's ignore setter and getter methods, and assume Cars are immutable.
 {{{
