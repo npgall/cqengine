@@ -1,6 +1,14 @@
 #labels Deprecated
-CQEngine is a NoSQL database engine for performing SQL-like queries on standard Java collections, with the goal of returning results faster than iteration would allow. Response times are in the order of _microseconds_.
+CQEngine is a NoSQL database engine for performing SQL-like queries on standard Java collections, with the goal of returning results _faster than iteration would allow_. Response times are in the order of _microseconds_.
 
 CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], or [http://code.google.com/p/lambdaj/ LambdaJ for Java], but internally CQEngine uses indexing and set theory rather than iteration to process queries.
 
 == Performance and Time Complexity ==
+=== Iteration ===
+The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
+
+Lets call the number of objects in the collection _n_. Lets call the number of tests to be applied to each object _t_. If there were 10,000 objects in the collection (_n_ = 10,000) and 5 tests to apply to each object (_t_ = 5), then performing the query would require _n_ x _t_ tests, or 50,000 tests to be applied to the collection in total. For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would degrade steeply as additional objects were added. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach is O(_n_ _t_).
+
+
+
+|| Query Method || 
