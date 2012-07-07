@@ -4,9 +4,9 @@ CQEngine is a NoSQL database engine for performing SQL-like queries on standard 
 CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], or [http://code.google.com/p/lambdaj/ LambdaJ for Java], but internally CQEngine uses indexing and set theory rather than iteration to process queries.
 
 == Performance and Time Complexity ==
-To compare the performance of CQEngine versus iteration, lets consider an example.
+To compare the performance of CQEngine versus iteration, let's consider an example.
 
-Lets assume we have an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, number of doors etc. For the purpose of the example, let's ignore setter and getter methods, and assume Cars are immutable.
+Let's assume we have an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, number of doors etc. For the purpose of the example, let's ignore setter and getter methods, and assume Cars are immutable.
 {{{
 public class Car {
     enum Color {RED, GREEN, BLUE, BLACK, WHITE}
@@ -27,6 +27,63 @@ public class Car {
     }
 }
 }}}
+
+For the sake of the example, let's say the collection of Cars is created by the following method:
+{{{
+    public static Set<Car> createCollectionOfCars(int numCars) {
+        Set<Car> cars = new LinkedHashSet<Car>(numCars);
+        for (int carId = 0; carId < numCars; carId++) {
+            final Car car;
+            switch (carId % 10) {
+                case 0:
+                    car = new Car(carId, "Ford", "Focus", Car.Color.BLUE, 5, 5000.00);
+                    break;
+                case 1:
+                    car = new Car(carId, "Ford", "Fusion", Car.Color.RED, 3, 3999.99);
+                    break;                    
+                case 2:
+                    car = new Car(carId, "Ford", "Taurus", Car.Color.BLACK, 4, 6000.00);
+                    break;                    
+                case 3:
+                    car = new Car(carId, "Honda", "Civic", Car.Color.WHITE, 5, 4000.00);
+                    break;                    
+                case 4:
+                    car = new Car(carId, "Honda", "Accord", Car.Color.GREEN, 5, 3000.00);
+                    break;                    
+                case 5:
+                    car = new Car(carId, "Honda", "Insight", Car.Color.BLACK, 5, 5000.00);
+                    break;                    
+                case 6:
+                    car = new Car(carId, "Toyota", "Avensis", Car.Color.BLACK, 5, 5999.95);
+                    break;                    
+                case 7:
+                    car = new Car(carId, "Toyota", "Prius", Car.Color.BLUE, 3, 8500.00);
+                    break;                    
+                case 8:
+                    car = new Car(carId, "Toyota", "Hilux", Car.Color.RED, 5, 7800.55);
+                    break;                    
+                case 9:
+                    car = new Car(carId, "BMW", "M6", Car.Color.BLUE, 2, 9000.23);
+                    break;                    
+                default:
+                    throw new IllegalStateException();
+            }
+            cars.add(car);
+        }
+        return cars;
+    }
+}}}
+
+As such, some statistics about the collection:
+  * 30% of cars are blue
+  * 30% of cars are black
+  * 20% of cars are red
+  * 10% of cars are green
+  * 10% of cars are white
+  * 60% of cars have 5 doors
+  * 20% of cars have 3 doors
+  * 10% of cars have 4 doors
+  * 10% of cars have 2 doors
 
 === Iteration ===
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
