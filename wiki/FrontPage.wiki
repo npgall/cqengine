@@ -4,6 +4,30 @@ CQEngine is a NoSQL database engine for performing SQL-like queries on standard 
 CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], or [http://code.google.com/p/lambdaj/ LambdaJ for Java], but internally CQEngine uses indexing and set theory rather than iteration to process queries.
 
 == Performance and Time Complexity ==
+To compare the performance of CQEngine versus iteration, consider an example.
+
+Lets assume we have an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, number of doors etc. For the purpose of the example, let's ignore setter and getter methods, and assume Cars are immutable.
+{{{
+public class Car {
+    enum Color {RED, GREEN, BLUE, BLACK, WHITE}
+    public final int carId;
+    public final String manufacturer;
+    public final String model;
+    public final Color color;
+    public final int doors;
+    public final double price;
+
+    public Car(int carId, String manufacturer, String model, Color color, int doors, double price) {
+        this.carId = carId;
+        this.manufacturer = manufacturer;
+        this.model = model;
+        this.color = color;
+        this.doors = doors;
+        this.price = price;
+    }
+}
+}}}
+
 === Iteration ===
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
