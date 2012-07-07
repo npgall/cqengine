@@ -84,7 +84,7 @@ As such, some statistics about the collection:
 
 
 || Cars which are green and are manufactured by Ford || 10% ||
-|| Cars which are blue and have 2 doors || 10% ||
+|| Cars which are blue and have 3 doors || 10% ||
 
 === Iteration ===
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
