@@ -75,15 +75,18 @@ For the sake of the example, let's say the collection of Cars is created by the 
 }}}
 
 As such, some statistics about the collection:
-|| % of cars which are red || 30% ||
-|| % of cars which are green || 30% ||
-|| % of cars which are blue || 20% ||
-|| % of cars which are black || 10% ||
-|| % of cars which are white || 10% ||
-|| % of cars which have 5 doors || 50% ||
-|| % of cars which have 4 doors || 20% ||
-|| % of cars which have 3 doors || 20% ||
-|| % of cars which have 2 doors || 10% ||
+|| *Color* || *% of cars* ||
+|| Red || 30% ||
+|| Green || 30% ||
+|| Blue || 20% ||
+|| Black || 10% ||
+|| White || 10% ||
+
+|| *Number of doors* || *% of cars* ||
+|| 5 || 50% ||
+|| 4 || 20% ||
+|| 3 || 20% ||
+|| 2 || 10% ||
 
 === Iteration ===
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
