@@ -75,7 +75,7 @@ For the sake of the example, let's say the collection of Cars is created by the 
 }}}
 
 As such, some statistics about the collection:
-|| *Color (aka Colour)* || *% of cars* || *Number of doors* || *% of cars* ||
+|| *Color (aka Colour :)* || *% of cars* || *Number of doors* || *% of cars* ||
 || Red || 30% || 5 || 50% ||
 || Green || 30% || 4 || 20% ||
 || Blue || 20% || 3 || 20% ||
