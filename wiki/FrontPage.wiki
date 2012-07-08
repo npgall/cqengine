@@ -33,6 +33,8 @@ The problem with optimization #1, is that implementing it requires *statistical 
   * Fortunately, *CQEngine maintains statistical information* on the makeup of collections, and in fact will always re-order queries to maximize execution speed.
   * Also fortunately, *CQEngine uses _lazy evaluation_* heavily: the result sets returned by CQEngine are rarely _materialized_, and instead act as a _view_ over the set of objects in the collection which ultimately match the query.
 
+Of course, the main problem with the approach above, is that it requires iterating through the entire collection of cars in the first place. It would be useful if it could somehow _jump_ to the sets of cars which have four doors, or which are blue, or both, without having to scan the collection at all.
+
 === Indexing and Query Plan Optimization in CQEngine ===
 In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
 
