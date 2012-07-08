@@ -21,7 +21,7 @@ This is hugely inefficient, it performs up to 20,000 tests, for a collection of 
         return results;
     }
 }}}
-It should be clear that performing queries using iteration, is like _performing SQL queries on a database table which does not have any indexes_.
+  * It should be clear that performing queries using iteration, is like _performing SQL queries on a database table which does not have any indexes_.
 
 *In fact, the iteration above could be improved:*
 
