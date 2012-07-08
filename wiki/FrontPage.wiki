@@ -73,7 +73,7 @@ Lets call the number of objects in the collection _n_. Lets call the number of t
 It should be clear that performing queries using iteration, is like performing SQL queries on a database table which does not have any indexes.
 
 === CQEngine ===
-In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on Product.price. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
+In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
 
 In CQEngine:
   * *Simple Indexes* can be added to any number of individual fields in a collection of objects, allowing queries on just those fields to be answered in O(1) time complexity
