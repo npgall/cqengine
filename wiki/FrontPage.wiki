@@ -9,7 +9,7 @@ The classic way to retrieve objects matching some criteria from a collection, is
 
 Lets call the number of objects in the collection _n_. Lets call the number of tests to be applied to each object _t_. If there were 10,000 objects in the collection (_n_ = 10,000) and 5 tests to apply to each object (_t_ = 5), then performing the query would require _n_ x _t_ tests, or 50,000 tests to be applied to the collection in total. For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would degrade steeply as additional objects were added. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach is O(_n_ _t_).
 
-This is hugely inefficient:
+This is hugely inefficient, it performs up to 20,000 tests, for a collection of 10,000 cars:
 {{{
     public static Collection<Car> getBlueCarsWithFourDoors(Collection<Car> allCars) {
         List<Car> results = new LinkedList<Car>();
@@ -22,6 +22,14 @@ This is hugely inefficient:
     }
 }}}
 It should be clear that performing queries using iteration, is like performing SQL queries on a database table which does not have any indexes.
+
+In fact, the iteration above could be improved:
+
+  # If it was known that _fewer cars have 4 doors than are blue_, the test for number of doors should be performed _first_. That way, Java would short-circuit the `&&` statement and not actually test the color if the car did not already have four doors.
+  # In most situations, the application which calls this method, will just iterate through the results returned. In that respect, the method would have allocated a `LinkedList` needlessly. The method could be further enhanced to accept a `Handler` object, which it would invoke supplying each Car object which matches the criteria. The handler could do whatever the application otherwise would have done inside its iteration loop; yet a `LinkedList` would not have been allocated.
+  # An even nicer way to avoid allocating a `LinkedList`, and yet which would still allow applications to iterate results in the normal way (without supplying a `Handler`), would be for the method to return an `Iterable` object which acted as a _filtered view_ over `allCars`. As the application iterated through the view, the `Iterable` would scan `allCars` for the _next_ matching object.
+
+The problem with optimization #1, is that implementing it requires *statistical knowledge* of the makeup of the collection, based on the values of the fields within each `Car` object. Fortunately, *CQEngine maintains statistical information* on the makeup of collections, and in fact will always re-order queries to maximize execution speed.
 
 === Indexing and Query Plan Optimization in CQEngine ===
 In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
