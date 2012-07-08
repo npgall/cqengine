@@ -66,9 +66,9 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 }}}
 
 == Performance and Time Complexity ==
-To compare the performance of CQEngine versus iteration, let's consider an example.
+To compare the performance of CQEngine versus iteration, consider an example of an online car dealership.
 
-Let's assume we have an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, number of doors etc. For the purpose of the example, let's ignore setter and getter methods, and assume Cars are immutable.
+The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc. For the purpose of the example, ignore setter and getter methods, and assume Cars are immutable.
 {{{
 public class Car {
     enum Color {RED, GREEN, BLUE, BLACK, WHITE}
@@ -90,7 +90,7 @@ public class Car {
 }
 }}}
 
-For the sake of the example, let's say the collection of Cars is created by the following method:
+This method can create a collection of cars for this example:
 {{{
     public static Set<Car> createCollectionOfCars(int numCars) {
         Set<Car> cars = new LinkedHashSet<Car>(numCars);
