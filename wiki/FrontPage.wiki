@@ -21,9 +21,9 @@ This is hugely inefficient, it performs up to 20,000 tests, for a collection of 
         return results;
     }
 }}}
-It should be clear that performing queries using iteration, is like performing SQL queries on a database table which does not have any indexes.
+It should be clear that performing queries using iteration, is like _performing SQL queries on a database table which does not have any indexes_.
 
-In fact, the iteration above could be improved:
+*In fact, the iteration above could be improved:*
 
   # If it was known that _fewer cars have 4 doors than are blue_, the test for number of doors should be performed _first_. That way, Java would short-circuit the `&&` statement and not actually test the color if the car did not already have four doors.
   # In most situations, the application which calls this method, will just iterate through the results returned. In that respect, the method would have allocated a `LinkedList` needlessly. The method could be further enhanced to accept a `Handler` object, which it would invoke supplying each Car object which matches the criteria. The handler could do whatever the application otherwise would have done inside its iteration loop; yet a `LinkedList` would not have been allocated.
