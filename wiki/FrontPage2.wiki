@@ -1,7 +1,7 @@
 #labels Deprecated
 CQEngine is a NoSQL query engine for retrieving objects from Java collections using SQL-like queries, without iterating through the collection, and with response time in the order of _microseconds_.
 
-CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally CQEngine uses indexing and query plan optimization rather than iteration to process queries.
+CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally CQEngine uses indexing and query plan optimization to process queries with low latency, rather than iterate through the collection.
 
 == Iteration versus Indexing and Query Plan Optimization ==
 === Iteration ===
