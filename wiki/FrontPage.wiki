@@ -3,6 +3,26 @@ CQEngine is a NoSQL database engine for performing SQL-like queries on standard 
 
 CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], or [http://code.google.com/p/lambdaj/ LambdaJ for Java], but internally CQEngine uses indexing and set theory rather than iteration to process queries.
 
+== Iteration versus Indexing and Query Plan Optimization ==
+=== Iteration ===
+The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
+
+Lets call the number of objects in the collection _n_. Lets call the number of tests to be applied to each object _t_. If there were 10,000 objects in the collection (_n_ = 10,000) and 5 tests to apply to each object (_t_ = 5), then performing the query would require _n_ x _t_ tests, or 50,000 tests to be applied to the collection in total. For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would degrade steeply as additional objects were added. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach is O(_n_ _t_).
+
+It should be clear that performing queries using iteration, is like performing SQL queries on a database table which does not have any indexes.
+
+=== Indexing and Query Plan Optimization in CQEngine ===
+In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
+
+In CQEngine:
+  * *Simple Indexes* can be added to any number of individual fields in a collection of objects, allowing queries on just those fields to be answered in O(1) time complexity
+  * *Multiple indexes can be added to the same field*  - several index implementations are provided, each optimized for different types of query on the same field - for example equality, numerical range, string starts with etc.
+  * *Compound Indexes* can be added which span multiple fields, allowing queries referencing several fields to also be answered in O(1) time complexity
+  * *Standing Query Indexes* can be added; these allow _arbitrarily complex queries_ to be answered in O(1) time complexity, regardless of the number of fields referenced
+  * *Query Plan Optimization* - when several fields have suitable indexes, CQEngine will use statistical information from the indexes, to internally make a query plan which selects the indexes which can perform the query with minimum time complexity. When some referenced fields have suitable indexes and some do not, CQEngine will use the available indexes first, and will then iterate the smallest possible set of results from those indexes to filter objects for the rest of the query
+  * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
+  * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
+
 == Performance and Time Complexity ==
 To compare the performance of CQEngine versus iteration, let's consider an example.
 
@@ -64,22 +84,3 @@ As such, some statistics about the collection:
 
 || Cars which are green and are manufactured by Ford || 10% ||
 || Cars which are blue and have 3 doors || 10% ||
-
-=== Iteration ===
-The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
-
-Lets call the number of objects in the collection _n_. Lets call the number of tests to be applied to each object _t_. If there were 10,000 objects in the collection (_n_ = 10,000) and 5 tests to apply to each object (_t_ = 5), then performing the query would require _n_ x _t_ tests, or 50,000 tests to be applied to the collection in total. For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would degrade steeply as additional objects were added. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach is O(_n_ _t_).
-
-It should be clear that performing queries using iteration, is like performing SQL queries on a database table which does not have any indexes.
-
-=== CQEngine ===
-In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
-
-In CQEngine:
-  * *Simple Indexes* can be added to any number of individual fields in a collection of objects, allowing queries on just those fields to be answered in O(1) time complexity
-  * *Multiple indexes can be added to the same field*  - several index implementations are provided, each optimized for different types of query on the same field - for example equality, numerical range, string starts with etc.
-  * *Compound Indexes* can be added which span multiple fields, allowing queries referencing several fields to also be answered in O(1) time complexity
-  * *Standing Query Indexes* can be added; these allow _arbitrarily complex queries_ to be answered in O(1) time complexity, regardless of the number of fields referenced
-  * *Query Plan Optimization* - when several fields have suitable indexes, CQEngine will use statistical information from the indexes, to internally make a query plan which selects the indexes which can perform the query with minimum time complexity. When some referenced fields have suitable indexes and some do not, CQEngine will use the available indexes first, and will then iterate the smallest possible set of results from those indexes to filter objects for the rest of the query
-  * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
-  * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
