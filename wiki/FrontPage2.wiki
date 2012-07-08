@@ -90,7 +90,7 @@ public class Car {
 }
 }}}
 
-This method can create a collection of cars for this example:
+This method can create a collection of such cars:
 {{{
     public static Set<Car> createCollectionOfCars(int numCars) {
         Set<Car> cars = new LinkedHashSet<Car>(numCars);
