@@ -67,6 +67,12 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
         return allCars.retrieve(blueCarsWithFourDoors);
     }
 }}}
+Or more concisely:
+{{{
+    public static ResultSet<Car> getBlueCarsWithFourDoors(IndexedCollection<Car> allCars) {
+        return allCars.retrieve(and(equal(Car.COLOR, Car.Color.BLUE), equal(Car.DOORS, 4)));
+    }
+}}}
 
 == Performance and Time Complexity ==
 To compare the performance of CQEngine versus iteration, consider an example of an online car dealership.
