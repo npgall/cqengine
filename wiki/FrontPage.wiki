@@ -81,5 +81,5 @@ In CQEngine:
   * *Standing Query Indexes* can be added; these allow _particular queries to be accelerated_, regardless of the number of fields referenced
   * *Multiple indexes can be added to the same field*  - several index implementations are provided, each optimized for different types of query on the same field - for example equality, numerical range, string starts with etc.
   * *Query Plan Optimization* - when several fields have suitable indexes, CQEngine will use statistical information from the indexes, to internally make a query plan which selects the indexes which can perform the query with minimum time complexity
-  * If no suitable indexes are available, CQEngine will evaluate the query via iteration
   * If some suitable indexes are available but the query also references fields which do not have indexes, CQEngine will use the available indexes and will then iterate the smallest possible set of results from those indexes to evaluate the smallest possible fragment of the query via iteration
+  * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
