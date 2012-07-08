@@ -7,6 +7,8 @@ CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] 
 === Iteration ===
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
+*Performing a Query via Iteration*
+
 This is hugely inefficient, it performs up to 20,000 tests, for a collection of 10,000 cars:
 {{{
     public static Collection<Car> getBlueCarsWithFourDoors(Collection<Car> allCars) {
@@ -23,7 +25,9 @@ This is hugely inefficient, it performs up to 20,000 tests, for a collection of 
 
 *Time Complexity*
 
-Let number of objects in the collection = _n_. Let number of tests to be applied to each object = _t_. If there were 10,000 objects in the collection and 5 tests to apply to each object, performing the query would require _n_ x _t_ tests, or 50,000 tests to be applied to the collection in total. For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would _degrade steeply_ as additional objects were added. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach (worst case) is O(_n_ _t_).
+Let number of objects in the collection = _n_. Let number of tests to be applied to each object = _t_. If there were 10,000 objects in the collection and 5 tests to apply to each object, performing the query would require _n_ x _t_ tests, or 50,000 tests in total.
+
+For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would _degrade steeply_ as additional objects were added. This is not scalable. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach (worst case) is O(_n_ _t_).
 
 *In fact, the iteration above could be improved:*
 
@@ -48,6 +52,17 @@ In CQEngine:
   * *Query Plan Optimization* - when several fields have suitable indexes, CQEngine will use statistical information from the indexes, to internally make a query plan which selects the indexes which can perform the query with minimum time complexity. When some referenced fields have suitable indexes and some do not, CQEngine will use the available indexes first, and will then iterate the smallest possible set of results from those indexes to filter objects for the rest of the query
   * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
   * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
+
+*The Same Query With CQEngine*
+{{{
+    public static ResultSet<Car> getBlueCarsWithFourDoors(IndexedCollection<Car> allCars) {
+        Query<Car> blueCarsWithFourDoors = and(
+                equal(Car.COLOR, Car.Color.BLUE),
+                equal(Car.DOORS, 4)
+        );
+        return allCars.retrieve(blueCarsWithFourDoors);
+    }
+}}}
 
 == Performance and Time Complexity ==
 To compare the performance of CQEngine versus iteration, let's consider an example.
