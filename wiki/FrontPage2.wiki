@@ -71,7 +71,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 == Performance and Time Complexity ==
 To compare the performance of CQEngine versus iteration, consider an example of an online car dealership.
 
-The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc. For the purpose of the example, ignore setter and getter methods, and assume Cars are immutable.
+The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc. For the purpose of the example, assume Cars are simple immutable objects as follows.
 {{{
 public class Car {
     enum Color {RED, GREEN, BLUE, BLACK, WHITE}
