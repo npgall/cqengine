@@ -11,9 +11,9 @@ This is hugely inefficient, it performs up to 20,000 tests, for a collection of 
 {{{
     public static Collection<Car> getBlueCarsWithFourDoors(Collection<Car> allCars) {
         List<Car> results = new LinkedList<Car>();
-        for (Car candidate : allCars) {
-            if (candidate.getColor().equals(Car.Color.BLUE) && candidate.getDoors() == 4) {
-                results.add(candidate);
+        for (Car car : allCars) {
+            if (car.getColor().equals(Car.Color.BLUE) && car.getDoors() == 4) {
+                results.add(car);
             }
         }
         return results;
