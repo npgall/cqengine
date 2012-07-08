@@ -49,10 +49,11 @@ In CQEngine:
   * *Simple Indexes* can be added to any number of individual fields in a collection of objects, allowing queries on just those fields to be answered in O(1) time complexity
   * *Multiple indexes can be added to the same field*  - several index implementations are provided, each optimized for different types of query on the same field - for example equality, numerical range, string starts with etc.
   * *Compound Indexes* can be added which span multiple fields, allowing queries referencing several fields to also be answered in O(1) time complexity
-  * *Standing Query Indexes* can be added; these allow _arbitrarily complex queries_ to be answered in O(1) time complexity, regardless of the number of fields referenced
+  * *Standing Query Indexes* can be added; these allow _arbitrarily complex queries_ to be answered in O(1) time complexity, regardless of the number of fields referenced. Standing Query Indexes can be built for frequently encountered, or hot-spot, full queries or _query fragments_. Any larger queries which happen to contain such query fragments in branches, will benefit from O(1) time complexity evaluation of their branches
   * *Query Plan Optimization* - when several fields have suitable indexes, CQEngine will use statistical information from the indexes, to internally make a query plan which selects the indexes which can perform the query with minimum time complexity. When some referenced fields have suitable indexes and some do not, CQEngine will use the available indexes first, and will then iterate the smallest possible set of results from those indexes to filter objects for the rest of the query
   * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
   * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
+  * *Nested Queries* are fully supported, such as the SQL equivalent of "`WHERE color = 'blue' AND(NOT(doors = 2 OR price > 53.00))`"
 
 *Example: Perform a Query via CQEngine*
 {{{
