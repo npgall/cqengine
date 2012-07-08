@@ -53,7 +53,7 @@ In CQEngine:
   * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
   * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
 
-*The Same Query With CQEngine*
+*Example: Perform a Query via CQEngine*
 {{{
     public static ResultSet<Car> getBlueCarsWithFourDoors(IndexedCollection<Car> allCars) {
         Query<Car> blueCarsWithFourDoors = and(
