@@ -1,5 +1,5 @@
 #labels Deprecated
-CQEngine, Collection Query Engine, is a NoSQL query engine for retrieving objects from Java collections using SQL-like queries, without the overhead of iterating through the collection. The engine is extremely fast and more scalable than conventional iteration; response times are in the order of microseconds.
+*CQEngine*, *C* ollection *Q* uery *Engine*, is a NoSQL query engine for retrieving objects from Java collections using SQL-like queries, without the overhead of iterating through the collection. The engine is extremely fast and more scalable than conventional iteration; response times are in the order of microseconds.
 
 CQEngine is also more intuitive and easier to use than writing code for conventional iteration; most queries can be written in one line of code.
 
