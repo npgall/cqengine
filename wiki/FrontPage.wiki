@@ -31,7 +31,7 @@ This is hugely inefficient, it performs up to 20,000 tests, for a collection of 
 
 The problem with optimization #1, is that implementing it requires *statistical knowledge* of the makeup of the collection, based on the values of the fields within each `Car` object.
   * Fortunately, *CQEngine maintains statistical information* on the makeup of collections, and in fact will always re-order queries to maximize execution speed.
-  * Also fortunately, *CQEngine uses _lazy evaluation_ heavily*: the result sets returned by CQEngine are rarely _materialized_, and instead act as a _view_ over the set of objects in the collection which ultimately match the query.
+  * Also fortunately, *CQEngine uses _lazy evaluation_* heavily: the result sets returned by CQEngine are rarely _materialized_, and instead act as a _view_ over the set of objects in the collection which ultimately match the query.
 
 === Indexing and Query Plan Optimization in CQEngine ===
 In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve products from a collection of `Product` objects, based on the value of field `Product.price`, an index could be added on `Product.price`. Subsequently CQEngine could retrieve the set of objects matching any given price _immediately_ with _constant time complexity_ O(1). No iteration would be necessary, and performance would not degrade as new products were added to the collection.
