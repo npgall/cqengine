@@ -150,7 +150,7 @@ WHERE
 
 *Results*
 
-  * CQEngine is *172.60%* than naive iteration
-  * CQEngine is *136.61%* than optimized iteration
+  * CQEngine is *172.60% faster* than naive iteration
+  * CQEngine is *136.61% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png]
