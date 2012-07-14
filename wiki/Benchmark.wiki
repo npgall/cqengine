@@ -108,42 +108,6 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
 ----
 
-=== Quantized `HashIndex`: _Retrieve By Unique Key_ ===
-
-Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. _Quantized_ `HashIndex` on `Car.CAR_ID` with compression factor 5.
-
-This example demonstrates the effect of *_quantization_* on indexes. Quantization allows the _granularity_ of indexes to be controlled. In this example, the index was created with an `IntegerQuantizer` with compression factor 5. This means that every 5 consecutive `carId`s will be grouped together and stored as a single entry in the index. This reduces the _size_ of the index (reduces memory overhead) and trades it instead for slightly higher _CPU utilization_ during retrieval. The index will need to filter results retrieved from the entry _on-the-fly_, to ensure that they actually match the query.
-
-  * CQEngine query: `equal(Car.CAR_ID, 501)`
-  * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
-
-*Results*
-
-  * CQEngine is *481984.43% faster* than naive iteration
-  * CQEngine is *467645.90% faster* than optimized iteration
-
-[http://cqengine.googlecode.com/svn/wiki/images/quantized-hash-index-unique-carid.png]
-
-----
-
-=== Quantized `NavigableIndex`: _Retrieve !CarId Between_ ===
-
-Retrieve three `Car` objects from the collection based on `Car.carId` having values between 500 and 502. _Quantized_ `NavigableIndex` on `Car.CAR_ID` with compression factor 5.
-
-This example demonstrates that _quantization_ can be applied to navigable indexes, with minimal overhead on _range_-type queries. CQEngine applies _on-the-fly_ filtering only to quantized entries at the _start_ and/or _end_ of ranges.
-
-  * CQEngine query: `between(Car.CAR_ID, 500, 502)`
-  * SQL equivalent: `SELECT * FROM cars WHERE carId BETWEEN 500 AND 502`
-
-*Results*
-
-  * CQEngine is *330187.50% faster* than naive iteration
-  * CQEngine is *325727.79% faster* than optimized iteration
-
-[http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png]
-
-----
-
 === Non-Optimal Indexes: _Retrieve Blue Toyota Cars with Three Doors_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3.
@@ -230,3 +194,41 @@ WHERE
   * CQEngine is *1299.96% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/standing-query-index-manufacturer-color-doors.png]
+
+----
+
+=== Quantized `HashIndex`: _Retrieve By Unique Key_ ===
+
+Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. _Quantized_ `HashIndex` on `Car.CAR_ID` with compression factor 5.
+
+This example demonstrates the effect of *_quantization_* on indexes. Quantization allows the _granularity_ of indexes to be controlled. In this example, the index was created with an `IntegerQuantizer` with compression factor 5. This means that every 5 consecutive `carId`s will be grouped together and stored as a single entry in the index. This reduces the _size_ of the index (reduces memory overhead) and trades it instead for slightly higher _CPU utilization_ during retrieval. The index will need to filter results retrieved from the entry _on-the-fly_, to ensure that they actually match the query.
+
+  * CQEngine query: `equal(Car.CAR_ID, 501)`
+  * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
+
+*Results*
+
+  * CQEngine is *481984.43% faster* than naive iteration
+  * CQEngine is *467645.90% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/quantized-hash-index-unique-carid.png]
+
+----
+
+=== Quantized `NavigableIndex`: _Retrieve !CarId Between_ ===
+
+Retrieve three `Car` objects from the collection based on `Car.carId` having values between 500 and 502. _Quantized_ `NavigableIndex` on `Car.CAR_ID` with compression factor 5.
+
+This example demonstrates that _quantization_ can be applied to navigable indexes, with minimal overhead on _range_-type queries. CQEngine applies _on-the-fly_ filtering only to quantized entries at the _start_ and/or _end_ of ranges.
+
+  * CQEngine query: `between(Car.CAR_ID, 500, 502)`
+  * SQL equivalent: `SELECT * FROM cars WHERE carId BETWEEN 500 AND 502`
+
+*Results*
+
+  * CQEngine is *330187.50% faster* than naive iteration
+  * CQEngine is *325727.79% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png]
+
+----
