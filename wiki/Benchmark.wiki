@@ -3,7 +3,7 @@
 
 Benchmarks to compare the retrieval time (latency) of CQEngine versus two types of iteration: _naive iteration_ and _optimized iteration_. These approaches to iteration are discussed on the front page of the project.
 
-The following benchmarks were run on a 1.8GHz Intel Core i7 MacBook Air with OS X 10.7.4 and Java 1.6.0_26.
+The following benchmarks were run on a 1.8GHz Intel Core i7 !MacBook Air with OS X 10.7.4 and Java 1.6.0_26.
 
 <wiki:toc max_depth="3" />
 
