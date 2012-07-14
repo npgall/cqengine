@@ -140,7 +140,7 @@ Retrieve a single `Car` object from the collection of 100,000 cars, based on `Ca
 
 *Results*
 
-  * CQEngine *630488.48% faster* than naive iteration
-  * CQEngine *627369.75% faster* than optimized iteration
+  * CQEngine is *630488.48% faster* than naive iteration
+  * CQEngine is *627369.75% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
