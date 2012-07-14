@@ -1,7 +1,7 @@
 #labels Deprecated
 === `HashIndex`: _Retrieve By Unique Key_ ===
 
-Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId` having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
+Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId` having value 500, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
 This example demonstrates CQEngine's support for _constant_ retrieval time regardless of the size of the collection.
 
@@ -48,7 +48,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
 === `NavigableIndex`: _Retrieve Price Between_ ===
 
-Retrieve and iterate `Car` objects from the collection based on `Car.price` being _greater than or equal to_ 3000.00 and _less than_ `Car.price` < 4000.00. `NavigableIndex` on `Car.PRICE`.
+Retrieve and iterate `Car` objects from the collection based on `Car.price` being _greater than or equal to_ 3000.00 and _less than_ 4000.00. `NavigableIndex` on `Car.PRICE`.
 
   * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
     * _Note: true = inclusive, false = exclusive_
