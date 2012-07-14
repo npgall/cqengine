@@ -1,9 +1,9 @@
 #labels Deprecated
 === `HashIndex`: _Retrieve By Unique Key_ ===
 
-Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId`having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
+Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId` having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
-This benchmark example demonstrates CQEngine's performance when a small fraction of the collection is matched: it does not need to examine the majority of the collection at all.
+This benchmark example demonstrates CQEngine's support for _constant_ retrieval time regardless of the size of the collection.
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
