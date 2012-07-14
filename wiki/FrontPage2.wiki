@@ -131,5 +131,22 @@ As such, some statistics about the collection:
 || White || 10% ||  ||  || || ||
 
 
-|| Cars which are green and are manufactured by Ford || 10% ||
-|| Cars which are blue and have 3 doors || 10% ||
+=== Retrieve By Unique Key ===
+
+Retrieve a single `Car` object from the collection of 100,000 cars, based on `CarId` which uniquely identifies a car. `HashIndex` on `CarId`.
+
+  * CQEngine query: `equal(Car.CAR_ID, 500)`
+  * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
+
+*Results*
+
+[http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
+
+*Retrieval Times*
+|| *Iteration Naive* || 3064.66 microseconds ||
+|| *Iteration Optimized* || 3049.503 microseconds ||
+|| *CQEngine* || 0.486 microseconds ||
+|| *CQEngine Statistics* || 0.455 microseconds ||
+|| *CQEngine versus Iteration Naive* || CQEngine 630488.48% faster ||
+|| *CQEngine versus Iteration Optimized* || CQEngine 627369.75% faster ||
+
