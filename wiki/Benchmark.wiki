@@ -161,7 +161,6 @@ WHERE
 
 [http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png]
 
-
 === Optimal Indexes (`CompoundIndex`): _Retrieve Blue Toyota Cars with Three Doors_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
@@ -174,3 +173,35 @@ This example demonstrates the improvement in performance when an *optimal* index
   * CQEngine is *1283.20% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/compound-index-manufacturer-color-doors.png]
+
+=== `StandingQueryIndex`: _Retrieve Blue Toyota Cars with Not Five Doors_ ===
+
+Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` *NOT* having value 5.
+
+`StandingQueryIndex` on the query. No other indexes.
+
+This example demonstrates `StandingQueryIndex`. This type of index maintains a set of objects matching a _query_, or fragment of a query. As objects are added to and removed from the collection, it tests objects to see if they match the query, adding them to or removing them from this set as necessary. When CQEngine sees a query or fragment of a query for which a standing query index exists, it can retrieve matching objects for that query or query fragment with constant time complexity.
+
+  * CQEngine query:
+{{{
+and(
+    equal(Car.MANUFACTURER, "Toyota"),
+    equal(Car.COLOR, Car.Color.BLUE),
+    not(equal(Car.DOORS, 5))
+)
+}}}
+  * SQL equivalent:
+{{{
+SELECT * FROM cars
+WHERE
+    manufacturer = 'Toyota'
+    AND color = 'blue'
+    AND doors <> 3
+}}}
+
+*Results*
+
+  * CQEngine is *1607.43% faster* than naive iteration
+  * CQEngine is *1299.96% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/standing-query-index-manufacturer-color-doors.png]
