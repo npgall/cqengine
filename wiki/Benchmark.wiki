@@ -1,8 +1,7 @@
 #labels Deprecated
-
 === Retrieve By Unique Key ===
 
-Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId`having value `500`, which uniquely identifies a car. `HashIndex` on `carId`.
+Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId`having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
@@ -14,8 +13,8 @@ Retrieve a single `Car` object from the collection of 100,000 cars, based on `Ca
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
 
-=== Retrieve cars manufactured by "Ford" ===
-Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `manufacturer`.
+=== Retrieve Manufacturer "Ford" ===
+Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `Car.MANUFACTURER`.
 
   * CQEngine query: `equal(Car.MANUFACTURER, "Ford")`
   * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
@@ -27,8 +26,8 @@ Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, b
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png]
 
-=== Retrieve cars with model "Focus" ===
-Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, based on `Car.model` having value "`Focus`". `HashIndex` on `model`.
+=== Retrieve Model "Focus" ===
+Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, based on `Car.model` having value "`Focus`". `HashIndex` on `Car.MODEL`.
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
@@ -39,3 +38,18 @@ Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, b
   * CQEngine is *1324.17% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
+
+
+=== Retrieve Price Between ===
+
+Retrieve and iterate 20,000 `Car` objects from the collection of 100,000 cars, based on `Car.price` >= 3000.00 and `Car.price` < 4000.00. `NavigableIndex` on `Car.PRICE`.
+
+  * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)` (true = inclusive, false = exclusive)
+  * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
+
+*Results*
+
+  * CQEngine is *506.08% faster* than naive iteration
+  * CQEngine is *325.89% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/navigable-index-price-between.png]
