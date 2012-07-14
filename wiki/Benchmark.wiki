@@ -95,7 +95,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
 Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. _Quantized_ `HashIndex` on `Car.CAR_ID` with compression factor 5.
 
-This example demonstrates the effect of _quantization_ on indexes. Quantization allows the _granularity_ of indexes to be controlled. In this example, the index was created with an `IntegerQuantizer` with compression factor 5. This means that every 5 consecutive `carId`s will be grouped together and stored as a single entry in the index. This reduces the _size_ of the index (reduces memory overhead) and trades it instead for slightly higher _CPU utilization_ during retrieval. The index will need to filter results retrieved from the entry _on-the-fly_, to ensure that they actually match the query.
+This example demonstrates the effect of *_quantization_* on indexes. Quantization allows the _granularity_ of indexes to be controlled. In this example, the index was created with an `IntegerQuantizer` with compression factor 5. This means that every 5 consecutive `carId`s will be grouped together and stored as a single entry in the index. This reduces the _size_ of the index (reduces memory overhead) and trades it instead for slightly higher _CPU utilization_ during retrieval. The index will need to filter results retrieved from the entry _on-the-fly_, to ensure that they actually match the query.
 
   * CQEngine query: `equal(Car.CAR_ID, 501)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
