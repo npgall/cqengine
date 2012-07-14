@@ -157,3 +157,16 @@ Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, b
   * CQEngine is *241.83% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png]
+
+=== Retrieve cars with model "Focus" ===
+Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, based on `Car.model` having value "`Focus`". `HashIndex` on `model`.
+
+  * CQEngine query: `equal(Car.MODEL, "Focus")`
+  * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
+
+*Results*
+
+  * CQEngine is *423.17% faster* than naive iteration
+  * CQEngine is *241.83% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
