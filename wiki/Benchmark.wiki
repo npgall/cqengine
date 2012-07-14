@@ -76,3 +76,17 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
   * CQEngine is *1110.12% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/radix-tree-index-model-starts-with-p.png]
+
+=== `SuffixTreeIndex`: _Retrieve Models Containing_ ===
+
+Retrieve and iterate `Car` objects from the collection based on `Car.model` containing "`g`". `SuffixTreeIndex` on `Car.model`.
+
+  * CQEngine query: `contains(Car.MODEL, "g")`
+  * SQL equivalent: `SELECT * FROM cars WHERE model LIKE '%g%'`
+
+*Results*
+
+  * CQEngine is *1860.53% faster* than naive iteration
+  * CQEngine is *1605.31% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/suffix-tree-index-model-contains-g.png]
