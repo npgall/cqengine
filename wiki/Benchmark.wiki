@@ -55,6 +55,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ModelFocus.java here]
 
 *Results*
 
@@ -72,6 +73,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
   * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
     * _Note: true = inclusive, false = exclusive_
   * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NavigableIndex_PriceBetween.java here]
 
 *Results*
 
@@ -90,6 +92,7 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
 
   * CQEngine query: `startsWith(Car.MODEL, "P")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/RadixTreeIndex_ModelStartsWithP.java here]
 
 *Results*
 
@@ -106,6 +109,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
   * CQEngine query: `contains(Car.MODEL, "g")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE '%g%'`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/SuffixTreeIndex_ModelContainsG.java here]
 
 *Results*
 
@@ -146,6 +150,7 @@ WHERE
     AND color = 'blue'
     AND doors = 3
 }}}
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree.java here]
 
 *Results*
 
@@ -161,6 +166,8 @@ WHERE
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
 
 This example demonstrates the improvement in performance when an *optimal* index is added, for the _same query_ as in the non-optimal indexes example above.
+
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/CompoundIndex_ManufacturerToyotaColorBlueDoorsThree.java here]
 
 *Results*
 
@@ -195,6 +202,7 @@ WHERE
     AND color = 'blue'
     AND doors <> 3
 }}}
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive.java here]
 
 *Results*
 
@@ -213,6 +221,7 @@ This example demonstrates the effect of *_quantization_* on indexes. Quantizatio
 
   * CQEngine query: `equal(Car.CAR_ID, 501)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_HashIndex_CarId.java here]
 
 *Results*
 
@@ -231,6 +240,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
   * CQEngine query: `between(Car.CAR_ID, 500, 502)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId BETWEEN 500 AND 502`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_NavigableIndex_CarId.java here]
 
 *Results*
 
