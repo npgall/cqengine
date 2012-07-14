@@ -19,7 +19,7 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_CarId.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *630488.48% faster* than naive iteration
   * CQEngine is *627369.75% faster* than optimized iteration
@@ -38,7 +38,7 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
   * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ManufacturerFord.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *423.17% faster* than naive iteration
   * CQEngine is *241.83% faster* than optimized iteration
@@ -57,7 +57,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ModelFocus.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *1627.06% faster* than naive iteration
   * CQEngine is *1324.17% faster* than optimized iteration
@@ -75,7 +75,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
   * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NavigableIndex_PriceBetween.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *506.08% faster* than naive iteration
   * CQEngine is *325.89% faster* than optimized iteration
@@ -94,7 +94,7 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/RadixTreeIndex_ModelStartsWithP.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *1357.81% faster* than naive iteration
   * CQEngine is *1110.12% faster* than optimized iteration
@@ -111,7 +111,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE '%g%'`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/SuffixTreeIndex_ModelContainsG.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *1860.53% faster* than naive iteration
   * CQEngine is *1605.31% faster* than optimized iteration
@@ -152,7 +152,7 @@ WHERE
 }}}
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *172.60% faster* than naive iteration
   * CQEngine is *136.61% faster* than optimized iteration
@@ -169,7 +169,7 @@ This example demonstrates the improvement in performance when an *optimal* index
 
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/CompoundIndex_ManufacturerToyotaColorBlueDoorsThree.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *1625.70% faster* than naive iteration
   * CQEngine is *1283.20% faster* than optimized iteration
@@ -204,7 +204,7 @@ WHERE
 }}}
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *1607.43% faster* than naive iteration
   * CQEngine is *1299.96% faster* than optimized iteration
@@ -223,7 +223,7 @@ This example demonstrates the effect of *_quantization_* on indexes. Quantizatio
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_HashIndex_CarId.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *481984.43% faster* than naive iteration
   * CQEngine is *467645.90% faster* than optimized iteration
@@ -242,7 +242,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
   * SQL equivalent: `SELECT * FROM cars WHERE carId BETWEEN 500 AND 502`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_NavigableIndex_CarId.java here]
 
-*Results*
+*Benchmark Results*
 
   * CQEngine is *330187.50% faster* than naive iteration
   * CQEngine is *325727.79% faster* than optimized iteration
