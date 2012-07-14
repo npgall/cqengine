@@ -147,6 +147,5 @@ Retrieve a single `Car` object from the collection of 100,000 cars, based on `Ca
 || *Iteration Optimized* || 3049.503 microseconds ||
 || *CQEngine* || 0.486 microseconds ||
 || *CQEngine Statistics* || 0.455 microseconds ||
-|| *CQEngine versus Iteration Naive* || CQEngine 630488.48% faster ||
-|| *CQEngine versus Iteration Optimized* || CQEngine 627369.75% faster ||
-
+|| *CQEngine versus Iteration Naive* || CQEngine *630488.48% faster* ||
+|| *CQEngine versus Iteration Optimized* || CQEngine *627369.75% faster* ||
