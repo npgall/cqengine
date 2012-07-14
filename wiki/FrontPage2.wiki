@@ -5,6 +5,8 @@ CQEngine is also more intuitive and easier to use than writing code for conventi
 
 CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally it uses indexes, set theory and query plan optimization to process queries, to instead _avoid_ iterating through the collection.
 
+<wiki:toc max_depth="3" />
+
 == Naive and Optimized Iteration ==
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
