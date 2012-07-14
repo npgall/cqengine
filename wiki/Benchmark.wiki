@@ -17,6 +17,7 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_CarId.java here]
 
 *Results*
 
@@ -35,6 +36,7 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
 
   * CQEngine query: `equal(Car.MANUFACTURER, "Ford")`
   * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ManufacturerFord.java here]
 
 *Results*
 
