@@ -162,7 +162,7 @@ WHERE
 [http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png]
 
 
-=== `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ===
+=== Optimal `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
 
