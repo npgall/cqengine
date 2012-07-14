@@ -168,23 +168,6 @@ Retrieve and iterate `Car` objects from the collection based on `Car.manufacture
 
 This example demonstrates the improvement in performance when an *optimal* index is added, for the same query as in the non-optimal indexes example above.
 
-  * CQEngine query:
-{{{
-and(
-    equal(Car.MANUFACTURER, "Toyota"),
-    equal(Car.COLOR, Car.Color.BLUE),
-    equal(Car.DOORS, 3)
-)
-}}}
-  * SQL equivalent:
-{{{
-SELECT * FROM cars
-WHERE
-    manufacturer = 'Toyota'
-    AND color = 'blue'
-    AND doors = 3
-}}}
-
 *Results*
 
   * CQEngine is *1625.70% faster* than naive iteration
