@@ -1,1 +1,41 @@
 #labels Deprecated
+
+=== Retrieve By Unique Key ===
+
+Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId`having value `500`, which uniquely identifies a car. `HashIndex` on `carId`.
+
+  * CQEngine query: `equal(Car.CAR_ID, 500)`
+  * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
+
+*Results*
+
+  * CQEngine is *630488.48% faster* than naive iteration
+  * CQEngine is *627369.75% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
+
+=== Retrieve cars manufactured by "Ford" ===
+Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `manufacturer`.
+
+  * CQEngine query: `equal(Car.MANUFACTURER, "Ford")`
+  * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
+
+*Results*
+
+  * CQEngine is *423.17% faster* than naive iteration
+  * CQEngine is *241.83% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png]
+
+=== Retrieve cars with model "Focus" ===
+Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, based on `Car.model` having value "`Focus`". `HashIndex` on `model`.
+
+  * CQEngine query: `equal(Car.MODEL, "Focus")`
+  * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
+
+*Results*
+
+  * CQEngine is *1627.06% faster* than naive iteration
+  * CQEngine is *1324.17% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
