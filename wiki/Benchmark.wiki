@@ -17,6 +17,8 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
 
+----
+
 === `HashIndex`: _Retrieve Manufacturer "Ford" (large result set)_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `Car.MANUFACTURER`.
@@ -33,7 +35,10 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png]
 
+----
+
 === `HashIndex`: _Retrieve Model "Focus" (smaller result set)_ ===
+
 Retrieve and iterate `Car` objects from the collection based on `Car.model` having value "`Focus`". `HashIndex` on `Car.MODEL`.
 
 This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine is less severely penalised compared with the example above; nevertheless is is a large fraction. CQEngine outperforms iteration by a wider margin in this case.
@@ -47,6 +52,8 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
   * CQEngine is *1324.17% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
+
+----
 
 === `NavigableIndex`: _Retrieve Price Between_ ===
 
@@ -62,6 +69,8 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
   * CQEngine is *325.89% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/navigable-index-price-between.png]
+
+----
 
 === `RadixTreeIndex`: _Retrieve Models Starting With_ ===
 
@@ -79,6 +88,8 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
 
 [http://cqengine.googlecode.com/svn/wiki/images/radix-tree-index-model-starts-with-p.png]
 
+----
+
 === `SuffixTreeIndex`: _Retrieve Models Containing_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` containing "`g`". `SuffixTreeIndex` on `Car.model`.
@@ -92,6 +103,8 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
   * CQEngine is *1605.31% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/suffix-tree-index-model-contains-g.png]
+
+----
 
 === Quantized `HashIndex`: _Retrieve By Unique Key_ ===
 
@@ -109,6 +122,8 @@ This example demonstrates the effect of *_quantization_* on indexes. Quantizatio
 
 [http://cqengine.googlecode.com/svn/wiki/images/quantized-hash-index-unique-carid.png]
 
+----
+
 === Quantized `NavigableIndex`: _Retrieve !CarId Between_ ===
 
 Retrieve three `Car` objects from the collection based on `Car.carId` having values between 500 and 502. _Quantized_ `NavigableIndex` on `Car.CAR_ID` with compression factor 5.
@@ -124,6 +139,8 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
   * CQEngine is *325727.79% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png]
+
+----
 
 === Non-Optimal Indexes: _Retrieve Blue Toyota Cars with Three Doors_ ===
 
@@ -163,6 +180,8 @@ WHERE
 
 [http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png]
 
+----
+
 === Optimal Indexes - `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ===
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
@@ -175,6 +194,8 @@ This example demonstrates the improvement in performance when an *optimal* index
   * CQEngine is *1283.20% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/compound-index-manufacturer-color-doors.png]
+
+----
 
 === `StandingQueryIndex`: _Retrieve Blue Toyota Cars with Not Five Doors_ ===
 
