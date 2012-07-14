@@ -63,7 +63,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
 
 === `RadixTreeIndex`: _Retrieve Models Starting With_ ===
 
-Retrieve and iterate`Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
+Retrieve and iterate `Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
 
   * CQEngine query: `startsWith(Car.MODEL, "P")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
