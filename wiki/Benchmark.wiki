@@ -143,7 +143,7 @@ and(
 {{{
 SELECT * FROM cars
 WHERE
-    manufacturer = 'Toyot'
+    manufacturer = 'Toyota'
     AND color = 'blue'
     AND doors = 3
 }}}
