@@ -31,7 +31,7 @@ public class Car {
 }
 }}}
 
-This method can create a collection of such cars:
+This method was used to create a collection of 100,000 `Car` objects. can create a collection of such cars:
 {{{
     public static Set<Car> createCollectionOfCars(int numCars) {
         Set<Car> cars = new LinkedHashSet<Car>(numCars);
