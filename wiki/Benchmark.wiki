@@ -65,6 +65,8 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
 
+Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries. It would have identical performance characteristics as this `RadixTreeIndex` so it was not benchmarked separately.
+
   * CQEngine query: `startsWith(Car.MODEL, "P")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
 
