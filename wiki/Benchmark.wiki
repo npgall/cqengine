@@ -160,3 +160,34 @@ WHERE
   * CQEngine is *136.61% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png]
+
+
+=== `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ===
+
+Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
+
+This example demonstrates the effect of adding an *optimal* index for the same query as in the example for non-optimal indexes above.
+
+  * CQEngine query:
+{{{
+and(
+    equal(Car.MANUFACTURER, "Toyota"),
+    equal(Car.COLOR, Car.Color.BLUE),
+    equal(Car.DOORS, 3)
+)
+}}}
+  * SQL equivalent:
+{{{
+SELECT * FROM cars
+WHERE
+    manufacturer = 'Toyota'
+    AND color = 'blue'
+    AND doors = 3
+}}}
+
+*Results*
+
+  * CQEngine is *1625.70% faster* than naive iteration
+  * CQEngine is *1283.20% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/compound-index-manufacturer-color-doors.png]
