@@ -166,7 +166,7 @@ Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, b
 
 *Results*
 
-  * CQEngine is *423.17% faster* than naive iteration
-  * CQEngine is *241.83% faster* than optimized iteration
+  * CQEngine is *1627.06% faster* than naive iteration
+  * CQEngine is *1324.17% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
