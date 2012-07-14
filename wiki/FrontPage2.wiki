@@ -5,8 +5,7 @@ CQEngine is also more intuitive and easier to use than writing code for conventi
 
 CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally it uses indexes, set theory and query plan optimization to process queries, to instead _avoid_ iterating through the collection.
 
-== Naive Iteration, Optimized Iteration, and CQEngine ==
-=== Iteration ===
+== Naive and Optimized Iteration ==
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
 *Example: Perform a Query via Iteration*
@@ -42,7 +41,7 @@ The problem with optimization #1, is that implementing it requires *statistical 
   * Also fortunately, *CQEngine uses _lazy evaluation_* heavily: the result sets returned by CQEngine are rarely _materialized_, and instead act as a _view_ over the set of objects in the collection which ultimately match the query.
   * Of course, the main problem with the approach above, is that it *uses iteration in the first place*. It would be useful if it could somehow _jump_ to the sets of cars which have four doors, or which are blue, or both, without having to scan the collection at all.
 
-=== Overview of CQEngine Indexing and Query Plan Optimization ===
+== CQEngine: Indexing and Query Plan Optimization ==
 In CQEngine, it is possible to build indexes on the fields of the objects stored in a collection. For example, if many queries retrieve cars from a collection of `Car` objects, based on the value of field `Car.color`, an index could be added on `Car.color`. Subsequently CQEngine could retrieve the set of objects matching any given color _immediately_ with _constant time complexity_ O(_1_). No iteration would be necessary, and performance would not degrade as new cars were added to the collection.
 
 In CQEngine:
