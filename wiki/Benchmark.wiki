@@ -1,4 +1,6 @@
 #labels Deprecated
+<wiki:toc max_depth="3" />
+
 === `HashIndex`: _Retrieve By Unique Key_ ===
 
 Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
