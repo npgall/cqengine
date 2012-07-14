@@ -129,7 +129,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.manufacture
 
 `HashIndex` on `Car.DOORS`. _No indexes for Manufacturer or Color_.
 
-This example demonstrates CQEngine's handling of queries for which optimal indexes do not exist. An ideal configuration for this type of query would have a `CompoundIndex` on the three fields to allow constant time retrieval. However in this instance, only a `HashIndex` on `Car.DOORS` has been added. CQEngine makes the most of the available indexes. In this case it uses the `Car.DOORS` index to reduce the _candidate set_ from 100,000 cars to 20,000 cars, and then it _iterates_ the set of 20,000 cars applying _on-the-fly_ filtering to return only those cars which match the rest of the query.
+This example demonstrates CQEngine's handling of queries for which optimal indexes do not exist. An ideal configuration for this type of query would have a `CompoundIndex` on the three fields above to enable constant time retrieval. However in this instance, only a `HashIndex` on `Car.DOORS` has been added. CQEngine makes the most of the available indexes. In this case it uses the `Car.DOORS` index to reduce the _candidate set_ from 100,000 cars to 20,000 cars, and then it _iterates_ the candidate set, applying _on-the-fly_ filtering to return only those cars which match the rest of the query.
 
   * CQEngine query:
 {{{
