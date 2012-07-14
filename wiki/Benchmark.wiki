@@ -1,9 +1,16 @@
 #labels Deprecated
+
+= Benchmarks =
+
+Benchmarks to compare the retrieval time (latency) of CQEngine versus two types of iteration: _naive iteration_ and _optimized iteration_. These approaches to iteration are discussed on the front page of the project.
+
+The following benchmarks were run on a 1.8GHz Core i7 MacBook Air with OS X 10.7.4 and Java 1.6.0_26.
+
 <wiki:toc max_depth="3" />
 
 ----
 
-=== `HashIndex`: _Retrieve By Unique Key_ ===
+== `HashIndex`: _Retrieve By Unique Key_ ==
 
 Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
@@ -21,7 +28,7 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
 
 ----
 
-=== `HashIndex`: _Retrieve Manufacturer "Ford" (large result set)_ ===
+== `HashIndex`: _Retrieve Manufacturer "Ford" (large result set)_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `Car.MANUFACTURER`.
 
@@ -39,7 +46,7 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
 
 ----
 
-=== `HashIndex`: _Retrieve Model "Focus" (smaller result set)_ ===
+== `HashIndex`: _Retrieve Model "Focus" (smaller result set)_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` having value "`Focus`". `HashIndex` on `Car.MODEL`.
 
@@ -57,7 +64,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
 ----
 
-=== `NavigableIndex`: _Retrieve Price Between_ ===
+== `NavigableIndex`: _Retrieve Price Between_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.price` being _greater than or equal to_ 3000.00 and _less than_ 4000.00. `NavigableIndex` on `Car.PRICE`.
 
@@ -74,7 +81,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
 
 ----
 
-=== `RadixTreeIndex`: _Retrieve Models Starting With_ ===
+== `RadixTreeIndex`: _Retrieve Models Starting With_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
 
@@ -92,7 +99,7 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
 
 ----
 
-=== `SuffixTreeIndex`: _Retrieve Models Containing_ ===
+== `SuffixTreeIndex`: _Retrieve Models Containing_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` containing "`g`". `SuffixTreeIndex` on `Car.model`.
 
@@ -108,7 +115,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
 ----
 
-=== Non-Optimal Indexes: _Retrieve Blue Toyota Cars with Three Doors_ ===
+== Non-Optimal Indexes: _Retrieve Blue Toyota Cars with Three Doors_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3.
 
@@ -148,7 +155,7 @@ WHERE
 
 ----
 
-=== Optimal Indexes - `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ===
+== Optimal Indexes - `CompoundIndex`: _Retrieve Blue Toyota Cars with Three Doors_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
 
@@ -163,7 +170,7 @@ This example demonstrates the improvement in performance when an *optimal* index
 
 ----
 
-=== `StandingQueryIndex`: _Retrieve Blue Toyota Cars with Not Five Doors_ ===
+== `StandingQueryIndex`: _Retrieve Blue Toyota Cars with Not Five Doors_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` *NOT* having value 5.
 
@@ -197,7 +204,7 @@ WHERE
 
 ----
 
-=== Quantized `HashIndex`: _Retrieve By Unique Key_ ===
+== Quantized `HashIndex`: _Retrieve By Unique Key_ ==
 
 Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. _Quantized_ `HashIndex` on `Car.CAR_ID` with compression factor 5.
 
@@ -215,7 +222,7 @@ This example demonstrates the effect of *_quantization_* on indexes. Quantizatio
 
 ----
 
-=== Quantized `NavigableIndex`: _Retrieve !CarId Between_ ===
+== Quantized `NavigableIndex`: _Retrieve !CarId Between_ ==
 
 Retrieve three `Car` objects from the collection based on `Car.carId` having values between 500 and 502. _Quantized_ `NavigableIndex` on `Car.CAR_ID` with compression factor 5.
 
