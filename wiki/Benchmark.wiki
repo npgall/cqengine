@@ -1,5 +1,5 @@
 #labels Deprecated
-=== Retrieve By Unique Key ===
+=== `HashIndex`: _Retrieve By Unique Key_ ===
 
 Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId`having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
@@ -13,8 +13,11 @@ Retrieve a single `Car` object from the collection of 100,000 cars, based on `Ca
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
 
-=== Retrieve Manufacturer "Ford" ===
-Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `Car.MANUFACTURER`.
+=== `HashIndex`: _Retrieve Manufacturer "Ford" (large result set)_ ===
+
+Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Ford`". `HashIndex` on `Car.MANUFACTURER`.
+
+This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benchmark example forces CQEngine to iterate all 30,000 cars, even though most applications would not require that many results. In contrast, the iteration approaches can _require_ the entire collection to be iterated, because matching results could be located towards the end of the collection. CQEngine `Iterator`s intentionally support _paging_ through results, and due to _lazy evaluation_ in its iterators, if the application stops iterating, no unnecessary computations would have been performed. This example is nonetheless to demonstrate CQEngine's performance when a large fraction of the collection is requested and processed.
 
   * CQEngine query: `equal(Car.MANUFACTURER, "Ford")`
   * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
@@ -26,8 +29,10 @@ Retrieve and iterate 30,000 `Car` objects from the collection of 100,000 cars, b
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png]
 
-=== Retrieve Model "Focus" ===
-Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, based on `Car.model` having value "`Focus`". `HashIndex` on `Car.MODEL`.
+=== `HashIndex`: _Retrieve Model "Focus" (smaller result set)_ ===
+Retrieve and iterate `Car` objects from the collection based on `Car.model` having value "`Focus`". `HashIndex` on `Car.MODEL`.
+
+This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine is less severely penalised compared with the example above; nevertheless is is a large fraction. CQEngine outperforms iteration by a wider margin in this case.
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
@@ -39,10 +44,9 @@ Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, b
 
 [http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png]
 
+=== `NavigableIndex`: _Retrieve Price Between_ ===
 
-=== Retrieve Price Between ===
-
-Retrieve and iterate 20,000 `Car` objects from the collection of 100,000 cars, based on `Car.price` >= 3000.00 and `Car.price` < 4000.00. `NavigableIndex` on `Car.PRICE`.
+Retrieve and iterate `Car` objects from the collection based on `Car.price` being _greater than or equal to_ 3000.00 and _less than_ `Car.price` < 4000.00. `NavigableIndex` on `Car.PRICE`.
 
   * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
     * _Note: true = inclusive, false = exclusive_
@@ -54,3 +58,17 @@ Retrieve and iterate 20,000 `Car` objects from the collection of 100,000 cars, b
   * CQEngine is *325.89% faster* than optimized iteration
 
 [http://cqengine.googlecode.com/svn/wiki/images/navigable-index-price-between.png]
+
+=== `RadixTreeIndex`: _Retrieve Models Starting With_ ===
+
+Retrieve and iterate`Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
+
+  * CQEngine query: `startsWith(Car.MODEL, "P")`
+  * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
+
+*Results*
+
+  * CQEngine is *1357.81% faster* than naive iteration
+  * CQEngine is *1110.12% faster* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/radix-tree-index-model-starts-with-p.png]
