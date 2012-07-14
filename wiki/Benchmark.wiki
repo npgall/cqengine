@@ -3,7 +3,7 @@
 
 Retrieve a single `Car` object from the collection of 100,000 cars, based on `Car.carId` having value `500`, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
 
-This benchmark example demonstrates CQEngine's support for _constant_ retrieval time regardless of the size of the collection.
+This example demonstrates CQEngine's support for _constant_ retrieval time regardless of the size of the collection.
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
