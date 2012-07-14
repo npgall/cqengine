@@ -166,7 +166,7 @@ WHERE
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
 
-This example demonstrates the effect of adding an *optimal* index for the same query as in the non-optimal indexes example above.
+This example demonstrates the improvement in performance when an *optimal* index is added, for the same query as in the non-optimal indexes example above.
 
   * CQEngine query:
 {{{
