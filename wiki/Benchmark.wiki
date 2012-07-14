@@ -44,7 +44,8 @@ Retrieve and iterate 10,000 `Car` objects from the collection of 100,000 cars, b
 
 Retrieve and iterate 20,000 `Car` objects from the collection of 100,000 cars, based on `Car.price` >= 3000.00 and `Car.price` < 4000.00. `NavigableIndex` on `Car.PRICE`.
 
-  * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)` (true = inclusive, false = exclusive)
+  * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
+    * _(true = inclusive, false = exclusive)_
   * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
 
 *Results*
