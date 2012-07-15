@@ -51,7 +51,7 @@ Here is an example of the performance of CQEngine versus iteration:
   * CQEngine is *330187.50% faster* than naive iteration
   * CQEngine is *325727.79% faster* than optimized iteration
 
-See the Benchmark wiki page for tests with various types of query.
+See the [Benchmark] wiki page for tests with various types of query.
 
 == CQEngine Overview ==
 
