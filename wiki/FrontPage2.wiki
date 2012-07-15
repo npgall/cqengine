@@ -61,7 +61,7 @@ In CQEngine:
 
 == How it works ===
 
-The primary class in CQEngine with which the application will interact, is `IndexedCollection`. This class implements the [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] and [http://docs.oracle.com/javase/6/docs/api/java/util/Collection.html java.util.Collection] interfaces, and as such the application can use it as a regular Java collection: objects can be added to and removed from the collection as normal, and the collection can be iterated as normal.
+The primary class in CQEngine with which the application will interact, is `IndexedCollection`. This class implements the [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] interface, and so it behaves like and can be used as a regular Java collection: objects can be added to and removed from the collection as normal, and the collection can be iterated as normal.
 
 The difference between `IndexedCollection` and a normal collection however, is that it also provides the following methods:
 
