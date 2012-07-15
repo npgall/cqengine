@@ -171,7 +171,7 @@ Here is an example for a calculated attribute:
 
 A `HashIndex` could be built on the virtual attribute above, which would enable fast retrievals of cars which are either dirty or not dirty, without needing to scan the collection.
 
-*Associations with external data sources or other indexed collections*
+*Associations with Other `IndexedCollections` or External Data Sources*
 
 Here is an example for a virtual attribute which *associates* with each `Car` a list of locations which can service it, from an external data source:
 {{{
