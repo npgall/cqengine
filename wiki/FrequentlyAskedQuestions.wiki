@@ -6,7 +6,7 @@ Frequently Asked Questions. For various values of "frequently".
 
 == What do you mean by: What I think I know about scalability is wrong?!!? ==
 
-If you think that 6 milliseconds to iterate a collection will be fine for your application, then unfortunately it's true. That is, if your application gets any reasonable amount of traffic, it will die, and it won't be graceful.
+If you think that 6 milliseconds to iterate a collection as seen in a trivial test or microbenchmark will be fine for your application, then unfortunately it's true. That is, if your application gets any reasonable amount of traffic, it will die, and it won't be graceful.
 
 This question is best answered with another question:
 
@@ -22,9 +22,9 @@ Some interesting facts about this:
   * 50% requests take longer than 50ms to process
   * 10% of requests take 100ms to process
 
-When designing applications, even looking at *average* response time alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads is important.
+When designing applications, even looking at *average* response time alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
 
-If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
+Anecdote: If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
 
 Failure to appreciate _queueing delay_ is a major reason for sudden unresponsiveness of applications under high load: queues just start growing, latency skyrockets. Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot process requests faster than they are received.
 
@@ -32,6 +32,6 @@ A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU
 
 The answer to this question really is:
 
-*The results of microbenchmarks represent rarely achieved best-case scenarios in laboratory conditions*. Queueing delay and CPU starvation will multiply latencies in real applications.
+*The results of microbenchmarks represent rarely achieved best-case scenarios from laboratory conditions*. Queueing delay and CPU starvation will multiply latencies in real applications.
 
-This applies to the benchmarks in this project for both iteration and CQEngine. But the _purpose_ of CQEngine, is to make processing time _tunable_, so that applications can scale to higher workloads without additional hardware.
+This applies to the benchmarks in this project for both iteration and CQEngine. But a _goal_ of CQEngine, is to be faster in the first place and to make processing time _tunable_, so that applications can scale to higher workloads essentially without adding additional hardware.
