@@ -1,0 +1,14 @@
+#summary Frequently Asked Questions
+#labels Deprecated
+
+Frequently Asked Questions. For various values of "frequently".
+<wiki:toc max_depth="3" />
+
+== What do you mean by: What I think I know about scalability is wrong?!!? ==
+If you think that 6 milliseconds to iterate a collection will be fine for your application, then unfortunately it's true. Your application will die, and it won't be graceful.
+
+This question is best answered with another question:
+*What is the average latency for a queue of 10 requests where each request takes 10ms to process?*
+
+Here is a nice diagram:
+[http://cqengine.googlecode.com/svn/wiki/images/latency-in-a queue.png]
