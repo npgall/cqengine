@@ -69,6 +69,8 @@ Applications mostly interact with [http://cqengine.googlecode.com/svn/cqengine/j
 
 Here is a *complete example* which demonstrates how indexed collections are used. It does not discuss _attributes_, which are discussed below.
 {{{
+import static com.googlecode.cqengine.query.QueryFactory.*;
+
 public class Introduction {
 
     public static void main(String[] args) {
