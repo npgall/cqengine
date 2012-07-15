@@ -3,6 +3,7 @@ CQEngine, Collection Query Engine, is a NoSQL query engine for retrieving object
 
 CQEngine is also more intuitive and easier to use than writing code for conventional iteration; most queries can be written in one line of code.
 
+== Related Projects ==
 CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally it uses indexes, set theory and query plan optimization to process queries, to instead _avoid_ iterating through the collection.
 
 <wiki:toc max_depth="3" />
@@ -58,77 +59,19 @@ In CQEngine:
   * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration, using lazy evaluation. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
   * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place
 
+== How it works ===
+
+The primary class in CQEngine with which the application will interact, is `IndexedCollection`. This class implements the [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] and [http://docs.oracle.com/javase/6/docs/api/java/util/Collection.html java.util.Collection] interfaces, and as such the application can use it as a regular Java collection: objects can be added to and removed from the collection as normal, and the collection can be iterated as normal.
+
+The difference between `IndexedCollection` and a normal collection however, is that it also provides the following methods:
+
+  * `IndexecCollection.addIndex(SomeIndex)` allows indexes to be added to the collection
+  * `IndexedCollection.retrieve(Query)` returns a `ResultSet` which provides objects matching a query
+
+
 *Example: Perform a Query via CQEngine*
-{{{
-import static com.googlecode.cqengine.query.QueryFactory.*;
-...
-    public static ResultSet<Car> getBlueCarsWithFourDoors(IndexedCollection<Car> allCars) {
-        Query<Car> blueCarsWithFourDoors = and(
-                equal(Car.COLOR, Car.Color.BLUE),
-                equal(Car.DOORS, 4)
-        );
-        return allCars.retrieve(blueCarsWithFourDoors);
-    }
-}}}
-Or more concisely:
 {{{
     public static ResultSet<Car> getBlueCarsWithFourDoors(IndexedCollection<Car> allCars) {
         return allCars.retrieve(and(equal(Car.COLOR, Car.Color.BLUE), equal(Car.DOORS, 4)));
     }
 }}}
-
-== Benchmark ==
-To compare the performance of CQEngine versus iteration, consider an example of an online car dealership.
-
-The dealership has a website with a catalogue of 100,000 cars. So it has a collection of `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc. For the purpose of the example, assume Cars are simple immutable objects as follows.
-{{{
-public class Car {
-    enum Color {RED, GREEN, BLUE, BLACK, WHITE}
-    public final int carId;
-    public final String manufacturer;
-    public final String model;
-    public final Color color;
-    public final int doors;
-    public final double price;
-
-    public Car(int carId, String manufacturer, String model, Color color, int doors, double price) {
-        this.carId = carId;
-        this.manufacturer = manufacturer;
-        this.model = model;
-        this.color = color;
-        this.doors = doors;
-        this.price = price;
-    }
-}
-}}}
-
-This method can create a collection of such cars:
-{{{
-    public static Set<Car> createCollectionOfCars(int numCars) {
-        Set<Car> cars = new LinkedHashSet<Car>(numCars);
-        for (int carId = 0; carId < numCars; carId++) {
-            switch (carId % 10) {
-                case 0: cars.add( new Car(carId, "Ford",   "Focus",   Car.Color.RED,   5, 5000.00) ); break;
-                case 1: cars.add( new Car(carId, "Ford",   "Fusion",  Car.Color.RED,   4, 3999.99) ); break;                    
-                case 2: cars.add( new Car(carId, "Ford",   "Taurus",  Car.Color.GREEN, 4, 6000.00) ); break;                    
-                case 3: cars.add( new Car(carId, "Honda",  "Civic",   Car.Color.WHITE, 5, 4000.00) ); break;                    
-                case 4: cars.add( new Car(carId, "Honda",  "Accord",  Car.Color.BLACK, 5, 3000.00) ); break;                    
-                case 5: cars.add( new Car(carId, "Honda",  "Insight", Car.Color.GREEN, 3, 5000.00) ); break;                    
-                case 6: cars.add( new Car(carId, "Toyota", "Avensis", Car.Color.GREEN, 5, 5999.95) ); break;                    
-                case 7: cars.add( new Car(carId, "Toyota", "Prius",   Car.Color.BLUE,  3, 8500.00) ); break;                    
-                case 8: cars.add( new Car(carId, "Toyota", "Hilux",   Car.Color.RED,   5, 7800.55) ); break;                    
-                case 9: cars.add( new Car(carId, "BMW",    "M6",      Car.Color.BLUE,  2, 9000.23) ); break;                    
-                default: throw new IllegalStateException();
-            }
-        }
-        return cars;
-    }
-}}}
-
-As such, some statistics about the collection:
-|| *Color (aka Colour :)* || *% of cars* || *Manufacturer* || *% of cars* || *Number of doors* || *% of cars* ||
-|| Red || 30% || Ford || 30% || 5 || 50% ||
-|| Green || 30% || Honda || 30% || 4 || 20% ||
-|| Blue || 20% || Toyota || 30% || 3 || 20% ||
-|| Black || 10% || BMW || 10% || 2 || 10% ||
-|| White || 10% ||  ||  || || ||
