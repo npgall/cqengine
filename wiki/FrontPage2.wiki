@@ -154,6 +154,35 @@ Here is an example of how to define a `MultiValueAttribute` for a `Car` object w
     };
 }}}
 
-*Attribute as Functions*
+== Attributes as Functions ==
 
-It can be noted that attributes are only required to return a value given an object. Although most will do so, there is no requirement that an attribute must provide a value by reading a field in the object. As such attributes can be implemented as _functions_, which can _calculate_ an appropriate value for an object; or which can return a value for the object based on an _association with another collection_.
+It can be noted that attributes are only required to return a value given an object. Although most will do so, there is no requirement that an attribute must provide a value by reading a field in the object. As such attributes can be _virtual_, implemented as _functions_.
+
+*Calculated Attributes*
+
+An attribute can *_calculate_* an appropriate value for an object, based on a function applied to data contained in other fields or from external data sources.
+
+Here is an example for a calculated attribute:
+{{{
+    public static final Attribute<Car, Boolean> IS_DIRTY = new SimpleAttribute<Car, Boolean>("is_dirty") {
+        public Boolean getValue(Car car) { return car.description.contains("dirty"); }
+    };
+}}}
+
+A `HashIndex` could be built on the virtual attribute above, which would enable fast retrievals of cars which are either dirty or not dirty, without needing to scan the collection.
+
+*Associations with external data sources or other indexed collections*
+
+Here is an example for a virtual attribute which *associates* with each `Car` a list of locations which can service it, from an external data source:
+{{{
+    public static final Attribute<Car, String> SERVICE_LOCATIONS = new MultiValueAttribute<Car, String>() {
+        public List<String> getValues(Car car) {
+            return CarServiceManager.getServiceLocationsForCar(car);
+        }
+    };
+}}}
+The attribute above would allow the `IndexedCollection` of cars to be searched for cars which have servicing options in a particular location.
+
+The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example.
+
+Care should be taken if building _indexes_ on virtual attributes, if referenced data might change leaving obsolete information in indexes. A strategy to accommodate this is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
