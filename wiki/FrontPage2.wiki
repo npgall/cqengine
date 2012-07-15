@@ -65,8 +65,8 @@ The primary class in CQEngine with which the application will interact, is `Inde
 
 The difference between `IndexedCollection` and a normal collection however, is that it also provides the following methods:
 
-  * `IndexecCollection.addIndex(SomeIndex)` allows indexes to be added to the collection
-  * `IndexedCollection.retrieve(Query)` returns a `ResultSet` which provides objects matching a query
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index) IndexecCollection.addIndex(SomeIndex)] allows indexes to be added to the collection
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query) IndexedCollection.retrieve(Query)] returns a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet] which provides objects matching a query. `ResultSet` implements [http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html java.lang.Iterable], so results matching the query can be accessed by iterating it
 
 
 *Example: Perform a Query via CQEngine*
