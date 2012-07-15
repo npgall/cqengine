@@ -26,4 +26,8 @@ Failure to appreciate _queueing delay_ is a major reason for the failure of appl
 
 A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will _more than_ double (it gets compounded by the overhead of _context-switching_). Tying up threads to process requests for longer, requires more threads to be created in thread pools to handle additional incoming requests. Then when any `max_threads` threshold is reached on a thread pool, requests will be queued.
 
-*The results of microbenchmarks, represent rarely achieved best-case scenarios in laboratory conditions*. This applies to benchmark results for CQEngine too; but at least in CQEngine there are options to reduce latency without adding additional hardware.
+The answer to this question really is:
+
+*The results of microbenchmarks represent rarely achieved best-case scenarios in laboratory conditions*.
+
+This applies to the benchmarks in this project for both iteration and CQEngine. But the _purpose_ of CQEngine, is to make processing time a _tunable_ thing.
