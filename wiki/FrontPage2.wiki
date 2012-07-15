@@ -62,10 +62,10 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Complete Example ===
 
-Applications mostly interact with [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/IndexedCollection.html IndexedCollection]. This is an implementation of [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] (so it can be used as a normal collection), and it also provides the following methods:
+Applications mostly interact with [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/IndexedCollection.html IndexedCollection], which is an implementation of [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set], and which provides two additional methods:
 
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index) IndexecCollection.addIndex(SomeIndex)] allows indexes to be added to the collection
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query) IndexedCollection.retrieve(Query)] accepts a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/Query.html Query] and returns a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet] providing objects matching that query. `ResultSet` implements [http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html java.lang.Iterable], so accessing results is achieved by iterating the result set
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index) addIndex(SomeIndex)] allows indexes to be added to the collection
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query) retrieve(Query)] accepts a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/Query.html Query] and returns a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet] providing objects matching that query. `ResultSet` implements [http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html java.lang.Iterable], so accessing results is achieved by iterating the result set
 
 Here is a *complete example* which demonstrates how indexed collections are used. It does not discuss _attributes_, which are discussed below.
 {{{
