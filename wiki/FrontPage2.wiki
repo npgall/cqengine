@@ -67,7 +67,62 @@ Applications mostly interact with [http://cqengine.googlecode.com/svn/cqengine/j
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index) IndexecCollection.addIndex(SomeIndex)] allows indexes to be added to the collection
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query) IndexedCollection.retrieve(Query)] accepts a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/Query.html Query] and returns a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet] providing objects matching that query. ResultSet implements [http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html java.lang.Iterable], so accessing results is achieved by iterating the result set
 
-=== Attributes ===
+Here is a complete example which demonstrates how indexed collections are used. It does not discuss _attributes_, which are discussed below.
+{{{
+public class Introduction {
+
+    public static void main(String[] args) {
+        // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
+        IndexedCollection<Car> cars = CQEngine.newInstance();
+
+        // Add some indexes...
+        cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
+        cars.addIndex(ReversedRadixTreeIndex.onAttribute(Car.NAME));
+        cars.addIndex(SuffixTreeIndex.onAttribute(Car.DESCRIPTION));
+        cars.addIndex(HashIndex.onAttribute(Car.FEATURES));
+
+        // Add some objects to the collection...
+        cars.add(new Car(1, "ford focus", "great condition, low mileage", Arrays.asList("spare tyre", "sunroof")));
+        cars.add(new Car(2, "ford taurus", "dirty and unreliable, flat tyre", Arrays.asList("spare tyre", "radio")));
+        cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
+
+        // -------------------------- Run some queries --------------------------
+        System.out.println("Cars whose name ends with 'vic' or whose id is less than 2:");
+        Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
+        for (Car car : cars.retrieve(query1)) {
+            System.out.println(car);
+        }
+
+        System.out.println("\nCars whose flat tyre can be replaced:");
+        Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
+        for (Car car : cars.retrieve(query2)) {
+            System.out.println(car);
+        }
+
+        System.out.println("\nCars which have a sunroof or a radio but are not dirty:");
+        Query<Car> query3 = and(in(Car.FEATURES, "sunroof", "radio"), not(contains(Car.DESCRIPTION, "dirty")));
+        for (Car car : cars.retrieve(query3)) {
+            System.out.println(car);
+        }
+    }
+}
+}}}
+
+*Output from the example*
+{{{
+Cars whose name ends with 'vic' or whose id is less than 2:
+Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
+Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
+
+Cars whose flat tyre can be replaced:
+Car{carId=2, name='ford taurus', description='dirty and unreliable, flat tyre', features=[spare tyre, radio]}
+
+Cars which have a sunroof or a radio but are not dirty:
+Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
+Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
+}}}
+
+== Attributes ==
 
 CQEngine needs to access fields inside objects, so that it can build indexes on fields, and retrieve the value of a certain field from any given object.
 
