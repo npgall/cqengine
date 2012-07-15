@@ -26,7 +26,7 @@ When designing applications, even looking at *average* response time alone is da
 
 If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
 
-Failure to appreciate _queueing delay_ is a major reason for the failure of applications under high load. Even in applications which do not have explicit queues, queues implicitly form behind any synchronized logic, blocking IO calls, or in general behind any part of the application which cannot process requests faster than they are received.
+Failure to appreciate _queueing delay_ is a major reason for sudden unresponsiveness of applications under high load: queues just start growing, latency skyrockets. Even in applications which do not have explicit queues, queues implicitly form behind any synchronized logic, blocking IO calls, or behind any part of the application which cannot process requests faster than they are received.
 
 A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will _more than_ double (it gets compounded by the overhead of _context-switching_). Tying up threads to process requests for longer, additionally compounds the problem by requiring more threads to be created in thread pools, to handle additional incoming requests.
 
