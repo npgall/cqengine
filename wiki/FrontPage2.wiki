@@ -7,7 +7,7 @@ CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] 
 
 <wiki:toc max_depth="3" />
 
-== The problem with Iteration ==
+== The Limits of Iteration ==
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
 *Example: Perform a Query via _Naive Iteration_*
