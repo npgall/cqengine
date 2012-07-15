@@ -6,7 +6,7 @@ Frequently Asked Questions. For various values of "frequently".
 
 == What do you mean by: What I think I know about scalability is wrong?!!? ==
 
-If you think that 6 milliseconds to iterate a collection will be fine for your application, then unfortunately it's true. If your application gets any reasonable amount of traffic, it will die, and it won't be graceful.
+If you think that 6 milliseconds to iterate a collection will be fine for your application, then unfortunately it's true. That is, if your application gets any reasonable amount of traffic, it will die, and it won't be graceful.
 
 This question is best answered with another question:
 
@@ -22,6 +22,6 @@ Some interesting facts about this:
 
 Failure to appreciate _queueing delay_ is a major reason for the failure of applications under high load. Even in applications which do not have explicit queues, queues will form implicitly behind any synchronized code, any blocking IO call, or any part of the application which cannot process requests faster than they are received.
 
-A related culprit is oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will more than double (compounded by the overhead of _context-switching_). This requires more threads to be created in thread pools to handle additional incoming requests. Then when any `max_threads` threshold is reached on a thread pool, requests will be queued.
+A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will _more than_ double (it gets compounded by the overhead of _context-switching_). Tying up threads to process requests for longer, requires more threads to be created in thread pools to handle additional incoming requests. Then when any `max_threads` threshold is reached on a thread pool, requests will be queued.
 
-*The results of microbenchmarks, represent rarely achieved best-case scenarios in laboratory conditions*.
+*The results of microbenchmarks, represent rarely achieved best-case scenarios in laboratory conditions*. This applies to benchmark results for CQEngine too; but at least in CQEngine there are options to reduce latency without adding additional hardware.
