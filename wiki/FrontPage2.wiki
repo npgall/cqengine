@@ -32,7 +32,7 @@ Let number of objects in the collection = _n_. Let number of tests to be applied
 
 For every _additional_ object added to the collection, _five_ additional tests would need to be performed. As such the performance of queries would _degrade steeply_ as additional objects were added. This is not scalable. The [http://en.wikipedia.org/wiki/Time_complexity time complexity] of this iteration approach (worst case) is O(_n_ _t_).
 
-*Optimized Iteration*
+*_Optimized Iteration_*
 
 In fact, the iteration above could be improved:
 
