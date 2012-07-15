@@ -30,4 +30,4 @@ The answer to this question really is:
 
 *The results of microbenchmarks represent rarely achieved best-case scenarios in laboratory conditions*.
 
-This applies to the benchmarks in this project for both iteration and CQEngine. But the _purpose_ of CQEngine, is to make processing time a _tunable_ thing.
+This applies to the benchmarks in this project for both iteration and CQEngine. But the _purpose_ of CQEngine, is to make processing time _tunable_.
