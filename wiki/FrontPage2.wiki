@@ -71,7 +71,7 @@ Applications mostly interact with [http://cqengine.googlecode.com/svn/cqengine/j
 
 CQEngine needs to access fields inside objects, so that it can build indexes on fields, and retrieve the value of a certain field from any given object.
 
-CQEngine does not use reflection to do this; instead it has a notion of *attributes*, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object of the relevant type.
+CQEngine does not use reflection to do this; instead it uses *attributes*, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object of the relevant type.
 
 Here is an example of how to define an attribute for a Car object, which reads the `Car.carId` field:
 {{{
@@ -81,8 +81,13 @@ Here is an example of how to define an attribute for a Car object, which reads t
 }}}
 Usually attributes are defined as anonymous `static` `final` objects like this. Supplying the `"carId"` string parameter to the constructor is actually optional, it is not used by the query engine per-se, except it will lead to more informative exception messages.
 
-Since this attribute reads a field from a `Car` object, the usual place to put the attribute is inside the `Car` class - and this makes queries more readable. However it could really be defined in any class, such as `CarAttributes` or similar.
+Since this attribute reads a field from a `Car` object, the usual place to put the attribute is inside the `Car` class - and this makes queries more readable. However it could really be defined in any class, such as `CarAttributes` or similar. The example above is for a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/attribute/SimpleAttribute.html SimpleAttribute], which is designed for fields containing only one value.
 
-The example above is for a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/attribute/SimpleAttribute.html SimpleAttribute].
+CQEngine provides supports another type of attribute: [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/attribute/MultiValueAttribute.html MultiValueAttribute] which can read the values of fields which themselves are collections, and so supports building indexes on objects based on things like keywords associated with those objects.
 
-CQEngine provides supports another type of attribute: [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/attribute/MultiValueAttribute.html MultiValueAttribute]. This is an example of `MultiValueAttribute`:
+Here is an example of how to define a `MultiValueAttribute` for a `Car` object which reads the values from `Car.features` where that field is a `List<String>`:
+{{{
+    public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Car, String>("features") {
+        public List<String> getValues(Car car) { return car.features; }
+    };
+}}}
