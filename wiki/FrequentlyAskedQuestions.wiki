@@ -32,6 +32,8 @@ A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU
 
 The answer to this question really is:
 
-*The results of microbenchmarks represent rarely achieved best-case scenarios from laboratory conditions*. Queueing delay and CPU starvation will multiply latencies in real applications.
+*The results of microbenchmarks represent rarely achieved best-case scenarios from laboratory conditions*. 
+
+Queueing delay and CPU starvation will multiply latencies in real applications.
 
 This applies to the benchmarks in this project for both iteration and CQEngine. Those results will not be seen in the real world. But the remit of CQEngine, is to be faster in the first place, and to make latency a _tunable_ thing.
