@@ -78,6 +78,8 @@ As discussed in some of the examples below, this approach is somewhat _harsh_ on
 
 = Benchmarks and Results =
 
+----
+
 == `HashIndex`: _Retrieve By Unique Key_ ==
 
 Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
