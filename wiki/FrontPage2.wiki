@@ -111,15 +111,20 @@ public class Introduction {
 }}}
 
 *Output from the example*
+
+  * Cars whose name ends with 'vic' or whose id is less than 2:
 {{{
-Cars whose name ends with 'vic' or whose id is less than 2:
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
 Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
+}}}
 
-Cars whose flat tyre can be replaced:
+  * Cars whose flat tyre can be replaced:
+{{{
 Car{carId=2, name='ford taurus', description='dirty and unreliable, flat tyre', features=[spare tyre, radio]}
+}}}
 
-Cars which have a sunroof or a radio but are not dirty:
+  * Cars which have a sunroof or a radio but are not dirty:
+{{{
 Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
 }}}
