@@ -178,7 +178,7 @@ Here is an example for a calculated attribute:
 
 A `HashIndex` could be built on the virtual attribute above, which would enable fast retrievals of cars which are either dirty or not dirty, without needing to scan the collection.
 
-*Associations with Other `IndexedCollections` or External Data Sources*
+*Associations with other `IndexedCollections` or External Data Sources*
 
 Here is an example for a virtual attribute which *associates* with each `Car` a list of locations which can service it, from an external data source:
 {{{
@@ -190,4 +190,4 @@ Here is an example for a virtual attribute which *associates* with each `Car` a 
 }}}
 The attribute above would allow the `IndexedCollection` of cars to be searched for cars which have _servicing options in a particular location_.
 
-The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example. *Care should be taken if building _indexes_ on virtual attributes*, if referenced data might change leaving obsolete information in indexes. A *strategy* to accommodate this is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
+The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example. *Care should be taken if building indexes on virtual attributes* however, if referenced data might change leaving obsolete information in indexes. A *strategy* to accommodate this is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
