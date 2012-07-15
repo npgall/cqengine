@@ -15,6 +15,8 @@ This question is best answered with another question:
 Here is a nice diagram:
 [http://cqengine.googlecode.com/svn/wiki/images/latency-in-a-queue.png]
 
+Overall latency per request, is processing time for that request, plus the sum of processing times for requests in the queue ahead of it. Or _processing time_ + _queueing delay_.
+
 Some interesting facts about this:
   * Average latency is 50ms
   * 50% requests take longer than 50ms to process
