@@ -91,3 +91,7 @@ Here is an example of how to define a `MultiValueAttribute` for a `Car` object w
         public List<String> getValues(Car car) { return car.features; }
     };
 }}}
+
+*Attribute as Functions*
+
+It can be noted that attributes are only required to return a value given an object. Although most will do so, there is no requirement that an attribute must provide a value by reading a field in the object. As such attributes can be implemented as _functions_, which can _calculate_ an appropriate value for an object; or which can return a value for the object based on an _association with another collection_.
