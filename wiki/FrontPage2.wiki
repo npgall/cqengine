@@ -3,7 +3,6 @@ CQEngine, Collection Query Engine, is a NoSQL query engine for retrieving object
 
 CQEngine is also more intuitive and easier to use than writing code for conventional iteration; most queries can be written in one line of code.
 
-== Related Projects ==
 CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] or [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but internally it uses indexes, set theory and query plan optimization to process queries, to instead _avoid_ iterating through the collection.
 
 <wiki:toc max_depth="3" />
