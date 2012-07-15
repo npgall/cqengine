@@ -63,9 +63,7 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Usage Overview ===
 
-The primary class in CQEngine with which the application will interact, is [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/IndexedCollection.html IndexedCollection].
-
-This is an implementation of [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] (so it can be used as a normal collection), and it also provides the following methods:
+The primary class in CQEngine with which the application will interact, is [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/IndexedCollection.html IndexedCollection]. This is an implementation of [http://docs.oracle.com/javase/6/docs/api/java/util/Set.html java.util.Set] (so it can be used as a normal collection), and it also provides the following methods:
 
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index) IndexecCollection.addIndex(SomeIndex)] allows indexes to be added to the collection
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query) IndexedCollection.retrieve(Query)] allows objects to be retrieved from the collection by supplying a [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/Query.html Query]
