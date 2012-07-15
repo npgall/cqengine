@@ -50,7 +50,7 @@ The problem with optimization #1, is that implementing it requires *statistical 
 
 CQEngine solves the problems above by making it possible to build _indexes_ on the fields of the objects stored in a collection. For example, if many queries retrieve cars from a collection of `Car` objects, based on the value of field `Car.color`, an index could be added on `Car.color`. Subsequently CQEngine could retrieve the set of objects matching any given color _immediately_ with _constant time complexity_ O(_1_). No iteration would be necessary, and performance would not degrade as new cars were added to the collection. CQEngine is additionally programmed with the rules of set theory, allowing it to reorder components of queries to generate efficient query plans.
 
-=== Indexing and Query Plan Optimization ===
+*Indexing and Query Plan Optimization*
 
   * *Simple Indexes* can be added to any number of individual fields in a collection of objects, allowing queries on just those fields to be answered in O(_1_) time complexity
   * *Multiple indexes can be added to the same field*  - several index implementations are provided, each optimized for different types of query on the same field - for example equality, numerical range, string starts with etc.
