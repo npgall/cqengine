@@ -133,7 +133,7 @@ Car{carId=3, name='honda civic', description='has a flat tyre and high mileage',
 
 CQEngine needs to access fields inside objects, so that it can build indexes on fields, and retrieve the value of a certain field from any given object.
 
-CQEngine does not use reflection to do this; instead it uses *attributes*, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object of the relevant type.
+CQEngine does not use reflection to do this; instead it uses *attributes*, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object.
 
 Here is an example of how to define an attribute for a Car object, which reads the `Car.carId` field:
 {{{
