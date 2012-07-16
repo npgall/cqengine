@@ -249,12 +249,6 @@ As such quantization can greatly reduce the memory requirements of indexes, and 
 
 *Quantizers Provided*
 
-CQEngine provides the following Quantizers:
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/IntegerQuantizer.html IntegerQuantizer]
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/LongQuantizer.html LongQuantizer]
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/BigIntegerQuantizer.html BigIntegerQuantizer]
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/FloatQuantizer.html FloatQuantizer]
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/DoubleQuantizer.html DoubleQuantizer]
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/BigDecimalQuantizer.html BigDecimalQuantizer]
+CQEngine provides the following Quantizers: [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/IntegerQuantizer.html IntegerQuantizer], [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/LongQuantizer.html LongQuantizer], [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/BigIntegerQuantizer.html BigIntegerQuantizer], [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/FloatQuantizer.html FloatQuantizer], [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/DoubleQuantizer.html DoubleQuantizer], [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/BigDecimalQuantizer.html BigDecimalQuantizer]
 
 Additional Quantizers can be used by implementing the [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/Quantizer.html Quantizer] interface.
