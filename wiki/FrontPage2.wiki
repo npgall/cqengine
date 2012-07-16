@@ -191,3 +191,29 @@ Here is an example for a virtual attribute which *associates* with each `Car` a 
 The attribute above would allow the `IndexedCollection` of cars to be searched for cars which have _servicing options in a particular location_.
 
 The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example. *Care should be taken if building indexes on virtual attributes* however, if referenced data might change leaving obsolete information in indexes. A *strategy to accommodate this* is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
+
+== Controlling Index Granularity with Quantization / Indexing Continuous Values ==
+
+Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
+
+Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
+
+In Java, `Integer`, `Long`, `BigInteger` are discrete data types. `Float`, `Double`, `BigDecimal` are continuous data types.
+
+Building indexes on continuous values can be challenging. Consider the following:
+  * Car A has price `5000.50`
+  * Car B has price `5000.500001`
+  * Car C has price `5000.50000101`
+
+If an index was built on `Car.price` using full precision - `cars.addIndex(NavigableIndex.onAttribute(Car.PRICE))` - it would look like this:
+{{{
+5000.50 -> {Car A[price=5000.500001]}
+5000.500001 -> {Car B[price=5000.500001]}
+5000.50000101 -> {Car C[price=5000.50000101]}
+}}}
+This index would contain many entries, consuming a lot of memory, for only minor variations in `Car.price`.
+
+If an index was built on `Car.price` using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOnAttribute(DoubleQuantizer.withCompressionFactor(1), Car.Price))` - it would look like this:
+{{{
+5000.0 -> {Car A[price=5000.500001], Car B[price=5000.500001], Car C[price=5000.50000101]}
+}}}
