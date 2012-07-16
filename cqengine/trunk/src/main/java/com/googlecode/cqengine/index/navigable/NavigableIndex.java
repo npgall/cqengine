@@ -63,7 +63,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     private static final int INDEX_RETRIEVAL_COST = 40;
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new NavigableIndex initialized to index
+     * Package-private constructor, used by static factory methods. Creates a new NavigableIndex initialized to index
      * the supplied attribute.
      *
      * @param attribute The attribute on which the index will be built
@@ -304,7 +304,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     }
 
 
-    // ---------- Static concrete methods to create NavigableIndexes ----------
+    // ---------- Static factory methods to create NavigableIndexes ----------
 
     /**
      * Creates a new {@code NavigableIndex} on the given attribute. The attribute can be a {@link SimpleAttribute} or a

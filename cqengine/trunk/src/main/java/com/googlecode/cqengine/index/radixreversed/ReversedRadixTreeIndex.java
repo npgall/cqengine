@@ -57,7 +57,7 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
     private volatile ReversedRadixTree<StoredResultSet<O>> tree = new ConcurrentReversedRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new RadixTreeIndex initialized to
+     * Package-private constructor, used by static factory methods. Creates a new RadixTreeIndex initialized to
      * index the supplied attribute.
      *
      * @param attribute The attribute on which the index will be built
@@ -251,7 +251,7 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
     }
 
 
-    // ---------- Static concrete methods to create ReversedRadixTreeIndexes ----------
+    // ---------- Static factory methods to create ReversedRadixTreeIndexes ----------
 
     /**
      * Creates a new {@link ReversedRadixTreeIndex} on the specified attribute.

@@ -49,7 +49,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
     private final ConcurrentMap<A, StoredResultSet<O>> indexMap = new ConcurrentHashMap<A, StoredResultSet<O>>();
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new HashIndex initialized to index the
+     * Package-private constructor, used by static factory methods. Creates a new HashIndex initialized to index the
      * supplied attribute.
      *
      * @param attribute The attribute on which the index will be built
@@ -149,7 +149,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
     }
 
 
-    // ---------- Static concrete methods to create HashIndexes ----------
+    // ---------- Static factory methods to create HashIndexes ----------
 
     /**
      * Creates a new {@link HashIndex} on the specified attribute.

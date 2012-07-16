@@ -29,7 +29,7 @@ import com.googlecode.cqengine.query.logical.Or;
 import java.util.*;
 
 /**
- * A static concrete for creating {@link Query} objects and its descendants.
+ * A static factory for creating {@link Query} objects and its descendants.
  *
  * @author Niall Gallagher
  */

@@ -135,7 +135,7 @@ public class StandingQueryIndex<O> implements Index<O> {
     }
 
     /**
-     * A static concrete method for convenience.
+     * A static factory method for convenience.
      * <p/>
      * Equivalent to {@code new StandingQueryIndex&lt;Query&lt;O&gt;, O&gt;(standingQuery)}.
      * <p/>

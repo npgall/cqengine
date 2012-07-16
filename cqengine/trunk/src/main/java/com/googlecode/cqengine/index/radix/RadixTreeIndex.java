@@ -57,7 +57,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
     private volatile RadixTree<StoredResultSet<O>> tree = new ConcurrentRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new RadixTreeIndex initialized to
+     * Package-private constructor, used by static factory methods. Creates a new RadixTreeIndex initialized to
      * index the supplied attribute.
      *
      * @param attribute The attribute on which the index will be built
@@ -251,7 +251,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
     }
 
 
-    // ---------- Static concrete methods to create RadixTreeIndexes ----------
+    // ---------- Static factory methods to create RadixTreeIndexes ----------
 
     /**
      * Creates a new {@link RadixTreeIndex} on the specified attribute.

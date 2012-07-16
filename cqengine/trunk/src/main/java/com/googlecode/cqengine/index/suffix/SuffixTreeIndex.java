@@ -61,7 +61,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     private volatile SuffixTree<StoredResultSet<O>> tree = new ConcurrentSuffixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new SuffixTreeIndex initialized to
+     * Package-private constructor, used by static factory methods. Creates a new SuffixTreeIndex initialized to
      * index the supplied attribute.
      *
      * @param attribute The attribute on which the index will be built
@@ -289,7 +289,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     }
 
 
-    // ---------- Static concrete methods to create SuffixTreeIndexes ----------
+    // ---------- Static factory methods to create SuffixTreeIndexes ----------
 
     /**
      * Creates a new {@link SuffixTreeIndex} on the specified attribute.
