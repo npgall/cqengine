@@ -198,7 +198,9 @@ Quantization involves converting fine-grained or continuous values, to discrete 
 
 Discrete values (e.g. `Integer`, `Long`, `BigInteger`) are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values (e.g. `Float`, `Double`, `BigDecimal`) are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
 
-Building indexes on continuous values can be challenging. Consider a collection of `Car` objects having `Car.price` values `5000.00`, `5000.000001`, `5000.0000011`.
+Building indexes on continuous values can be challenging.
+
+Consider a collection of `Car` objects having `Car.price` values `5000.00`, `5000.000001`, `5000.0000011`.
 
 If an index was built on `Car.price` using full precision - `cars.addIndex(NavigableIndex.onAttribute(Car.PRICE))` - it would look like this:
 {{{
