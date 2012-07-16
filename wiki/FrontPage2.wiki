@@ -196,9 +196,7 @@ The locations which service a car, could alternatively be retrieved from another
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
 
-Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
-
-In Java, `Integer`, `Long`, `BigInteger` are discrete data types. `Float`, `Double`, `BigDecimal` are continuous data types.
+Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. In Java, `Integer`, `Long`, `BigInteger` are discrete data types. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision. In Java, `Float`, `Double`, `BigDecimal` are continuous data types.
 
 Building indexes on continuous values can be challenging. Consider the following:
   * Car A has price `5000.50`
