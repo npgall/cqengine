@@ -201,7 +201,7 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
 
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#uniqueResult() uniqueResult()] - Useful if the query is expected to only match one object, this method returns the first object which would be returned by the iterator, and it throws an exception if more than one object is found
 
-  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#size() size()] - Returns the number of objects which _would be returned by the `ResultSet` if it was iterated_; CQEngine can often *accelerate this calculation of size*, based on the sizes of individual sets in indexes; see !JavaDoc for details
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#size() size()] - Returns the number of objects which _would be returned by the `ResultSet` if it was iterated_; CQEngine can often *accelerate* this calculation of size, based on the sizes of individual sets in indexes; see !JavaDoc for details
 
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#contains(O) contains()] -  Tests to see if a _given object_ would be contained in results matching a query; this is also an *accelerated* operation; when suitable indexes are available, CQEngine can avoid iterating results to test for containment; see !JavaDoc for details
 
