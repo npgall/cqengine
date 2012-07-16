@@ -196,7 +196,7 @@ The locations which service a car, could alternatively be retrieved from another
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
 
-Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. In Java, `Integer`, `Long`, `BigInteger` are discrete data types. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision. In Java, `Float`, `Double`, `BigDecimal` are continuous data types.
+Discrete values (e.g. `Integer`, `Long`, `BigInteger`) are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values (e.g. `Float`, `Double`, `BigDecimal`) are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
 
 Building indexes on continuous values can be challenging. Consider the following collection:
 {{{
@@ -217,7 +217,7 @@ The same index using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOn
 }}}
 Above, _compression factor 1_,  for `DoubleQuantizer`,  means simply _"truncate everything after the decimal point"_. Compression factor 5, would mean truncate everything after the decimal point AND group every 5 adjacent values in the index into the same entry.
 
-*Retrieving values*
+*Retrieving objects from quantized indexes*
 
 To retrieve objects from quantized indexes, CQEngine applies the same _quantization function_ which was used to create the index, to values contained in the query. This allows it to locate _candidate_ objects in the quantized index - a set of objects some of which will match the query and some of which might not. After retrieving candidate objects, CQEngine applies a lazily-evaluated filter to results from that entry in the index such that when iterated or queried, it returns objects which match the query with full precision, at the expense of some overhead in filtering objects on-the-fly.
 
