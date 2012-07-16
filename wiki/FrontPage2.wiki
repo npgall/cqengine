@@ -225,7 +225,7 @@ CQEngine uses the following algorithm to retrieve objects matching a query from 
   # Apply the same quantization function as used to create the index, to values contained in the query
   # Retrieve _candidate sets_ of objects matching the quantized values from the index
   # Apply lazily-evaluated filters to the result set, which when iterated or queried, causes the result set to filter out objects which do not match the _original query_ thus restoring full precision for objects returned
-    * For equality-based lookups, apply the filter to all candidate sets matching the query
+    * For _equality-type_ queries such as `equal`, `in`, apply the filter to all candidate sets matching the query
     * For _range-type_ queries such as `between`, `lessThan`, `greaterThan` as supported by `NavigableIndex`, apply the filter to only the candidate sets at the _ends_ of the range; objects in candidate sets in the middle of the range inherently will not require filtering and can be retrieved at full speed
 
 As such quantization can greatly reduce the memory requirements of indexes, and often without significant CPU overhead.
