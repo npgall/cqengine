@@ -198,20 +198,20 @@ Quantization involves converting fine-grained or continuous values, to discrete 
 
 Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. In Java, `Integer`, `Long`, `BigInteger` are discrete data types. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision. In Java, `Float`, `Double`, `BigDecimal` are continuous data types.
 
-Building indexes on continuous values can be challenging. Consider the following:
-  * Car A has price `5000.50`
-  * Car B has price `5000.500001`
-  * Car C has price `5000.50000101`
+Building indexes on continuous values can be challenging. Consider the following collection:
+{{{
+Car{name=A, price=5000.500001}, Car{name=B, price=5000.500001}, Car{name=C, price=5000.50000101}
+}}}
 
 If an index was built on `Car.price` using full precision - `cars.addIndex(NavigableIndex.onAttribute(Car.PRICE))` - it would look like this:
 {{{
-5000.50 -> {Car A[price=5000.500001]}
-5000.500001 -> {Car B[price=5000.500001]}
-5000.50000101 -> {Car C[price=5000.50000101]}
+5000.50 -> { Car{name=A, price=5000.500001} }
+5000.500001 -> { Car{name=B, price=5000.500001} }
+5000.50000101 -> { Car{name=C, price=5000.50000101} }
 }}}
 This index would contain many entries, consuming a lot of memory, for only minor variations in `Car.price`.
 
 If an index was built on `Car.price` using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOnAttribute(DoubleQuantizer.withCompressionFactor(1), Car.Price))` - it would look like this:
 {{{
-5000.0 -> {Car A[price=5000.500001], Car B[price=5000.500001], Car C[price=5000.50000101]}
+5000.0 -> { Car{name=A, price=5000.500001}, Car{name=B, price=5000.500001}, Car{name=C, price=5000.50000101} }
 }}}
