@@ -194,7 +194,22 @@ The locations which service a car, could alternatively be retrieved from another
 
 == Result Sets ==
 
-CQEngine returns 
+CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet]s provide the following methods:
+
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#iterator() iterator()] - allows the `ResultSet` to be iterated, returning the next object matching the query in each iteration as determined via _lazy evaluation_
+
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#uniqueResult() uniqueResult()] - useful if the query is expected to only match one object, this method returns the first object which would be returned by the iterator, and it throws an exception if more than one object is found
+
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#size() size()] - Returns the number of objects which _would be returned by the `ResultSet` if it was iterated_; CQEngine can often *accelerate this calculation of size* using _set theory_, based on the sizes of individual sets in indexes; see JavaDocs for details
+
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#contains(O) contains()] -  Tests to see if a _given object_ would be contained in results matching a query; this is also an *accelerated* operation; when suitable indexes are available, CQEngine can avoid iterating results to test for containment; see JavaDocs for details
+
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#getRetrievalCost() getRetrievalCost()] - This is a metric used internally by CQEngine to allow it to _choose between multiple indexes_ which support the query. This could occasionally be used by applications to ascertain if suitable indexes are available for any particular query, this will be `Integer.MAX_VALUE` for queries for which no suitable indexes are available
+  * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#getMergeCost() getMergeCost()] - This is a metric used internally by CQEngine to allow it to _re-order elements of the query_ to minimize time complexity, by ordering intersections such that the smallest set drives the _merge_; this metric is _roughly_ based on the theoretical cost to iterate intermediate result sets, which in turn is calculated from the sum of sizes of sets contained within index entries matching the query
+    * For queries or query fragments requiring _set union_ (`or`-based queries), this will be the _sum_ of merge costs from underlying result sets
+    * For queries or query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
+    * For queries or query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
+
 == Indexing Continuous Values / Index Granularity / Quantization ==
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
