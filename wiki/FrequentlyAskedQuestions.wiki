@@ -24,9 +24,9 @@ Some interesting facts about this:
 
 When designing applications, even looking at *average* response time alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
 
-Anecdote: If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
+Queue-like behaviour occurs in applications implicitly when spikes in traffic occur. Failure to account for _queueing delay_ is a major reason for sudden unresponsiveness of applications under high load: queues just start growing, latency skyrockets. Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot process requests faster than they are received.
 
-Failure to account for _queueing delay_ is a major reason for sudden unresponsiveness of applications under high load: queues just start growing, latency skyrockets. Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot process requests faster than they are received.
+Anecdote: If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
 
 A related culprit, is oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will _more than_ double (it gets compounded by the overhead of _context-switching_). Tying up threads to process requests for longer, additionally _compounds_ the problem by requiring more threads to be created in thread pools, to handle additional incoming requests.
 
