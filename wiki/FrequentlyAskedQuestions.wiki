@@ -22,7 +22,7 @@ Some interesting facts about this:
   * 50% requests take longer than 50ms to process
   * 10% of requests take 100ms to process
 
-When designing applications, even looking at *average* response time alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
+When designing applications, even looking at *average* response time for various workloads alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
 
 *Queue-like behaviour and CPU starvation occurs in applications implicitly when spikes in traffic occur.*
 
