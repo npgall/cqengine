@@ -230,7 +230,9 @@ CQEngine uses the following algorithm to retrieve objects matching a query from 
 
 As such quantization can greatly reduce the memory requirements of indexes, and often without significant CPU overhead.
 
-CQEngine includes the following Quantizers:
+*Quantizers Provided*
+
+CQEngine provides the following Quantizers:
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/IntegerQuantizer.html IntegerQuantizer]
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/LongQuantizer.html LongQuantizer]
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/quantizer/BigIntegerQuantizer.html BigIntegerQuantizer]
