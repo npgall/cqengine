@@ -220,14 +220,19 @@ By default, CQEngine *does not* perform de-duplication of results; however it ca
 
 CQEngine supports the following de-duplication strategies:
 
-*`DUPLICATES_ALLOWED`*
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#DUPLICATES_ALLOWED DeduplicationStrategy.DUPLICATES_ALLOWED]*
 
 This is the default.
 
-*`LOGICAL_ELIMINATION`*
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#MATERIALIZE DeduplicationStrategy.MATERIALIZE]*
 
-This instructs CQEngine to use set theory to eliminate duplicates, without actually needing to _materialize_ (copy) the results into an intermediate set.
+Despite the typical interpretation, this does not materialize all objects up-front. Instead this strategy configures the result set to start returning objects matching the query immediately, and to record during iteration the objects issued so far in a temporary collection. If the query matches the same object more than once, this strategy will use the temporary collection to detect the duplicate, and it will transparently skip the duplicate on subsequent encounters.
 
+This strategy guarantees that no duplicates will ever be returned, and has O(_n_) time complexity, but it slows iteration slightly and introduces additional memory overhead.
+
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION DeduplicationStrategy.LOGICAL_ELIMINATION]*
+
+Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
 
 == Index Quantization, Granularity, and Continuous Values ==
 
