@@ -207,9 +207,9 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#getRetrievalCost() getRetrievalCost()] - This is a metric used internally by CQEngine to allow it to _choose between multiple indexes_ which support the query. This could occasionally be used by applications to ascertain if suitable indexes are available for any particular query, this will be `Integer.MAX_VALUE` for queries for which no suitable indexes are available
 
   * [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#getMergeCost() getMergeCost()] - This is a metric used internally by CQEngine to allow it to _re-order_ elements of the query to minimize time complexity, by ordering intersections such that the smallest set drives the _merge_; this metric is _roughly_ based on the theoretical cost to iterate underlying result sets
-    * For queries or query fragments requiring _set union_ (`or`-based queries), this will be the _sum_ of merge costs from underlying result sets
-    * For queries or query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
-    * For queries or query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
+    * For query fragments requiring _set union_ (`or`-based queries), this will be the _sum_ of merge costs from underlying result sets
+    * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
+    * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
 
 == Indexing Continuous Values / Index Granularity / Quantization ==
 
