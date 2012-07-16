@@ -215,3 +215,8 @@ The same index using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOn
 {{{
 5000.0 -> { Car{name=A, price=5000.500001}, Car{name=B, price=5000.500001}, Car{name=C, price=5000.50000101} }
 }}}
+Above, _compression factor 1_,  for `DoubleQuantizer`,  means simply _"truncate everything after the decimal point"_. Compression factor 5, would mean truncate everything after the decimal point AND group every 5 adjacent values in the index into the same entry.
+
+*Retrieving values*
+
+To retrieve objects from quantized indexes, CQEngine applies the same _quantization function_ which was used to create the index, to values contained in the query. This allows it to locate _candidate_ objects in the quantized index - these objects will contain _false positives_ - objects stored in the entry as a result of quantization which do not match the query. After retrieving candidate objects, CQEngine applies lazily-evaluated filter to results from that entry in the index such that it returns objects which match the query with full precision, at the expense of some overhead in filtering objects on-the-fly.
