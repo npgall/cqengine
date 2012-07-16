@@ -212,6 +212,23 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
     * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
     * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
 
+== Ordering, De-Duplicating Results, Query Options ==
+
+It is possible that a query would result in the same object being returned more than once by the same result set. For example if an object matches several attribute values specified in an `or`-type query, then the object will be returned multiple times, one time for each attribute matched. Intersections (`and`-type queries) do not produce duplicates.
+
+By default, CQEngine *does not* perform de-duplication of results; however it can be instructed to do so, using various strategies, which can be supplied via _query options_.
+
+CQEngine supports the following de-duplication strategies:
+
+*`DUPLICATES_ALLOWED`*
+
+This is the default.
+
+*`LOGICAL_ELIMINATION`*
+
+This instructs CQEngine to use set theory to eliminate duplicates, without actually needing to _materialize_ (copy) the results into an intermediate set.
+
+
 == Index Quantization, Granularity, and Continuous Values ==
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
