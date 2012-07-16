@@ -38,4 +38,4 @@ The answer to this question really is:
 
 Queueing delay and CPU starvation will often multiply latencies in real applications by orders of magnitude.
 
-This applies to the benchmarks in this project for both iteration and CQEngine. Those results will not be seen in the real world. The remit of CQEngine however, is to be faster in the first place, and to make latency something which can be tuned.
+This applies to the benchmarks in this project for both iteration and CQEngine. Those results will not be seen in the real world. The remit of CQEngine however, is to be orders of magnitude faster in the first place, and additionally to make latency something which can be tuned.
