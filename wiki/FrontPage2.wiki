@@ -211,7 +211,7 @@ If an index was built on `Car.price` using full precision - `cars.addIndex(Navig
 }}}
 This index would contain many entries, consuming a lot of memory, for only minor variations in `Car.price`.
 
-If an index was built on `Car.price` using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOnAttribute(DoubleQuantizer.withCompressionFactor(1), Car.Price))` - it would look like this:
+The same index using a quantizer - `cars.addIndex(NavigableIndex.withQuantizerOnAttribute(DoubleQuantizer.withCompressionFactor(1), Car.Price))` - would look like this:
 {{{
 5000.0 -> { Car{name=A, price=5000.500001}, Car{name=B, price=5000.500001}, Car{name=C, price=5000.50000101} }
 }}}
