@@ -36,6 +36,6 @@ The answer to this question really is:
 
 *The results of microbenchmarks represent rarely achieved best-case scenarios from laboratory conditions*. 
 
-Queueing delay and CPU starvation can multiply latencies in real applications by orders of magnitude.
+Queueing delay and CPU starvation will often multiply latencies in real applications by orders of magnitude.
 
 This applies to the benchmarks in this project for both iteration and CQEngine. Those results will not be seen in the real world. The remit of CQEngine however, is to be faster in the first place, and to make latency something which can be tuned.
