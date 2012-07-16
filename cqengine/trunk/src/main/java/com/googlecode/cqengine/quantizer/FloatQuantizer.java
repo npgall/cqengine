@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.quantizer;
 
 /**
- * A static concrete for creating {@link Quantizer}s for {@link Float} attributes.
+ * A static factory for creating {@link Quantizer}s for {@link Float} attributes.
  * <p/>
  * See {@link #withCompressionFactor(int)} for details.
  * 

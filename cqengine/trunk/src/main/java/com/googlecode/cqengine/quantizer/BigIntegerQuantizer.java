@@ -18,7 +18,7 @@ package com.googlecode.cqengine.quantizer;
 import java.math.BigInteger;
 
 /**
- * A static concrete for creating {@link Quantizer}s for {@link java.math.BigInteger} attributes.
+ * A static factory for creating {@link Quantizer}s for {@link java.math.BigInteger} attributes.
  * <p/>
  * See {@link #withCompressionFactor(int)} for details.
  *

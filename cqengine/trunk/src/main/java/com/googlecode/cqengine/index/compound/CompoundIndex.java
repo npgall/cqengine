@@ -53,7 +53,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
     private final ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>> indexMap = new ConcurrentHashMap<CompoundValueTuple<O>, StoredResultSet<O>>();
 
     /**
-     * Package-private constructor, used by static concrete methods. Creates a new HashIndex initialized to index the
+     * Package-private constructor, used by static factory methods. Creates a new HashIndex initialized to index the
      * supplied attribute.
      *
      * @param attribute The attribute on which the index will be built

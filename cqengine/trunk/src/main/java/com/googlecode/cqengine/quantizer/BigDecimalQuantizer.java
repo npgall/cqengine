@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * A static concrete for creating {@link Quantizer}s for {@link java.math.BigDecimal} attributes.
+ * A static factory for creating {@link Quantizer}s for {@link java.math.BigDecimal} attributes.
  * <p/>
  * See {@link #withCompressionFactor(int)} for details.
  *
