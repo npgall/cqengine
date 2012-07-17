@@ -69,7 +69,7 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Feature Matrix for Included Indexes ==
 
-Legend for the feature matrix:
+*Legend for the feature matrix*
 
 || *Abbreviation* || *Meaning* || *Example* ||
 || *EQ* || _Equality_ || `equal(Car.DOORS, 4)` ||
@@ -84,8 +84,8 @@ Legend for the feature matrix:
 || *SQ* || _Standing Query_ || _Build an index to provide constant time complexity for an entire query_ ||
 || *QZ* || _Quantization_ || _Does the index support quantization to control granularity_ ||
 
-
-|| *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
+*Index Feature Matrix*
+|| *Index Type* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/hash/HashIndex.html Hash] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/compound/CompoundIndex.html Compound] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/navigable/NavigableIndex.html Navigable] || ✓ || ✓ || ✓ || ✓ || ✓ ||  ||  ||  ||  ||  || ✓ ||
