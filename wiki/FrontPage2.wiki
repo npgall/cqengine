@@ -220,11 +220,11 @@ By default, CQEngine *does not* perform de-duplication of results; however it ca
 
 CQEngine supports the following de-duplication strategies:
 
-*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#DUPLICATES_ALLOWED Duplicates Allowed] Strategy*
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#DUPLICATES_ALLOWED Duplicates Allowed Strategy]*
 
 This is the default.
 
-*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION Logical Elimination] Strategy*
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION Logical Elimination Strategy]*
 
 Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
 
@@ -258,7 +258,7 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
   * Slows iteration slightly
   * Has no significant memory overhead
 
-*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#MATERIALIZE Materialize] Strategy*
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#MATERIALIZE Materialize Strategy]*
 
 Despite the typical interpretation, this does not materialize all objects up-front. Instead this strategy configures the result set to start returning objects matching the query immediately, and to record during iteration the objects issued so far in a temporary collection. If the query matches the same object more than once, this strategy will use the temporary collection to detect the duplicate, and it will transparently skip it on subsequent encounters.
 
