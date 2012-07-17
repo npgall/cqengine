@@ -66,6 +66,6 @@ public abstract class FilteringResultSet<O> extends ResultSet<O> {
 
     @Override
     public int getMergeCost() {
-        return wrappedResultSet.getRetrievalCost();
+        return wrappedResultSet.getMergeCost();
     }
 }
