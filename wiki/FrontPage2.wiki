@@ -228,7 +228,12 @@ This is the default.
 
 Despite the typical interpretation, this does not materialize all objects up-front. Instead this strategy configures the result set to start returning objects matching the query immediately, and to record during iteration the objects issued so far in a temporary collection. If the query matches the same object more than once, this strategy will use the temporary collection to detect the duplicate, and it will transparently skip it on subsequent encounters.
 
-This strategy guarantees that no duplicates will ever be returned, and has O(_n_) time complexity, but it slows iteration slightly and introduces additional memory overhead.
+This strategy:
+
+  * Guarantees that no duplicates will ever be returned
+  * Has O(_n_) time complexity
+  * Slows iteration slightly
+  * Introduces additional memory overhead
 
 *[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION LOGICAL_ELIMINATION]*
 
@@ -252,7 +257,12 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
   # Move on to objects in set B. For each object in set B, check if it is also contained in set A. If not, return it; otherwise skip it
   # Move on to objects in set C. For each object in set C, check if it is contained in set A or set B. If not, return it; otherwise skip it
 
-
+This strategy:
+  * Guarantees that no duplicates will be returned *provided the collection is not modified concurrently*
+    * If an object was concurrently removed from set A _after it had already been returned_, it might be returned _again_
+  * Has O(n log(s)) time complexity (where s is number of sets to be unioned; use of log is a crude approximation; number of tests for containment depends on number of objects in each subsequent set and number of sets in total)
+  * Slows iteration slightly
+  * Has no significant memory overhead
 
 == Index Quantization, Granularity, and Continuous Values ==
 
