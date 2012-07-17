@@ -234,17 +234,25 @@ This strategy guarantees that no duplicates will ever be returned, and has O(_n_
 
 Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
 
-This can be best explained as follows:
+This is best explained as follows:
 
 Let ∪ = conventional set union, duplicates are eliminated
 
 Let ∪ₐ = union all, union without eliminating duplicates
 
-Let - = set difference
+Let – = set difference
 
-Conventional set union, ∪, can be achieved by combining ∪ₐ (union all) with set difference -.
+Conventional set union, ∪, can be achieved by combining ∪ₐ (union all) with set difference –.
 
-A ∪ B ∪ C = (A ∪ₐ (B - A)) ∪ₐ ((C - B) - A)
+A ∪ B ∪ C = (A ∪ₐ (B – A)) ∪ₐ ((C – B) – A)
+
+CQEngine implements this using the following algorithm (using lazy evaluation during iteration):
+
+# Iterate and return all objects in set A
+# Move on to objects in set B. For each object in set B, check if it is also contained in set A. If not, return it; otherwise skip it
+# Move on to objects in set C. For each object in set C, check if it is contained in set A or set B. If not, return it; otherwise skip it
+
+
 
 == Index Quantization, Granularity, and Continuous Values ==
 
