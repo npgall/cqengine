@@ -80,9 +80,9 @@ Legend for the feature matrix:
 || *SW* || _String Starts With_ || `startsWith(Car.NAME, "For")` ||
 || *EW* || _String Ends With_ || `endsWith(Car.NAME, "ord")` ||
 || *SC* || _String Contains_ || `contains(Car.NAME, "or")` ||
-|| *CI* || _String Is Contained In_ || `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")` ||
-|| *SQ* || _Standing Query_ || Build an index to provide constant time complexity for an entire query ||
-|| *QZ* || _Quantization_ || Does the index support quantization to control granularity ||
+|| *CI* || _String Is Contained In_ || `isContainedIn(Car.NAME, "I am shopping for a Ford Focus car")` ||
+|| *SQ* || _Standing Query_ || _Build an index to provide constant time complexity for an entire query_ ||
+|| *QZ* || _Quantization_ || _Does the index support quantization to control granularity_ ||
 
 
 || *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
