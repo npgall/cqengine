@@ -5,58 +5,19 @@ Benchmarks to compare the retrieval performance (latency) of CQEngine versus two
 
 ----
 
-= Benchmark Setup =
+= Benchmark Methodology =
 
 The benchmark is based on the example of an online car dealership.
 
-The dealership has a website with a catalogue of 100,000 cars. So it has a collection of 100,000 `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc. For the purpose of the example, assume Cars are simple immutable objects as follows.
-{{{
-public class Car {
-    enum Color {RED, GREEN, BLUE, BLACK, WHITE}
-    public final int carId;
-    public final String manufacturer;
-    public final String model;
-    public final Color color;
-    public final int doors;
-    public final double price;
+The dealership has a website with a catalogue of 100,000 cars. So it has a collection of 100,000 `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc.
 
-    public Car(int carId, String manufacturer, String model, Color color, int doors, double price) {
-        this.carId = carId;
-        this.manufacturer = manufacturer;
-        this.model = model;
-        this.color = color;
-        this.doors = doors;
-        this.price = price;
-    }
-}
-}}}
+Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/Car.java Car (source)] is a simple immutable object with CQEngine attributes defined for its fields. The object has fields for `carId`, `manufacturer`, `model`, `color`, `doors` and `price`.
 
-This method was used to create a collection of 100,000 `Car` objects. can create a collection of such cars:
-{{{
-    public static Set<Car> createCollectionOfCars(int numCars) {
-        Set<Car> cars = new LinkedHashSet<Car>(numCars);
-        for (int carId = 0; carId < numCars; carId++) {
-            switch (carId % 10) {
-                case 0: cars.add( new Car(carId, "Ford",   "Focus",   Car.Color.RED,   5, 5000.00) ); break;
-                case 1: cars.add( new Car(carId, "Ford",   "Fusion",  Car.Color.RED,   4, 3999.99) ); break;                    
-                case 2: cars.add( new Car(carId, "Ford",   "Taurus",  Car.Color.GREEN, 4, 6000.00) ); break;                    
-                case 3: cars.add( new Car(carId, "Honda",  "Civic",   Car.Color.WHITE, 5, 4000.00) ); break;                    
-                case 4: cars.add( new Car(carId, "Honda",  "Accord",  Car.Color.BLACK, 5, 3000.00) ); break;                    
-                case 5: cars.add( new Car(carId, "Honda",  "Insight", Car.Color.GREEN, 3, 5000.00) ); break;                    
-                case 6: cars.add( new Car(carId, "Toyota", "Avensis", Car.Color.GREEN, 5, 5999.95) ); break;                    
-                case 7: cars.add( new Car(carId, "Toyota", "Prius",   Car.Color.BLUE,  3, 8500.00) ); break;                    
-                case 8: cars.add( new Car(carId, "Toyota", "Hilux",   Car.Color.RED,   5, 7800.55) ); break;                    
-                case 9: cars.add( new Car(carId, "BMW",    "M6",      Car.Color.BLUE,  2, 9000.23) ); break;                    
-                default: throw new IllegalStateException();
-            }
-        }
-        return cars;
-    }
-}}}
+Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java CarFactory (source)] contains a method which generates a collection of cars of any given size.
 
-=== Makeup of the Test Dataset ===
+The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotinically increasing `carId` to each car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
 
-As such, some statistics about the collection:
+As such, some statistics about the makeup of the collection of cars:
 || *Color (aka Colour :)* || *% of cars* || *Manufacturer* || *% of cars* || *Number of doors* || *% of cars* ||
 || Red || 30% || Ford || 30% || 5 || 50% ||
 || Green || 30% || Honda || 30% || 4 || 20% ||
@@ -64,13 +25,9 @@ As such, some statistics about the collection:
 || Black || 10% || BMW || 10% || 2 || 10% ||
 || White || 10% ||  ||  || || ||
 
-=== Benchmark Methodology ===
-
 The benchmarks were run on a 1.8GHz Intel Core i7 !MacBook Air with OS X 10.7.4 and Java 1.6.0_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/ here] and [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java here]. Source code for individual benchmarks is referenced below.
 
 The original tab-separated output from the benchmark is available as a spreadsheet [http://cqengine.googlecode.com/svn/wiki/documents/benchmark-results.ods here].
-
-=== Benchmark Fairness ===
 
 Because CQEngine uses _lazy evaluation_ throughout, and so it returns `ResultSet`s for every query almost immediately; to measure the performance of CQEngine, these benchmarks retrieve a `ResultSet` from CQEngine, and then iterate through all cars in the result set, simply counting the number of results.
 
