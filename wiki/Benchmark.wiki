@@ -9,7 +9,7 @@ Benchmarks to compare the retrieval performance (latency) of CQEngine versus two
 
 The benchmark is based on the example of an online car dealership. The dealership has a website with a catalogue of 100,000 cars. So it has a collection of 100,000 `Car` objects. The site needs to retrieve cars matching criteria encapsulated in queries.
 
-Several individual benchmark tests simulate retrieving cars based on various queries and with various CQEngine indexes in place. These tests measure retrieval time (or latency) for the same query using _naive iteration_, _optimized iteration_ and _CQEngine_.
+Several individual tests within the benchmark simulate retrieving cars based on various queries and with various CQEngine indexes in place. These tests measure retrieval time (or latency) for the same query using _naive iteration_, _optimized iteration_ and _CQEngine_.
 
 The tests additionally measure the latency of _"CQEngine Statistics"_ which refers to the speed at which CQEngine can calculate the number of objects which match the query using its accelerated `ResultSet.size()` method. That method calculates the number of objects which _would_ match a query from statistics contained in indexes.
 
