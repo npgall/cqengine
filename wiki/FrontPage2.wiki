@@ -212,7 +212,7 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
     * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
     * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
 
-== Result Set De-Duplication ==
+== De-duplicating Results ==
 
 It is possible that a query would result in the same object being returned more than once by the same result set. For example if an object matches several attribute values specified in an `or`-type query, then the object will be returned multiple times, one time for each attribute matched. Intersections (`and`-type queries) do not produce duplicates.
 
@@ -286,6 +286,24 @@ Example usage:
   * Has O(_r_) time complexity
   * Slows iteration slightly
   * Memory overhead
+
+== Ordering Results ==
+
+By default, CQEngine does not impose any ordering on the results it returns; ordering depends on the order it finds objects in the collection or indexes.
+
+CQEngine can be instructed to order results via query options as follows.
+
+*Order by price descending*
+{{{
+    ResultSet<Car> results = cars.retrieve(query, queryOptions(orderByDescending(Car.PRICE))
+}}}
+
+*Order by price, then number of doors*
+{{{
+    ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(Car.PRICE, Car.DOORS))
+}}}
+
+Note that ordering results is relatively expensive and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results also implicitly eliminates duplicates.
 
 == Index Quantization, Granularity, and Continuous Values ==
 
