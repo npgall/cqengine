@@ -226,7 +226,8 @@ This is the default.
 
 Example usage:
 {{{
-cars.retrieve(query, queryOptions(QueryFactory.<Car>deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED)))
+        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
+        cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION Logical Elimination Strategy]*
@@ -235,7 +236,8 @@ Eliminate duplicates using the rules of set theory, without _materializing_ (cop
 
 Example usage:
 {{{
-cars.retrieve(query, queryOptions(QueryFactory.<Car>deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)))
+        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
+        cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 This is best explained as follows:
@@ -274,7 +276,8 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 
 Example usage:
 {{{
-cars.retrieve(query, queryOptions(QueryFactory.<Car>deduplicate(DeduplicationStrategy.MATERIALIZE)))
+        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
+        cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *Characteristics of this strategy*
