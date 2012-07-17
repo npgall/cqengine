@@ -31,9 +31,7 @@ The benchmarks were run on a 1.8GHz Intel Core i7 Apple machine running OS X 10.
 
 The original tab-separated output from the benchmark is available as a spreadsheet [http://cqengine.googlecode.com/svn/wiki/documents/benchmark-results.ods here].
 
-Because CQEngine uses _lazy evaluation_ throughout, and so it returns `ResultSet`s for every query almost immediately; to measure the performance of CQEngine, these benchmarks retrieve a `ResultSet` from CQEngine, and then iterate through all cars in the result set, simply counting the number of results.
-
-As discussed in some of the examples below, this approach is somewhat _harsh_ on CQEngine, _understating_ its advantages. However this is the only way to fairly compare performance versus iteration in a microbenchmark scenario.
+Because CQEngine uses _lazy evaluation_ throughout, and so it returns `ResultSet`s for every query almost immediately; to measure the performance of CQEngine, these benchmarks retrieve a `ResultSet` from CQEngine, and then iterate through all cars in the result set, simply counting the number of results. As discussed in some of the examples below, it is unlikely that a real-world application would do this and therefore this is somewhat _harsh_ on CQEngine, _understating_ its advantages. However this seems the only way to compare performance versus iteration on an equal footing in this microbenchmark scenario.
 
 = Benchmarks and Results =
 
