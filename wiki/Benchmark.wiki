@@ -9,13 +9,11 @@ Benchmarks to compare the retrieval performance (latency) of CQEngine versus two
 
 The benchmark is based on the example of an online car dealership.
 
-The dealership has a website with a catalogue of 100,000 cars. So it has a collection of 100,000 `Car` objects. Every car object has a number of fields containing the price, manufacturer, model, color, number of doors etc.
+The dealership has a website with a catalogue of 100,000 cars. So it has a collection of 100,000 `Car` objects.
 
-Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/Car.java Car (source)] is a simple immutable object with CQEngine attributes defined for its fields. The object has fields for `carId`, `manufacturer`, `model`, `color`, `doors` and `price`.
+Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/Car.java Car (source)] is a simple immutable object with CQEngine attributes defined for its fields: `carId`, `manufacturer`, `model`, `color`, `doors`, `price`.
 
-Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java CarFactory (source)] contains a method which generates a collection of cars of any given size.
-
-The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotinically increasing `carId` to each car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
+Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java CarFactory (source)] contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotinically increasing `carId` to each car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
 
 As such, some statistics about the makeup of the collection of cars:
 || *Color (aka Colour :)* || *% of cars* || *Manufacturer* || *% of cars* || *Number of doors* || *% of cars* ||
@@ -24,6 +22,8 @@ As such, some statistics about the makeup of the collection of cars:
 || Blue || 20% || Toyota || 30% || 3 || 20% ||
 || Black || 10% || BMW || 10% || 2 || 10% ||
 || White || 10% ||  ||  || || ||
+
+Given that the benchmark creates a collection of 100,000 cars, for example, 30,000 of those cars will be Ford Focus, evenly distributed throughout the collection.
 
 The benchmarks were run on a 1.8GHz Intel Core i7 !MacBook Air with OS X 10.7.4 and Java 1.6.0_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/ here] and [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java here]. Source code for individual benchmarks is referenced below.
 
