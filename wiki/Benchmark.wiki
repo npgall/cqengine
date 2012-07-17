@@ -15,7 +15,7 @@ The tests additionally measure the latency of _"CQEngine Statistics"_ which refe
 
 Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/Car.java Car (source)] is a simple immutable object with CQEngine attributes defined for its fields: `carId`, `manufacturer`, `model`, `color`, `doors`, `price`.
 
-Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java CarFactory (source)] contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotinically increasing `carId` to each car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
+Class [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java CarFactory (source)] contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotonically increasing `carId` to each car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
 
 As such, some statistics about the makeup of the collection of cars:
 || *Color* || *% of cars* || *Manufacturer* || *% of cars* || *Number of doors* || *% of cars* ||
