@@ -69,27 +69,21 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Feature Matrix for Included Indexes ==
 
-*EQ* = _Equality_ - e.g. `equal(Car.DOORS, 4)`
+Legend for the feature matrix:
 
-*IN* = _Equality, multiple values_ - e.g.  `in(Car.DOORS, 3, 4, 5)`
+|| *Abbreviation* || *Meaning* || *Example* ||
+|| *EQ* || _Equality_ || `equal(Car.DOORS, 4)` ||
+|| *IN* || _Equality, multiple values_ || `in(Car.DOORS, 3, 4, 5)` ||
+|| *LT* || _Less Than (numerical range / `Comparable`)_ || `lessThan(Car.PRICE, 5000.0)` ||
+|| *GT* || _Greater Than (numerical range / `Comparable`)_ || `greaterThan(Car.PRICE, 2000.0)` ||
+|| *BT* || _Between (numerical range / `Comparable`)_ || `between(Car.PRICE, 2000.0, 5000.0)` ||
+|| *SW* || _String Starts With_ || `startsWith(Car.NAME, "For")` ||
+|| *EW* || _String Ends With_ || `endsWith(Car.NAME, "ord")` ||
+|| *SC* || _String Contains_ || `contains(Car.NAME, "or")` ||
+|| *CI* || _String Is Contained In_ || `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")` ||
+|| *SQ* || _Standing Query_ || Build an index to provide constant time complexity for an entire query ||
+|| *QZ* || _Quantization_ || Does the index support quantization to control granularity ||
 
-*LT* = _Less Than (numerical range / `Comparable`)_ - e.g. `lessThan(Car.PRICE, 5000.0)`
-
-*GT* = _Greater Than (numerical range / `Comparable`)_ - e.g. `greaterThan(Car.PRICE, 2000.0)`
-
-*BT* = _Between (numerical range / `Comparable`)_ - e.g. `between(Car.PRICE, 2000.0, 5000.0)`
-
-*SW* = _String Starts With_ - e.g. `startsWith(Car.NAME, "For")`
-
-*EW* = _String Ends With_ - e.g. `endsWith(Car.NAME, "ord")`
-
-*SC* = _String Contains_ - e.g. `contains(Car.NAME, "or")`
-
-*CI* = _String Is Contained In_ - e.g. `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")`
-
-*SQ* = _Standing Query_ - build an index to provide constant time complexity for an entire query
-
-*QZ* = _Quantization_  - does the index support quantization to control granularity
 
 || *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/hash/HashIndex.html Hash] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
