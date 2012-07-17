@@ -69,27 +69,27 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Feature Matrix for Included Indexes ==
 
-*EQ* = Equality - e.g. `equal(Car.DOORS, 4)`
+*EQ* = _Equality_ - e.g. `equal(Car.DOORS, 4)`
 
-*IN* = Equality, multiple values - e.g.  `in(Car.DOORS, 3, 4, 5)`
+*IN* = _Equality, multiple values_ - e.g.  `in(Car.DOORS, 3, 4, 5)`
 
-*LT* = Less Than (numerical range / `Comparable`) - e.g. `lessThan(Car.PRICE, 5000.0)`
+*LT* = _Less Than (numerical range / `Comparable`)_ - e.g. `lessThan(Car.PRICE, 5000.0)`
 
-*GT* = Greater Than (numerical range / `Comparable`) - e.g. `greaterThan(Car.PRICE, 2000.0)`
+*GT* = _Greater Than (numerical range / `Comparable`)_ - e.g. `greaterThan(Car.PRICE, 2000.0)`
 
-*BT* = Between (numerical range / `Comparable`) - e.g. `between(Car.PRICE, 2000.0, 5000.0)`
+*BT* = _Between (numerical range / `Comparable`)_ - e.g. `between(Car.PRICE, 2000.0, 5000.0)`
 
-*SW* = String Starts With - e.g. `startsWith(Car.NAME, "For")`
+*SW* = _String Starts With_ - e.g. `startsWith(Car.NAME, "For")`
 
-*EW* = String Ends With - e.g. `endsWith(Car.NAME, "ord")`
+*EW* = _String Ends With_ - e.g. `endsWith(Car.NAME, "ord")`
 
-*SC* = String Contains - e.g. `contains(Car.NAME, "or")`
+*SC* = _String Contains_ - e.g. `contains(Car.NAME, "or")`
 
-*CI* = String Is Contained In - e.g. `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")`
+*CI* = _String Is Contained In_ - e.g. `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")`
 
-*SQ* = Standing Query - build an index to provide constant time complexity for an entire query
+*SQ* = _Standing Query_ - build an index to provide constant time complexity for an entire query
 
-*QZ* = Quantization  - does the index support quantization to control granularity
+*QZ* = _Quantization_  - does the index support quantization to control granularity
 
 || *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/hash/HashIndex.html Hash] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
