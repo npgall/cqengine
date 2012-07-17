@@ -224,17 +224,6 @@ CQEngine supports the following de-duplication strategies:
 
 This is the default.
 
-*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#MATERIALIZE MATERIALIZE]*
-
-Despite the typical interpretation, this does not materialize all objects up-front. Instead this strategy configures the result set to start returning objects matching the query immediately, and to record during iteration the objects issued so far in a temporary collection. If the query matches the same object more than once, this strategy will use the temporary collection to detect the duplicate, and it will transparently skip it on subsequent encounters.
-
-This strategy:
-
-  * Guarantees that no duplicates will ever be returned
-  * Has O(_n_) time complexity
-  * Slows iteration slightly
-  * Introduces additional memory overhead
-
 *[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION LOGICAL_ELIMINATION]*
 
 Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
@@ -263,6 +252,17 @@ This strategy:
   * Has O(n log(s)) time complexity (where s is number of sets to be unioned; use of log is a crude approximation; number of tests for containment depends on number of objects in each subsequent set and number of sets in total)
   * Slows iteration slightly
   * Has no significant memory overhead
+
+*[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#MATERIALIZE MATERIALIZE]*
+
+Despite the typical interpretation, this does not materialize all objects up-front. Instead this strategy configures the result set to start returning objects matching the query immediately, and to record during iteration the objects issued so far in a temporary collection. If the query matches the same object more than once, this strategy will use the temporary collection to detect the duplicate, and it will transparently skip it on subsequent encounters.
+
+This strategy:
+
+  * Guarantees that no duplicates will ever be returned
+  * Has O(_n_) time complexity
+  * Slows iteration slightly
+  * Uses more memory
 
 == Index Quantization, Granularity, and Continuous Values ==
 
