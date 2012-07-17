@@ -69,7 +69,29 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Included Indexes, Feature Matrix ==
 
-|| *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *SCI* || *SQ* || *Quantization* ||
+*EQ* = Equality-based lookup (`equal`-type queries)
+
+*IN* = Equality-based lookup, multiple values (`in`-type queries)
+
+*LT* = Less Than (numerical range / `Comparable`) lookup (`lessThan`-type queries)
+
+*GT* = Greater Than (numerical range / `Comparable`) lookup (`greaterThan`-type queries)
+
+*BT* = Between (numerical range / `Comparable`) lookup (`between`-type queries)
+
+*SW* = String Starts With lookup (`startsWith`-type queries)
+
+*EW* = String Ends With lookup (`endsWith`-type queries)
+
+*SC* = String Contains lookup (`contains`-type queries)
+
+*CI* = String Is Contained In lookup (`isContainedIn`-type queries)
+
+*SQ* = Standing Query (index based on a query)
+
+*Quantization* = Does the index support quantization to control granularity
+
+|| *Index* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *Quantization* ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/hash/HashIndex.html Hash] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/compound/CompoundIndex.html Compound] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/navigable/NavigableIndex.html Navigable] || ✓ || ✓ || ✓ || ✓ || ✓ ||  ||  ||  ||  ||  || ✓ ||
