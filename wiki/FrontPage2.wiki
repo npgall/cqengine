@@ -227,7 +227,7 @@ This is the default.
 Example usage:
 {{{
     QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
-    cars.retrieve(query, queryOptions(deduplication));
+    ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION Logical Elimination Strategy]*
@@ -259,7 +259,7 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
 Example usage:
 {{{
     QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
-    cars.retrieve(query, queryOptions(deduplication));
+    ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *Characteristics of this strategy*
@@ -277,7 +277,7 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 Example usage:
 {{{
     QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
-    cars.retrieve(query, queryOptions(deduplication));
+    ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *Characteristics of this strategy*
