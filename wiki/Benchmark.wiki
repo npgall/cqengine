@@ -1,7 +1,7 @@
 #labels Deprecated
 Benchmarks to compare the retrieval performance (latency) of CQEngine versus two types of iteration: _naive iteration_ and _optimized iteration_. These approaches to iteration are discussed on the front page of the project.
 
-For those not familiar with microbenchmarking, suggested reading: [http://code.google.com/p/cqengine/wiki/FrequentlyAskedQuestions#Myths,_Lies_and_Microbenchmarks:_Isn't_x_milliseconds_fast Myths, Lies and Microbenchmarks]
+For those not familiar with the limits of microbenchmarking, suggested reading: [http://code.google.com/p/cqengine/wiki/FrequentlyAskedQuestions#Myths,_Lies_and_Microbenchmarks:_Isn't_x_milliseconds_fast Myths, Lies and Microbenchmarks]
 
 <wiki:toc max_depth="3" />
 
