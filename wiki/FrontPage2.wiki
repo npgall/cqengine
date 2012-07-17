@@ -82,7 +82,7 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 || *SC* || _String Contains_ || `contains(Car.NAME, "or")` ||
 || *CI* || _String Is Contained In_ || `isContainedIn(Car.NAME, "I am shopping for a Ford Focus car")` ||
 || *SQ* || _Standing Query_ || _Build an index to provide constant time complexity for an entire query_ ||
-|| *QZ* || _Quantization_ || _Does the index support quantization to control granularity_ ||
+|| *QZ* || _Quantization_ || _Does the index accept a quantizer to control granularity_ ||
 
 *Index Feature Matrix*
 || *Index Type* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
