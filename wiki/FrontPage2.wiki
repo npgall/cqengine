@@ -260,7 +260,7 @@ This strategy:
   * Guarantees that no duplicates will ever be returned
   * Has O(_r_) time complexity
   * Slows iteration slightly
-  * Uses more memory
+  * Memory overhead
 
 == Index Quantization, Granularity, and Continuous Values ==
 
