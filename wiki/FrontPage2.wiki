@@ -230,15 +230,13 @@ Eliminate duplicates using the rules of set theory, without _materializing_ (cop
 
 This is best explained as follows:
 
-Let ∪ = conventional set union, duplicates are eliminated
-
-Let ∪ₐ = union all, union without eliminating duplicates
-
-Let – = set difference
+  * Let ∪ = conventional set union, duplicates are eliminated
+  * Let ∪ₐ = union all, union without eliminating duplicates
+  * Let – = set difference
 
 Conventional set union, ∪, can be achieved by combining ∪ₐ (union all) with set difference –.
 
-A ∪ B ∪ C = (A ∪ₐ (B – A)) ∪ₐ ((C – B) – A)
+  * A ∪ B ∪ C = (A ∪ₐ (B – A)) ∪ₐ ((C – B) – A)
 
 CQEngine implements this using the following algorithm (using lazy evaluation during iteration):
 
