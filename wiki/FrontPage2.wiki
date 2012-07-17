@@ -289,7 +289,7 @@ Example usage:
 
 == Ordering Results ==
 
-By default, CQEngine does not impose any ordering on the results it returns; ordering depends on the order it finds objects in the collection or indexes.
+By default, CQEngine does not order results; it simply depends on the order it finds objects in the collection or in indexes.
 
 CQEngine can be instructed to order results via query options as follows.
 
@@ -303,7 +303,7 @@ CQEngine can be instructed to order results via query options as follows.
     ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(Car.PRICE, Car.DOORS))
 }}}
 
-Note that ordering results is relatively expensive and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results also implicitly eliminates duplicates.
+Note that ordering results is relatively expensive, dependent on the number of objects matching the query, and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results also implicitly eliminates duplicates.
 
 == Index Quantization, Granularity, and Continuous Values ==
 
