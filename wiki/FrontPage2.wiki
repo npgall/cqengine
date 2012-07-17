@@ -69,23 +69,23 @@ CQEngine solves the problems above by making it possible to build _indexes_ on t
 
 == Feature Matrix for Included Indexes ==
 
-*EQ* = Equality-based lookup - e.g. `equal(Car.DOORS, 4)`
+*EQ* = Equality - e.g. `equal(Car.DOORS, 4)`
 
-*IN* = Equality-based lookup, multiple values - e.g.  `in(Car.DOORS, 3, 4, 5)`
+*IN* = Equality, multiple values - e.g.  `in(Car.DOORS, 3, 4, 5)`
 
-*LT* = Less Than (numerical range / `Comparable`) lookup - e.g. `lessThan(Car.PRICE, 5000.0)`
+*LT* = Less Than (numerical range / `Comparable`) - e.g. `lessThan(Car.PRICE, 5000.0)`
 
-*GT* = Greater Than (numerical range / `Comparable`) lookup - e.g. `greaterThan(Car.PRICE, 2000.0)`
+*GT* = Greater Than (numerical range / `Comparable`) - e.g. `greaterThan(Car.PRICE, 2000.0)`
 
-*BT* = Between (numerical range / `Comparable`) lookup - e.g. `between(Car.PRICE, 2000.0, 5000.0)`
+*BT* = Between (numerical range / `Comparable`) - e.g. `between(Car.PRICE, 2000.0, 5000.0)`
 
-*SW* = String Starts With lookup - e.g. `startsWith(Car.NAME, "For")`
+*SW* = String Starts With - e.g. `startsWith(Car.NAME, "For")`
 
-*EW* = String Ends With lookup - e.g. `endsWith(Car.NAME, "ord")`
+*EW* = String Ends With - e.g. `endsWith(Car.NAME, "ord")`
 
-*SC* = String Contains lookup - e.g. `contains(Car.NAME, "or")`
+*SC* = String Contains - e.g. `contains(Car.NAME, "or")`
 
-*CI* = String Is Contained In lookup - e.g. `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")`
+*CI* = String Is Contained In - e.g. `isContainedIn(Car.NAME, "I am looking for a Ford Focus car")`
 
 *SQ* = Standing Query - build an index to provide constant time complexity for an entire query
 
