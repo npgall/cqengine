@@ -4,11 +4,13 @@
 Frequently Asked Questions. For various values of "frequently".
 <wiki:toc max_depth="3" />
 
-== What do you mean by: What I think I know about scalability is wrong?!!? ==
+== Myths, Lies and Microbenchmarks: Isn't _x_ milliseconds fast enough? ==
 
-If you think that 6 milliseconds to iterate a collection as seen in a trivial test or microbenchmark will be fine for your application, then unfortunately it's true. That is, if your application gets any reasonable amount of traffic, it will die, and it won't be graceful.
+If you think that _x_ milliseconds to iterate a collection or perform some task, for example as seen in a microbenchmark (or trivial test), might be fine for your application, then unfortunately you have yet to learn an important lesson in designing for scalability: microbenchmarks do not measure absolute performance at all, and it is very dangeorous to design applications around this misconception.
 
-This question is best answered with another question:
+There are factors that come into play in production environments which are never replicated in microbenchmarks. Microbenchmarks can be useful to very roughly gague the *relative* merits of one approach versus another, but *never* can they demonstrate any *absolute* performance (throughput or latency) that would be seen in a real-world application.
+
+To explain further, this question is best answered with another question:
 
 *What is the average latency per request for a queue of 10 requests where each request takes 10ms to process?*
 
@@ -22,13 +24,13 @@ Some interesting facts about this:
   * 50% requests take longer than 50ms to process
   * 10% of requests take 100ms to process
 
-When designing applications, even looking at *average* response time for various workloads alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
-
 *Queue-like behaviour and CPU starvation occurs in applications implicitly when spikes in traffic occur.*
 
 Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot process requests faster than they are received. Failure to account for _queueing delay_ in the design of applications, is a major reason for the sudden unresponsiveness of applications under high load: queues just start growing, latency skyrockets. Sometimes components processing requests might report that processing time is reasonable, yet latency might be high.
 
 Anecdote: If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
+
+When designing applications, even looking at *average* response time for various workloads alone is dangerous. From the diagram above it should be clear that _variability_ in response times is both likely, and problematic. If 50ms response time was deemed acceptable, what about 1 in 10 requests having latency of 100ms? The _distribution_ of latencies at various workloads or for spikes in traffic is important.
 
 A related culprit, is _CPU starvation_ caused by oversubscription of number of threads-to-CPU cores, on CPU-bound workloads (such as iteration). If you have 8 threads trying to iterate collections in parallel, and only 4 cores, latency per request will _more than_ double (it gets compounded by the overhead of _context-switching_). Tying up threads to process requests for longer, additionally _compounds_ the problem by requiring more threads to be created in thread pools, to handle additional incoming requests.
 
@@ -38,4 +40,4 @@ The answer to this question really is:
 
 Queueing delay and CPU starvation will often multiply latencies in real applications by orders of magnitude.
 
-This applies to the benchmarks in this project for both iteration and CQEngine. Those results will not be seen in the real world. The remit of CQEngine however, is to be orders of magnitude faster in the first place, and additionally to make latency something which can be tuned.
+This applies to the benchmarks in this project for both iteration and CQEngine: latency for both these approaches will be multiplied by orders of magnitude in production environments. The goal of CQEngine is to be faster in the first place so that when latency does increase under load, it will increase from a much lower starting point.
