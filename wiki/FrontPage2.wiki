@@ -249,7 +249,7 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
 This strategy:
   * Guarantees that no duplicates will be returned *provided the collection is not modified concurrently*
     * If an object was concurrently removed from set A _after it had already been returned_, it might be returned _again_
-  * Has O(_n_ log(_s_)) time complexity (where _s_ is number of sets to be unioned; use of log is a crude approximation; number of tests for containment depends on number of objects in each subsequent set and number of sets in total)
+  * Has O(_r_ log(_s_)) time complexity (where _r_ is number of result objects matching the query, _s_ is number of sets to be unioned; use of log is a crude approximation; number of tests for containment depends on number of objects in each subsequent set and number of sets in total)
   * Slows iteration slightly
   * Has no significant memory overhead
 
@@ -260,7 +260,7 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 This strategy:
 
   * Guarantees that no duplicates will ever be returned
-  * Has O(_n_) time complexity
+  * Has O(_r_) time complexity
   * Slows iteration slightly
   * Uses more memory
 
