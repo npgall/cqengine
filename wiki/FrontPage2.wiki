@@ -212,7 +212,7 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
     * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
     * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
 
-== De-Duplication ==
+== Result Set De-Duplication ==
 
 It is possible that a query would result in the same object being returned more than once by the same result set. For example if an object matches several attribute values specified in an `or`-type query, then the object will be returned multiple times, one time for each attribute matched. Intersections (`and`-type queries) do not produce duplicates.
 
