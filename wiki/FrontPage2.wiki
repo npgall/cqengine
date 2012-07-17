@@ -226,19 +226,13 @@ This is the default.
 
 Example usage:
 {{{
-        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
-        cars.retrieve(query, queryOptions(deduplication));
+    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
+    cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *[http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/option/DeduplicationStrategy.html#LOGICAL_ELIMINATION Logical Elimination Strategy]*
 
 Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
-
-Example usage:
-{{{
-        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
-        cars.retrieve(query, queryOptions(deduplication));
-}}}
 
 This is best explained as follows:
 
@@ -262,6 +256,12 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
 
   * _For `in`-type queries_ (which are equivalent to `or(equal(..), equal(..))`), _logical elimination is disabled by default_. This is because the values supplied for `in` queries all refer to the same attribute, and it is assumed that the application will take care of not supplying nonsense queries containing duplicate values for the same attribute. Note that `MultiValueAttribute`s can complicate this. To prevent logical deduplication being disabled for `in`-type queries, compose the query using nested `or(equal(..), ...)` queries instead.
 
+Example usage:
+{{{
+    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
+    cars.retrieve(query, queryOptions(deduplication));
+}}}
+
 *Characteristics of this strategy*
 
   * Guarantees that no duplicates will be returned *provided the collection is not modified concurrently*
@@ -276,8 +276,8 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 
 Example usage:
 {{{
-        QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
-        cars.retrieve(query, queryOptions(deduplication));
+    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
+    cars.retrieve(query, queryOptions(deduplication));
 }}}
 
 *Characteristics of this strategy*
