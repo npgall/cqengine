@@ -244,6 +244,10 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
   # Move on to objects in set B. For each object in set B, check if it is also contained in set A. If not, return it; otherwise skip it
   # Move on to objects in set C. For each object in set C, check if it is contained in set A or set B. If not, return it; otherwise skip it
 
+It should be noted that if it is known that for a given `or` query, or query fragment, that sets matching the query will be *_disjoint_* (will not contain duplicates), logical elimination can be disabled at the query fragment/sub-query level. To do so, use [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/logical/Or.html#Or(java.util.Collection,%20boolean) this] constructor of the `Or` query class.
+
+It should also be noted that *for `in`-type queries* (which are equivalent to `or(equal(..), equal(..))`), *logical elimination is disabled by default*. This is because the values supplied for `in` queries all refer to the same attribute, and it is assumed that the application will take care of not supplying nonsense queries containing duplicate values for the same attribute. Note that `MultiValueAttribute`s can complicate this. To prevent logical deduplication being disabled for `in`-type queries, compose the query using nested `or(equal(..), ...)` queries instead.
+
 This strategy:
   * Guarantees that no duplicates will be returned *provided the collection is not modified concurrently*
     * If an object was concurrently removed from set A _after it had already been returned_, it might be returned _again_
