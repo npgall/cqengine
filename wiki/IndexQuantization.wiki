@@ -1,7 +1,7 @@
 #summary Controlling Index Granularity via Quantization, Indexing Continuous Values
 #labels Deprecated
 
-= Index Quantization, Granularity, and Continuous Values =
+= Controlling Index Granularity via Quantization, Indexing Continuous Values  =
 
 [http://en.wikipedia.org/wiki/Quantization_(signal_processing) Quantization] involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
 
