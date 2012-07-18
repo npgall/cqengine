@@ -150,6 +150,25 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
 ----
 
+== No indexes: _Retrieve Model "Focus"_ ==
+
+Retrieve and iterate `Car` objects from the collection based on `Car.model` having value "`Focus`". No indexes.
+
+This example demonstrates a *mis-configured application* which has not added any indexes. CQEngine can process any query, but doing so without any suitable indexes in place prevents CQEngine from accelerating the query, and it can _underperform_ iteration. Applications should ensure that they add suitable indexes.
+
+  * CQEngine query: `equal(Car.MODEL, "Focus")`
+  * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NoIndexes_ModelFocus.java here]
+
+*Benchmark Results*
+
+  * CQEngine is *43.21% slower* than naive iteration
+  * CQEngine is *53.27% slower* than optimized iteration
+
+[http://cqengine.googlecode.com/svn/wiki/images/no-indexes-model-focus.png]
+
+----
+
 == Non-Optimal Indexes: _Retrieve Blue Toyota Cars with Three Doors_ ==
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3.
