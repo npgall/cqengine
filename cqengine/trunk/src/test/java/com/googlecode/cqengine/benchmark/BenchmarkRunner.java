@@ -44,6 +44,7 @@ public class BenchmarkRunner {
             new Quantized_HashIndex_CarId(),
             new Quantized_NavigableIndex_CarId(),
             new CompoundIndex_ManufacturerToyotaColorBlueDoorsThree(),
+            new NoIndexes_ModelFocus(),
             new NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree(),
             new StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive(),
             new RadixTreeIndex_ModelStartsWithP(),
