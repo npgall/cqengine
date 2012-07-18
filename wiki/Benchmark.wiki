@@ -29,7 +29,7 @@ As such, some statistics about the makeup of the collection of cars:
 || Black || 10% || BMW || 10% || 2 || 10% ||
 || White || 10% ||  ||  || || ||
 
-Given that the benchmark creates a collection of 100,000 cars, as an example: 30,000 of those cars will be manufactured by Ford, 10,000 cars will specifically be model Ford Focus, evenly distributed throughout the collection.
+Given that the benchmark creates a collection of 100,000 cars, as an example: 30,000 of those cars will be manufactured by Ford, and 10,000 cars will specifically be model Ford Focus, all evenly distributed throughout the collection.
 
 The benchmarks were run on a 1.8GHz Intel Core i7 Apple machine running OS X 10.7.4 and Java 1.6.0_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/ here] and [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java here]. Source code for individual tests is referenced in each test below.
 
