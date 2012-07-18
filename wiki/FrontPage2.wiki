@@ -248,13 +248,13 @@ Conventional set union, ∪, can be achieved by combining ∪ₐ (union all) wit
 
   * A ∪ B ∪ C = (A ∪ₐ (B – A)) ∪ₐ ((C – B) – A)
 
-  * Read more: [DeduplicationStrategies#Logical_Elimination_Strategy Usage, characteristics, tradeoffs]
+  * Read more: [DeduplicationStrategies#Logical_Elimination_Strategy Logical Elimination Strategy usage and tradeoffs]
 
 === Materialize Strategy ===
 
 Despite the typical interpretation, this does not materialize all objects up-front. 
 
-  * Read more: [DeduplicationStrategies#Materialize_Strategy Usage, characteristics, tradeoffs]
+  * Read more: [DeduplicationStrategies#Materialize_Strategy Materialize Strategy usage and tradeoffs]
 
 ----
 
