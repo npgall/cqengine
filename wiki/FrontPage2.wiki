@@ -23,6 +23,8 @@ Even with optimizations applied to convention iteration, CQEngine can outperform
 
 See the [Benchmark] wiki page for details of this test, and other tests with various types of query.
 
+----
+
 == CQEngine Overview ==
 
 CQEngine solves the scalability and latency problems of iteration by making it possible to build _indexes_ on the fields of the objects stored in a collection. For example, if many queries retrieve cars from a collection of `Car` objects, based on the value of field `Car.color`, an index could be added on `Car.color`. Subsequently CQEngine could retrieve the set of objects matching any given color _immediately_ with _constant time complexity_ O(_1_). No iteration would be necessary, and performance would not degrade as new cars were added to the collection. CQEngine is additionally programmed with the rules of set theory, allowing it to reorder components of queries to generate efficient query plans.
@@ -38,6 +40,8 @@ CQEngine solves the scalability and latency problems of iteration by making it p
   * *Iteration fallback* -  if no suitable indexes are available, CQEngine will evaluate the query via iteration, using lazy evaluation. CQEngine can always evaluate every query, even if no suitable indexes are available. Queries are not coupled with indexes, so indexes can be added after the fact, to speed up existing queries
   * *CQEngine supports full concurrency* and expects that objects will be added to and removed from the collection at runtime; CQEngine will take care of updating all registered indexes in realtime, without impacting the performance of reading threads while updates are taking place. All provided indexes support *lock-free reads*
   * *Type-safe* - nearly all errors in queries result in _compile-time_ errors instead of exceptions at runtime: CQEngine, all indexes, and all queries are strongly typed using generics at both object-level and field-level
+
+----
 
 == Feature Matrix for Included Indexes ==
 
@@ -70,6 +74,7 @@ Note: CQEngine supports `and`, `or`, `not` and query nesting also, but those con
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/standingquery/StandingQueryIndex.html StandingQuery] ||  ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||  ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/fallback/FallbackIndex.html Fallback] || ✓ || ✓ || ✓ || ✓ || ✓ || ✓ || ✓ || ✓ || ✓ ||  ||  ||
 
+----
 
 == Complete Example ===
 
@@ -164,6 +169,8 @@ Here is an example of how to define a `MultiValueAttribute` for a `Car` object w
     };
 }}}
 
+----
+
 == Attributes as Functions ==
 
 It can be noted that attributes are only required to return a value given an object. Although most will do so, there is no requirement that an attribute must provide a value by reading a field in the object. As such attributes can be _virtual_, implemented as _functions_.
@@ -195,6 +202,8 @@ The attribute above would allow the `IndexedCollection` of cars to be searched f
 
 The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example. *Care should be taken if building indexes on virtual attributes* however, if referenced data might change leaving obsolete information in indexes. A *strategy to accommodate this* is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
 
+----
+
 == Result Sets ==
 
 CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html ResultSet]s provide the following methods:
@@ -214,6 +223,8 @@ CQEngine [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/google
     * For query fragments requiring _set union_ (`or`-based queries), this will be the _sum_ of merge costs from underlying result sets
     * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
     * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
+
+----
 
 == Deduplicating Results ==
 
@@ -245,6 +256,8 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 
   * Read more: [DeduplicationStrategies#Materialize_Strategy Usage, characteristics, tradeoffs]
 
+----
+
 == Ordering Results ==
 
 By default, CQEngine does not order results; it simply depends on the order it finds objects in the collection or in indexes.
@@ -263,6 +276,8 @@ CQEngine can be instructed to order results via query options as follows.
 
 Note that ordering results is relatively expensive, dependent on the number of objects matching the query, and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results also implicitly eliminates duplicates.
 
+----
+
 == Index Quantization, Granularity, and Continuous Values ==
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
@@ -270,3 +285,5 @@ Quantization involves converting fine-grained or continuous values, to discrete 
 Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
 
 Read more: [IndexQuantization Quantization and included Quantizers]
+
+----
