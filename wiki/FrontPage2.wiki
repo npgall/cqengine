@@ -312,6 +312,8 @@ CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or E
   * ORM frameworks such as JPA/Hibernate/EclipseLink return entity objects loaded from database tables in Java collections
   * Therefore CQEngine can build indexes on collections of entity objects loaded from database tables by those frameworks
 
+----
+
 == Related Projects ==
 
   * CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but a difference is LINQ uses iteration whereas CQEngine uses set theory
@@ -321,3 +323,5 @@ CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or E
   * [http://code.google.com/p/concurrent-trees/ Concurrent Trees] is a sister project of CQEngine by the same author. It provides Concurrent Radix Trees and Concurrent Suffix Trees for Java which are used by some of the indexes in CQEngine (in fact that project was spun out from CQEngine)
 
   * Other projects by the same author: [http://code.google.com/u/101193024487469590176/ here]
+
+----
