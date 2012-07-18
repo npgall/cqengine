@@ -164,8 +164,8 @@ This example demonstrates a *mis-configured application* which has not added any
 
 *Benchmark Results*
 
-  * Naive iteration is *43.21% faster* than CQEngine
-  * Optimized iteration is *53.27% faster* than CQEngine
+  * *Naive iteration is 43.21% faster* than CQEngine
+  * *Optimized iteration is 53.27% faster* than CQEngine
 
 [http://cqengine.googlecode.com/svn/wiki/images/no-indexes-model-focus.png]
 
