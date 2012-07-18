@@ -10,7 +10,7 @@ CQEngine is somewhat similar to [hXXttp://code.google.com/p/lambdaj/ XXLambdaJ] 
 == The Limits of Iteration ==
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
 
-Conventional iteration is hugely inefficient, with time complexity O(_n_ _t_). It can be optimized, but requires *statistical knowledge* of the makeup of the collection. [TheLimitsOfIteration Read more]
+Conventional iteration is hugely inefficient, with time complexity O(_n_ _t_). It can be optimized, but requires *statistical knowledge* of the makeup of the collection. [TheLimitsOfIteration Read more: The Limits of Iteration]
 
 *Benchmark Sneak Peek*
 
