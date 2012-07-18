@@ -1,4 +1,4 @@
-#summary Controlling Index Granularity via Quantization, Indexing Continuous Values
+#summary Index Granularity and Quantization, Indexing Continuous Values
 #labels Deprecated
 
 = Index Granularity and Quantization, Indexing Continuous Values  =
