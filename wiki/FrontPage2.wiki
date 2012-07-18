@@ -300,7 +300,7 @@ Read more: [IndexQuantization Quantization and included Quantizers]
 
 == CQEngine Performance Evaluation / Benchmarks ==
 
-See: [Benchmark]s evaluating the performance of CQEngine with _naive iteration_ and _optimized iteration_.
+See: [Benchmark]s evaluating the performance of CQEngine versus _naive iteration_ and _optimized iteration_.
 
 ----
 
