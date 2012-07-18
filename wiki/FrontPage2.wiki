@@ -284,6 +284,8 @@ Quantization involves converting fine-grained or continuous values, to discrete 
 
 Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
 
+CQEngine includes several Quantizers for numerical data types which support indexing continuous values efficiently, and allow the granularity of indexes to be controlled (trading a reduction in memory usage, for increases in CPU overhead).
+
 Read more: [IndexQuantization Quantization and included Quantizers]
 
 ----
