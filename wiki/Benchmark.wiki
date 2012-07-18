@@ -37,8 +37,6 @@ The original tab-separated output from the benchmark is available as a spreadshe
 
 Because CQEngine uses _lazy evaluation_ throughout, and so it returns `ResultSet`s for every query almost immediately; to measure the performance of CQEngine, these benchmarks retrieve a `ResultSet` from CQEngine, and then iterate through all cars in the result set, simply counting the number of results. As discussed in some of the examples below, it is unlikely that a real-world application would do this and therefore this is somewhat _harsh_ on CQEngine, _understating_ its advantages. However this seems the only way to compare performance versus iteration on an equal footing in this microbenchmark scenario.
 
-*CQEngine is the baseline* (100%) in these results. So if a result says that CQEngine is 1600% _faster_ than iteration, it means that CQEngine has 1700% the retrieval speed of iteration (1700% _as fast_), and therefore it can process 1600% _more_ requests in unit time than iteration.
-
 = Benchmarks and Results =
 
 ----
