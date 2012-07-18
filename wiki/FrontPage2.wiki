@@ -298,9 +298,9 @@ Read more: [IndexQuantization Quantization and included Quantizers]
 
 ----
 
-== CQEngine Performance Evaluation / Benchmarks ==
+== CQEngine Performance Evaluation / Benchmark ==
 
-See: [Benchmark]s evaluating the performance of CQEngine versus _naive iteration_ and _optimized iteration_.
+See: [Benchmark] evaluating the performance of CQEngine versus _naive iteration_ and _optimized iteration_.
 
 ----
 
