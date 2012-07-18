@@ -1,4 +1,4 @@
-#summary The limits of iteration
+#summary The Limits of Iteration
 #labels Deprecated
 
 = The Limits of Iteration =
