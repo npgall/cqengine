@@ -135,6 +135,10 @@ Car{carId=1, name='ford focus', description='great condition, low mileage', feat
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
 }}}
 
+Complete source code for this example is can be found [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/introduction/ here].
+
+----
+
 == Attributes to Read Fields ==
 
 CQEngine needs to access fields inside objects, so that it can build indexes on fields, and retrieve the value of a certain field from any given object.
