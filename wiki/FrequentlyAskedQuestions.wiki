@@ -6,7 +6,7 @@ Frequently Asked Questions. For various values of "frequently".
 
 == Myths, Lies and Microbenchmarks: Isn't _x_ milliseconds fast enough? ==
 
-If you think that _x_ milliseconds to iterate a collection or perform some task, for example as seen in a microbenchmark (or trivial test), might be fine for your application, then unfortunately you have yet to learn an important lesson in designing for scalability: microbenchmarks do not measure absolute performance at all, and it is very dangeorous to design applications around this misconception.
+For those not familiar with microbenchmarks, it might be tempting to think that _x_ milliseconds to iterate a collection or perform some task as seen in a microbenchmark, would be fine for application xyz. Unfortunately this neglects an important lesson in designing for scalability: microbenchmarks do not measure absolute performance at all, and it is very dangeorous to design applications around this misconception.
 
 There are factors that come into play in production environments which are never replicated in microbenchmarks. Microbenchmarks can be useful to very roughly gague the *relative* merits of one approach versus another, but *never* can they demonstrate any *absolute* performance (throughput or latency) that would be seen in a real-world application.
 
