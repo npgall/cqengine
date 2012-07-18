@@ -14,7 +14,7 @@ Conventional iteration is hugely inefficient, with time complexity O(_n_ _t_). H
 
 *Benchmark Sneak Peek*
 
-Even with optimizations applied to convention iteration, CQEngine can outperform conventional iteration by some wide margins. Here is a graph of a test comparing CQEngine latency with iteration for a range-type query:
+Even with optimizations applied to convention iteration, CQEngine can outperform conventional iteration by wide margins. Here is a graph of a test comparing CQEngine latency with iteration for a range-type query:
 
 [http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png]
 
