@@ -56,6 +56,8 @@ CQEngine solves the scalability and latency problems of iteration by making it p
 || *SQ* || _Standing Query_ || _Build an index to provide constant time complexity for an entire query_ ||
 || *QZ* || _Quantization_ || _Does the index accept a quantizer to control granularity_ ||
 
+Note: CQEngine supports `and`, `or`, `not` and query nesting also, but those constructs are handled by the engine itself, not by indexes.
+
 *Index Feature Matrix*
 || *Index Type* || *EQ* || *IN* || *LT* || *GT* || *BT* || *SW* || *EW* || *SC* || *CI* || *SQ* || *QZ* ||
 || [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/index/hash/HashIndex.html Hash] || ✓ || ✓ ||  ||  ||  ||  ||  ||  ||  ||  || ✓ ||
