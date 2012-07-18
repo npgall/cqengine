@@ -99,7 +99,8 @@ cars.add(new Car(2, "ford taurus", "dirty and unreliable, flat tyre", Arrays.asL
 cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
 }}}
   # *Run some queries*
-    * *Cars whose name ends with 'vic' or whose id is less than 2*
+    * Note: add _{{{import static com.googlecode.cqengine.query.QueryFactory.*;}}}_
+    * *_Cars whose name ends with 'vic' or whose id is less than 2_*
 {{{
 Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
 for (Car car : cars.retrieve(query1)) {
@@ -111,7 +112,7 @@ for (Car car : cars.retrieve(query1)) {
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
 Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
 }}}
-    * *Cars whose flat tyre can be replaced*
+    * *_Cars whose flat tyre can be replaced_*
 {{{
 Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
 for (Car car : cars.retrieve(query2)) {
@@ -122,7 +123,7 @@ for (Car car : cars.retrieve(query2)) {
 {{{
 Car{carId=2, name='ford taurus', description='dirty and unreliable, flat tyre', features=[spare tyre, radio]}
 }}}
-    * *Cars which have a sunroof or a radio but are not dirty*
+    * *_Cars which have a sunroof or a radio but are not dirty_*
 {{{
 Query<Car> query3 = and(in(Car.FEATURES, "sunroof", "radio"), not(contains(Car.DESCRIPTION, "dirty")));
 for (Car car : cars.retrieve(query3)) {
