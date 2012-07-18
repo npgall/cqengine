@@ -266,6 +266,6 @@ Note that ordering results is relatively expensive, dependent on the number of o
 
 Quantization involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
 
-Discrete values (e.g. `Integer`, `Long`, `BigInteger`) are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values (e.g. `Float`, `Double`, `BigDecimal`) are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
+Discrete values are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
 
 Read more: [IndexQuantization Quantization and included Quantizers]
