@@ -112,6 +112,51 @@
             </plugin>
             <plugin>
                 <!--
+                    Build a jar containing all dependencies, by copying classes from all dependency jars directly into
+                    the main jar.
+
+                    The resulting jar can be used as a library in other applications (without requiring any transitive
+                    dependencies of its own).
+
+                    If used as a library in another application, in case the other application also shares any of the
+                    same dependencies, to avoid duplicate class issues resulting from copying dependency classes into
+                    this jar, we relocate classes which are dependencies of this library into a new package within this
+                    jar: com.googlecode.cqengine.lib.*. We then update the bytecode in all classes in this jar to
+                    refer to dependency classes in their new package.
+
+                    Also we configure some transformers to merge open source licences present in any of the jars.
+                 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.5</version>
+                <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>all</shadedClassifierName>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.googlecode.concurrenttrees</pattern>
+                            <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                            <addHeader>false</addHeader>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        </transformer>
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
                     Plugin to check that all source files have the appropriate open source license header.
 
                     This will fail the build if any source files don't have the open source license header.
