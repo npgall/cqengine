@@ -37,12 +37,4 @@ The problem with optimization #1, is that implementing it requires *statistical 
   * Also fortunately, *CQEngine uses _lazy evaluation_* heavily: the result sets returned by CQEngine are rarely _materialized_, and instead act as a _view_ over the set of objects in the collection which ultimately match the query.
   * Of course, the main problem with the approach above, is that it *uses iteration in the first place*. It would be useful if it could somehow _jump_ to the sets of cars which have four doors, or which are blue, or both, without having to scan the collection at all.
 
-Here is an example of the *performance of CQEngine versus iteration*:
-[http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png]
-
-  * CQEngine is *330187.50% faster* than naive iteration
-  * CQEngine is *325727.79% faster* than optimized iteration
-
-See the [Benchmark] wiki page for details of this test, and other tests with various types of query.
-
 [http://code.google.com/p/cqengine/ Return to front page]
