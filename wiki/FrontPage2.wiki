@@ -222,10 +222,6 @@ For example if an object matches several attribute values specified in an or-typ
 
 By default, CQEngine does not perform de-duplication of results; however it can be instructed to do so, using various strategies.
 
-=== Duplicates Allowed Strategy ===
-
-This is the default.
-
 === Logical Elimination Strategy ===
 
 Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
