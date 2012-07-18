@@ -1,9 +1,9 @@
 #labels Deprecated
 CQEngine, Collection Query Engine, is a NoSQL query engine for retrieving objects from Java collections using SQL-like queries, without the overhead of iterating through the collection.
 
-Response times are in the order of microseconds.
+Response times are in the order of *microseconds*.
 
-CQEngine is also easier to use than writing code for conventional iteration; most queries can be written in one line of code.
+CQEngine is also easier to use than conventional iteration. Most queries can be written in one line of code.
 
 <wiki:toc max_depth="3" />
 
@@ -12,7 +12,7 @@ CQEngine is also easier to use than writing code for conventional iteration; mos
   * Retrieve objects matching SQL-like queries from standard Java collections with very low latency
   * Write fewer lines of code than with conventional iteration
   * Load a product catalogue, or any reference data, from database tables into main memory, to _vastly_ reduce the latency of queries
-  * Reduce the _time complexity_ of accessing collections from O(_n_) to potentially O(_1_)
+  * Reduce the _time complexity_ of accessing collections from O(_n_) or worse to potentially O(_1_)
   * Scale the processing/querying of large data sets beyond limits imposed by O(_n_) iteration
 
 == The Limits of Iteration ==
@@ -301,6 +301,8 @@ Read more: [IndexQuantization Quantization and included Quantizers]
 == CQEngine Performance Evaluation / Benchmarks ==
 
 See: [Benchmark]s evaluating the performance of CQEngine with _naive iteration_ and _optimized iteration_.
+
+----
 
 == Related Projects ==
 
