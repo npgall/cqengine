@@ -306,11 +306,13 @@ See: [Benchmark] evaluating the performance of CQEngine versus _naive iteration_
 
 == Using CQEngine with Hibernate / JPA / ORM Frameworks ==
 
-CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or !EclipseLink. Integration does not require anything in particular:
+CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or !EclipseLink.
 
-  * CQEngine builds indexes on Java collections, and allows collections to be queried directly
-  * These frameworks return entity objects loaded from database tables in Java collections
-  * Therefore CQEngine can build indexes on collections of entity objects loaded from database tables by those frameworks
+Using CQEngine with these frameworks does not require anything in particular:
+
+  * CQEngine builds indexes on _Java collections_, and allows collections to be queried in memory
+  * These frameworks return entity objects loaded from database tables _in Java collections_
+  * Therefore CQEngine can build indexes on collections of entity objects loaded from database tables by these frameworks
 
 ----
 
