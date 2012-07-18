@@ -1,4 +1,5 @@
 #summary Frequently Asked Questions
+#labels Featured
 
 Frequently Asked Questions. For various values of "frequently".
 <wiki:toc max_depth="3" />
