@@ -1,5 +1,5 @@
 #summary Index Granularity and Quantization, Indexing Continuous Values
-#labels Deprecated
+#labels Featured
 
 = Index Granularity and Quantization, Indexing Continuous Values  =
 
