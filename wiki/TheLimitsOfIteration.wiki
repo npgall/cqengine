@@ -1,5 +1,5 @@
 #summary The Limits of Iteration
-#labels Deprecated
+#labels Featured
 
 = The Limits of Iteration =
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
