@@ -288,6 +288,10 @@ Read more: [IndexQuantization Quantization and included Quantizers]
 
 ----
 
+== CQEngine Performance Evaluation / Benchmarks ==
+
+See: [Benchmark]s evaluating the performance of CQEngine with _naive iteration_ and _optimized iteration_.
+
 == Related Projects ==
 
   * CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but a difference is LINQ uses iteration whereas CQEngine uses set theory
