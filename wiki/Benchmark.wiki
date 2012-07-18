@@ -104,6 +104,8 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
 Retrieve and iterate `Car` objects from the collection based on `Car.price` being _greater than or equal to_ 3000.00 and _less than_ 4000.00. `NavigableIndex` on `Car.PRICE`.
 
+This query matches 20,000 cars; 20% of the collection of 100,000 cars.
+
   * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
     * _Note: true = inclusive, false = exclusive_
   * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
@@ -122,7 +124,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.price` bein
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` starting with "`P`". `RadixTreeIndex` on `Car.model`.
 
-Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries. It would have identical performance characteristics as this `RadixTreeIndex` so it was not benchmarked separately.
+This query matches 10,000 cars; 10% of the collection of 100,000 cars. Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries. It would have identical performance characteristics as this `RadixTreeIndex` so it was not benchmarked separately.
 
   * CQEngine query: `startsWith(Car.MODEL, "P")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
@@ -141,6 +143,8 @@ Note: See also `ReversedRadixTreeIndex` which supports _ends with_-type queries.
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` containing "`g`". `SuffixTreeIndex` on `Car.model`.
 
+This query matches 10,000 cars; 10% of the collection of 100,000 cars.
+
   * CQEngine query: `contains(Car.MODEL, "g")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE '%g%'`
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/SuffixTreeIndex_ModelContainsG.java here]
@@ -158,7 +162,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.model` cont
 
 Retrieve and iterate `Car` objects from the collection based on `Car.model` having value "`Focus`". No indexes.
 
-This example demonstrates a *mis-configured application* which has not added any indexes. CQEngine can process any query, but doing so without any suitable indexes in place prevents CQEngine from accelerating the query, and it can _underperform_ iteration. Applications should ensure that they add suitable indexes.
+This example demonstrates a *mis-configured application* which has not added any indexes. CQEngine can process any query, but doing so without any suitable indexes in place prevents CQEngine from accelerating the query, and it can _underperform_ iteration. Applications should ensure that they add suitable indexes. This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
@@ -179,7 +183,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.manufacture
 
 `HashIndex` on `Car.DOORS`. _No indexes for Manufacturer or Color_.
 
-This example demonstrates CQEngine's handling of queries for which optimal indexes do not exist. An ideal configuration for this type of query would have a `CompoundIndex` on the three fields above to enable constant time retrieval. However in this instance, only a `HashIndex` on `Car.DOORS` has been added. CQEngine makes the most of the available indexes. In this case it uses the `Car.DOORS` index to reduce the _candidate set_ from 100,000 cars to 20,000 cars, and then it _iterates_ the candidate set, applying _on-the-fly_ filtering to return only those cars which match the rest of the query.
+This example demonstrates CQEngine's handling of queries for which optimal indexes do not exist. An ideal configuration for this type of query would have a `CompoundIndex` on the three fields above to enable constant time retrieval. However in this instance, only a `HashIndex` on `Car.DOORS` has been added. CQEngine makes the most of the available indexes. In this case it uses the `Car.DOORS` index to reduce the _candidate set_ from 100,000 cars to 20,000 cars, and then it _iterates_ the candidate set, applying _on-the-fly_ filtering to return only those cars which match the rest of the query. This query ultimately matches 10,000 cars; 10% of the collection of 100,000 cars.
 
 Note also that retrieving *CQEngine Statistics* is much slower in this example than in others. CQEngine Statistics refers to calling *`resultSet.size()`* on a `ResultSet` returned by CQEngine, in preference to determining size by actually iterating and counting the results.
 
@@ -218,7 +222,7 @@ WHERE
 
 Retrieve and iterate `Car` objects from the collection based on `Car.manufacturer` having value "`Toyota`" AND `Car.color` having value `Car.Color.BLUE` AND `Car.doors` having value 3. `CompoundIndex` on `Car.MANUFACTURER`, `Car.COLOR`, `Car.DOORS`.
 
-This example demonstrates the improvement in performance when an *optimal* index is added, for the _same query_ as in the non-optimal indexes example above.
+This example demonstrates the improvement in performance when an *optimal* index is added, for the _same query_ as in the non-optimal indexes example above. This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
   * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/CompoundIndex_ManufacturerToyotaColorBlueDoorsThree.java here]
 
@@ -237,7 +241,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.manufacture
 
 `StandingQueryIndex` on the query. No other indexes.
 
-This example demonstrates `StandingQueryIndex`. This type of index maintains a set of objects matching a _query_, or fragment of a query. As objects are added to and removed from the collection, it tests objects to see if they match the query, adding them to or removing them from this set as necessary. When CQEngine sees a query or fragment of a query for which a standing query index exists, it can retrieve matching objects for that query or query fragment with constant time complexity.
+This example demonstrates `StandingQueryIndex`. This type of index maintains a set of objects matching a _query_, or fragment of a query. As objects are added to and removed from the collection, it tests objects to see if they match the query, adding them to or removing them from this set as necessary. When CQEngine sees a query or fragment of a query for which a standing query index exists, it can retrieve matching objects for that query or query fragment with constant time complexity. This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
   * CQEngine query:
 {{{
