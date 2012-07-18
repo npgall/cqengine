@@ -1,5 +1,5 @@
 #summary CQEngine performance evaluation
-#labels Deprecated
+#labels Featured
 
 Benchmarks to compare the retrieval performance (latency) of CQEngine versus two types of iteration: _naive iteration_ and _optimized iteration_. These approaches to iteration are discussed [TheLimitsOfIteration here].
 
