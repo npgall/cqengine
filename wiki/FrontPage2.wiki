@@ -304,12 +304,20 @@ See: [Benchmark] evaluating the performance of CQEngine versus _naive iteration_
 
 ----
 
+== Using CQEngine with Hibernate / JPA / ORM Frameworks ==
+
+CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or EclipseLink. Integration does not require anything in particular:
+
+  * CQEngine builds indexes on Java collections, and allows collections to be queried directly
+  * ORM frameworks such as JPA/Hibernate/EclipseLink return entity objects loaded from database tables in Java collections
+  * Therefore CQEngine can build indexes on collections of entity objects loaded from database tables by those frameworks
+
 == Related Projects ==
 
   * CQEngine is somewhat similar to [http://en.wikipedia.org/wiki/Language_Integrated_Query Microsoft LINQ], but a difference is LINQ uses iteration whereas CQEngine uses set theory
 
   * [http://code.google.com/p/lambdaj/ LambdaJ] is a very powerful and highly recommended framework for manipulating Java collections, including support for grouping and aggregation. Its flexibility comes at the cost of speed however, being based on iteration. Applications requiring fast retrieval *and* aggregation could however combine CQEngine with LambdaJ *seamlessly* - LambdaJ accepts `Iterable`s as input, and CQEngine's `ResultSet`s implement that interface 
 
-  * [http://code.google.com/p/concurrent-trees/ Concurrent Trees] is a sister project of CQEngine by the same author. This provides Concurrent Radix Trees and Concurrent Suffix Trees for Java which are used by some of the indexes in CQEngine (in fact that project was spun out from CQEngine)
+  * [http://code.google.com/p/concurrent-trees/ Concurrent Trees] is a sister project of CQEngine by the same author. It provides Concurrent Radix Trees and Concurrent Suffix Trees for Java which are used by some of the indexes in CQEngine (in fact that project was spun out from CQEngine)
 
   * Other projects by the same author: [http://code.google.com/u/101193024487469590176/ here]
