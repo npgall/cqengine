@@ -310,6 +310,6 @@ See: [Benchmark]s evaluating the performance of CQEngine with _naive iteration_ 
 
   * [http://code.google.com/p/lambdaj/ LambdaJ] is a very powerful and highly recommended framework for manipulating Java collections, including support for grouping and aggregation. Its flexibility comes at the cost of speed however, being based on iteration. Applications requiring fast retrieval *and* aggregation could however combine CQEngine with LambdaJ *seamlessly* - LambdaJ accepts `Iterable`s as input, and CQEngine's `ResultSet`s implement that interface 
 
-  * A sister project of CQEngine by the same author is [http://code.google.com/p/concurrent-trees/ concurrent-trees]. This provides Concurrent Radix Trees and Concurrent Suffix Trees for Java which are used by some of the indexes in CQEngine (in fact that project was spun out from CQEngine)
+  * [http://code.google.com/p/concurrent-trees/ Concurrent Trees] is a sister project of CQEngine by the same author. This provides Concurrent Radix Trees and Concurrent Suffix Trees for Java which are used by some of the indexes in CQEngine (in fact that project was spun out from CQEngine)
 
   * Other projects by the same author: [http://code.google.com/u/101193024487469590176/ here]
