@@ -1,5 +1,4 @@
 #summary Frequently Asked Questions
-#labels Deprecated
 
 Frequently Asked Questions. For various values of "frequently".
 <wiki:toc max_depth="3" />
