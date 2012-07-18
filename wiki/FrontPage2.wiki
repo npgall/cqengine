@@ -80,26 +80,25 @@ In CQEngine applications mostly interact with [http://cqengine.googlecode.com/sv
 
 Here is a *complete example* of how to build a collection, add indexes and perform queries. It does not discuss _attributes_, which are discussed below.
 
-  # *Create a new indexed collection*
+  # Create a new indexed collection
 {{{
 // Note: could alternatively use CQEngine.copyFrom() existing collection.
 IndexedCollection<Car> cars = CQEngine.newInstance();
 }}}
-  # *Add some indexes to the collection*
+  # Add some indexes to the collection
 {{{
 cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
 cars.addIndex(ReversedRadixTreeIndex.onAttribute(Car.NAME));
 cars.addIndex(SuffixTreeIndex.onAttribute(Car.DESCRIPTION));
 cars.addIndex(HashIndex.onAttribute(Car.FEATURES));
 }}}
-  # *Add some objects to the collection*
+  # Add some objects to the collection
 {{{
 cars.add(new Car(1, "ford focus", "great condition, low mileage", Arrays.asList("spare tyre", "sunroof")));
 cars.add(new Car(2, "ford taurus", "dirty and unreliable, flat tyre", Arrays.asList("spare tyre", "radio")));
 cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
 }}}
-  # *Run some queries*
-    * Note: add _{{{import static com.googlecode.cqengine.query.QueryFactory.*;}}}_
+  # Run some queries (note: add _{{{import static com.googlecode.cqengine.query.QueryFactory.*}}}_)
     * *_Cars whose name ends with 'vic' or whose id is less than 2_*
 {{{
 Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
@@ -107,7 +106,7 @@ for (Car car : cars.retrieve(query1)) {
     System.out.println(car);
 }
 }}}
-      * *Output*
+      * Output
 {{{
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
 Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
@@ -119,7 +118,7 @@ for (Car car : cars.retrieve(query2)) {
     System.out.println(car);
 }
 }}}
-      * *Output*
+      * Output
 {{{
 Car{carId=2, name='ford taurus', description='dirty and unreliable, flat tyre', features=[spare tyre, radio]}
 }}}
@@ -130,7 +129,7 @@ for (Car car : cars.retrieve(query3)) {
     System.out.println(car);
 }
 }}}
-      * *Output*
+      * Output
 {{{
 Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
 Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
