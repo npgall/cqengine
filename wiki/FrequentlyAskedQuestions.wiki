@@ -26,7 +26,7 @@ Some interesting facts about this:
 
 *Queue-like behaviour and CPU starvation occur in applications implicitly when spikes in traffic occur.*
 
-Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot process requests faster than they are received. _Queueing delay_ multiplies latencies by orders of magnitude. Failure to account for queueing delay in the design of applications, is a major reason for the sudden unresponsiveness of applications under high load: queues just start growing, number of threads explodes, latency skyrockets. Sometimes components processing requests might report that processing time is reasonable, yet latency might be high.
+Even in applications which do not have explicit queues, queue-like behaviour occurs behind any synchronized logic, blocking IO calls, or behind any processing step which cannot accept requests faster than they are received. _Queueing delay_ multiplies latencies by orders of magnitude. Failure to account for queueing delay in the design of applications, is a major reason for the sudden unresponsiveness of applications under high load: queues just start growing, number of threads explodes, latency skyrockets. Sometimes components processing requests might report that processing time is reasonable, yet latency might be high.
 
 Anecdote: If you suspect that a particular database query is slowing down your application, but the DBA says its processing time is 10ms, the correct response is _"what's the queue length?"_.
 
