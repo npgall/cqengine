@@ -1,4 +1,5 @@
 #summary Deduplicating objects returned by ResultSets
+#labels Featured
 
 = Deduplication Strategies =
 
