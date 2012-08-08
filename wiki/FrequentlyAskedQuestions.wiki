@@ -21,7 +21,7 @@ Overall latency per request, is processing time for that request, plus the sum o
 
 Some interesting facts about this:
   * Average latency is 50ms
-  * 50% requests take longer than 50ms to process
+  * 50% of requests take longer than 50ms to process
   * 10% of requests take 100ms to process
 
 *Queue-like behaviour and CPU starvation occur in applications implicitly when spikes in traffic occur.*
