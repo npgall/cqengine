@@ -5,7 +5,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>cqengine</name>
-    <description>Collection Query Engine: NoSQL query engine for Java collections with ultra-low latency</description>
+    <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
     <url>http://code.google.com/p/cqengine/</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
