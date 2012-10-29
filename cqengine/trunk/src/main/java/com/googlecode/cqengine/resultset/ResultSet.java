@@ -55,7 +55,7 @@ public abstract class ResultSet<O> implements Iterable<O> {
         if (!iterator.hasNext()) {
             throw new NoSuchObjectException("ResultSet is empty");
         }
-        O result = iterator().next();
+        O result = iterator.next();
         if (iterator.hasNext()) {
             throw new NonUniqueObjectException("ResultSet contains more than one object");
         }
