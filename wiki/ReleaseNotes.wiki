@@ -3,7 +3,7 @@
 
 ===Version 1.0.0 - 2012-10-29===
  * Added support for attributes returning null values via `SimpleNullableAttribute` and `MultiValueNullableAttrinute` (issue 2)
- * Bugfix to ResultSet.uniqueResult() (issue 4)
+ * Bugfix to `ResultSet.uniqueResult()` (issue 4)
  * API same as in 0.9.1, no code changes necessary
  * Deployed to Maven central
 
