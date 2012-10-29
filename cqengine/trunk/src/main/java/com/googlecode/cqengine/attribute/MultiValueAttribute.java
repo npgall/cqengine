@@ -21,7 +21,14 @@ import java.util.List;
 
 /**
  * Represents an attribute in an object which has multiple values (such as a field which is itself a collection),
- * and provides a method to read the values from the field given such an object.
+ * where all of the values are known to be non-null.
+ * <p/>
+ * Provides a method to read the values from the field given such an object.
+ * <p/>
+ * This type of attribute skips null checks on values at runtime, thereby allowing maximum performance.
+ * If this type of attribute encounters a null, it is likely that a {@code NullPointerException} will be thrown.
+ * Therefore when it is not possible to know in advance if values might be null, it is recommended to use
+ * {@link MultiValueNullableAttribute} instead.
  *
  * @author Niall Gallagher
  */
@@ -52,10 +59,10 @@ public abstract class MultiValueAttribute<O, A> extends AbstractAttribute<O, A> 
     }
 
     /**
-     * Returns the values of the attribute from the object.
+     * Returns the non-null values of the attribute from the object.
      * <p/>
      * @param object The object from which the values of the attribute are required
-     * @return The values for the attribute
+     * @return The values for the attribute, which should never be null
      */
     @Override
     public abstract List<A> getValues(O object);
