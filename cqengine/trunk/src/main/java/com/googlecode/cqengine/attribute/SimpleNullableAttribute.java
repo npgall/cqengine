@@ -20,14 +20,14 @@ import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
 import java.util.*;
 
 /**
- * Represents an attribute in an object (such as a field) which will not be null.
+ * Represents an attribute in an object (such as a field) which can be null.
  *
  * Provides a method to read the value of the field given such an object.
  *
- * @see SimpleNullableAttribute
+ * @see SimpleAttribute
  * @author Niall Gallagher
  */
-public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
+public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O, A> {
 
     /**
      * Creates an attribute with the given name.
@@ -38,9 +38,9 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      * A suitable name might be the name of the field to which an attribute refers.
      *
      * @param attributeName The name for this attribute
-     * @see #SimpleAttribute()
+     * @see #SimpleNullableAttribute()
      */
-    public SimpleAttribute(String attributeName) {
+    public SimpleNullableAttribute(String attributeName) {
         super(attributeName);
     }
 
@@ -48,9 +48,9 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      * Creates an attribute with no name. A name for the attribute will be generated automatically from the name of the
      * subclass (or anonymous class) which implements the attribute.
      *
-     * @see #SimpleAttribute(String)
+     * @see #SimpleNullableAttribute(String)
      */
-    public SimpleAttribute() {
+    public SimpleNullableAttribute() {
         super();
     }
 
@@ -59,14 +59,15 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      */
     @Override
     public List<A> getValues(O object) {
-        return Collections.singletonList(getValue(object));
+        A value = getValue(object);
+        return value == null ? Collections.<A>emptyList() : Collections.singletonList(value);
     }
 
     /**
-     * Returns the (non-null) value of the attribute from the object.
+     * Returns the (possibly null) value of the attribute from the object.
      * <p/>
      * @param object The object from which the value of the attribute is required
-     * @return The value for the attribute, which should never be null
+     * @return The value for the attribute, which can be null
      */
     public abstract A getValue(O object);
 }
