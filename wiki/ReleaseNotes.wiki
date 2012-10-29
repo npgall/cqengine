@@ -1,0 +1,16 @@
+#summary Release notes for official releases of the CQEngine library
+
+
+===Version 1.0.0 - 2012-10-29===
+ * Added support for attributes returning null values via `SimpleNullableAttribute` and `MultiValueNullableAttrinute` (issue 2)
+ * Bugfix to ResultSet.uniqueResult() (issue 4)
+ * API same as in 0.9.1, no code changes necessary
+ * Deployed to Maven central
+
+
+===Version 0.9.1 - 2012-07-18===
+ * Deployed to Maven central
+
+
+===Version 0.9.0 - 2012-07-14===
+ * Public upload of source
