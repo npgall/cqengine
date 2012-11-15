@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOption;
@@ -39,23 +40,28 @@ import java.util.concurrent.ConcurrentMap;
  *         {@link Equal}
  *     </li>
  * </ul>
+ * </ul>
+ * The constructor of this index accepts {@link Factory} objects, from which it will create the map and value sets it
+ * uses internally. This allows the application to "tune" the construction parameters of these maps/sets,
+ * by supplying custom factories.
+ * For default settings, supply {@link DefaultIndexMapFactory} and {@link DefaultValueSetFactory}.
  *
  * @author Niall Gallagher
  */
-public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
+public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> {
 
-    private static final int INDEX_RETRIEVAL_COST = 30;
-
-    private final ConcurrentMap<A, StoredResultSet<O>> indexMap = new ConcurrentHashMap<A, StoredResultSet<O>>();
+    protected static final int INDEX_RETRIEVAL_COST = 30;
 
     /**
      * Package-private constructor, used by static factory methods. Creates a new HashIndex initialized to index the
      * supplied attribute.
      *
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
      * @param attribute The attribute on which the index will be built
      */
-    HashIndex(Attribute<O, A> attribute) {
-        super(attribute, new HashSet<Class<? extends Query>>() {{
+    protected HashIndex(Factory<ConcurrentMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
+        super(indexMapFactory, valueSetFactory, attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
         }});
     }
@@ -113,23 +119,6 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConcurrentMap<A, StoredResultSet<O>> getIndexMap() {
-        return indexMap;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
-     * {@link Collections#newSetFromMap(java.util.Map)}
-     */
-    public StoredResultSet<O> createValueSet() {
-        return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
-    }
-
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------
 
     /**
@@ -159,7 +148,20 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
      * @return A {@link HashIndex} on this attribute
      */
     public static <A, O> HashIndex<A, O> onAttribute(Attribute<O, A> attribute) {
-        return new HashIndex<A, O>(attribute);
+        return onAttribute(new DefaultIndexMapFactory<A, O>(), new DefaultValueSetFactory<O>(), attribute);
+    }
+
+    /**
+     * Creates a new {@link HashIndex} on the specified attribute.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param attribute The attribute on which the index will be built
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link HashIndex} on this attribute
+     */
+    public static <A, O> HashIndex<A, O> onAttribute(Factory<ConcurrentMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
+        return new HashIndex<A, O>(indexMapFactory, valueSetFactory, attribute);
     }
 
     /**
@@ -171,11 +173,24 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
      * @return A {@link HashIndex} on the given attribute using the given {@link Quantizer}
      */
     public static <A, O> HashIndex<A, O> withQuantizerOnAttribute(final Quantizer<A> quantizer, Attribute<O, A> attribute) {
-        return new HashIndex<A, O>(attribute) {
+        return withQuantizerOnAttribute(new DefaultIndexMapFactory<A, O>(), new DefaultValueSetFactory<O>(), quantizer, attribute);
+    }
+
+    /**
+     * Creates a {@link HashIndex} on the given attribute using the given {@link Quantizer}.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param quantizer A {@link Quantizer} to use in this index
+     * @param attribute The attribute on which the index will be built
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link HashIndex} on the given attribute using the given {@link Quantizer}
+     */
+    public static <A, O> HashIndex<A, O> withQuantizerOnAttribute(Factory<ConcurrentMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, final Quantizer<A> quantizer, Attribute<O, A> attribute) {
+        return new HashIndex<A, O>(indexMapFactory, valueSetFactory, attribute) {
 
             // ---------- Override the hook methods related to Quantizer ----------
 
-            final HashIndex<A, O> thisRef = this;
             @Override
             protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query) {
                 return new QuantizedResultSet<O>(resultSet, query);
@@ -186,5 +201,25 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O> {
                 return quantizer.getQuantizedValue(attributeValue);
             }
         };
+    }
+
+    /**
+     * Creates an index map using default settings.
+     */
+    public static class DefaultIndexMapFactory<A, O> implements Factory<ConcurrentMap<A, StoredResultSet<O>>> {
+        @Override
+        public ConcurrentMap<A, StoredResultSet<O>> create() {
+            return new ConcurrentHashMap<A, StoredResultSet<O>>();
+        }
+    }
+
+    /**
+     * Creates a value set using default settings.
+     */
+    public static class DefaultValueSetFactory<O> implements Factory<StoredResultSet<O>> {
+        @Override
+        public StoredResultSet<O> create() {
+            return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
+        }
     }
 }

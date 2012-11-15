@@ -17,7 +17,6 @@ package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
 import java.util.Collection;
@@ -26,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * An abstract implementation of an index backed by a {@link java.util.concurrent.ConcurrentMap}, where the exact map
- * implementation is provided by subclasses.
+ * implementation is provided by a factory supplied to the constructor.
  * <p/>
  * This class implements the methods to actually build the index and update it when objects are added or removed.
  * Subclasses will implement methods to retrieve from the index, using logic appropriate to the particular
@@ -36,36 +35,34 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public abstract class AbstractMapBasedAttributeIndex<A, O> extends AbstractAttributeIndex<A, O> {
+public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends ConcurrentMap<A, StoredResultSet<O>>> extends AbstractAttributeIndex<A, O> {
 
-    public AbstractMapBasedAttributeIndex(Attribute<O, A> attribute, Set<Class<? extends Query>> supportedQueries) {
+    protected final Factory<MapType> indexMapFactory;
+    protected final Factory<StoredResultSet<O>> valueSetFactory;
+
+    protected final MapType indexMap;
+
+    /**
+     * Protected constructor, called by subclasses.
+     *
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param attribute The attribute on which the index will be built
+     * @param supportedQueries The set of {@link Query} types which the subclass implementation supports
+     */
+    protected AbstractMapBasedAttributeIndex(Factory<MapType> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute, Set<Class<? extends Query>> supportedQueries) {
         super(attribute, supportedQueries);
+        this.indexMapFactory = indexMapFactory;
+        this.valueSetFactory = valueSetFactory;
+        this.indexMap = indexMapFactory.create();
     }
-
-    /**
-     * Returns a new subclass-specific implementation of a ResultSet which will be a value in the map-based index, to
-     * hold a set of objects matching a particular value of an attribute.
-     *
-     * @return A new subclass-specific implementation of a ResultSet which will be a value in the map-based index, to
-     * hold a set of objects matching a particular value of an attribute
-     */
-    public abstract StoredResultSet<O> createValueSet();
-
-    /**
-     * Returns the instance of a particular implementation of a {@link java.util.concurrent.ConcurrentMap} maintained
-     * by the subclass, which comprises the main data structure of this index.
-     *
-     * @return A new instance of a subclass-specific implementation of a {@link java.util.concurrent.ConcurrentMap},
-     * which comprises the main data structure of this index
-     */
-    public abstract ConcurrentMap<A, StoredResultSet<O>> getIndexMap();
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void notifyObjectsAdded(Collection<O> objects) {
-        ConcurrentMap<A, StoredResultSet<O>> indexMap = getIndexMap();
+        ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
             for (A attributeValue : attributeValues) {
@@ -77,7 +74,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O> extends AbstractAttri
                 StoredResultSet<O> valueSet = indexMap.get(attributeValue);
                 if (valueSet == null) {
                     // No StoredResultSet, create and add one...
-                    valueSet = createValueSet();
+                    valueSet = valueSetFactory.create();
                     StoredResultSet<O> existingValueSet = indexMap.putIfAbsent(attributeValue, valueSet);
                     if (existingValueSet != null) {
                         // Another thread won race to add new value set, use that one...
@@ -95,7 +92,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O> extends AbstractAttri
      */
     @Override
     public void notifyObjectsRemoved(Collection<O> objects) {
-        ConcurrentMap<A, StoredResultSet<O>> indexMap = getIndexMap();
+        ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
             for (A attributeValue : attributeValues) {
@@ -128,7 +125,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O> extends AbstractAttri
      */
     @Override
     public void notifyObjectsCleared() {
-        getIndexMap().clear();
+        this.indexMap.clear();
     }
 
 
