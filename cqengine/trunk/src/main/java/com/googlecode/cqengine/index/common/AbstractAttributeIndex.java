@@ -35,7 +35,7 @@ public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, 
 
     private final Set<Class<? extends Query>> supportedQueries;
 
-    private final Attribute<O, A> attribute;
+    protected final Attribute<O, A> attribute;
 
     /**
      * Protected constructor, called by subclasses.

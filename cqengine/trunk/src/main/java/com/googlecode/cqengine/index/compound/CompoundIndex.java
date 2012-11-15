@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.compound;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.index.compound.impl.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.impl.CompoundQuery;
 import com.googlecode.cqengine.index.compound.impl.CompoundValueTuple;
@@ -42,26 +43,31 @@ import java.util.concurrent.ConcurrentMap;
  *         {@link com.googlecode.cqengine.index.compound.impl.CompoundQuery}
  *     </li>
  * </ul>
+ * The constructor of this index accepts {@link Factory} objects, from which it will create the map and value sets it
+ * uses internally. This allows the application to "tune" the construction parameters of these maps/sets,
+ * by supplying custom factories.
+ * For default settings, supply {@link DefaultIndexMapFactory} and {@link DefaultValueSetFactory}.
  *
  * @author Niall Gallagher
  */
-public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O> {
+public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> {
 
-    private static final int INDEX_RETRIEVAL_COST = 20;
+    protected static final int INDEX_RETRIEVAL_COST = 20;
 
-    private final CompoundAttribute<O> attribute;
-    private final ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>> indexMap = new ConcurrentHashMap<CompoundValueTuple<O>, StoredResultSet<O>>();
+    protected final CompoundAttribute<O> attribute;
 
     /**
      * Package-private constructor, used by static factory methods. Creates a new HashIndex initialized to index the
      * supplied attribute.
      *
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
      * @param attribute The attribute on which the index will be built
      */
-    CompoundIndex(CompoundAttribute<O> attribute) {
+    protected CompoundIndex(Factory<ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, CompoundAttribute<O> attribute) {
         // We can supply the superclass constructor with an empty set of supported queries,
         // because we implement/override supportsQuery() in this class instead...
-        super(attribute, Collections.<Class<? extends Query>>emptySet());
+        super(indexMapFactory, valueSetFactory, attribute, Collections.<Class<? extends Query>>emptySet());
         this.attribute = attribute;
     }
 
@@ -141,23 +147,6 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>> getIndexMap() {
-        return indexMap;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
-     * {@link Collections#newSetFromMap(java.util.Map)}
-     */
-    public StoredResultSet<O> createValueSet() {
-        return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
-    }
-
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------
 
     /**
@@ -183,10 +172,25 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * @param <O> The type of the object containing the attributes
      * @return A {@link CompoundIndex} based on these attributes
      */
+    // TODO: add overloaded non-varargs versions of this method to prevent unchecked warnings pre JDK 7?
     public static <O> CompoundIndex<O> onAttributes(Attribute<O, ?>... attributes) {
+        return onAttributes(new DefaultIndexMapFactory<O>(), new DefaultValueSetFactory<O>(), attributes);
+    }
+
+    /**
+     * Creates a new {@link CompoundIndex} on the given combination of attributes.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param attributes The combination of simple attributes on which index will be built
+     * @param <O> The type of the object containing the attributes
+     * @return A {@link CompoundIndex} based on these attributes
+     */
+    // TODO: add overloaded non-varargs versions of this method to prevent unchecked warnings pre JDK 7?
+    public static <O> CompoundIndex<O> onAttributes(Factory<ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, ?>... attributes) {
         List<Attribute<O, ?>> attributeList = Arrays.asList(attributes);
         CompoundAttribute<O> compoundAttribute = new CompoundAttribute<O>(attributeList);
-        return new CompoundIndex<O>(compoundAttribute);
+        return new CompoundIndex<O>(indexMapFactory, valueSetFactory, compoundAttribute);
     }
 
     /**
@@ -198,13 +202,26 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * @return A {@link CompoundIndex} based on these attributes
      */
     public static <O> CompoundIndex<O> withQuantizerOnAttributes(final Quantizer<CompoundValueTuple<O>> quantizer, Attribute<O, ?>... attributes) {
+        return withQuantizerOnAttributes(new DefaultIndexMapFactory<O>(), new DefaultValueSetFactory<O>(), quantizer, attributes);
+    }
+
+    /**
+     * Creates a new {@link CompoundIndex} using the given {@link Quantizer} on the given combination of attributes.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param attributes The combination of simple attributes on which index will be built
+     * @param quantizer A {@link Quantizer} to use in this index
+     * @param <O> The type of the object containing the attributes
+     * @return A {@link CompoundIndex} based on these attributes
+     */
+    public static <O> CompoundIndex<O> withQuantizerOnAttributes(Factory<ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, final Quantizer<CompoundValueTuple<O>> quantizer, Attribute<O, ?>... attributes) {
         List<Attribute<O, ?>> attributeList = Arrays.asList(attributes);
         CompoundAttribute<O> compoundAttribute = new CompoundAttribute<O>(attributeList);
-        return new CompoundIndex<O>(compoundAttribute) {
+        return new CompoundIndex<O>(indexMapFactory, valueSetFactory, compoundAttribute) {
 
             // ---------- Override the hook methods related to Quantizer ----------
 
-            final CompoundIndex<O> thisRef = this;
             @Override
             protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query) {
                 return new QuantizedResultSet<O>(resultSet, query);
@@ -215,5 +232,25 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                 return quantizer.getQuantizedValue(attributeValue);
             }
         };
+    }
+
+    /**
+     * Creates an index map using default settings.
+     */
+    public static class DefaultIndexMapFactory<O> implements Factory<ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> {
+        @Override
+        public ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>> create() {
+            return new ConcurrentHashMap<CompoundValueTuple<O>, StoredResultSet<O>>();
+        }
+    }
+
+    /**
+     * Creates a value set using default settings.
+     */
+    public static class DefaultValueSetFactory<O> implements Factory<StoredResultSet<O>> {
+        @Override
+        public StoredResultSet<O> create() {
+            return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
+        }
     }
 }

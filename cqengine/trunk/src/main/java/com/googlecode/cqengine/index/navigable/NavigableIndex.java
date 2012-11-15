@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.navigable;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -25,7 +26,6 @@ import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
-import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
@@ -53,27 +53,32 @@ import java.util.concurrent.*;
  *         {@link Between}
  *     </li>
  * </ul>
+ * </ul>
+ * The constructor of this index accepts {@link Factory} objects, from which it will create the map and value sets it
+ * uses internally. This allows the application to "tune" the construction parameters of these maps/sets,
+ * by supplying custom factories.
+ * For default settings, supply {@link DefaultIndexMapFactory} and {@link DefaultValueSetFactory}.
  *
  * @author Niall Gallagher
  */
-public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O> {
+public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> {
 
-    private final ConcurrentNavigableMap<A, StoredResultSet<O>> indexMap = new ConcurrentSkipListMap<A, StoredResultSet<O>>();
-
-    private static final int INDEX_RETRIEVAL_COST = 40;
+    protected static final int INDEX_RETRIEVAL_COST = 40;
 
     /**
      * Package-private constructor, used by static factory methods. Creates a new NavigableIndex initialized to index
      * the supplied attribute.
      *
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
      * @param attribute The attribute on which the index will be built
      */
-    NavigableIndex(Attribute<O, A> attribute) {
-        super(attribute, new HashSet<Class<? extends Query>>() {{
-            add(Equal.class);
-            add(LessThan.class);
-            add(GreaterThan.class);
-            add(Between.class);
+    protected NavigableIndex(Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
+        super(indexMapFactory, valueSetFactory,  attribute, new HashSet<Class<? extends Query>>() {{
+                add(Equal.class);
+                add(LessThan.class);
+                add(GreaterThan.class);
+                add(Between.class);
         }});
     }
 
@@ -207,10 +212,10 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      *
      * @param <O> The type of object stored in the result sets
      */
-    abstract class IndexRangeLookupFunction<O> {
-        final boolean filterFirstResultSet;
-        final boolean filterLastResultSet;
-        final Query<O> query;
+    protected abstract class IndexRangeLookupFunction<O> {
+        protected final boolean filterFirstResultSet;
+        protected final boolean filterLastResultSet;
+        protected final Query<O> query;
 
         /**
          * The following arguments are useful when the index uses a {@link com.googlecode.cqengine.quantizer.Quantizer},
@@ -224,33 +229,14 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
          * filtered to return only objects which actually match the query - typically true for {@link LessThan} and
          * {@link Between} queries and false for {@link GreaterThan} queries
          */
-        IndexRangeLookupFunction(Query<O> query, boolean filterFirstResultSet, boolean filterLastResultSet) {
+        protected IndexRangeLookupFunction(Query<O> query, boolean filterFirstResultSet, boolean filterLastResultSet) {
             this.query = query;
             this.filterFirstResultSet = filterFirstResultSet;
             this.filterLastResultSet = filterLastResultSet;
         }
 
-        abstract Iterable<? extends ResultSet<O>> perform();
+        protected abstract Iterable<? extends ResultSet<O>> perform();
     }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConcurrentMap<A, StoredResultSet<O>> getIndexMap() {
-        return indexMap;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
-     * {@link Collections#newSetFromMap(java.util.Map)}
-     */
-    public StoredResultSet<O> createValueSet() {
-        return new StoredSetBasedResultSet<O>(Collections.newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
-    }
-
 
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------
 
@@ -283,7 +269,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * @return An {@link Iterable} optionally with the first and/or last {@link ResultSet}s wrapped in
      * {@link QuantizedResultSet}s
      */
-    Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
+    protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
         return resultSets;
     }
 
@@ -319,7 +305,25 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * @return A new HashIndex which will build an index on this attribute
      */
     public static <A extends Comparable<A>, O> NavigableIndex<A, O> onAttribute(Attribute<O, A> attribute) {
-        return new NavigableIndex<A, O>(attribute);
+        return onAttribute(new DefaultIndexMapFactory<A, O>(), new DefaultValueSetFactory<O>(), attribute);
+    }
+
+    /**
+     * Creates a new {@code NavigableIndex} on the given attribute. The attribute can be a {@link SimpleAttribute} or a
+     * {@link com.googlecode.cqengine.attribute.MultiValueAttribute}, as long as the type of the attribute referenced
+     * implements {@link Comparable}.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param attribute The attribute on which the index will be built, a {@link SimpleAttribute} or a
+     * {@link com.googlecode.cqengine.attribute.MultiValueAttribute} where the type of the attribute referenced
+     * implements {@link Comparable}
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return A new HashIndex which will build an index on this attribute
+     */
+    public static <A extends Comparable<A>, O> NavigableIndex<A, O> onAttribute(Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
+        return new NavigableIndex<A, O>(indexMapFactory, valueSetFactory, attribute);
     }
 
     /**
@@ -331,14 +335,26 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * @return A {@link NavigableIndex} on the given attribute using the given {@link Quantizer}
      */
     public static <A extends Comparable<A>, O> NavigableIndex<A, O> withQuantizerOnAttribute(final Quantizer<A> quantizer, Attribute<O, A> attribute) {
-        return new NavigableIndex<A, O>(attribute) {
+        return withQuantizerOnAttribute(new DefaultIndexMapFactory<A, O>(), new DefaultValueSetFactory<O>(), quantizer, attribute);
+    }
+
+    /**
+     * Creates a {@link NavigableIndex} on the given attribute using the given {@link Quantizer}.
+     * <p/>
+     * @param indexMapFactory A factory used to create the main map-based data structure used by the index
+     * @param valueSetFactory A factory used to create sets to store values in the index
+     * @param quantizer A {@link Quantizer} to use in this index
+     * @param attribute The attribute on which the index will be built
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link NavigableIndex} on the given attribute using the given {@link Quantizer}
+     */
+    public static <A extends Comparable<A>, O> NavigableIndex<A, O> withQuantizerOnAttribute(Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, final Quantizer<A> quantizer, Attribute<O, A> attribute) {
+        return new NavigableIndex<A, O>(indexMapFactory, valueSetFactory, attribute) {
 
             // ---------- Override the hook methods related to Quantizer ----------
 
-            final NavigableIndex<A, O> thisRef = this;
-
             @Override
-            Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
+            protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
                 if (!lookupFunction.filterFirstResultSet && !lookupFunction.filterLastResultSet) {
                     // No filtering required, return the same iterable...
                     return resultSets;
@@ -391,5 +407,25 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 return new QuantizedResultSet<O>(storedResultSet, query);
             }
         };
+    }
+
+    /**
+     * Creates an index map using default settings.
+     */
+    public static class DefaultIndexMapFactory<A, O> implements Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> {
+        @Override
+        public ConcurrentNavigableMap<A, StoredResultSet<O>> create() {
+            return new ConcurrentSkipListMap<A, StoredResultSet<O>>();
+        }
+    }
+
+    /**
+     * Creates a value set using default settings.
+     */
+    public static class DefaultValueSetFactory<O> implements Factory<StoredResultSet<O>> {
+        @Override
+        public StoredResultSet<O> create() {
+            return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
+        }
     }
 }
