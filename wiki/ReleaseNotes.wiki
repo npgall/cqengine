@@ -1,7 +1,7 @@
 #summary Release notes for official releases of the CQEngine library
 
 ===Version 1.0.1 - 2012-11-17===
- * Added support for customizing via factories, the construction of maps and sets used internally by HashIndex, NavigableIndex and CompoundIndex (concurrency level, load factor etc.) (issue 5)
+ * Added support for customizing via factories, the construction of maps and sets used internally by `HashIndex`, `NavigableIndex` and `CompoundIndex` (concurrency level, load factor etc.) (issue 5)
  * Deployed to Maven central
 
 ===Version 1.0.0 - 2012-10-29===
