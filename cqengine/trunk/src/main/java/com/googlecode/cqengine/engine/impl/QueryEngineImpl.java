@@ -667,6 +667,14 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
                 return false;
             }
         }
+        // Perform the operation on compound indexes...
+        Iterable<? extends Index<O>> compoundIndexes = this.compoundIndexes.values();
+        for (Index<O> index : compoundIndexes) {
+            boolean continueIterating = indexOperation.perform(index);
+            if (!continueIterating) {
+                return false;
+            }
+        }
         // Perform the operation on standing query indexes...
         Iterable<? extends Index<O>> standingQueryIndexes = this.standingQueryIndexes.values();
         for (Index<O> index : standingQueryIndexes) {

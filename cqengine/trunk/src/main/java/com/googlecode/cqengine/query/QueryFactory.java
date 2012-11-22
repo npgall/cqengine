@@ -232,6 +232,26 @@ public class QueryFactory {
     }
 
     /**
+     * Creates an {@link Has} query which asserts that an attribute has a value (is not null).
+     * <p/>
+     * Asserts that an attribute has a value (is not null).
+     * <p/>
+     * To accelerate {@code has(...)} queries, add a Standing Query Index on {@code has(...)}.
+     * <p/>
+     * To assert that an attribute does <i>not</i> have a value (is null), use <code>not(has(...))</code>.
+     * <p/>
+     * To accelerate <code>not(has(...))</code> queries, add a Standing Query Index on <code>not(has(...))</code>.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link Has} query
+     */
+    public static <O, A> Has<O, A> has(Attribute<O, A> attribute) {
+        return new Has<O, A>(attribute);
+    }
+
+    /**
      * Creates an {@link And} query, representing a logical AND on child queries, which when evaluated yields the
      * <u>set intersection</u> of the result sets from child queries.
      *
