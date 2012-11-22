@@ -2,7 +2,7 @@
 #labels Featured
 
 ===Version 1.0.2 - 2012-11-22===
- * Added support for Has queries - `has(Car.DESCRIPTION)` and `not(has(Car.DESCRIPTION))` - the equivalent of SQL `IS NOT NULL` and `IS NULL` respectively; these can be accelerated via !StandingQueryIndex
+ * Added support for Has queries - `has(Car.DESCRIPTION)` and `not(has(Car.DESCRIPTION))` - the equivalent of SQL `IS NOT NULL` and `IS NULL` respectively. Use with `SimpleNullableAttribute`. These queries can be accelerated via `StandingQueryIndex`
  * Bugfix to updating compound indexes for objects added/removed after index added
  * Deployed to Maven central
 
