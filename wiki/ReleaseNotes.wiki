@@ -1,4 +1,10 @@
 #summary Release notes for official releases of the CQEngine library
+#labels Featured
+
+===Version 1.0.2 - 2012-11-22===
+ * Added support for Has queries - `has(Car.DESCRIPTION)` and `not(has(Car.DESCRIPTION))` - the equivalent of SQL `IS NOT NULL` and `IS NULL` respectively; these can be accelerated via !StandingQueryIndex
+ * Bugfix to updating compound indexes for objects added/removed after index added
+ * Deployed to Maven central
 
 ===Version 1.0.1 - 2012-11-17===
  * Added support for customizing via factories, the construction of maps and sets used internally by `HashIndex`, `NavigableIndex` and `CompoundIndex` (concurrency level, load factor etc.) (issue 5)
