@@ -337,7 +337,7 @@ It should be noted that if all indexes are added to an IndexedCollection before 
  * Indexing speed correlates closely with the number of distinct values in the attribute(s) on which an index is built
  * It takes 875 milliseconds to bulk-index 100,000 objects in the worst case, when the associated attribute has a unique value per object
  * It takes 27 milliseconds to bulk-index 100,000 objects, when the associated attribute has only 10 distinct values across the collection
- * It takes a few hundred nanoseconds to add add/remove individual objects from existing indexes
+ * It takes a few hundred nanoseconds to add add/remove individual objects to/from existing indexes
  * Indexing fields which uniquely identify objects carries the most overhead, because a separate entry is required in the index for every object
  * Supplying a Quantizer to such indexes reduces the number of unique entries required in the index, and so reduces the time required to build those indexes
  * Indexing speed increases approximately in line with the compression factor supplied to a Quantizer
