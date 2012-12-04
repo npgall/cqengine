@@ -323,14 +323,14 @@ Typically, the overhead to index an entire collection would only be incurred whe
 It should be noted that if all indexes are added to an IndexedCollection before objects are added in bulk, then all indexes will be built in a single pass; such that if multiple indexes are added in advance, the overhead would be less than the sum of those indicated.
 
 || *Index* || *Microseconds to index 100,000-object collection* || *Microseconds per object* ||
-|| HashIndex on CarId || 874702.26 || 8.747 ||
-|| Quantized HashIndex on CarId (compression factor 10) || 85204.84 || 0.852 ||
-|| HashIndex on Manufacturer || 28487.08 || 0.284 ||
-|| HashIndex on Model || 27310.68 || 0.273 ||
-|| CompoundIndex on Manufacturer, Color, Doors || 109761.58 || 1.097 ||
-|| NavigableIndex on Price || 30393.94 || 0.303 ||
-|| RadixTreeIndex on Model || 58100.02 || 0.581 ||
-|| SuffixTreeIndex on Model || 27386.04 || 0.273 ||
+|| `HashIndex` on CarId || 874702.26 || 8.747 ||
+|| Quantized `HashIndex` on CarId (compression factor 10) || 85204.84 || 0.852 ||
+|| `HashIndex` on Manufacturer || 28487.08 || 0.284 ||
+|| `HashIndex` on Model || 27310.68 || 0.273 ||
+|| `CompoundIndex` on Manufacturer, Color, Doors || 109761.58 || 1.097 ||
+|| `NavigableIndex` on Price || 30393.94 || 0.303 ||
+|| `RadixTreeIndex` on Model || 58100.02 || 0.581 ||
+|| `SuffixTreeIndex` on Model || 27386.04 || 0.273 ||
 
 *Findings*
 
