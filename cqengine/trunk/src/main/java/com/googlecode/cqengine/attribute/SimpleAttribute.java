@@ -44,6 +44,10 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
         super(attributeName);
     }
 
+    protected SimpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
+        super(objectType, attributeType, attributeName);
+    }
+
     /**
      * Creates an attribute with no name. A name for the attribute will be generated automatically from the name of the
      * subclass (or anonymous class) which implements the attribute.

@@ -45,6 +45,12 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
         this.hashCode = calcHashCode();
     }
 
+    protected AbstractAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
+        this.attributeName = attributeName;
+        this.objectType = objectType;
+        this.attributeType = attributeType;
+        this.hashCode = calcHashCode();
+    }
     @Override
     public Class<O> getObjectType() {
         return objectType;
