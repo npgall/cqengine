@@ -318,9 +318,9 @@ This benchmark followed the same methodology discussed in the methodology sectio
 
 The benchmark was run with a collection of 100,000 car objects, measuring the time taken to build the following types of index on the collection.
 
-Typically, the overhead to index an entire collection would only be incurred when objects are first added to an IndexedCollection in bulk. Subsequently, objects can be added to and removed from the IndexedCollection directly, so incurring only the per-object overhead.
+Typically, the overhead to index an entire collection would only be incurred when objects are first added to an `IndexedCollection` in bulk. Subsequently, objects can be added to and removed from the `IndexedCollection` directly, so incurring only the per-object overhead.
 
-It should be noted that if all indexes are added to an IndexedCollection before objects are added in bulk, then all indexes will be built in a single pass; such that if multiple indexes are added in advance, the overhead would be less than the sum of those indicated.
+It should be noted that if all indexes are added to an `IndexedCollection` before objects are added in bulk, then all indexes will be built in a _single pass_; such that if multiple indexes are added in advance, the overhead would be _less than_ the sum of those indicated.
 
 || *Index* || *Microseconds to index 100,000-object collection* || *Microseconds per object* ||
 || `HashIndex` on !CarId || 874702.26 || 8.747 ||
