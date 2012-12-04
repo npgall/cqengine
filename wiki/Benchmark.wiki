@@ -322,6 +322,8 @@ Typically, the overhead to index an entire collection would only be incurred whe
 
 It should be noted that if all indexes are added to an `IndexedCollection` before objects are added in bulk, then all indexes will be built in a _single pass_; such that if multiple indexes are added in advance, the overhead would be _less than_ the sum of those indicated.
 
+*Results*
+
 || *Index* || *Microseconds to index 100,000-object collection* || *Microseconds per object* ||
 || `HashIndex` on !CarId || 874702.26 || 8.747 ||
 || Quantized `HashIndex` on !CarId (compression factor 10) || 85204.84 || 0.852 ||
