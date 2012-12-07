@@ -37,6 +37,7 @@ public class IndexingBenchmarkRunner {
 
     static final List<? extends IndexingTask> benchmarkTasks = Arrays.asList(
             new HashIndex_CarId(),
+            new UniqueIndex_CarId(),
             new Quantized_HashIndex_CarId(),
             new HashIndex_Manufacturer(),
             new HashIndex_Model(),
