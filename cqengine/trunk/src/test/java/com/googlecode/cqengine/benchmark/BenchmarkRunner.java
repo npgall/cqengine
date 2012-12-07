@@ -37,6 +37,7 @@ public class BenchmarkRunner {
     static final int MEASUREMENT_REPETITIONS = 10000;
 
     static final List<? extends BenchmarkTask> benchmarkTasks = Arrays.asList(
+            new UniqueIndex_CarId(),
             new HashIndex_CarId(),
             new HashIndex_ManufacturerFord(),
             new HashIndex_ModelFocus(),
