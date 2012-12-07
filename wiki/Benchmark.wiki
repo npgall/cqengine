@@ -43,22 +43,22 @@ CQEngine is the baseline in these results, and note the use of _"faster"_ instea
 
 ----
 
-== `HashIndex`: _Retrieve By Unique Key_ ==
+== `UniqueIndex`: _Retrieve By Unique Key_ ==
 
-Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. `HashIndex` on `Car.CAR_ID`.
+Retrieve a single `Car` object from the collection based on `Car.carId` having value 500, which uniquely identifies a car. `UniqueIndex` on `Car.CAR_ID`.
 
 This example demonstrates CQEngine's support for _constant_ retrieval time regardless of the size of the collection.
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
-  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_CarId.java here]
+  * Source code: [http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/UniqueIndex_CarId.java here]
 
 *Benchmark Results*
 
-  * CQEngine is *630488.48% faster* than naive iteration
-  * CQEngine is *627369.75% faster* than optimized iteration
+  * CQEngine is *778473.29% faster* than naive iteration
+  * CQEngine is *751179.23% faster* than optimized iteration
 
-[http://cqengine.googlecode.com/svn/wiki/images/hash-index-unique-carid.png]
+[http://cqengine.googlecode.com/svn/wiki/images/unique-index-carid.png]
 
 ----
 
