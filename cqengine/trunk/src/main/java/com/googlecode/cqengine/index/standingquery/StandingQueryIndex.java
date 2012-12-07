@@ -29,6 +29,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * An index which stores objects matching any type of query, and which can answer arbitrarily complex
+ * queries in constant time complexity.
+ * <p/>
+ * A standing query index must be added ahead of time for the exact query which is to be accelerated.
+ * <p/>
+ * Note that it is possible to add a standing query index on any <i>fragment</i> of a query, as well as whole queries.
+ * CQEngine will accelerate evaluation of query fragments (branches, or nested sub-trees within queries) using any
+ * standing query index which match those fragments.
+ * <p/>
+ *
  * @author Niall Gallagher
  */
 public class StandingQueryIndex<O> implements Index<O> {
