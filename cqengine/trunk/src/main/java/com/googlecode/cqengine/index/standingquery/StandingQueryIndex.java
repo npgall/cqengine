@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p/>
  * Note that it is possible to add a standing query index on any <i>fragment</i> of a query, as well as whole queries.
  * CQEngine will accelerate evaluation of query fragments (branches, or nested sub-trees within queries) using any
- * standing query index which match those fragments.
+ * standing query indexes which match those fragments.
  * <p/>
  *
  * @author Niall Gallagher
