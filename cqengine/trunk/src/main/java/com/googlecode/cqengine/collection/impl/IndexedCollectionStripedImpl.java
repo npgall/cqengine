@@ -153,7 +153,7 @@ public class IndexedCollectionStripedImpl<O> extends IndexedCollectionImpl<O> {
     public boolean addAll(Collection<? extends O> c) {
         boolean modified = false;
         for (O object : c) {
-            modified = modified || add(object);
+            modified = add(object) || modified;
         }
         return modified;
     }
@@ -165,7 +165,7 @@ public class IndexedCollectionStripedImpl<O> extends IndexedCollectionImpl<O> {
     public boolean removeAll(Collection<?> c) {
         boolean modified = false;
         for (Object object : c) {
-            modified = modified || remove(object);
+            modified = remove(object) || modified;
         }
         return modified;
     }
