@@ -26,12 +26,35 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * An implementation of {@link java.util.Set} which additionally wraps {@link QueryEngineInternal}, thus providing
+ * {@link #retrieve(com.googlecode.cqengine.query.Query)} methods for performing queries on the collection to retrieve
+ * matching objects, and {@link #addIndex(com.googlecode.cqengine.index.Index)} methods allowing indexes to be
+ * added to the collection to improve query performance.
+ * <p/>
+ * This collection takes care of automatically updating any indexes with objects added to/from the collection.
+ * <p/>
+ * This collection is thread-safe for concurrent reads in all cases.
+ * <p/>
+ * This collection is thread-safe for concurrent writes in cases where multiple threads might try to add/remove
+ * <i>different</i> objects to/from the collection concurrently.
+ * <p/>
+ * This collection is <b>not</b> thread-safe in cases where two or more threads might try to add or remove the
+ * <i>same</i> object to/from the collection concurrently. There is a risk that indexes might get out of sync causing
+ * inconsistent results in that scenario with this implementation.
+ * <p/>
+ * In applications where multiple threads might add/remove the same object concurrently, then the subclass
+ * {@link IndexedCollectionStripedImpl} should be used instead. That subclass allows concurrent writes, but with
+ * additional safeguards against concurrent modification for the same object, with some additional overhead.
+ * <p/>
+ * Note that in this context the <i>same object</i> refers to either the same object instance, OR two object instances
+ * having the same hash code and being equal according to their {@link #equals(Object)} methods.
+ *
  * @author Niall Gallagher
  */
 public class IndexedCollectionImpl<O> implements IndexedCollection<O> {
 
-    private final Set<O> collection;
-    private final QueryEngineInternal<O> indexEngine;
+    protected final Set<O> collection;
+    protected final QueryEngineInternal<O> indexEngine;
 
     /**
      * Constructor.
