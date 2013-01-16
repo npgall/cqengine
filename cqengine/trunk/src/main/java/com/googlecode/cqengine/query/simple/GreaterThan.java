@@ -58,7 +58,7 @@ public class GreaterThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         A attributeValue = attribute.getValue(object);
         if (valueInclusive) {
             return value.compareTo(attributeValue) <= 0;
@@ -69,7 +69,7 @@ public class GreaterThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         Iterable<A> attributeValues = attribute.getValues(object);
         if (valueInclusive) {
             for (A attributeValue : attributeValues) {

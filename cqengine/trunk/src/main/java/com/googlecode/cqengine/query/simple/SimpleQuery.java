@@ -88,8 +88,8 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
         }
     }
 
-    abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object);
+    protected abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object);
 
-    abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object);
+    protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object);
 
 }

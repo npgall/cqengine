@@ -48,13 +48,13 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         CharSequence attributeValue = attribute.getValue(object);
         return startsWithPrefix(attributeValue, value);
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         for (A attributeValue : attribute.getValues(object)) {
             if (startsWithPrefix(attributeValue, value)) {
                 return true;

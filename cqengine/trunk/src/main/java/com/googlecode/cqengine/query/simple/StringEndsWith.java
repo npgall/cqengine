@@ -48,13 +48,13 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         CharSequence attributeValue = attribute.getValue(object);
         return endsWithSuffix(attributeValue, value);
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         for (A attributeValue : attribute.getValues(object)) {
             if (endsWithSuffix(attributeValue, value)) {
                 return true;
