@@ -72,7 +72,7 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         A attributeValue = attribute.getValue(object);
         if (lowerInclusive && upperInclusive) {
             if (lowerValue.compareTo(attributeValue) <= 0 && upperValue.compareTo(attributeValue) >= 0) {
@@ -98,7 +98,7 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         Iterable<A> attributeValues = attribute.getValues(object);
         if (lowerInclusive && upperInclusive) {
             for (A attributeValue : attributeValues) {

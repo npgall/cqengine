@@ -51,12 +51,12 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         return value.equals(attribute.getValue(object));
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         for (A attributeValue : attribute.getValues(object)) {
             if (value.equals(attributeValue)) {
                 return true;

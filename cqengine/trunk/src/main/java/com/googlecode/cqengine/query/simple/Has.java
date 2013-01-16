@@ -50,12 +50,12 @@ public class Has<O, A> extends SimpleQuery<O, A> {
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         return attribute.getValue(object) != null;
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         for (A attributeValue : attribute.getValues(object)) {
             if (attributeValue != null) {
                 return true;

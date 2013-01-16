@@ -48,14 +48,14 @@ public class StringIsContainedIn<O, A extends CharSequence> extends SimpleQuery<
     }
 
     @Override
-    boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
         CharSequence attributeValue = attribute.getValue(object);
         // Same as string contains, except we swap the arguments...
         return StringContains.containsFragment(value, attributeValue);
     }
 
     @Override
-    boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
         for (A attributeValue : attribute.getValues(object)) {
             // Same as string contains, except we swap the arguments...
             if (StringContains.containsFragment(value, attributeValue)) {
