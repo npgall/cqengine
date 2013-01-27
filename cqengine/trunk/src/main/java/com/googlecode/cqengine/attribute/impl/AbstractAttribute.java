@@ -17,8 +17,8 @@ package com.googlecode.cqengine.attribute.impl;
 
 import com.googlecode.cqengine.attribute.Attribute;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * @author Niall Gallagher
@@ -79,7 +79,19 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
         try {
             ParameterizedType superclass = (ParameterizedType) getClass().getGenericSuperclass();
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            Class<O> cls = (Class<O>) superclass.getActualTypeArguments()[0];
+            Type actualType = superclass.getActualTypeArguments()[0];
+            Class<O> cls;
+            if (actualType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType)actualType;
+                @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
+                Class<O> actualClass = (Class<O>) parameterizedType.getRawType();
+                cls = actualClass;
+            }
+            else {
+                @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
+                Class<O> actualClass = (Class<O>) actualType;
+                cls = actualClass;
+            }
             return cls;
         }
         catch (Exception e) {
@@ -90,8 +102,19 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
     Class<A> readAttributeType() {
         try {
             ParameterizedType superclass = (ParameterizedType) getClass().getGenericSuperclass();
-            @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            Class<A> cls = (Class<A>) superclass.getActualTypeArguments()[1];
+            Type actualType = superclass.getActualTypeArguments()[1];
+            Class<A> cls;
+            if (actualType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType)actualType;
+                @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
+                Class<A> actualClass = (Class<A>) parameterizedType.getRawType();
+                cls = actualClass;
+            }
+            else {
+                @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
+                Class<A> actualClass = (Class<A>) actualType;
+                cls = actualClass;
+            }
             return cls;
         }
         catch (Exception e) {
