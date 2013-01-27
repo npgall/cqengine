@@ -120,4 +120,32 @@ public abstract class ResultSet<O> implements Iterable<O> {
      * @return The number of objects which would be returned by this {@code ResultSet} if iterated
      */
     public abstract int size();
+
+    /**
+     * Checks if this {@code ResultSet} if iterated would not return any objects (i.e. the query does not match any
+     * objects).
+     * <p/>
+     * This method can be more efficient than calling {@code #size()} to check simply if no objects would be
+     * returned.
+     *
+     * @return True if this {@code ResultSet} if iterated would not return any objects; false if the {@code ResultSet}
+     * would return objects
+     */
+    public boolean isEmpty() {
+        return !iterator().hasNext();
+    }
+
+    /**
+     * Checks if this {@code ResultSet} if iterated would return some objects (i.e. the query matches some
+     * objects).
+     * <p/>
+     * This method can be more efficient than calling {@code #size()} to check simply if some objects would be
+     * returned.
+     *
+     * @return True if this {@code ResultSet} if iterated would return some objects; false if the {@code ResultSet}
+     * would not return any objects
+     */
+    public boolean isNotEmpty() {
+        return iterator().hasNext();
+    }
 }

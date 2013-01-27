@@ -35,4 +35,6 @@ public abstract class StoredResultSet<O> extends ResultSet<O> {
     public abstract void clear();
 
     public abstract boolean isEmpty();
+
+    public abstract boolean isNotEmpty();
 }

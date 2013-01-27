@@ -76,6 +76,11 @@ public class StoredSetBasedResultSet<O> extends StoredResultSet<O> {
     }
 
     @Override
+    public boolean isNotEmpty() {
+        return !backingSet.isEmpty();
+    }
+
+    @Override
     public void clear() {
         backingSet.clear();
     }

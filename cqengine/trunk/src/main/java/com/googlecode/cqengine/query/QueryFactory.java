@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -309,6 +310,92 @@ public class QueryFactory {
      */
     public static <O> Not<O> not(Query<O> query) {
         return new Not<O>(query);
+    }
+
+    /**
+     * Creates a query supporting the equivalent of SQL <code>EXISTS</code>.
+     * <p/>
+     * Asserts that objects in a local {@code IndexedCollection} match objects in a foreign collection,
+     * based on a key attribute of local objects being equal to a key attribute of the foreign objects.
+     * This query can be performed on the local collection, supplying the foreign collection and the
+     * relevant attributes, as arguments to the query.
+     * <p/>
+     * This supports the SQL equivalent of:<br/>
+     * <pre>
+     * SELECT * From LocalCollection
+     * WHERE EXISTS (
+     *     SELECT * FROM ForeignCollection
+     *     WHERE LocalCollection.localAttribute = ForeignCollection.foreignAttribute
+     * )
+     * </pre>
+     *
+     * @param foreignCollection The collection of foreign objects
+     * @param localKeyAttribute An attribute of the local object
+     * @param foreignKeyAttribute An attribute of objects in the foreign collection
+     * @param <O> The type of the local object
+     * @param <F> The type of the foreign objects
+     * @param <A> The type of the common attributes
+     * @return A query which checks if the local object matches any objects in the foreign collection based on the given
+     * key attributes being equal
+     */
+    public static <O, F, A> Query<O> existsIn(final IndexedCollection<F> foreignCollection, final Attribute<O, A> localKeyAttribute, final Attribute<F, A> foreignKeyAttribute) {
+        Attribute<O, Boolean> exists = new SimpleAttribute<O, Boolean>("existsInForeignCollection") {
+            public Boolean getValue(O localObject) {
+                for (A localValue : localKeyAttribute.getValues(localObject)) {
+                    boolean contained = foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty();
+                    if (contained) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+        return equal(exists, true);
+    }
+
+    /**
+     * Creates a query supporting the equivalent of SQL <code>EXISTS</code>,
+     * with some additional restrictions on foreign objects.
+     * <p/>
+     * Asserts that objects in a local {@code IndexedCollection} match objects in a foreign collection,
+     * based on a key attribute of local objects being equal to a key attribute of the foreign objects,
+     * AND objects in the foreign collection matching some additional criteria.
+     * This query can be performed on the local collection, supplying the foreign collection and the
+     * relevant attributes, as arguments to the query.
+     * <p/>
+     * This supports the SQL equivalent of:<br/>
+     * <pre>
+     * SELECT * From LocalCollection
+     * WHERE EXISTS (
+     *     SELECT * FROM ForeignCollection
+     *     WHERE LocalCollection.localAttribute = ForeignCollection.foreignAttribute
+     *         AND ([AND|OR|NOT](ForeignCollection.someOtherAttribute = x) ...)
+     * )
+     * </pre>
+     * @param foreignCollection The collection of foreign objects
+     * @param localKeyAttribute An attribute of the local object
+     * @param foreignKeyAttribute An attribute of objects in the foreign collection
+     * @param foreignRestrictions A query specifying additional restrictions on foreign objects
+     * @param <O> The type of the local object
+     * @param <F> The type of the foreign objects
+     * @param <A> The type of the common attributes
+     * @return A query which checks if the local object matches any objects in the foreign collection based on the given
+     * key attributes being equal
+     */
+    public static <O, F, A> Query<O> existsIn(final IndexedCollection<F> foreignCollection, final Attribute<O, A> localKeyAttribute, final Attribute<F, A> foreignKeyAttribute, final Query<F> foreignRestrictions) {
+        Attribute<O, Boolean> exists = new SimpleAttribute<O, Boolean>((Class<O>)localKeyAttribute.getObjectType(), Boolean.class, "existsInForeignCollection_with_restriction") {
+            public Boolean getValue(O localObject) {
+                for (A localValue : localKeyAttribute.getValues(localObject)) {
+                    boolean contained = foreignCollection.retrieve(
+                            and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
+                    if (contained) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+        return equal(exists, true);
     }
 
     /**
