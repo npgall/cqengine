@@ -55,6 +55,8 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
 
 *Benchmark Results*
 
+  * *2,967,359 queries per second* (per CPU core)
+  * *0.337 microseconds per query*
   * CQEngine is *778473.29% faster* than naive iteration
   * CQEngine is *751179.23% faster* than optimized iteration
 
@@ -74,6 +76,8 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
 
 *Benchmark Results*
 
+  * *1,256 queries per second* (per CPU core)
+  * *795.942 microseconds per query*
   * CQEngine is *423.17% faster* than naive iteration
   * CQEngine is *241.83% faster* than optimized iteration
 
@@ -93,6 +97,8 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
 *Benchmark Results*
 
+  * *4,341 queries per second* (per CPU core)
+  * *230.361 microseconds per query*
   * CQEngine is *1627.06% faster* than naive iteration
   * CQEngine is *1324.17% faster* than optimized iteration
 
@@ -113,6 +119,8 @@ This query matches 20,000 cars; 20% of the collection of 100,000 cars.
 
 *Benchmark Results*
 
+  * *1,478 queries per second* (per CPU core)
+  * *676.763 microseconds per query
   * CQEngine is *506.08% faster* than naive iteration
   * CQEngine is *325.89% faster* than optimized iteration
 
@@ -132,6 +140,8 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. Note: See
 
 *Benchmark Results*
 
+  * *2,788 queries per second* (per CPU core)
+  * *358.622 microseconds per query*
   * CQEngine is *1357.81% faster* than naive iteration
   * CQEngine is *1110.12% faster* than optimized iteration
 
@@ -151,6 +161,8 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
 *Benchmark Results*
 
+  * *3,053 queries per second* (per CPU core)
+  * *327.574 microseconds per query*
   * CQEngine is *1860.53% faster* than naive iteration
   * CQEngine is *1605.31% faster* than optimized iteration
 
@@ -170,6 +182,8 @@ This example demonstrates a *mis-configured application* which has not added any
 
 *Benchmark Results*
 
+  * *153 queries per second* (per CPU core)
+  * *6524.906 microseconds per query*
   * *Naive iteration* is *43.21% faster* than CQEngine
   * *Optimized iteration* is *53.27% faster* than CQEngine
 
@@ -211,6 +225,8 @@ WHERE
 
 *Benchmark Results*
 
+  * *848 queries per second* (per CPU core)
+  * *1179.856 microseconds per query*
   * CQEngine is *172.60% faster* than naive iteration
   * CQEngine is *136.61% faster* than optimized iteration
 
@@ -228,6 +244,8 @@ This example demonstrates the improvement in performance when an *optimal* index
 
 *Benchmark Results*
 
+  * *4,735 queries per second* (per CPU core)
+  * *211.196 microseconds per query*
   * CQEngine is *1625.70% faster* than naive iteration
   * CQEngine is *1283.20% faster* than optimized iteration
 
@@ -263,6 +281,8 @@ WHERE
 
 *Benchmark Results*
 
+  * *4,796 queries per second* (per CPU core)
+  * *208.515 microseconds per query*
   * CQEngine is *1607.43% faster* than naive iteration
   * CQEngine is *1299.96% faster* than optimized iteration
 
@@ -282,6 +302,8 @@ This example demonstrates the effect of *_quantization_* on indexes. Quantizatio
 
 *Benchmark Results*
 
+  * *1,639,344 queries per second* (per CPU core)
+  * *0.61 microseconds per query*
   * CQEngine is *481984.43% faster* than naive iteration
   * CQEngine is *467645.90% faster* than optimized iteration
 
@@ -301,6 +323,8 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
 *Benchmark Results*
 
+  * *1,116,071 queries per second* (per CPU core)
+  * *0.896 microseconds per query*
   * CQEngine is *330187.50% faster* than naive iteration
   * CQEngine is *325727.79% faster* than optimized iteration
 
