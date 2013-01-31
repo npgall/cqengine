@@ -350,20 +350,20 @@ It should be noted that if all indexes are added to an `IndexedCollection` befor
 
 *Results*
 
-|| *Index* || *Microseconds to index 100,000-object collection* || *Microseconds per object* ||
-|| `UniqueIndex` on !CarId || 24032.8 || 0.24 ||
-|| `HashIndex` on !CarId || 874702.26 || 8.747 ||
-|| Quantized `HashIndex` on !CarId (compression factor 10) || 85204.84 || 0.852 ||
-|| `HashIndex` on Manufacturer || 28487.08 || 0.284 ||
-|| `HashIndex` on Model || 27310.68 || 0.273 ||
-|| `CompoundIndex` on Manufacturer, Color, Doors || 109761.58 || 1.097 ||
-|| `NavigableIndex` on Price || 30393.94 || 0.303 ||
-|| `RadixTreeIndex` on Model || 58100.02 || 0.581 ||
-|| `SuffixTreeIndex` on Model || 27386.04 || 0.273 ||
+|| *Index* || *Microseconds to index 100,000-object collection* || *Microseconds per object* || *Inserts per second (single 1.8GHz core)* ||
+|| `UniqueIndex` on !CarId || 24032.8 || 0.24 || 4,166,667 ||
+|| `HashIndex` on !CarId || 874702.26 || 8.747 || 114,324 ||
+|| Quantized `HashIndex` on !CarId (compression factor 10) || 85204.84 || 0.852 || 1,173,709 ||
+|| `HashIndex` on Manufacturer || 28487.08 || 0.284 || 3,521,127 ||
+|| `HashIndex` on Model || 27310.68 || 0.273 || 3,663,004 ||
+|| `CompoundIndex` on Manufacturer, Color, Doors || 109761.58 || 1.097 || 911,577 ||
+|| `NavigableIndex` on Price || 30393.94 || 0.303 || 3,300,330 ||
+|| `RadixTreeIndex` on Model || 58100.02 || 0.581 || 1,721,170 ||
+|| `SuffixTreeIndex` on Model || 27386.04 || 0.273 || 3,663,004 ||
 
 *Findings*
 
- * It takes 24 milliseconds to bulk-index 100,000 objects, when the associated attribute has a unique value per object and a unique index is used
+ * It takes 24 milliseconds to bulk-index 100,000 objects (4,166,667 inserts per second, on a single 1.8GHz CPU core), when the associated attribute has a unique value per object and a unique index is used
  * It takes 875 milliseconds to bulk-index 100,000 objects in the worst case, when the associated attribute has a unique value per object and a non-unique index is used
  * It takes 27 milliseconds to bulk-index 100,000 objects, when a non-unique index is used and the associated attribute has only 10 distinct values across the collection
  * For non-unique indexes, indexing speed correlates closely with the number of distinct values in the attribute(s) on which an index is built
