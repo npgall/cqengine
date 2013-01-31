@@ -334,7 +334,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
 ----
 
-= Indexing Overhead / Indexing Speed =
+= Object Insertion Speed / Indexing Overhead =
 
 The benchmarks above measure the performance of CQEngine when retrieving objects. This section measures the performance and overhead in CQEngine to build indexes on objects in the first place.
 
