@@ -17,6 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.collection.impl.*;
 import com.googlecode.cqengine.engine.impl.QueryEngineImpl;
+import com.googlecode.cqengine.index.common.Factory;
 
 import java.util.*;
 
@@ -40,13 +41,29 @@ public class CQEngine {
      * <p/>
      * The implementation returned supports concurrent reads in all cases, and supports concurrent modification in
      * cases where multiple threads will add/remove different objects but not the same objects to the collection
-     * concurrently. See {@link IndexedCollectionImpl} for details.
+     * concurrently. See {@link com.googlecode.cqengine.collection.impl.DefaultIndexedCollection} for details.
      *
      * @param <O> The type of objects in the collection
      * @return A new {@link IndexedCollection} initially containing no objects
      */
     public static <O> IndexedCollection<O> newInstance() {
-        return new IndexedCollectionImpl<O>(16, new QueryEngineImpl<O>());
+        return new DefaultIndexedCollection<O>(new DefaultConcurrentSetFactory<O>(), new QueryEngineImpl<O>());
+    }
+
+    /**
+     * Returns a new {@link IndexedCollection} to which objects can be added subsequently.
+     * <p/>
+     * The implementation returned supports concurrent reads in all cases, and supports concurrent modification in
+     * cases where multiple threads will add/remove different objects but not the same objects to the collection
+     * concurrently. See {@link com.googlecode.cqengine.collection.impl.DefaultIndexedCollection} for details.
+     *
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param <O> The type of objects in the collection
+     * @return A new {@link IndexedCollection} initially containing no objects
+     */
+    public static <O> IndexedCollection<O> newInstance(Factory<Set<O>> backingSetFactory) {
+        return new DefaultIndexedCollection<O>(backingSetFactory, new QueryEngineImpl<O>());
     }
 
     /**
@@ -54,14 +71,34 @@ public class CQEngine {
      * <p/>
      * The implementation returned supports concurrent reads in all cases, and supports concurrent modification in
      * cases where multiple threads will add/remove different objects but not the same objects to the collection
-     * concurrently. See {@link IndexedCollectionImpl} for details.
+     * concurrently. See {@link com.googlecode.cqengine.collection.impl.DefaultIndexedCollection} for details.
      *
      * @param collection A collection containing initial values to be indexed
      * @param <O> The type of objects in the collection
      * @return An {@link IndexedCollection} initialized with objects from the given collection
      */
     public static <O> IndexedCollection<O> copyFrom(Collection<O> collection) {
-        IndexedCollection<O> indexedCollection = new IndexedCollectionImpl<O>(collection.size(), new QueryEngineImpl<O>());
+        Factory<Set<O>> setFactory = new DefaultConcurrentSetFactory<O>(collection.size());
+        IndexedCollection<O> indexedCollection = new DefaultIndexedCollection<O>(setFactory, new QueryEngineImpl<O>());
+        indexedCollection.addAll(collection);
+        return indexedCollection;
+    }
+
+    /**
+     * Returns a new {@link IndexedCollection} containing objects from the given collection.
+     * <p/>
+     * The implementation returned supports concurrent reads in all cases, and supports concurrent modification in
+     * cases where multiple threads will add/remove different objects but not the same objects to the collection
+     * concurrently. See {@link com.googlecode.cqengine.collection.impl.DefaultIndexedCollection} for details.
+     *
+     * @param collection A collection containing initial values to be indexed
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param <O> The type of objects in the collection
+     * @return An {@link IndexedCollection} initialized with objects from the given collection
+     */
+    public static <O> IndexedCollection<O> copyFrom(Collection<O> collection, Factory<Set<O>> backingSetFactory) {
+        IndexedCollection<O> indexedCollection = new DefaultIndexedCollection<O>(backingSetFactory, new QueryEngineImpl<O>());
         indexedCollection.addAll(collection);
         return indexedCollection;
     }
@@ -70,33 +107,73 @@ public class CQEngine {
      * Returns a new {@link IndexedCollection} to which objects can be added subsequently.
      * <p/>
      * The implementation returned uses a stripped lock to support applications in which multiple threads might try to
-     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link IndexedCollectionStripedImpl}
+     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link StripeLockedIndexedCollection}
      * for details.
      *
-     * @param <O> The type of objects in the collection
-     * @param concurrentWritesNumStripes The number of stripes to use for concurrent writes, more stripes reduces the
+     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
      * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
+     * @param <O> The type of objects in the collection
      * @return A new {@link IndexedCollection} initially containing no objects
      */
-    public static <O> IndexedCollection<O> newInstanceStriped(int concurrentWritesNumStripes) {
-        return new IndexedCollectionStripedImpl<O>(16, concurrentWritesNumStripes, new QueryEngineImpl<O>());
+    public static <O> IndexedCollection<O> newInstanceStripeLocked(int numStripes) {
+        return new StripeLockedIndexedCollection<O>(new DefaultConcurrentSetFactory<O>(), numStripes, new QueryEngineImpl<O>());
+    }
+
+    /**
+     * Returns a new {@link IndexedCollection} to which objects can be added subsequently.
+     * <p/>
+     * The implementation returned uses a stripped lock to support applications in which multiple threads might try to
+     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link StripeLockedIndexedCollection}
+     * for details.
+     *
+     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
+     * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param <O> The type of objects in the collection
+     * @return A new {@link IndexedCollection} initially containing no objects
+     */
+    public static <O> IndexedCollection<O> newInstanceStripeLocked(int numStripes, Factory<Set<O>> backingSetFactory) {
+        return new StripeLockedIndexedCollection<O>(backingSetFactory, numStripes, new QueryEngineImpl<O>());
     }
 
     /**
      * Returns a new {@link IndexedCollection} containing objects from the given collection.
      * <p/>
      * The implementation returned uses a stripped lock to support applications in which multiple threads might try to
-     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link IndexedCollectionStripedImpl}
+     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link StripeLockedIndexedCollection}
      * for details.
      *
      * @param collection A collection containing initial values to be indexed
-     * @param concurrentWritesNumStripes The number of stripes to use for concurrent writes, more stripes reduces the
+     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
      * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
      * @param <O> The type of objects in the collection
      * @return An {@link IndexedCollection} initialized with objects from the given collection
      */
-    public static <O> IndexedCollection<O> copyFromStriped(Collection<O> collection, int concurrentWritesNumStripes) {
-        IndexedCollection<O> indexedCollection = new IndexedCollectionStripedImpl<O>(collection.size(), concurrentWritesNumStripes, new QueryEngineImpl<O>());
+    public static <O> IndexedCollection<O> copyFromStripeLocked(Collection<O> collection, int numStripes) {
+        Factory<Set<O>> setFactory = new DefaultConcurrentSetFactory<O>(collection.size());
+        IndexedCollection<O> indexedCollection = new StripeLockedIndexedCollection<O>(setFactory, numStripes, new QueryEngineImpl<O>());
+        indexedCollection.addAll(collection);
+        return indexedCollection;
+    }
+
+    /**
+     * Returns a new {@link IndexedCollection} containing objects from the given collection.
+     * <p/>
+     * The implementation returned uses a stripped lock to support applications in which multiple threads might try to
+     * add/remove the <i>same</i> object to/from the collection concurrently. See {@link StripeLockedIndexedCollection}
+     * for details.
+     *
+     * @param collection A collection containing initial values to be indexed
+     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
+     * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param <O> The type of objects in the collection
+     * @return An {@link IndexedCollection} initialized with objects from the given collection
+     */
+    public static <O> IndexedCollection<O> copyFromStripeLocked(Collection<O> collection, int numStripes, Factory<Set<O>> backingSetFactory) {
+        IndexedCollection<O> indexedCollection = new StripeLockedIndexedCollection<O>(backingSetFactory, numStripes, new QueryEngineImpl<O>());
         indexedCollection.addAll(collection);
         return indexedCollection;
     }

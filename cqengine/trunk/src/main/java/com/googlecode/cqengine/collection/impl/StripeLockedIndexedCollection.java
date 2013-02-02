@@ -16,20 +16,22 @@
 package com.googlecode.cqengine.collection.impl;
 
 import com.googlecode.cqengine.engine.QueryEngineInternal;
+import com.googlecode.cqengine.index.common.Factory;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Extends {@link IndexedCollectionImpl} with specialized concurrency support, for applications in which multiple
+ * Extends {@link DefaultIndexedCollection} with specialized concurrency support, for applications in which multiple
  * threads might try to add or remove the <b>same object</b> to/from an indexed collection <i>concurrently</i>.
  * In this context the <i>same object</i> refers to either the same object instance, OR two object instances having the
  * same hash code and being equal according to their {@link #equals(Object)} methods.
  * <p/>
- * The {@link IndexedCollectionImpl} superclass is thread-safe in cases where the application will add/remove
+ * The {@link DefaultIndexedCollection} superclass is thread-safe in cases where the application will add/remove
  * <i>different</i> objects concurrently. This implementation adds safeguards around adding/removing the <i>same</i>
  * object concurrently, with some additional overhead.
  * <p/>
@@ -45,18 +47,21 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Niall Gallagher
  */
-public class IndexedCollectionStripedImpl<O> extends IndexedCollectionImpl<O> {
+public class StripeLockedIndexedCollection<O> extends DefaultIndexedCollection<O> {
 
     final StripedLock stripedLock;
 
     /**
      * Constructor.
      *
-     * @param initialSize The initial size for the collection
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
+     * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
      * @param queryEngine The query engine
      */
-    public IndexedCollectionStripedImpl(int initialSize, int numStripes, QueryEngineInternal<O> queryEngine) {
-        super(initialSize, queryEngine);
+    public StripeLockedIndexedCollection(Factory<Set<O>> backingSetFactory, int numStripes, QueryEngineInternal<O> queryEngine) {
+        super(backingSetFactory, queryEngine);
         this.stripedLock = new StripedLock(numStripes);
     }
 
