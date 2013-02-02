@@ -18,6 +18,7 @@ package com.googlecode.cqengine.collection.impl;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOption;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -43,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * inconsistent results in that scenario with this implementation.
  * <p/>
  * In applications where multiple threads might add/remove the same object concurrently, then the subclass
- * {@link IndexedCollectionStripedImpl} should be used instead. That subclass allows concurrent writes, but with
+ * {@link StripeLockedIndexedCollection} should be used instead. That subclass allows concurrent writes, but with
  * additional safeguards against concurrent modification for the same object, with some additional overhead.
  * <p/>
  * Note that in this context the <i>same object</i> refers to either the same object instance, OR two object instances
@@ -51,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Niall Gallagher
  */
-public class IndexedCollectionImpl<O> implements IndexedCollection<O> {
+public class DefaultIndexedCollection<O> implements IndexedCollection<O> {
 
     protected final Set<O> collection;
     protected final QueryEngineInternal<O> indexEngine;
@@ -59,29 +60,15 @@ public class IndexedCollectionImpl<O> implements IndexedCollection<O> {
     /**
      * Constructor.
      *
-     * @param initialSize The initial size for the collection
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
      * @param queryEngine The query engine
      */
-    public IndexedCollectionImpl(int initialSize, QueryEngineInternal<O> queryEngine) {
-        this.collection = createSet(initialSize);
+    public DefaultIndexedCollection(Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
+        this.collection = backingSetFactory.create();
         queryEngine.init(collection);
         this.indexEngine = queryEngine;
     }
-
-    /**
-     * Creates a {@link java.util.Set} in which this collection will store objects.
-     * <p/>
-     * By default, this creates a set via: <code>Collections.newSetFromMap(new ConcurrentHashMap&lt;O, Boolean&gt;(initialSize))</code>
-     * <p/>
-     * Applications could optionally extend this class and override this method to return an alternative implementation.
-     *
-     * @param initialSize The initial size for the set
-     * @return A new instance of the {@link java.util.Set}
-     */
-    protected Set<O> createSet(int initialSize) {
-        return Collections.newSetFromMap(new ConcurrentHashMap<O, Boolean>(initialSize));
-    }
-
 
     // ----------- Query Engine Methods -------------
 
