@@ -44,11 +44,17 @@ public class SqlExistsBasedJoin {
         );
 
         for (Car car : cars.retrieve(carsQuery)) {
-            System.out.println(car.name + " has a sunroof or is convertible, " +
-                    "and can be serviced in Dublin at the following garages:- " );
             Query<Garage> garagesWhichServiceThisCarInDublin
                     = and(equal(Garage.BRANDS_SERVICED, car.name), equal(Garage.LOCATION, "Dublin"));
+            boolean first = true;
             for (Garage garage : garages.retrieve(garagesWhichServiceThisCarInDublin)) {
+                if (first) {
+                    // Print this only when we have actually retrieved the first garage, in case the
+                    // collection was modified removing the first garage before the inner loop :)...
+                    System.out.println(car.name + " has a sunroof or is convertible, " +
+                            "and can be serviced in Dublin at the following garages:- " );
+                    first = false;
+                }
                 System.out.println("---> " + garage);
             }
             System.out.println();

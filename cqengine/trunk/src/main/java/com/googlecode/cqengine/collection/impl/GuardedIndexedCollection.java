@@ -26,28 +26,34 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Extends {@link DefaultIndexedCollection} with specialized concurrency support, for applications in which multiple
- * threads might try to add or remove the <b>same object</b> to/from an indexed collection <i>concurrently</i>.
- * In this context the <i>same object</i> refers to either the same object instance, OR two object instances having the
- * same hash code and being equal according to their {@link #equals(Object)} methods.
+ * Extends {@link ConcurrentIndexedCollection} with some specialized guards around concurrency, for applications in
+ * which multiple threads might try to add or remove the <b>same object</b> to/from an indexed collection
+ * <i>concurrently</i>. In this context the <i>same object</i> refers to either the same object instance, OR two object
+ * instances having the same hash code and being equal according to their {@link #equals(Object)} methods.
  * <p/>
- * The {@link DefaultIndexedCollection} superclass is thread-safe in cases where the application will add/remove
+ * The {@link ConcurrentIndexedCollection} superclass is thread-safe in cases where the application will add/remove
  * <i>different</i> objects concurrently. This implementation adds safeguards around adding/removing the <i>same</i>
  * object concurrently, with some additional overhead.
  * <p/>
- * This class is implemented with a <a href="http://code.google.com/p/guava-libraries/wiki/StripedExplained">striped lock</a>
- * (but not the Guava implementation). As such, the hash code of an object is not assigned a unique lock, but there is
- * instead a many-to-fewer association between hash codes and locks. Some different objects will therefore contend for
- * the same lock. The number of stripes (locks) is configurable, allowing this ratio and likelihood of contention to be
+ * Reading threads are never blocked; reads remain lock-free as in the superclass.
+ * <p/>
+ * This class is currently implemented with a
+ * <a href="http://code.google.com/p/guava-libraries/wiki/StripedExplained">striped lock</a> (although not the Guava
+ * implementation). As such, the hash code of an object is not assigned a unique lock, but there is instead a
+ * many-to-fewer association between hash codes and locks. Some different objects will therefore contend for the same
+ * lock. The number of stripes (locks) is configurable, allowing this ratio and likelihood of contention to be
  * controlled, trading memory overhead of a large number of locks, against likelihood of contention. Two or more
  * modifications for the same object, will always block each other. Two or more modifications for different objects
  * will <i>usually not</i> block each other, but occasionally might.
  * <p/>
- * Reading threads are never blocked; reads remain lock-free as in the superclass.
+ * Although this class is currently implemented with a striped lock, this might be replaced with a
+ * <a href="http://gee.cs.oswego.edu/dl/jsr166/dist/jsr166edocs/jsr166e/StampedLock.html">stamped lock</a>.
+ * Applications should not rely on the locking behaviour of this class, except to guard against the concurrent
+ * access scenario stated above.
  *
  * @author Niall Gallagher
  */
-public class StripeLockedIndexedCollection<O> extends DefaultIndexedCollection<O> {
+public class GuardedIndexedCollection<O> extends ConcurrentIndexedCollection<O> {
 
     final StripedLock stripedLock;
 
@@ -56,30 +62,29 @@ public class StripeLockedIndexedCollection<O> extends DefaultIndexedCollection<O
      *
      * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
      * added to the indexed collection will be stored
-     * @param numStripes The number of stripes to use for concurrent writes, more stripes reduces the
-     * likelihood of lock contention on writes, but uses more memory to hold locks. 512 could be a sensible default
+     * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
      * @param queryEngine The query engine
      */
-    public StripeLockedIndexedCollection(Factory<Set<O>> backingSetFactory, int numStripes, QueryEngineInternal<O> queryEngine) {
+    public GuardedIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel, QueryEngineInternal<O> queryEngine) {
         super(backingSetFactory, queryEngine);
-        this.stripedLock = new StripedLock(numStripes);
+        this.stripedLock = new StripedLock(concurrencyLevel);
     }
 
     static class StripedLock {
-        final int numStripes;
+        final int concurrencyLevel;
         final ReentrantLock[] locks;
 
-        StripedLock(int numStripes) {
-            this.numStripes = numStripes;
-            this.locks = new ReentrantLock[numStripes];
-            for (int i = 0; i < numStripes; i++) {
+        StripedLock(int concurrencyLevel) {
+            this.concurrencyLevel = concurrencyLevel;
+            this.locks = new ReentrantLock[concurrencyLevel];
+            for (int i = 0; i < concurrencyLevel; i++) {
                 locks[i] = new ReentrantLock();
             }
         }
 
         ReentrantLock getLockForObject(Object object) {
             int hashCode = object.hashCode();
-            return locks[hashCode % numStripes];
+            return locks[hashCode % concurrencyLevel];
         }
     }
 

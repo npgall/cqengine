@@ -24,7 +24,6 @@ import com.googlecode.cqengine.query.option.QueryOption;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An implementation of {@link java.util.Set} which additionally wraps {@link QueryEngineInternal}, thus providing
@@ -44,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * inconsistent results in that scenario with this implementation.
  * <p/>
  * In applications where multiple threads might add/remove the same object concurrently, then the subclass
- * {@link StripeLockedIndexedCollection} should be used instead. That subclass allows concurrent writes, but with
+ * {@link GuardedIndexedCollection} should be used instead. That subclass allows concurrent writes, but with
  * additional safeguards against concurrent modification for the same object, with some additional overhead.
  * <p/>
  * Note that in this context the <i>same object</i> refers to either the same object instance, OR two object instances
@@ -52,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Niall Gallagher
  */
-public class DefaultIndexedCollection<O> implements IndexedCollection<O> {
+public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
 
     protected final Set<O> collection;
     protected final QueryEngineInternal<O> indexEngine;
@@ -64,7 +63,7 @@ public class DefaultIndexedCollection<O> implements IndexedCollection<O> {
      * added to the indexed collection will be stored
      * @param queryEngine The query engine
      */
-    public DefaultIndexedCollection(Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
+    public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
         this.collection = backingSetFactory.create();
         queryEngine.init(collection);
         this.indexEngine = queryEngine;
