@@ -2,9 +2,9 @@ package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Iterator;
 
 /**
  * A {@link ResultSet} which wraps another, to suppress duplicate objects, where a duplicate object is one which has
@@ -18,19 +18,40 @@ import java.util.Set;
  *
  * @author Niall Gallagher
  */
-public class DeduplicatingResultSet<O, A> extends FilteringResultSet<O> {
+public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
+
+    private final ResultSet<O> wrappedResultSet;
 
     private final Attribute<O, A> uniqueAttribute;
 
-    private final Set<A> attributeValuesProcessed = new HashSet<A>();
-
     public DeduplicatingResultSet(Attribute<O, A> uniqueAttribute, ResultSet<O> wrappedResultSet) {
-        super(wrappedResultSet);
         this.uniqueAttribute = uniqueAttribute;
+        this.wrappedResultSet = wrappedResultSet;
     }
 
     @Override
-    public boolean isValid(O object) {
-        return attributeValuesProcessed.addAll(uniqueAttribute.getValues(object));
+    public Iterator<O> iterator() {
+        return new DeduplicatingIterator<O, A>(uniqueAttribute, wrappedResultSet.iterator());
+    }
+
+    @Override
+    public final boolean contains(O object) {
+        // Check if this ResultSet contains the given object by iterating the ResultSet...
+        return IteratorUtil.iterableContains(this, object);
+    }
+
+    @Override
+    public int size() {
+        return IteratorUtil.countElements(this);
+    }
+
+    @Override
+    public int getRetrievalCost() {
+        return wrappedResultSet.getRetrievalCost();
+    }
+
+    @Override
+    public int getMergeCost() {
+        return wrappedResultSet.getMergeCost();
     }
 }
