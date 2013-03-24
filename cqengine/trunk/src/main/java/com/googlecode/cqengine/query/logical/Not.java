@@ -56,14 +56,19 @@ public class Not<O> extends LogicalQuery<O> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Not not = (Not) o;
+        Not other = (Not) o;
 
-        if (!negatedQuery.equals(not.negatedQuery)) return false;
+        if (!negatedQuery.equals(other.negatedQuery)) return false;
 
         return true;
     }
 
     int calcHashCode() {
+        return negatedQuery.hashCode();
+    }
+
+    @Override
+    public int hashCode() {
         return hashCode;
     }
 }
