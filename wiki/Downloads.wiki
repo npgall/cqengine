@@ -1,4 +1,5 @@
 #summary Maven coordinates and download statistics
+#labels Featured
 
 == Download for Maven Projects ==
 CQEngine is in Maven Central, and can be added to a Maven project as follows:
