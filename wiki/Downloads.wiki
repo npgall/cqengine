@@ -12,7 +12,7 @@ CQEngine is in Maven Central, and can be added to a Maven project as follows:
 }}}
 
 == Download for Non-Maven Projects ==
-For non-Maven projects, a special build of the library is also provided, built with maven-shade-plugin, which contains the library and all of the library's own dependencies embedded within a single jar file (ending "-all"). This build can be downloaded directly from [http://code.google.com/p/cqengine/downloads/list here].
+For non-Maven projects, a special build of the library is also provided, built with [http://maven.apache.org/plugins/maven-shade-plugin/ maven-shade-plugin], which contains the library and all of the library's own dependencies embedded within a single jar file (ending "-all"). This build can be downloaded directly from [http://code.google.com/p/cqengine/downloads/list here].
 
 ==Download statistics, as of April 2013==
 
