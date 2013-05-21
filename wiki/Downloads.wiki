@@ -18,4 +18,4 @@ For non-Maven projects, a special build of the library is also provided, built w
 
 [http://chart.googleapis.com/chart?chxl=0:|07%2F2012|08%2F2012|09%2F2012|10%2F2012|11%2F2012|12%2F2012|01%2F2013|02%2F2013|03%2F2013|04%2F2013&chxr=0,0,10|1,0,315&chxs=0,676767,11.5,-0.333,t,676767&chxt=x,y&chs=600x300&cht=lc&chds=0,315&chd=t:4,10,41,20,108,209,123,143,186,168&chdl=Downloads+-+Maven+Central+per+month&chdlp=b&chls=0.667&chma=2,0,7|17,28&chm=B,C5D4B5BB,0,0,0&chtt=CQEngine+Maven+Central&dummy=foo.png]
 
-1012 Maven + 196 non-Maven = 1208 downloads.
+1208 downloads to-date (1012 Maven, 196 non-Maven).
