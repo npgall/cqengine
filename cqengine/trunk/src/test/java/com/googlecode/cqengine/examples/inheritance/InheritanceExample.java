@@ -32,7 +32,7 @@ public class InheritanceExample {
         cars.addIndex(SuffixTreeIndex.onAttribute(Car.DESCRIPTION));
         cars.addIndex(HashIndex.onAttribute(Car.FEATURES));
         // Index which applies only to SportsCar subclass...
-        cars.addIndex(HashIndex.onAttribute(SportsCar.HORSEPOWER));
+        cars.addIndex(NavigableIndex.onAttribute(SportsCar.HORSEPOWER));
 
         // Add some objects to the collection...
         cars.add(new Car(1, "mazda 6", "great condition, low mileage", Arrays.asList("nitro boost", "sunroof")));
@@ -68,10 +68,5 @@ public class InheritanceExample {
         for (Car car : cars.retrieve(hondaOrHorsepowerAbove9000)) {
             System.out.println(car); // prints honda civic, porsche 911
         }
-
-
-
-
-
     }
 }
