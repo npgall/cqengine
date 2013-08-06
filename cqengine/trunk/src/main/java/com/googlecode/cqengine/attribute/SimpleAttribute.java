@@ -44,7 +44,15 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
         super(attributeName);
     }
 
-    protected SimpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
+    /**
+     * Creates an attribute with the given name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     * @param attributeName The name for this attribute
+     */
+    public SimpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
         super(objectType, attributeType, attributeName);
     }
 
