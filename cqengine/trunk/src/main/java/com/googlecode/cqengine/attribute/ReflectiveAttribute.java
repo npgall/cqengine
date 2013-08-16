@@ -40,7 +40,13 @@ public class ReflectiveAttribute<O, A> extends SimpleAttribute<O, A> {
         super(objectType, fieldType, fieldName);
         Field field;
         try {
-            field = objectType.getField(fieldName);
+            try {
+                field = objectType.getField(fieldName);
+            }
+            catch (NoSuchFieldException nsfe) {
+                // Might be a private field...
+                field = objectType.getDeclaredField(fieldName);
+            }
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
