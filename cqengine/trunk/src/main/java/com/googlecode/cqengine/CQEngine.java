@@ -106,26 +106,26 @@ public class CQEngine {
     /**
      * Returns a new {@link IndexedCollection} to which objects can be added subsequently.
      * <p/>
-     * The implementation returned supports concurrent reads and writes in general, but employs some concurrency
-     * guards in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
+     * The implementation returned supports concurrent reads and writes in general, but employs some locking
+     * in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
      * object to/from the collection concurrently.
-     * See {@link com.googlecode.cqengine.collection.impl.GuardedIndexedCollection} for details.
+     * See {@link com.googlecode.cqengine.collection.impl.ObjectLockingIndexedCollection} for details.
      *
      * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
      * @param <O> The type of objects in the collection
      * @return A new {@link IndexedCollection} initially containing no objects
      */
-    public static <O> IndexedCollection<O> newInstanceGuarded(int concurrencyLevel) {
-        return new GuardedIndexedCollection<O>(new DefaultConcurrentSetFactory<O>(), concurrencyLevel, new QueryEngineImpl<O>());
+    public static <O> IndexedCollection<O> newObjectLockingInstance(int concurrencyLevel) {
+        return new ObjectLockingIndexedCollection<O>(new DefaultConcurrentSetFactory<O>(), concurrencyLevel, new QueryEngineImpl<O>());
     }
 
     /**
      * Returns a new {@link IndexedCollection} to which objects can be added subsequently.
      * <p/>
-     * The implementation returned supports concurrent reads and writes in general, but employs some concurrency
-     * guards in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
+     * The implementation returned supports concurrent reads and writes in general, but employs some locking
+     * in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
      * object to/from the collection concurrently.
-     * See {@link com.googlecode.cqengine.collection.impl.GuardedIndexedCollection} for details.
+     * See {@link com.googlecode.cqengine.collection.impl.ObjectLockingIndexedCollection} for details.
      *
      * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
      * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
@@ -133,26 +133,26 @@ public class CQEngine {
      * @param <O> The type of objects in the collection
      * @return A new {@link IndexedCollection} initially containing no objects
      */
-    public static <O> IndexedCollection<O> newInstanceGuarded(int concurrencyLevel, Factory<Set<O>> backingSetFactory) {
-        return new GuardedIndexedCollection<O>(backingSetFactory, concurrencyLevel, new QueryEngineImpl<O>());
+    public static <O> IndexedCollection<O> newObjectLockingInstance(int concurrencyLevel, Factory<Set<O>> backingSetFactory) {
+        return new ObjectLockingIndexedCollection<O>(backingSetFactory, concurrencyLevel, new QueryEngineImpl<O>());
     }
 
     /**
      * Returns a new {@link IndexedCollection} containing objects from the given collection.
      * <p/>
-     * The implementation returned supports concurrent reads and writes in general, but employs some concurrency
-     * guards in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
+     * The implementation returned supports concurrent reads and writes in general, but employs some locking
+     * in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
      * object to/from the collection concurrently.
-     * See {@link com.googlecode.cqengine.collection.impl.GuardedIndexedCollection} for details.
+     * See {@link com.googlecode.cqengine.collection.impl.ObjectLockingIndexedCollection} for details.
      *
      * @param collection A collection containing initial values to be indexed
      * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
      * @param <O> The type of objects in the collection
      * @return An {@link IndexedCollection} initialized with objects from the given collection
      */
-    public static <O> IndexedCollection<O> copyFromGuarded(Collection<O> collection, int concurrencyLevel) {
+    public static <O> IndexedCollection<O> copyFromObjectLocking(Collection<O> collection, int concurrencyLevel) {
         Factory<Set<O>> setFactory = new DefaultConcurrentSetFactory<O>(collection.size());
-        IndexedCollection<O> indexedCollection = new GuardedIndexedCollection<O>(setFactory, concurrencyLevel, new QueryEngineImpl<O>());
+        IndexedCollection<O> indexedCollection = new ObjectLockingIndexedCollection<O>(setFactory, concurrencyLevel, new QueryEngineImpl<O>());
         indexedCollection.addAll(collection);
         return indexedCollection;
     }
@@ -161,10 +161,10 @@ public class CQEngine {
      * Returns a new {@link IndexedCollection} containing objects from the given collection.
      * <p/>
      * <p/>
-     * The implementation returned supports concurrent reads and writes in general, but employs some concurrency
-     * guards in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
+     * The implementation returned supports concurrent reads and writes in general, but employs some locking
+     * in the write path for applications in which multiple threads might try to add/remove the <i>same</i>
      * object to/from the collection concurrently.
-     * See {@link com.googlecode.cqengine.collection.impl.GuardedIndexedCollection} for details.
+     * See {@link com.googlecode.cqengine.collection.impl.ObjectLockingIndexedCollection} for details.
      *
      * @param collection A collection containing initial values to be indexed
      * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
@@ -173,8 +173,8 @@ public class CQEngine {
      * @param <O> The type of objects in the collection
      * @return An {@link IndexedCollection} initialized with objects from the given collection
      */
-    public static <O> IndexedCollection<O> copyFromGuarded(Collection<O> collection, int concurrencyLevel, Factory<Set<O>> backingSetFactory) {
-        IndexedCollection<O> indexedCollection = new GuardedIndexedCollection<O>(backingSetFactory, concurrencyLevel, new QueryEngineImpl<O>());
+    public static <O> IndexedCollection<O> copyFromObjectLocking(Collection<O> collection, int concurrencyLevel, Factory<Set<O>> backingSetFactory) {
+        IndexedCollection<O> indexedCollection = new ObjectLockingIndexedCollection<O>(backingSetFactory, concurrencyLevel, new QueryEngineImpl<O>());
         indexedCollection.addAll(collection);
         return indexedCollection;
     }
