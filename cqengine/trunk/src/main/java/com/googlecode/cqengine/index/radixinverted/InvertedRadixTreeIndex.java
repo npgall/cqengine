@@ -113,19 +113,19 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
             return new ResultSet<O>() {
                 @Override
                 public Iterator<O> iterator() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.contains(object);
                 }
                 @Override
                 public int size() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.size();
                 }
@@ -135,7 +135,7 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
                 }
                 @Override
                 public int getMergeCost() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.getMergeCost();
                 }
