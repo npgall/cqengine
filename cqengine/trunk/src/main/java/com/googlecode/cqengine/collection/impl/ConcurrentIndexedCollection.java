@@ -43,7 +43,7 @@ import java.util.*;
  * inconsistent results in that scenario with this implementation.
  * <p/>
  * In applications where multiple threads might add/remove the same object concurrently, then the subclass
- * {@link GuardedIndexedCollection} should be used instead. That subclass allows concurrent writes, but with
+ * {@link ObjectLockingIndexedCollection} should be used instead. That subclass allows concurrent writes, but with
  * additional safeguards against concurrent modification for the same object, with some additional overhead.
  * <p/>
  * Note that in this context the <i>same object</i> refers to either the same object instance, OR two object instances

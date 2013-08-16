@@ -26,7 +26,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Extends {@link ConcurrentIndexedCollection} with some specialized guards around concurrency, for applications in
+ * Extends {@link ConcurrentIndexedCollection} with some specialized locking for applications in
  * which multiple threads might try to add or remove the <b>same object</b> to/from an indexed collection
  * <i>concurrently</i>. In this context the <i>same object</i> refers to either the same object instance, OR two object
  * instances having the same hash code and being equal according to their {@link #equals(Object)} methods.
@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Niall Gallagher
  */
-public class GuardedIndexedCollection<O> extends ConcurrentIndexedCollection<O> {
+public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollection<O> {
 
     final StripedLock stripedLock;
 
@@ -65,7 +65,7 @@ public class GuardedIndexedCollection<O> extends ConcurrentIndexedCollection<O> 
      * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
      * @param queryEngine The query engine
      */
-    public GuardedIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel, QueryEngineInternal<O> queryEngine) {
+    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel, QueryEngineInternal<O> queryEngine) {
         super(backingSetFactory, queryEngine);
         this.stripedLock = new StripedLock(concurrencyLevel);
     }
