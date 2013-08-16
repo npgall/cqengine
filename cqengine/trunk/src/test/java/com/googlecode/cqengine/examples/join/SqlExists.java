@@ -19,10 +19,8 @@ import com.googlecode.cqengine.CQEngine;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.query.Query;
-
-import java.util.Arrays;
-
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static java.util.Arrays.asList;
 
 /**
  * Demonstrates a query between two indexed collections. Given a collection of Cars, and a collections of Garages,
@@ -35,17 +33,17 @@ public class SqlExists {
     public static void main(String[] args) {
         // Create an indexed collection of cars...
         IndexedCollection<Car> cars = CQEngine.newInstance();
-        cars.add(new Car(1, "Ford Focus", "great condition, low mileage", Arrays.asList("spare tyre", "sunroof")));
-        cars.add(new Car(2, "Ford Taurus", "dirty and unreliable, flat tyre", Arrays.asList("spare tyre", "radio")));
-        cars.add(new Car(3, "Honda Civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
-        cars.add(new Car(4, "BMW M3", "2013 model", Arrays.asList("radio", "convertible")));
+        cars.add(new Car(1, "Ford Focus", "great condition, low mileage", asList("spare tyre", "sunroof")));
+        cars.add(new Car(2, "Ford Taurus", "dirty and unreliable, flat tyre", asList("spare tyre", "radio")));
+        cars.add(new Car(3, "Honda Civic", "has a flat tyre and high mileage", asList("radio")));
+        cars.add(new Car(4, "BMW M3", "2013 model", asList("radio", "convertible")));
 
         // Create an indexed collection of garages...
         final IndexedCollection<Garage> garages = CQEngine.newInstance();
-        garages.add(new Garage(1, "Joe's garage", "London", Arrays.asList("Ford Focus", "Honda Civic")));
-        garages.add(new Garage(2, "Jane's garage", "Dublin", Arrays.asList("BMW M3")));
-        garages.add(new Garage(3, "John's garage", "Dublin", Arrays.asList("Ford Focus", "Ford Taurus")));
-        garages.add(new Garage(4, "Jill's garage", "Dublin", Arrays.asList("Ford Focus")));
+        garages.add(new Garage(1, "Joe's garage", "London", asList("Ford Focus", "Honda Civic")));
+        garages.add(new Garage(2, "Jane's garage", "Dublin", asList("BMW M3")));
+        garages.add(new Garage(3, "John's garage", "Dublin", asList("Ford Focus", "Ford Taurus")));
+        garages.add(new Garage(4, "Jill's garage", "Dublin", asList("Ford Focus")));
 
         // Query: Cars which are convertible or which have a sunroof, which can be serviced in Dublin...
         Query<Car> carsQuery = and(
