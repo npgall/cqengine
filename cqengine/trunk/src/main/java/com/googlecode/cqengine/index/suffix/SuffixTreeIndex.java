@@ -118,19 +118,19 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
             return new ResultSet<O>() {
                 @Override
                 public Iterator<O> iterator() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.contains(object);
                 }
                 @Override
                 public int size() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.size();
                 }
@@ -140,7 +140,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 }
                 @Override
                 public int getMergeCost() {
-                    Set<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.getMergeCost();
                 }
@@ -151,19 +151,19 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
             return new ResultSet<O>() {
                 @Override
                 public Iterator<O> iterator() {
-                    Collection<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
-                    Collection<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.contains(object);
                 }
                 @Override
                 public int size() {
-                    Collection<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.size();
                 }
@@ -173,7 +173,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 }
                 @Override
                 public int getMergeCost() {
-                    Collection<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.getMergeCost();
                 }
