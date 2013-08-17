@@ -2,6 +2,8 @@
 
 Although it is often easier and more performant to de-normalize data, it is possible with CQEngine to perform JOINs and SQL EXISTS-type queries between `IndexedCollection`s at runtime with reasonable performance (at least, outperforming external databases).
 
+<wiki:toc max_depth="2" />
+
 == SQL EXISTS ==
 Given a collection of Cars, and a collections of Garages, find cars which are convertible or which have a sunroof, which can be serviced by garages in a particular city.
 Source code of this example [https://code.google.com/p/cqengine/source/browse/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/join/SqlExists.java here].
