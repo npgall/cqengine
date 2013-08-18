@@ -1,6 +1,10 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 1.1.1 - 2013-08-18===
+ * Additional work on `ReflectiveAttribute` to play nicer with inherited fields (issue 18)
+ * Deployed to Maven central
+
 ===Version 1.1.0 - 2013-08-16===
  * Updated `RadixTreeIndex`, `ReversedRadixTreeIndex`, `InvertedRadixTreeIndex`, `SuffixTreeIndex` to use [http://code.google.com/p/concurrent-trees/wiki/ReleaseNotes concurrent-trees library 2.1] for lower memory usage and lower latency (issue 14)
  * Added `CQEngine.newObjectLockingInstance(int concurrencyLevel)` providing object-level locking on the write path for applications in which threads might race each other to add/remove the same object (issue 9)
