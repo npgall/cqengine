@@ -40,13 +40,7 @@ public class ReflectiveAttribute<O, A> extends SimpleAttribute<O, A> {
         super(objectType, fieldType, fieldName);
         Field field;
         try {
-            try {
-                field = objectType.getField(fieldName);
-            }
-            catch (NoSuchFieldException nsfe) {
-                // Might be a private field...
-                field = objectType.getDeclaredField(fieldName);
-            }
+            field = getField(objectType, fieldName);
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
@@ -60,6 +54,24 @@ public class ReflectiveAttribute<O, A> extends SimpleAttribute<O, A> {
         this.field = field;
     }
 
+    /**
+     * Searches the given class and its superclasses for the given field. Supports private and non-private fields.
+     * @param cls The class to search
+     * @param fieldName The name of the field
+     * @return The field with the given name
+     * @throws NoSuchFieldException If no such field can be found
+     */
+    static Field getField(Class<?> cls, String fieldName) throws NoSuchFieldException {
+        while (cls != null && cls != Object.class) {
+            try {
+                return cls.getDeclaredField(fieldName);
+            }
+            catch (NoSuchFieldException e) {
+                cls = cls.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException("No such field: " + fieldName);
+    }
 
     @Override
     public A getValue(O object) {
