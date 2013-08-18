@@ -47,4 +47,27 @@ public class ReflectiveAttributeTest {
 
         Assert.assertEquals(cars.retrieve(equal(NAME, "honda civic")).size(), 1);
     }
+
+    @Test
+    public void testGetInheritedField() throws NoSuchFieldException {
+        Assert.assertEquals("foo", ReflectiveAttribute.getField(Bar.class, "foo").getName());
+        Assert.assertEquals("bar", ReflectiveAttribute.getField(Bar.class, "bar").getName());
+        NoSuchFieldException expected = null;
+        try {
+            ReflectiveAttribute.getField(Bar.class, "baz");
+        }
+        catch (NoSuchFieldException nsfe) {
+            expected = nsfe;
+        }
+        Assert.assertNotNull(expected);
+    }
+
+    static class Foo {
+        private int foo;
+    }
+
+    static class Bar extends Foo {
+        private int bar;
+    }
+
 }
