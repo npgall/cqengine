@@ -1,6 +1,13 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 1.2.0 - 2013-08-20===
+ * Added support to sort results in ascending/descending order on an attribute-by-attribute basis, with thanks to Roberto Socrates for patch (issue 16)
+ * Example usage: `cars.retrieve(query, queryOptions(orderBy(ascending(Car.DOORS), descending(Car.PRICE))))`
+ * This release involves a minor *API change* from CQEngine 1.1.x, so is not a drop-in replacement
+ * Code using the old API to order results such as `cars.retrieve(query, queryOptions(orderByDescending(Car.PRICE, Car.DOORS)))` should be changed to that above
+ * Deployed to Maven central
+
 ===Version 1.1.1 - 2013-08-18===
  * Additional work on `ReflectiveAttribute` to play nicer with inherited fields (issue 18)
  * Deployed to Maven central
