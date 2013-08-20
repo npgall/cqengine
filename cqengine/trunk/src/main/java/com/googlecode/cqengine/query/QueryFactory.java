@@ -18,14 +18,12 @@ package com.googlecode.cqengine.query;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.query.option.DeduplicationOption;
-import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
+import com.googlecode.cqengine.query.option.AttributeOrder;
 
 import java.util.*;
 
@@ -399,55 +397,59 @@ public class QueryFactory {
     }
 
     /**
-     * Creates an {@link OrderByOption} query option, encapsulating the given list of attributes, which when supplied to
-     * the query engine requests it to sort in ascending order result objects based on values in their fields referenced
-     * by these attributes.
+     * Creates an {@link OrderByOption} query option, encapsulating the given list of {@link AttributeOrder} objects
+     * which pair an attribute with a preference to sort results by that attribute in either ascending or descending
+     * order.
      *
-     * @param attributes The list of attributes by which objects should be sorted
+     * @param attributeOrders The list of attribute orders by which objects should be sorted
      * @param <O> The type of the object containing the attributes
-     * @return An {@link OrderByOption} query option, requests results to be returned in ascending sort order
+     * @return An {@link OrderByOption} query option, requests results to be sorted in the given order
      */
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable>... attributes) {
-        return new OrderByOption<O>(Arrays.asList(attributes), false);
+    public static <O> OrderByOption<O> orderBy(List<AttributeOrder<O>> attributeOrders) {
+        return new OrderByOption<O>(attributeOrders);
     }
 
     /**
-     * Creates an {@link OrderByOption} query option, encapsulating the given list of attributes, which when supplied to
-     * the query engine requests it to sort in ascending order result objects based on values in their fields referenced
-     * by these attributes.
+     * Creates an {@link OrderByOption} query option, encapsulating the given list of {@link AttributeOrder} objects
+     * which pair an attribute with a preference to sort results by that attribute in either ascending or descending
+     * order.
      *
-     * @param attributes The list of attributes by which objects should be sorted
+     * @param attributeOrders The list of attribute orders by which objects should be sorted
      * @param <O> The type of the object containing the attributes
-     * @return An {@link OrderByOption} query option, requests results to be returned in ascending sort order
+     * @return An {@link OrderByOption} query option, requests results to be sorted in the given order
      */
-    public static <O> QueryOption<O> orderBy(List<Attribute<O, ? extends Comparable>> attributes) {
-        return new OrderByOption<O>(attributes, false);
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O>... attributeOrders) {
+        return new OrderByOption<O>(Arrays.asList(attributeOrders));
     }
 
     /**
-     * Creates an {@link OrderByOption} query option, encapsulating the given list of attributes, which when supplied to
-     * the query engine requests it to sort in descending order result objects based on values in their fields
-     * referenced by these attributes.
+     * Creates an {@link AttributeOrder} object which pairs an attribute with a preference to sort results by that
+     * attribute in ascending order. These {@code AttributeOrder} objects can then be passed to the
+     * {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} method to create a query option which
+     * sorts results by the indicated attributes and ascending/descending preferences.
      *
-     * @param attributes The list of attributes by which objects should be sorted
+     * @param attribute An attribute to sort by
      * @param <O> The type of the object containing the attributes
-     * @return An {@link OrderByOption} query option, requests results to be returned in descending sort order
+     * @return An {@link AttributeOrder} object, encapsulating the attribute and a preference to sort results by it
+     * in ascending order
      */
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable>... attributes) {
-        return new OrderByOption<O>(Arrays.asList(attributes), true);
+    public static <O> AttributeOrder<O> ascending(Attribute<O, ? extends Comparable> attribute) {
+        return new AttributeOrder<O>(attribute, false);
     }
 
     /**
-     * Creates an {@link OrderByOption} query option, encapsulating the given list of attributes, which when supplied to
-     * the query engine requests it to sort in descending order result objects based on values in their fields
-     * referenced by these attributes.
+     * Creates an {@link AttributeOrder} object which pairs an attribute with a preference to sort results by that
+     * attribute in descending order. These {@code AttributeOrder} objects can then be passed to the
+     * {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} method to create a query option which
+     * sorts results by the indicated attributes and ascending/descending preferences.
      *
-     * @param attributes The list of attributes by which objects should be sorted
+     * @param attribute An attribute to sort by
      * @param <O> The type of the object containing the attributes
-     * @return An {@link OrderByOption} query option, requests results to be returned in descending sort order
+     * @return An {@link AttributeOrder} object, encapsulating the attribute and a preference to sort results by it
+     * in descending order
      */
-    public static <O> QueryOption<O> orderByDescending(List<Attribute<O, ? extends Comparable>> attributes) {
-        return new OrderByOption<O>(attributes, true);
+    public static <O> AttributeOrder<O> descending(Attribute<O, ? extends Comparable> attribute) {
+        return new AttributeOrder<O>(attribute, true);
     }
 
     /**
@@ -459,7 +461,7 @@ public class QueryFactory {
      * @param <O> The type of the object containing the attributes
      * @return A {@link DeduplicationOption} query option, requests duplicate objects to be eliminated from results
      */
-    public static <O> QueryOption<O> deduplicate(DeduplicationStrategy deduplicationStrategy) {
+    public static <O> DeduplicationOption<O> deduplicate(DeduplicationStrategy deduplicationStrategy) {
         return new DeduplicationOption<O>(deduplicationStrategy);
     }
 
@@ -639,145 +641,79 @@ public class QueryFactory {
     // ***************************************************************************************************************
 
     /**
-     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.attribute.Attribute[])} - see that method for
-     * details.
+     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} - see that method
+     * for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable> attribute) {
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O> attributeOrder) {
         @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Collections.<Attribute<O, ? extends Comparable>>singletonList(attribute);
-        return new OrderByOption<O>(attributes, false);
+        List<AttributeOrder<O>> attributeOrders = Collections.singletonList(attributeOrder);
+        return new OrderByOption<O>(attributeOrders);
     }
     
     /**
-     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.attribute.Attribute[])} - see that method for
-     * details.
+     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} - see that method
+     * for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2) {
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O> attributeOrder1, AttributeOrder<O> attributeOrder2) {
         @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2);
-        return new OrderByOption<O>(attributes, false);
+        List<AttributeOrder<O>> attributeOrders = Arrays.asList(attributeOrder1, attributeOrder2);
+        return new OrderByOption<O>(attributeOrders);
     }
     
     /**
-     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.attribute.Attribute[])} - see that method for
-     * details.
+     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} - see that method
+     * for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3) {
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O> attributeOrder1, AttributeOrder<O> attributeOrder2,
+                                             AttributeOrder<O> attributeOrder3) {
         @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3);
-        return new OrderByOption<O>(attributes, false);
+        List<AttributeOrder<O>> attributeOrders = Arrays.asList(attributeOrder1, attributeOrder2, attributeOrder3);
+        return new OrderByOption<O>(attributeOrders);
     }
     
     /**
-     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.attribute.Attribute[])} - see that method for
-     * details.
+     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} - see that method
+     * for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3, Attribute<O, ? extends Comparable> attribute4) {
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O> attributeOrder1, AttributeOrder<O> attributeOrder2,
+                                             AttributeOrder<O> attributeOrder3, AttributeOrder<O> attributeOrder4) {
         @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3, attribute4);
-        return new OrderByOption<O>(attributes, false);
+        List<AttributeOrder<O>> attributeOrders = Arrays.asList(attributeOrder1, attributeOrder2, attributeOrder3,
+                attributeOrder4);
+        return new OrderByOption<O>(attributeOrders);
     }
     
     /**
-     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.attribute.Attribute[])} - see that method for
-     * details.
+     * Overloaded variant of {@link #orderBy(com.googlecode.cqengine.query.option.AttributeOrder[])} - see that method
+     * for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderBy(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3, Attribute<O, ? extends Comparable> attribute4, Attribute<O, ? extends Comparable> attribute5) {
+    public static <O> OrderByOption<O> orderBy(AttributeOrder<O> attributeOrder1, AttributeOrder<O> attributeOrder2,
+                                             AttributeOrder<O> attributeOrder3, AttributeOrder<O> attributeOrder4,
+                                             AttributeOrder<O> attributeOrder5) {
         @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3, attribute4, attribute5);
-        return new OrderByOption<O>(attributes, false);
-    }
-
-    // ***************************************************************************************************************
-
-    /**
-     * Overloaded variant of {@link #orderByDescending(com.googlecode.cqengine.attribute.Attribute[])}  - see that
-     * method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable> attribute) {
-        @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Collections.<Attribute<O, ? extends Comparable>>singletonList(attribute);
-        return new OrderByOption<O>(attributes, true);
-    }
-
-    /**
-     * Overloaded variant of {@link #orderByDescending(com.googlecode.cqengine.attribute.Attribute[])}  - see that
-     * method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2) {
-        @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2);
-        return new OrderByOption<O>(attributes, true);
-    }
-
-    /**
-     * Overloaded variant of {@link #orderByDescending(com.googlecode.cqengine.attribute.Attribute[])}  - see that
-     * method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3) {
-        @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3);
-        return new OrderByOption<O>(attributes, true);
-    }
-
-    /**
-     * Overloaded variant of {@link #orderByDescending(com.googlecode.cqengine.attribute.Attribute[])}  - see that
-     * method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3, Attribute<O, ? extends Comparable> attribute4) {
-        @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3, attribute4);
-        return new OrderByOption<O>(attributes, true);
-    }
-
-    /**
-     * Overloaded variant of {@link #orderByDescending(com.googlecode.cqengine.attribute.Attribute[])}  - see that
-     * method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> QueryOption<O> orderByDescending(Attribute<O, ? extends Comparable> attribute1, Attribute<O, ? extends Comparable> attribute2, Attribute<O, ? extends Comparable> attribute3, Attribute<O, ? extends Comparable> attribute4, Attribute<O, ? extends Comparable> attribute5) {
-        @SuppressWarnings({"unchecked"})
-        List<Attribute<O, ? extends Comparable>> attributes = Arrays.asList(attribute1, attribute2, attribute3, attribute4, attribute5);
-        return new OrderByOption<O>(attributes, true);
+        List<AttributeOrder<O>> attributeOrders = Arrays.asList(attributeOrder1, attributeOrder2, attributeOrder3,
+                attributeOrder4, attributeOrder5);
+        return new OrderByOption<O>(attributeOrders);
     }
 
     // ***************************************************************************************************************
