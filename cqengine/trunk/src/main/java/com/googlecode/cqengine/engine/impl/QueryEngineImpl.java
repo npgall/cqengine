@@ -42,7 +42,7 @@ import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterable;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
-import com.googlecode.cqengine.resultset.order.AttributeListComparators;
+import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
 import com.googlecode.cqengine.resultset.order.MaterializingResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
@@ -257,11 +257,8 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
         // than LOGICAL_ELIMINATION strategy)...
         if (orderByOption != null) {
             // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
-            // which will both deduplicate and sort results. O(n^2log(n)) time complexity to subsequently iterate...
-            Comparator<O> comparator = orderByOption.isDescending()
-                    ? AttributeListComparators.descendingComparator(orderByOption.getAttributes())
-                    : AttributeListComparators.ascendingComparator(orderByOption.getAttributes());
-
+            // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
+            Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders());
             resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator);
         }
         else if (DeduplicationOption.isMaterialize(queryOptions)) {

@@ -15,30 +15,26 @@
  */
 package com.googlecode.cqengine.query.option;
 
-import com.googlecode.cqengine.attribute.Attribute;
-
 import java.util.List;
 import java.util.Map;
 
 /**
+ * Represents a list of attributes and associated preferences for sorting results according to those attributes each
+ * in ascending or descending order.
+ *
+ * @author Roberto Socrates
  * @author Niall Gallagher
  */
 public class OrderByOption<O> implements QueryOption<O> {
 
-    private final List<Attribute<O, ? extends Comparable>> attributes;
-    private final boolean descending;
+    private final List<AttributeOrder<O>> attributeOrders;
 
-    public OrderByOption(List<Attribute<O, ? extends Comparable>> attributes, boolean descending) {
-        this.attributes = attributes;
-        this.descending = descending;
+    public OrderByOption(List<AttributeOrder<O>> attributeOrders) {
+        this.attributeOrders = attributeOrders;
     }
 
-    public List<Attribute<O, ? extends Comparable>> getAttributes() {
-        return attributes;
-    }
-
-    public boolean isDescending() {
-        return descending;
+    public List<AttributeOrder<O>> getAttributeOrders() {
+        return attributeOrders;
     }
 
     public static <O> OrderByOption<O> extract(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {

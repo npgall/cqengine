@@ -22,6 +22,9 @@ import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.DeduplicationOption;
+import com.googlecode.cqengine.query.option.DeduplicationStrategy;
+import com.googlecode.cqengine.query.option.OrderByOption;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.Car.Color;
@@ -30,6 +33,7 @@ import org.junit.Test;
 import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.QueryFactory.orderBy;
 
 /**
  * Demonstrates creating an indexed collection, adding various indexes to it, adding various objects to the collection,
@@ -100,15 +104,15 @@ public class CQEngineDemo {
             System.out.println(car);
         }
 
-        System.out.println("\nNOT 3-door cars, sorted by price then doors ascending:");
+        System.out.println("\nNOT 3-door cars, sorted by doors ascending:");
         query = not(equal(Car.DOORS, 3));
-        for (Car car : cars.retrieve(query, queryOptions(orderBy(Car.PRICE, Car.DOORS)))) {
+        for (Car car : cars.retrieve(query, queryOptions(orderBy(ascending(Car.DOORS))))) {
             System.out.println(car);
         }
 
-        System.out.println("\nNOT 3-door cars, sorted by price then doors descending:");
+        System.out.println("\nNOT 3-door cars, sorted by doors ascending then price descending:");
         query = not(equal(Car.DOORS, 3));
-        for (Car car : cars.retrieve(query, queryOptions(orderByDescending(Car.PRICE, Car.DOORS)))) {
+        for (Car car : cars.retrieve(query, queryOptions(orderBy(ascending(Car.DOORS), descending(Car.PRICE))))) {
             System.out.println(car);
         }
 
