@@ -43,10 +43,8 @@ public class Has<O, A> extends SimpleQuery<O, A> {
 
     @Override
     public String toString() {
-        return "Has{" +
-                "attributeType=" + super.getAttributeType().getName() +
-                ", attributeName=" + super.getAttributeName() +
-                '}';
+        return "has(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ")";
     }
 
     @Override

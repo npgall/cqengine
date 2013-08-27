@@ -108,4 +108,11 @@ public class StringContains<O, A extends CharSequence> extends SimpleQuery<O, A>
         result = 31 * result + value.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "contains(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ", " + value +
+                ")";
+    }
 }

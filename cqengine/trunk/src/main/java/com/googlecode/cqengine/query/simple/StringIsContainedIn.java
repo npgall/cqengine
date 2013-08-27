@@ -89,4 +89,11 @@ public class StringIsContainedIn<O, A extends CharSequence> extends SimpleQuery<
         result = 31 * result + value.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "isContainedIn(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ", " + value +
+                ")";
+    }
 }

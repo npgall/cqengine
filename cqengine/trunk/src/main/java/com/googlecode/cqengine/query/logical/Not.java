@@ -71,4 +71,13 @@ public class Not<O> extends LogicalQuery<O> {
     public int hashCode() {
         return hashCode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("not(");
+        sb.append(negatedQuery);
+        sb.append(")");
+        return sb.toString();
+    }
 }
