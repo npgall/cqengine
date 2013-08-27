@@ -18,6 +18,7 @@ package com.googlecode.cqengine.query.logical;
 import com.googlecode.cqengine.query.Query;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Represents a logical OR on child queries, which when evaluated yields the set union of the result sets
@@ -114,5 +115,18 @@ public class Or<O> extends LogicalQuery<O> {
         return result;
     }
 
-
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("or(");
+        for (Iterator<Query<O>> iterator = childQueries.iterator(); iterator.hasNext(); ) {
+            Query<O> childQuery = iterator.next();
+            sb.append(childQuery);
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 }

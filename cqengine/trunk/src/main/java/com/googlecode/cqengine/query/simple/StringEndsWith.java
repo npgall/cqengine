@@ -100,4 +100,11 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
         result = 31 * result + value.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "endsWith(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ", " + value +
+                ")";
+    }
 }

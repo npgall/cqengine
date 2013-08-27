@@ -43,11 +43,9 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
 
     @Override
     public String toString() {
-        return "Equal{" +
-                "attributeType=" + super.getAttributeType().getName() +
-                ", attributeName=" + super.getAttributeName() +
-                ", value=" + value +
-                '}';
+        return "equal(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ", " + value +
+                ")";
     }
 
     @Override

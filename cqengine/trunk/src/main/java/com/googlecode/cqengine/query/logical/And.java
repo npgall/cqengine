@@ -18,6 +18,7 @@ package com.googlecode.cqengine.query.logical;
 import com.googlecode.cqengine.query.Query;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Represents a logical AND on child queries, which when evaluated yields the set intersection of the result sets
@@ -80,5 +81,20 @@ public class And<O> extends LogicalQuery<O> {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("and(");
+        for (Iterator<Query<O>> iterator = childQueries.iterator(); iterator.hasNext(); ) {
+            Query<O> childQuery = iterator.next();
+            sb.append(childQuery);
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }

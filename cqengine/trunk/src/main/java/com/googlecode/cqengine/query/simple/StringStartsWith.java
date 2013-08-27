@@ -98,4 +98,11 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
         result = 31 * result + value.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "startsWith(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                ", " + value +
+                ")";
+    }
 }

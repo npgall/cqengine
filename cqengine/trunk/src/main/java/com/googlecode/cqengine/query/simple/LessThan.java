@@ -49,12 +49,16 @@ public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
 
     @Override
     public String toString() {
-        return "LessThan{" +
-                "attributeType=" + super.getAttributeType().getName() +
-                ", attributeName=" + super.getAttributeName() +
-                ", value=" + value +
-                ", valueInclusive=" + valueInclusive +
-                '}';
+        if (valueInclusive) {
+            return "lessThanOrEqualTo(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                    ", " + value +
+                    ")";
+        }
+        else {
+            return "lessThan(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
+                    ", " + value +
+                    ")";
+        }
     }
 
     @Override

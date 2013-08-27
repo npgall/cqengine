@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.query.option;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,5 +44,20 @@ public class OrderByOption<O> implements QueryOption<O> {
             return (OrderByOption<O>) option;
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("orderBy(");
+        for (Iterator<AttributeOrder<O>> iterator = attributeOrders.iterator(); iterator.hasNext(); ) {
+            AttributeOrder<O> childQuery = iterator.next();
+            sb.append(childQuery);
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }

@@ -42,4 +42,11 @@ public class AttributeOrder<O> {
     public boolean isDescending() {
         return descending;
     }
+
+    @Override
+    public String toString() {
+        return descending
+                ? "descending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")"
+                : "ascending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
+    }
 }

@@ -59,4 +59,9 @@ public class DeduplicationOption<O> implements QueryOption<O> {
         return option instanceof DeduplicationOption
                 && DeduplicationStrategy.MATERIALIZE.equals(((DeduplicationOption<O>) option).getStrategy());
     }
+
+    @Override
+    public String toString() {
+        return "deduplicate(" + strategy + ")";
+    }
 }
