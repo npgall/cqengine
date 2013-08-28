@@ -337,18 +337,7 @@ public class QueryFactory {
      * key attributes being equal
      */
     public static <O, F, A> Query<O> existsIn(final IndexedCollection<F> foreignCollection, final Attribute<O, A> localKeyAttribute, final Attribute<F, A> foreignKeyAttribute) {
-        Attribute<O, Boolean> exists = new SimpleAttribute<O, Boolean>("existsInForeignCollection") {
-            public Boolean getValue(O localObject) {
-                for (A localValue : localKeyAttribute.getValues(localObject)) {
-                    boolean contained = foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty();
-                    if (contained) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        return equal(exists, true);
+        return new ExistsIn<O, F, A>(foreignCollection, localKeyAttribute, foreignKeyAttribute);
     }
 
     /**
@@ -381,20 +370,9 @@ public class QueryFactory {
      * key attributes being equal
      */
     public static <O, F, A> Query<O> existsIn(final IndexedCollection<F> foreignCollection, final Attribute<O, A> localKeyAttribute, final Attribute<F, A> foreignKeyAttribute, final Query<F> foreignRestrictions) {
-        Attribute<O, Boolean> exists = new SimpleAttribute<O, Boolean>((Class<O>)localKeyAttribute.getObjectType(), Boolean.class, "existsInForeignCollection_with_restriction") {
-            public Boolean getValue(O localObject) {
-                for (A localValue : localKeyAttribute.getValues(localObject)) {
-                    boolean contained = foreignCollection.retrieve(
-                            and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
-                    if (contained) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        return equal(exists, true);
+        return new ExistsIn<O, F, A>(foreignCollection, localKeyAttribute, foreignKeyAttribute, foreignRestrictions);
     }
+
 
     /**
      * Creates an {@link OrderByOption} query option, encapsulating the given list of {@link AttributeOrder} objects
