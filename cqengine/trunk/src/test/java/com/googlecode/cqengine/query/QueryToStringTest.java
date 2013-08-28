@@ -23,7 +23,11 @@ public class QueryToStringTest {
                 equal(Car.DOORS, 3)
         );
         Assert.assertEquals(
-                "and(equal(Car.manufacturer, Toyota), equal(Car.color, BLUE), equal(Car.doors, 3))",
+                "and(" +
+                    "equal(Car.manufacturer, Toyota), " +
+                    "equal(Car.color, BLUE), " +
+                    "equal(Car.doors, 3)" +
+                ")",
                 query.toString()
         );
     }
@@ -39,9 +43,19 @@ public class QueryToStringTest {
                         equal(Garage.LOCATION, "Dublin")
                 )
         );
-        // TODO: toString for JOINs could be improved...
+        // Note: QueryFactory expands 'in' queries to an 'or' of multiple 'equals' queries (logically equivalent)...
         Assert.assertEquals(
-                "and(or(equal(Car.doors, 2), equal(Car.doors, 4)), equal(Car.existsInForeignCollection_with_restriction, true))",
+                "and(" +
+                    "or(" +
+                        "equal(Car.doors, 2), " +
+                        "equal(Car.doors, 4)" +
+                    "), " +
+                    "existsIn(IndexedCollection<Garage>, " +
+                        "Car.manufacturer, " +
+                        "Garage.brandsServiced, " +
+                        "equal(Garage.location, Dublin)" +
+                    ")" +
+                ")",
                 query.toString()
         );
     }
