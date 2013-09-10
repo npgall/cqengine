@@ -30,6 +30,16 @@ import java.util.*;
 public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
 
     /**
+     * Creates an attribute with no name. A name for the attribute will be generated automatically from the name of the
+     * subclass (or anonymous class) which implements the attribute.
+     *
+     * @see #SimpleAttribute(String)
+     */
+    public SimpleAttribute() {
+        super();
+    }
+
+    /**
      * Creates an attribute with the given name.
      *
      * This name is not actually used by the query engine except in providing informative exception and debug messages.
@@ -45,6 +55,17 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
     }
 
     /**
+     * Creates an attribute with no name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     */
+    public SimpleAttribute(Class<O> objectType, Class<A> attributeType) {
+        super(objectType, attributeType);
+    }
+
+    /**
      * Creates an attribute with the given name, and manually specifies the type of the attribute and its enclosing
      * object.
      *
@@ -54,16 +75,6 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      */
     public SimpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
         super(objectType, attributeType, attributeName);
-    }
-
-    /**
-     * Creates an attribute with no name. A name for the attribute will be generated automatically from the name of the
-     * subclass (or anonymous class) which implements the attribute.
-     *
-     * @see #SimpleAttribute(String)
-     */
-    public SimpleAttribute() {
-        super();
     }
 
     /**

@@ -26,11 +26,12 @@ package com.googlecode.cqengine.attribute;
  */
 public class SelfAttribute<O> extends SimpleAttribute<O, O> {
 
-    public SelfAttribute(String attributeName) {
-        super(attributeName);
+    public SelfAttribute(Class<O> objectType, String attributeName) {
+        super(objectType, objectType, attributeName);
     }
 
-    public SelfAttribute() {
+    public SelfAttribute(Class<O> objectType) {
+        super(objectType, objectType);
     }
 
     @Override

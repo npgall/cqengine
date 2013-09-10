@@ -19,14 +19,12 @@ import com.googlecode.cqengine.CQEngine;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SelfAttribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 
 import java.util.Arrays;
-
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
@@ -61,5 +59,6 @@ public class Wildcard {
         };
     }
 
-    static final Attribute<String, String> SELF = new SelfAttribute<String>();
+    static final Attribute<String, String> SELF = new SelfAttribute<String>(String.class);
+
 }
