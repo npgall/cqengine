@@ -102,7 +102,8 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
             return cls;
         }
         catch (Exception e) {
-            throw new IllegalStateException("Attribute '" + attributeName + "' is declared with invalid type parameters (" + getClass() + ")");
+            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + getClass() + ")";
+            throw new IllegalStateException("Attribute '" + attributeName + "'" + attributeClassStr + " is invalid, cannot read generic type information from it. Attributes should typically EITHER be declared in code with generic type information as a (possibly anonymous) subclass of one of the provided attribute types, OR you can use a constructor of the attribute which allows the types to be specified manually.");
         }
     }
 
@@ -125,7 +126,8 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
             return cls;
         }
         catch (Exception e) {
-            throw new IllegalStateException("Attribute '" + attributeName + "' is declared with invalid type parameters (" + getClass() + ")");
+            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + getClass() + ")";
+            throw new IllegalStateException("Attribute '" + attributeName + "'" + attributeClassStr + " is invalid, cannot read generic type information from it. Attributes should typically EITHER be declared in code with generic type information as a (possibly anonymous) subclass of one of the provided attribute types, OR you can use a constructor of the attribute which allows the types to be specified manually.");
         }
     }
 
