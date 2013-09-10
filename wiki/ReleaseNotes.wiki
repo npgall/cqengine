@@ -2,7 +2,7 @@
 #labels Featured
 
 ===Version 1.2.1 - 2013-09-10===
- * Bugfix in SelfAttribute (issue 21)
+ * Bugfix in `SelfAttribute` (issue 21)
  * Deployed to Maven central
 
 ===Version 1.2.0 - 2013-08-20===
