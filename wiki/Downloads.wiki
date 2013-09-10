@@ -7,7 +7,7 @@ CQEngine is in Maven Central, and can be added to a Maven project as follows:
 <dependency>
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 }}}
 
