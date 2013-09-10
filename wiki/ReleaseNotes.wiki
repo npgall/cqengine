@@ -2,6 +2,7 @@
 #labels Featured
 
 ===Version 1.2.1 - 2013-09-10===
+ * Improved the toString representation of Query objects, query toStrings are now human readable (issue 19)
  * Bugfix in `SelfAttribute` (issue 21)
  * Deployed to Maven central
 
