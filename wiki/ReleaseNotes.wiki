@@ -1,6 +1,11 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 1.2.2 - 2013-09-22===
+ * Added `AttributesGenerator`, it is no longer necessary to write attributes by hand (issue 22)
+ * See wiki page AttributesGenerator
+ * Deployed to Maven central
+
 ===Version 1.2.1 - 2013-09-10===
  * Improved the toString representation of Query objects, query toStrings are now human readable (issue 19)
  * Bugfix in `SelfAttribute` (issue 21)
