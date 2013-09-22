@@ -1,0 +1,199 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.googlecode.cqengine</groupId>
+    <artifactId>cqengine</artifactId>
+    <version>1.2.2</version>
+    <packaging>jar</packaging>
+    <name>cqengine</name>
+    <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
+    <url>http://code.google.com/p/cqengine/</url>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>http://cqengine.googlecode.com/svn/cqengine/tags/1.2.2</url>
+        <connection>scm:svn:http://cqengine.googlecode.com/svn/cqengine/tags/1.2.2</connection>
+        <developerConnection>scm:svn:https://cqengine.googlecode.com/svn/cqengine/tags/1.2.2</developerConnection>
+        <!--
+            Note: When performing a release for the first time, run the following
+            and and choose to permanently accept Google's server certificate:
+                svn log -v https://cqengine.googlecode.com/svn/cqengine/trunk/
+        -->
+    </scm>
+    <developers>
+        <developer>
+            <id>npgall</id>
+            <name>Niall Gallagher</name>
+            <email>niall@npgall.com</email>
+            <url>http://www.npgall.com</url>
+            <roles>
+                <role>owner</role>
+            </roles>
+        </developer>
+    </developers>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <!--
+                    Configure javac compiler for Java 6 compatibility.
+                    Note that actually the library might also be compatible with Java 5, but this has not been tested.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- Deploy a "-sources.jar" along with build -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- Deploy a "-javadoc.jar" along with build -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
+                    Plugin to PGP-sign all artifacts automatically when running mvn deploy,
+                    as required for deployment to the Sonatype/Maven Central repo.
+
+                    This requires GnuPG (aka GPG) to be installed and configured on the machine on which this is run,
+                    and for the public key to be uploaded to key servers (e.g. pool.sks-keyservers.net).
+
+                    See: https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven
+                 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <!--suppress MavenModelInspection -->
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
+                    Build a jar containing all dependencies, by copying classes from all dependency jars directly into
+                    the main jar.
+
+                    The resulting jar can be used as a library in other applications (without requiring any transitive
+                    dependencies of its own).
+
+                    If used as a library in another application, in case the other application also shares any of the
+                    same dependencies, to avoid duplicate class issues resulting from copying dependency classes into
+                    this jar, we relocate classes which are dependencies of this library into a new package within this
+                    jar: com.googlecode.cqengine.lib.*. We then update the bytecode in all classes in this jar to
+                    refer to dependency classes in their new package.
+
+                    Also we configure some transformers to merge open source licences present in any of the jars.
+                 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.5</version>
+                <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>all</shadedClassifierName>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.googlecode.concurrenttrees</pattern>
+                            <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                            <addHeader>false</addHeader>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        </transformer>
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
+                    Plugin to check that all source files have the appropriate open source license header.
+
+                    This will fail the build if any source files don't have the open source license header.
+
+                    To actually apply the header to new source files, run: mvn license:format
+                -->
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
+                <configuration>
+                    <header>src/etc/header.txt</header>
+                    <excludes>
+                        <exclude>src/test/resources/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.googlecode.concurrent-trees</groupId>
+            <artifactId>concurrent-trees</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
