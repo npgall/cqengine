@@ -122,7 +122,7 @@ This query matches 20,000 cars; 20% of the collection of 100,000 cars.
 *Benchmark Results*
 
   * *1,478 queries per second* (on a single 1.8GHz CPU core)
-  * *676.763 microseconds per query
+  * *676.763 microseconds per query*
   * CQEngine is *506.08% faster* than naive iteration
   * CQEngine is *325.89% faster* than optimized iteration
 
