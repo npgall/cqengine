@@ -41,6 +41,9 @@ public abstract class FilteringIterator<O> extends UnmodifiableIterator<O> {
 
     @Override
     public boolean hasNext() {
+        if(nextObjectIsNull || nextObject != null) {
+            return true;
+        }
         while (wrappedIterator.hasNext()) {
             nextObject = wrappedIterator.next();
             if (isValid(nextObject)) {
@@ -54,14 +57,13 @@ public abstract class FilteringIterator<O> extends UnmodifiableIterator<O> {
 
     @Override
     public O next() {
-        if (nextObjectIsNull) {
-            nextObjectIsNull = false;
-            return null;
-        }
-        if (nextObject == null) {
+        if(!hasNext()) {
             throw new NoSuchElementException();
         }
-        return nextObject;
+        O objectToReturn = nextObject;
+        nextObject = null;
+        nextObjectIsNull = false;
+        return objectToReturn;
     }
 
     public abstract boolean isValid(O object);
