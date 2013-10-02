@@ -7,7 +7,7 @@ CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidoc
 
 The source code for attributes can either be generated for the purpose of copy & pasting into the target  class, or attributes can be generated into a separate companion class.
 
-The examples below generate attributes for this class `Car`. Note some fields are primitives, and others are objects, arrays or lists. The type of field determines the type of attribute that !AttributesGenerator will generate. Also note that !AttributesGenerator will generate comments in the source code for each attribute, providing guidance on how performance could be tuned for each field, depending on its nullability.
+The examples below generate attributes for a class `Car`. Note some fields are primitives, and others are objects, arrays or lists. The type of field determines the type of attribute that !AttributesGenerator will generate. Also note that !AttributesGenerator will generate comments in the source code for each attribute, providing guidance on how performance could be tuned for each field, depending on its nullability.
 {{{
 public class Car {
     final int carId;
