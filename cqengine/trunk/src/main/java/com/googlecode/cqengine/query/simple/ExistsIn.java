@@ -36,7 +36,6 @@ final IndexedCollection<F> foreignCollection;
     final Attribute<O, A> localKeyAttribute;
     final Attribute<F, A> foreignKeyAttribute;
     final Query<F> foreignRestrictions;
-    final int hashCode;
 
     public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute, Query<F> foreignRestrictions) {
         super(localKeyAttribute);
@@ -44,7 +43,6 @@ final IndexedCollection<F> foreignCollection;
         this.localKeyAttribute = localKeyAttribute;
         this.foreignKeyAttribute = foreignKeyAttribute;
         this.foreignRestrictions = foreignRestrictions;
-        this.hashCode = calcHashCode();
     }
 
     public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute) {
@@ -53,7 +51,6 @@ final IndexedCollection<F> foreignCollection;
         this.localKeyAttribute = localKeyAttribute;
         this.foreignKeyAttribute = foreignKeyAttribute;
         this.foreignRestrictions = null;
-        this.hashCode = calcHashCode();
     }
 
     @Override
@@ -123,11 +120,7 @@ final IndexedCollection<F> foreignCollection;
     }
 
     @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    int calcHashCode() {
+    protected int calcHashCode() {
         int result = foreignCollection.hashCode();
         result = 31 * result + localKeyAttribute.hashCode();
         result = 31 * result + foreignKeyAttribute.hashCode();

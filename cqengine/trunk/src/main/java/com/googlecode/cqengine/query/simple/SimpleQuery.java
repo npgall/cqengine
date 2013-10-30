@@ -32,6 +32,8 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
     protected final boolean attributeIsSimple;
     protected final Attribute<O, A> attribute;
     protected final SimpleAttribute<O, A> simpleAttribute;
+    // Calculate hash code once and cache it...
+    private Integer hashCode = null;
 
     /**
      * Creates a new {@link SimpleQuery} initialized to make assertions on values of the specified attribute
@@ -92,4 +94,15 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
 
     protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object);
 
+    @Override
+    public int hashCode() {
+        Integer hashCode = this.hashCode;
+        if (hashCode == null) {
+            hashCode = calcHashCode();
+            this.hashCode = hashCode;
+        }
+        return hashCode;
+    }
+
+    abstract protected int calcHashCode();
 }

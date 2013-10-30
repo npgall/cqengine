@@ -32,13 +32,10 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 public class Has<O, A> extends SimpleQuery<O, A> {
 
     private final Attribute<O, A> attribute;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public Has(Attribute<O, A> attribute) {
         super(attribute);
         this.attribute = attribute;
-        this.hashCode = calcHashCode();
     }
 
     @Override
@@ -74,12 +71,8 @@ public class Has<O, A> extends SimpleQuery<O, A> {
         return true;
     }
 
-    int calcHashCode() {
-        return attribute.hashCode();
-    }
-
     @Override
-    public int hashCode() {
-        return hashCode;
+    protected int calcHashCode() {
+        return attribute.hashCode();
     }
 }
