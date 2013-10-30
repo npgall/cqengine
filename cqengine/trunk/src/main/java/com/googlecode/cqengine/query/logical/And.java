@@ -30,8 +30,6 @@ import java.util.Iterator;
 public class And<O> extends LogicalQuery<O> {
 
     private final Collection<Query<O>> childQueries;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public And(Collection<Query<O>> childQueries) {
         super(childQueries);
@@ -39,7 +37,6 @@ public class And<O> extends LogicalQuery<O> {
             throw new IllegalStateException("An 'And' query cannot have fewer than 2 child queries, " + childQueries.size() + " were supplied");
         }
         this.childQueries = childQueries;
-        this.hashCode = calcHashCode();
     }
 
     /**
@@ -74,13 +71,9 @@ public class And<O> extends LogicalQuery<O> {
         return true;
     }
 
-    int calcHashCode() {
-        return childQueries.hashCode();
-    }
-
     @Override
-    public int hashCode() {
-        return hashCode;
+    protected int calcHashCode() {
+        return childQueries.hashCode();
     }
 
     @Override

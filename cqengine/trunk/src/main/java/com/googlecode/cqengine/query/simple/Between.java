@@ -30,8 +30,6 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     private final boolean lowerInclusive;
     private final A upperValue;
     private final boolean upperInclusive;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public Between(Attribute<O, A> attribute, A lowerValue, boolean lowerInclusive, A upperValue, boolean upperInclusive) {
         super(attribute);
@@ -40,7 +38,6 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
         this.lowerInclusive = lowerInclusive;
         this.upperValue = upperValue;
         this.upperInclusive = upperInclusive;
-        this.hashCode = calcHashCode();
     }
 
     public A getLowerValue() {
@@ -154,17 +151,13 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
         return true;
     }
 
-    int calcHashCode() {
+    @Override
+    protected int calcHashCode() {
         int result = attribute.hashCode();
         result = 31 * result + lowerValue.hashCode();
         result = 31 * result + (lowerInclusive ? 1 : 0);
         result = 31 * result + upperValue.hashCode();
         result = 31 * result + (upperInclusive ? 1 : 0);
         return result;
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
     }
 }

@@ -27,14 +27,11 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
 
     private final Attribute<O, A> attribute;
     private final A value;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public Equal(Attribute<O, A> attribute, A value) {
         super(attribute);
         this.attribute = attribute;
         this.value = value;
-        this.hashCode = calcHashCode();
     }
 
     public A getValue() {
@@ -76,14 +73,10 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
         return true;
     }
 
-    int calcHashCode() {
+    @Override
+    protected int calcHashCode() {
         int result = attribute.hashCode();
         result = 31 * result + value.hashCode();
         return result;
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
     }
 }

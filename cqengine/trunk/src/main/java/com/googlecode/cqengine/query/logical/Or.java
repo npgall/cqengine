@@ -31,8 +31,6 @@ public class Or<O> extends LogicalQuery<O> {
 
     private final Collection<Query<O>> childQueries;
     private final boolean disjoint;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     /**
      * Constructor.
@@ -59,7 +57,6 @@ public class Or<O> extends LogicalQuery<O> {
         }
         this.disjoint = disjoint;
         this.childQueries = childQueries;
-        this.hashCode = calcHashCode();
     }
 
     /**
@@ -105,11 +102,7 @@ public class Or<O> extends LogicalQuery<O> {
     }
 
     @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    int calcHashCode() {
+    protected int calcHashCode() {
         int result = childQueries.hashCode();
         result = 31 * result + (disjoint ? 1 : 0);
         return result;

@@ -28,9 +28,6 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
     private final Attribute<O, A> attribute;
     private final A value;
 
-    // Calculate hash code once and cache it...
-    private final int hashCode;
-
     /**
      * Creates a new {@link SimpleQuery} initialized to make assertions on values of the specified attribute
      *
@@ -40,7 +37,6 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
         super(attribute);
         this.attribute = attribute;
         this.value = value;
-        this.hashCode = calcHashCode();
     }
 
     public A getValue() {
@@ -89,11 +85,7 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
     }
 
     @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    int calcHashCode() {
+    protected int calcHashCode() {
         int result = attribute.hashCode();
         result = 31 * result + value.hashCode();
         return result;

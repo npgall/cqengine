@@ -29,13 +29,10 @@ import java.util.Collections;
 public class Not<O> extends LogicalQuery<O> {
 
     private final Query<O> negatedQuery;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public Not(Query<O> negatedQuery) {
         super(Collections.singleton(negatedQuery));
         this.negatedQuery = negatedQuery;
-        this.hashCode = calcHashCode();
     }
 
     public Query<O> getNegatedQuery() {
@@ -63,13 +60,9 @@ public class Not<O> extends LogicalQuery<O> {
         return true;
     }
 
-    int calcHashCode() {
-        return negatedQuery.hashCode();
-    }
-
     @Override
-    public int hashCode() {
-        return hashCode;
+    protected int calcHashCode() {
+        return negatedQuery.hashCode();
     }
 
     @Override

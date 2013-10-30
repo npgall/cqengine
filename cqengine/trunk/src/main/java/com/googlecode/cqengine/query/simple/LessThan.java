@@ -28,15 +28,12 @@ public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     private final Attribute<O, A> attribute;
     private final A value;
     private final boolean valueInclusive;
-    // Calculate hash code once and cache it...
-    private final int hashCode;
 
     public LessThan(Attribute<O, A> attribute, A value, boolean valueInclusive) {
         super(attribute);
         this.attribute = attribute;
         this.value = value;
         this.valueInclusive = valueInclusive;
-        this.hashCode = calcHashCode();
     }
 
     public A getValue() {
@@ -106,15 +103,12 @@ public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
         return true;
     }
 
-    int calcHashCode() {
+    @Override
+    protected int calcHashCode() {
         int result = attribute.hashCode();
         result = 31 * result + value.hashCode();
         result = 31 * result + (valueInclusive ? 1 : 0);
         return result;
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
 }
