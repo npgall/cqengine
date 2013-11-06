@@ -35,8 +35,8 @@ public abstract class LogicalQuery<O> implements Query<O> {
     private final boolean hasLogicalQueries;
     private final boolean hasSimpleQueries;
     private final int size;
-    // Calculate hash code once and cache it...
-    private Integer hashCode = null;
+    // Lazy calculate and cache hashCode...
+    private int hashCode = 0;
 
     /**
      * Creates a new {@link LogicalQuery} initialized to logically connect the supplied set of child queries.
@@ -104,12 +104,16 @@ public abstract class LogicalQuery<O> implements Query<O> {
 
     @Override
     public int hashCode() {
-        Integer hashCode = this.hashCode;
-        if (hashCode == null) {
-            hashCode = calcHashCode();
-            this.hashCode = hashCode;
+        // Lazy calculate and cache hashCode...
+        int h = this.hashCode;
+        if (h == 0) { // hashCode not cached
+            h = calcHashCode();
+            if (h == 0) { // 0 is normally a valid hashCode, coalesce with another...
+                h = -976419167; // was randomly chosen
+            }
+            this.hashCode = h; // cache hashCode
         }
-        return hashCode;
+        return h;
     }
 
     abstract protected int calcHashCode();
