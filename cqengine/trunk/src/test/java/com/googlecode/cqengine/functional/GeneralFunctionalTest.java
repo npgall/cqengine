@@ -83,7 +83,6 @@ public class GeneralFunctionalTest {
         assertThat(carIdsIn(cars.retrieve(and(equal(Car.DOORS, 5), not(equal(Car.COLOR, Car.Color.RED))))), is(setOf(1)));
 
         // Cars whose model starts with 'F'...
-//        assertThat(carIdsIn(cars.retrieve()), is(setOf(1)));
         assertThat(carIdsIn(cars.retrieve(startsWith(Car.MODEL, "F"))), is(setOf(1, 2, 3)));
 
         // Cars whose model ends with 's'...
