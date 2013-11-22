@@ -1,3 +1,18 @@
+/**
+ * Copyright 2012 Niall Gallagher
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.googlecode.cqengine.collection.impl;
 
 import com.googlecode.cqengine.attribute.Attribute;
@@ -9,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
+ * @author Atul Vasu
  */
 public class ConcurrentIndexedCollectionTest {
 
@@ -62,7 +78,7 @@ public class ConcurrentIndexedCollectionTest {
     @Test
     @SuppressWarnings({"SuspiciousMethodCalls"})
     public void testRemove() {
-        concurrentIndexedCollection.add(new TestEntity(2));
+        concurrentIndexedCollection.add(new TestEntity(1));
         Assert.assertEquals(1, concurrentIndexedCollection.size());
 
         // Remove object of a type which cannot be stored in the collection...
@@ -71,12 +87,12 @@ public class ConcurrentIndexedCollectionTest {
         Assert.assertEquals(1, concurrentIndexedCollection.size());
 
         // Remove object of correct type but not equal to one stored in the collection...
-        removed = concurrentIndexedCollection.remove(new TestEntity(1));
+        removed = concurrentIndexedCollection.remove(new TestEntity(2));
         Assert.assertFalse(removed);
         Assert.assertEquals(1, concurrentIndexedCollection.size());
 
         // Remove object equal to one stored in the collection...
-        removed = concurrentIndexedCollection.remove(new TestEntity(2));
+        removed = concurrentIndexedCollection.remove(new TestEntity(1));
         Assert.assertTrue(removed);
         Assert.assertEquals(0, concurrentIndexedCollection.size());
     }
