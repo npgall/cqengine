@@ -3,9 +3,9 @@
 
 ===Version 1.2.4 - 2013-11-22===
  * Maintenance release
- * Fixed "FilteringIterator.hasNext advances iterator every time it is called", with thanks to Gabe Hicks for patch (issue 23)
- * Improved performance of Query.hashCode(), with thanks to Atul Vasu for patch (issue 25)
- * Fixed "Set remove() and removeAll() doesn't follow substitutability principle", with thanks to Atul Vasu for patch (issue 27)
+ * Fixed _"!FilteringIterator.hasNext advances iterator every time it is called"_, with thanks to Gabe Hicks for patch (issue 23)
+ * Fixed performance bottleneck in `Query.hashCode()`, with thanks to Atul Vasu for contribution (issue 25)
+ * Fixed _"Set remove() and removeAll() doesn't follow substitutability principle"_, with thanks to Atul Vasu for patch (issue 27)
  * Deployed to Maven central
 
 ===Version 1.2.2 - 2013-09-22===
