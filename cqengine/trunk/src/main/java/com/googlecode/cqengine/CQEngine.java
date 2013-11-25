@@ -19,7 +19,8 @@ import com.googlecode.cqengine.collection.impl.*;
 import com.googlecode.cqengine.engine.impl.QueryEngineImpl;
 import com.googlecode.cqengine.index.common.Factory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * A static factory for creating {@link IndexedCollection}s, either as new instances to which objects can be added
@@ -177,6 +178,21 @@ public class CQEngine {
         IndexedCollection<O> indexedCollection = new ObjectLockingIndexedCollection<O>(backingSetFactory, concurrencyLevel, new QueryEngineImpl<O>());
         indexedCollection.addAll(collection);
         return indexedCollection;
+    }
+
+    /**
+     * Wraps the given {@link IndexedCollection} in one which which will invoke the given listener whenever objects
+     * are added to or removed, as long as modifications are made through the wrapped collection.
+     * <p/>
+     * The listener is invoked by the same thread which modifies the collection.
+     *
+     * @param backingCollection The collection to wrap
+     * @param listener The listener to invoke on modifications
+     * @param <O> The type of objects in the collection
+     * @return A collection with listener support
+     */
+    public static <O> IndexedCollection<O> wrapForObservation(IndexedCollection<O> backingCollection, CollectionListener<O> listener) {
+        return new ObservableIndexedCollection<O>(backingCollection, listener);
     }
 
     /**

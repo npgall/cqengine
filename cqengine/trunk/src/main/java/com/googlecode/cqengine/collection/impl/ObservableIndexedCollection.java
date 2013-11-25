@@ -29,16 +29,18 @@ import java.util.Map;
 
 /**
  * Wraps another {@link IndexedCollection} and notifies a given {@link ModificationListener} when objects are added
- * to or removed from the backing collection. The listener is invoked by the same thread which modifies the collection.
+ * to or removed from the backing collection, as long as modifications are made through the wrapped collection.
+ * <p/>
+ * The listener is invoked by the same thread which modifies the collection.
  * <p/>
  * @author Niall Gallagher
  */
 public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
 
     final IndexedCollection<O> collection;
-    final ModificationListener<O> listener;
+    final CollectionListener<O> listener;
 
-    public ObservableIndexedCollection(IndexedCollection<O> collection, ModificationListener<O> listener) {
+    public ObservableIndexedCollection(IndexedCollection<O> collection, CollectionListener<O> listener) {
         this.collection = collection;
         this.listener = listener;
     }
@@ -144,7 +146,7 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
             @Override
             public void remove() {
                 collectionIterator.remove();
-                listener.notifyObjectsRemoved(Collections.singleton(currentObject));
+                listener.objectsRemoved(Collections.singleton(currentObject));
             }
         };
     }
@@ -158,7 +160,7 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
         // Indexes handle gracefully the case that the objects supplied already exist in the index...
         boolean modified = collection.add(o);
         if (modified) {
-            listener.notifyObjectsAdded(Collections.singleton(o));
+            listener.objectsAdded(Collections.singleton(o));
         }
         return modified;
     }
@@ -172,7 +174,7 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
         O o = (O) object;
         boolean modified = collection.remove(o);
         if  (modified) {
-            listener.notifyObjectsRemoved(Collections.singleton(o));
+            listener.objectsRemoved(Collections.singleton(o));
         }
         return modified;
     }
@@ -186,7 +188,7 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.addAll(objects);
         if  (modified) {
-            listener.notifyObjectsAdded(objects);
+            listener.objectsAdded(objects);
         }
         return modified;
     }
@@ -200,7 +202,7 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.removeAll(objects);
         if (modified) {
-            listener.notifyObjectsRemoved(objects);
+            listener.objectsRemoved(objects);
         }
         return modified;
     }
@@ -228,6 +230,6 @@ public class ObservableIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public void clear() {
         collection.clear();
-        listener.notifyObjectsCleared();
+        listener.objectsCleared();
     }
 }
