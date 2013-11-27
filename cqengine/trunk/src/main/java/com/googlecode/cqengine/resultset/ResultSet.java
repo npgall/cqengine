@@ -70,7 +70,7 @@ public abstract class ResultSet<O> implements Iterable<O> {
      * when more than one index supporting the query exists for the same attribute.
      * <p/>
      * An example: a single-level hash index will typically have a lower retrieval cost than a tree-based index. Of
-     * course a hash index only supports equality-based retrieval whereas a sorted tree-based index might support
+     * course a hash index only supports equality-based retrieval whereas a sorted tree-based index might common
      * equality/less than/greater than or range based retrieval. But for an equality-based query, supported by
      * both indexes, retrieval cost allows the query engine to <i>prefer</i> the hash index.
      *

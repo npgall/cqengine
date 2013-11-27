@@ -1,10 +1,13 @@
 package com.googlecode.cqengine.query.parser.cqnative;
 
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.support.QueryParser;
+import com.googlecode.cqengine.query.parser.common.QueryParser;
+import com.googlecode.cqengine.query.parser.cqnative.support.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A parser for CQEngine native queries represented as strings.
@@ -13,16 +16,50 @@ import java.util.List;
  */
 public class CQNativeParser<O> extends QueryParser<O> {
 
+    protected final Map<String, QueryTypeParser<O>> queryTypeParsers = new HashMap<String, QueryTypeParser<O>>();
+
     public CQNativeParser(Class<O> objectType) {
         super(objectType);
+        registerQueryTypeParser(new AndParser<O>());
+        registerQueryTypeParser(new OrParser<O>());
+        registerQueryTypeParser(new NotParser<O>());
+        registerQueryTypeParser(new EqualParser<O>());
+        // TODO: write parsers for other types of query: lessThan, stringContains etc.
+    }
+
+    public void registerQueryTypeParser(QueryTypeParser<O> queryTypeParser) {
+        queryTypeParsers.put(queryTypeParser.getQueryType(), queryTypeParser);
+    }
+
+    public QueryTypeParser<O> getQueryTypeParser(String queryType) {
+        QueryTypeParser<O> queryTypeParser = queryTypeParsers.get(queryType);
+        if (queryTypeParser == null) {
+            throw new IllegalStateException("No parser registered for query type: " + queryType);
+        }
+        return queryTypeParser;
     }
 
     @Override
     public Query<O> parse(String query) {
-        throw new UnsupportedOperationException("Not implemented");
+        QueryStructure structure = parseNativeQueryStructure(query);
+        QueryTypeParser<O> queryTypeParser = getQueryTypeParser(structure.queryType);
+        return queryTypeParser.parse(this, structure.queryArguments);
     }
 
-    static QueryStruct parseStruct(String query) {
+    /**
+     * Parses a query in native CQEngine programmatic syntax, "foo(a, b[, n...])", where foo is the query type,
+     * and a, b, to n are arguments to the query foo.
+     *
+     * For example in query "and(equal(...), not(equal(...)))",
+     * "and" is the type of the query, and strings "equal(...)" and "not(equal(...))" are its arguments.
+     * <p/>
+     * This method parses only the outer structure of the query, and not the internal structure of arguments.
+     * The methods calling this method, can call this method recursively to parse arguments in the same way.
+     *
+     * @param query A query in native CQEngine programmatic syntax
+     * @return The parsed structure of the outer components of the query
+     */
+    protected QueryStructure parseNativeQueryStructure(String query) {
         query = query.trim();
         int closingParenthesis = query.lastIndexOf(")");
         int openingParenthesis = query.indexOf("(");
@@ -75,23 +112,23 @@ public class CQNativeParser<O> extends QueryParser<O> {
             throw new IllegalStateException("An argument is blank: " + argumentsStr);
         }
         arguments.add(argument);
-        return new QueryStruct(queryType, arguments);
+        return new QueryStructure(queryType, arguments);
     }
 
-    static class QueryStruct {
+    static class QueryStructure {
         final String queryType; // "and", "or", "not", "lessThan" etc.
-        final List<String> arguments; // list of comma-separated arguments to this outer query
+        final List<String> queryArguments; // list of comma-separated arguments to this outer query
 
-        QueryStruct(String queryType, List<String> arguments) {
+        QueryStructure(String queryType, List<String> queryArguments) {
             this.queryType = queryType;
-            this.arguments = arguments;
+            this.queryArguments = queryArguments;
         }
 
         @Override
         public String toString() {
-            return "QueryStruct{" +
+            return "QueryStructure{" +
                     "queryType='" + queryType + '\'' +
-                    ", arguments=" + arguments +
+                    ", queryArguments=" + queryArguments +
                     '}';
         }
     }

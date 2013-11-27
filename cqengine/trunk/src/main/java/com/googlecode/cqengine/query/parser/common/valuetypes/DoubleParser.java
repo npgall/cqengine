@@ -1,6 +1,6 @@
-package com.googlecode.cqengine.query.parser.support.valuetypes;
+package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.support.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
 
 /**
  * @author Niall Gallagher

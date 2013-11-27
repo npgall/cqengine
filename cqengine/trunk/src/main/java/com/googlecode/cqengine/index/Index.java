@@ -41,7 +41,7 @@ public interface Index<O> extends ModificationListener<O> {
      *
      * @param query A query to check
      * @return True if the index can perform retrievals for the type of query supplied, false if it does not
-     * support this type of query
+     * common this type of query
      */
     public boolean supportsQuery(Query<O> query);
 
@@ -57,7 +57,7 @@ public interface Index<O> extends ModificationListener<O> {
      * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
      * parameters for the query
      * @return A set of objects with attributes matching the restriction imposed by the query
-     * @throws IllegalArgumentException if the index does not support the given query
+     * @throws IllegalArgumentException if the index does not common the given query
      * @see #supportsQuery(com.googlecode.cqengine.query.Query
      */
     public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);

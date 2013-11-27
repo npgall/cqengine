@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.query.parser.support;
+package com.googlecode.cqengine.query.parser.common;
 
 /**
  * @author Niall Gallagher

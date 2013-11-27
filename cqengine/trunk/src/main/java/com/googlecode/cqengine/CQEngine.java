@@ -189,7 +189,7 @@ public class CQEngine {
      * @param backingCollection The collection to wrap
      * @param listener The listener to invoke on modifications
      * @param <O> The type of objects in the collection
-     * @return A collection with listener support
+     * @return A collection with listener common
      */
     public static <O> IndexedCollection<O> wrapForObservation(IndexedCollection<O> backingCollection, CollectionListener<O> listener) {
         return new ObservableIndexedCollection<O>(backingCollection, listener);
