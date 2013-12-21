@@ -181,21 +181,6 @@ public class CQEngine {
     }
 
     /**
-     * Wraps the given {@link IndexedCollection} in one which which will invoke the given listener whenever objects
-     * are added to or removed, as long as modifications are made through the wrapped collection.
-     * <p/>
-     * The listener is invoked by the same thread which modifies the collection.
-     *
-     * @param backingCollection The collection to wrap
-     * @param listener The listener to invoke on modifications
-     * @param <O> The type of objects in the collection
-     * @return A collection with listener common
-     */
-    public static <O> IndexedCollection<O> wrapForObservation(IndexedCollection<O> backingCollection, CollectionListener<O> listener) {
-        return new ObservableIndexedCollection<O>(backingCollection, listener);
-    }
-
-    /**
      * Private constructor, not used.
      */
     CQEngine() {
