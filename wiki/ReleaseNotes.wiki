@@ -1,6 +1,11 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 1.2.6 - 2014-01-07===
+ * Maintenance release
+ * Bugfix for deduplication MATERIALIZE strategy (issue 32)
+ * Deployed to Maven central
+
 ===Version 1.2.4 - 2013-11-22===
  * Maintenance release
  * Fixed _"!FilteringIterator.hasNext advances iterator every time it is called"_, with thanks to Gabe Hicks for patch (issue 23)
