@@ -68,7 +68,7 @@ public class MaterializingResultSet<O> extends ResultSet<O> {
                     if (next == null) {
                         throw new IllegalStateException("Unexpectedly received null from the wrapped ResultSet's iterator.next()");
                     }
-                    if (materializedSet.contains(next)) {
+                    if (!materializedSet.add(next)) {
                         continue;
                     }
                     nextObject = next;
