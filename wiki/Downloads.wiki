@@ -16,6 +16,6 @@ For non-Maven projects, a version built with [http://maven.apache.org/plugins/ma
 
 ==Download statistics, to October 2013==
 
-[http://chart.googleapis.com/chart?chxl=0:|07%2F2012|08%2F2012|09%2F2012|10%2F2012|11%2F2012|12%2F2012|01%2F2013|02%2F2013|03%2F2013|04%2F2013|05%2F2013|06%2F2013|07%2F2013|08%2F2013|09%2F2013|10%2F2013&chxr=0,0,10|1,0,350&chxs=0,676767,11.5,-0.333,t,676767&chxt=x,y&chs=800x300&cht=lc&chds=0,350&chd=t:4,10,41,20,108,209,123,143,186,168,187,323,161,259,192,339&chdl=Downloads+-+Maven+Central+per+month&chdlp=b&chls=0.667&chma=2,0,7|17,28&chm=B,C5D4B5BB,0,0,0&chtt=CQEngine+Maven+Central&dummy=foo.png]
+[http://chart.googleapis.com/chart?chxl=0:|07/12|08/12|09/12|10/12|11/12|12/12|01/13|02/13|03/13|04/13|05/13|06/13|07/13|08/13|09/13|10/13|11/13|12/13|01/14|02/14&chxr=0,0,10|1,0,350&chxs=0,676767,11.5,-0.333,t,676767&chxt=x,y&chs=800x300&cht=lc&chds=0,500&chd=t:4,10,41,20,108,209,123,143,186,168,187,323,161,259,192,339,159,303,399,486&chdl=Downloads+-+Maven+Central+per+month&chdlp=b&chls=0.667&chma=2,0,7|17,28&chm=B,C5D4B5BB,0,0,0&chtt=CQEngine+Maven+Central&dummy=foo.png]
 
 2867 downloads (2473 Maven, 394 non-Maven).
