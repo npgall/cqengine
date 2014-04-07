@@ -3,7 +3,7 @@
 
 ===Version 1.2.7 - 2014-04-07===
  * Maintenance release
- * Bugfix for ObjectLockingIndexedCollection.StripedLock's handling of negative hashcodes (issue 35)
+ * Bugfix for `ObjectLockingIndexedCollection.StripedLock`'s handling of negative hashcodes (issue 35)
  * Deployed to Maven central
 
 ===Version 1.2.6 - 2014-01-07===
