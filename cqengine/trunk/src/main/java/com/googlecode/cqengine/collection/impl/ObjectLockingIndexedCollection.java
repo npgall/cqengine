@@ -84,7 +84,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
 
         ReentrantLock getLockForObject(Object object) {
             int hashCode = object.hashCode();
-            return locks[hashCode % concurrencyLevel];
+            return locks[Math.abs(hashCode % concurrencyLevel)];
         }
     }
 
