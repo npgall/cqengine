@@ -11,7 +11,7 @@ This page discusses:
 
 = Consistency Guarantees =
 
-CQEngine's consistency model is that objects are always added to and removed from IndexedCollection and indexes, with _volatile semantics_.
+CQEngine's consistency model is that objects are always added to and removed from `IndexedCollection` and indexes, with _volatile semantics_.
 
 This guarantees that:
  * When `IndexedCollection.add`/`remove`/`addAll` etc. methods return, data has been committed to the collection and all indexes.
