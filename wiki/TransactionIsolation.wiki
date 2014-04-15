@@ -3,11 +3,11 @@
 = Transaction Isolation in CQEngine =
 CQEngine provides lock-free reads by default.
 
-Depending on the types of queries which may be ongoing while the collection is being modified, this provides a level of transaction isolation which is somewhere between READ_COMMITTED, and READ_UNCOMMITTED. But CQEngine supports higher isolation levels than this default, for applications which need it. Transaction isolation can be controlled on a query-by-query basis.
+Depending on the types of queries which may be ongoing while the collection is being modified, by default CQEngine provides a level of transaction isolation which is somewhere between READ_COMMITTED, and READ_UNCOMMITTED. But CQEngine supports higher isolation levels than this default, for applications which need it. Transaction isolation can be controlled on a query-by-query basis.
 
 This page discusses:
- * which isolation levels can be expected by default for various types of query, and
- * how those isolation levels may be upgraded using a read-write lock on a per-query basis, for applications which need it.
+ * Which isolation levels can be expected by default for various types of query, and
+ * How those isolation levels may be upgraded using locks on a per-query basis, for applications which need it.
 
 = Consistency Guarantees =
 
