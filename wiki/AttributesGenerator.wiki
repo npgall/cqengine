@@ -1,4 +1,5 @@
 #summary How to generate CQEngine attributes automatically
+#labels Featured
 
 = !AttributesGenerator =
 CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributesGenerator.html AttributesGenerator] utility, which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class. Thus it is not necessary to write attributes by hand.
