@@ -30,7 +30,7 @@ Applications should cache the lock in the same place as the `IndexedCollection` 
  * Methods which will make batch or multiple _modifications_ which should be viewed as an atomic transaction by reading threads, should:
   * Acquire the write lock before modifying the collection, and release it when the last modification completes. 
  * Methods which perform _queries_ requiring READ_COMMITTED isolation, should:
-   * Acquire a read lock before doing so, and hold it until they have completely finished iterating through the ResultSet. 
+   * Acquire a read lock before doing so, and hold it until they have completely finished iterating through the `ResultSet`. 
  * Methods which perform _queries_ which would be compatible with READ_UNCOMMITTED isolation, should:
   * Perform reads _without acquiring the read lock_.
  * Applications which only do single object insertions/removals at a time, or multiple object insertions/removals which do not need to be transactional:
