@@ -1,4 +1,5 @@
 #summary Consistency and transaction isolation
+#labels Featured
 
 = Transaction Isolation in CQEngine =
 CQEngine provides lock-free reads by default.
