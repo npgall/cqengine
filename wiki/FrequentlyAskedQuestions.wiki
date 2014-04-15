@@ -41,3 +41,7 @@ The answer to this question really is:
 Queueing delay and CPU starvation will often multiply latencies in real applications by orders of magnitude.
 
 This applies to the benchmarks in this project for both iteration and CQEngine: latency for both these approaches will get multiplied by orders of magnitude in production. The goal of CQEngine is to be faster in the first place so that when latency does increase under load, it will increase from a much lower starting point.
+
+== Which Transaction Isolation levels does CQEngine support? ==
+
+ * See TransactionIsolation
