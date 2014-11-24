@@ -31,11 +31,15 @@ public class SelfAttribute<O> extends SimpleAttribute<O, O> {
     }
 
     public SelfAttribute(Class<O> objectType) {
-        super(objectType, objectType);
+        super(objectType, objectType, "self");
     }
 
     @Override
     public O getValue(O object) {
         return object;
+    }
+
+    public static <O> SelfAttribute<O> self(Class<O> type) {
+        return new SelfAttribute<O>(type);
     }
 }
