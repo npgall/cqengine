@@ -22,15 +22,8 @@ import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.DeduplicationOption;
-import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.Car.Color;
-import org.junit.Test;
-
-import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.orderBy;
@@ -61,6 +54,12 @@ public class CQEngineDemo {
         cars.add(new Car(5, "Toyota", "Prius",  Color.BLACK, 3, 9700.00));
 
         Query<Car> query;
+
+        System.out.println("\nAll cars, ordered by carId:");
+        query = all(Car.class);
+        for (Car car : cars.retrieve(query, queryOptions(orderBy(ascending(Car.CAR_ID))))) {
+            System.out.println(car);
+        }
 
         System.out.println("\nFord cars:");
         query = equal(Car.MANUFACTURER, "Ford");

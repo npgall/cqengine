@@ -26,6 +26,7 @@ import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.AttributeOrder;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * A static factory for creating {@link Query} objects and its descendants.
@@ -231,6 +232,36 @@ public class QueryFactory {
     }
 
     /**
+     * Creates a {@link StringMatchesRegex} query which asserts that an attribute's value matches a regular expression.
+     * <p/>
+     * To accelerate {@code matchesRegex(...)} queries, add a Standing Query Index on {@code matchesRegex(...)}.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param regexPattern The regular expression pattern to be asserted by the query
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link StringStartsWith} query
+     */
+    public static <O, A extends CharSequence> StringMatchesRegex<O, A> matchesRegex(Attribute<O, A> attribute, Pattern regexPattern) {
+        return new StringMatchesRegex<O, A>(attribute, regexPattern);
+    }
+
+    /**
+     * Creates a {@link StringMatchesRegex} query which asserts that an attribute's value matches a regular expression.
+     * <p/>
+     * To accelerate {@code matchesRegex(...)} queries, add a Standing Query Index on {@code matchesRegex(...)}.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param regex The regular expression to be asserted by the query (this will be compiled via {@link Pattern#compile(String)})
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link StringStartsWith} query
+     */
+    public static <O, A extends CharSequence> StringMatchesRegex<O, A> matchesRegex(Attribute<O, A> attribute, String regex) {
+        return new StringMatchesRegex<O, A>(attribute, Pattern.compile(regex));
+    }
+
+    /**
      * Creates an {@link Has} query which asserts that an attribute has a value (is not null).
      * <p/>
      * Asserts that an attribute has a value (is not null).
@@ -373,6 +404,29 @@ public class QueryFactory {
         return new ExistsIn<O, F, A>(foreignCollection, localKeyAttribute, foreignKeyAttribute, foreignRestrictions);
     }
 
+    /**
+     * Creates a query which matches all objects in the collection.
+     * <p/>
+     * This is equivalent to a literal boolean 'true'.
+     *
+     * @param <O> The type of the objects in the collection
+     * @return A query which matches all objects in the collection
+     */
+    public static <O> Query<O> all(Class<O> objectType) {
+        return new All<O>(objectType);
+    }
+
+    /**
+     * Creates a query which matches no objects in the collection.
+     * <p/>
+     * This is equivalent to a literal boolean 'false'.
+     *
+     * @param <O> The type of the objects in the collection
+     * @return A query which matches no objects in the collection
+     */
+    public static <O> Query<O> none(Class<O> objectType) {
+        return new None<O>(objectType);
+    }
 
     /**
      * Creates an {@link OrderByOption} query option, encapsulating the given list of {@link AttributeOrder} objects
@@ -440,6 +494,20 @@ public class QueryFactory {
      * @return A {@link DeduplicationOption} query option, requests duplicate objects to be eliminated from results
      */
     public static <O> DeduplicationOption<O> deduplicate(DeduplicationStrategy deduplicationStrategy) {
+        return new DeduplicationOption<O>(deduplicationStrategy);
+    }
+
+    /**
+     * Creates a {@link DeduplicationOption} query option, encapsulating a given {@link DeduplicationStrategy}, which
+     * when supplied to the query engine requests it to eliminate duplicates objects from the results returned using
+     * the strategy indicated.
+     *
+     * @param objectType Allows the object type to be specified explicitly (to work around generics warnings)
+     * @param deduplicationStrategy The deduplication strategy the query engine should use
+     * @param <O> The type of the object containing the attributes
+     * @return A {@link DeduplicationOption} query option, requests duplicate objects to be eliminated from results
+     */
+    public static <O> DeduplicationOption<O> deduplicate(Class<O> objectType, DeduplicationStrategy deduplicationStrategy) {
         return new DeduplicationOption<O>(deduplicationStrategy);
     }
 
