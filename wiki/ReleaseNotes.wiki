@@ -1,6 +1,10 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 1.3.1 - 2014-11-25===
+ * Added new query types: all(), none(), and regexMatches()
+ * Deployed to Maven central
+
 ===Version 1.2.7 - 2014-04-07===
  * Maintenance release
  * Bugfix for `ObjectLockingIndexedCollection.StripedLock`'s handling of negative hashcodes (issue 35)
