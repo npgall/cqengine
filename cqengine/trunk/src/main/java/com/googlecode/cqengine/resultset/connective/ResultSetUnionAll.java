@@ -86,11 +86,11 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
      */
     @Override
     public int getRetrievalCost() {
-        int retrievalCost = 0;
+        long retrievalCost = 0;
         for (ResultSet<O> resultSet : this.resultSets) {
             retrievalCost = retrievalCost + resultSet.getRetrievalCost();
         }
-        return retrievalCost;
+        return (int)Math.min(retrievalCost, Integer.MAX_VALUE);
     }
 
     /**
@@ -99,10 +99,10 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
      */
     @Override
     public int getMergeCost() {
-        int mergeCost = 0;
+        long mergeCost = 0;
         for (ResultSet<O> resultSet : this.resultSets) {
             mergeCost = mergeCost + resultSet.getMergeCost();
         }
-        return mergeCost;
+        return (int)Math.min(mergeCost, Integer.MAX_VALUE);
     }
 }

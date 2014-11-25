@@ -93,8 +93,8 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
      */
     @Override
     public int getMergeCost() {
-        int mergeCost = wrappedResultSet.getMergeCost();
-        return mergeCost * mergeCost;
+        long mergeCost = wrappedResultSet.getMergeCost();
+        return (int)Math.min(mergeCost * mergeCost, Integer.MAX_VALUE);
     }
 
     /**
