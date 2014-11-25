@@ -130,7 +130,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
         Attribute<O, A> attribute = attributeIndex.getAttribute();
         Set<Index<O>> indexesOnThisAttribute = attributeIndexes.get(attribute);
         if (indexesOnThisAttribute == null) {
-            indexesOnThisAttribute = new HashSet<Index<O>>();
+            indexesOnThisAttribute = Collections.newSetFromMap(new ConcurrentHashMap<Index<O>, Boolean>());
             attributeIndexes.put(attribute, indexesOnThisAttribute);
         }
         indexesOnThisAttribute.add(attributeIndex);
