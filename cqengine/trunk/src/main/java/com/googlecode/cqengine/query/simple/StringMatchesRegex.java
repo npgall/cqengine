@@ -69,7 +69,8 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
         if (o == null || getClass() != o.getClass()) return false;
         StringMatchesRegex that = (StringMatchesRegex) o;
         return this.attribute.equals(that.attribute)
-                && this.regexPattern.equals(that.regexPattern);
+                && this.regexPattern.pattern().equals(that.regexPattern.pattern())
+                && this.regexPattern.flags() == that.regexPattern.flags();
     }
 
     @Override
