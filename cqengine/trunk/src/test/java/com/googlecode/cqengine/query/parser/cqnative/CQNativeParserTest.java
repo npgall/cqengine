@@ -18,6 +18,9 @@ package com.googlecode.cqengine.query.parser.cqnative;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Niall Gallagher
  */
@@ -27,10 +30,7 @@ public class CQNativeParserTest {
     public void testParseNativeQueryStructure() {
         CQNativeParser<Car> parser = new CQNativeParser<Car>(Car.class);
         CQNativeParser.QueryStructure structure = parser.parseNativeQueryStructure("or(equal(Car.DOORS, 5), equal(Car.DOORS, 4), equal(Car.DOORS, 3))");
-        System.out.println(structure.queryType);
-        for (String s : structure.queryArguments) {
-            System.out.println("[" + s + "]");
-        }
-
+        assertEquals("or", structure.queryType);
+        assertEquals(asList("equal(Car.DOORS, 5)", "equal(Car.DOORS, 4)", "equal(Car.DOORS, 3)"), structure.queryArguments);
     }
 }

@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.examples.codegen;
 
-import com.googlecode.cqengine.codegen.AttributesGenerator;
+import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
 /**
  * Demonstrates how to auto-generate source code for a complete class containing CQEngine attributes which access fields
@@ -26,6 +26,6 @@ import com.googlecode.cqengine.codegen.AttributesGenerator;
 public class GenerateSeparateAttributesClass {
 
     public static void main(String[] args) {
-        System.out.println(AttributesGenerator.generateSeparateAttributesClass(Car.class, Car.class.getPackage()));
+        System.out.println(AttributeSourceGenerator.generateSeparateAttributesClass(Car.class, Car.class.getPackage()));
     }
 }

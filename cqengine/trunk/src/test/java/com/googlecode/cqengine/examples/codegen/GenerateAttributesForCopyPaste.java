@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.examples.codegen;
 
-import com.googlecode.cqengine.codegen.AttributesGenerator;
+import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
 /**
  * Demonstrates how to auto-generate source code for CQEngine attributes which access fields in a given class, which
@@ -26,6 +26,6 @@ import com.googlecode.cqengine.codegen.AttributesGenerator;
 public class GenerateAttributesForCopyPaste {
 
     public static void main(String[] args) {
-        System.out.println(AttributesGenerator.generateAttributesForPastingIntoTargetClass(Car.class));
+        System.out.println(AttributeSourceGenerator.generateAttributesForPastingIntoTargetClass(Car.class));
     }
 }
