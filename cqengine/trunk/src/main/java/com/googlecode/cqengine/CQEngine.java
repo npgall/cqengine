@@ -181,6 +181,38 @@ public class CQEngine {
     }
 
     /**
+     * Returns a new {@link TransactionalIndexedCollection} to which objects can be added subsequently.
+     * <p/>
+     * The implementation returned supports concurrent lock-free reads with <code>READ_COMMITTED</code> transaction
+     * isolation, based on multi-version concurrency control.
+     * See {@link com.googlecode.cqengine.collection.impl.TransactionalIndexedCollection} for details.
+     *
+     * @param <O> The type of objects in the collection
+     * @param objectType The type of objects in the collection
+     * @return A new {@link TransactionalIndexedCollection} initially containing no objects
+     */
+    public static <O> TransactionalIndexedCollection<O> newTransactionalInstance(Class<O> objectType) {
+        return new TransactionalIndexedCollection<O>(objectType, new DefaultConcurrentSetFactory<O>(), new QueryEngineImpl<O>());
+    }
+
+    /**
+     * Returns a new {@link TransactionalIndexedCollection} to which objects can be added subsequently.
+     * <p/>
+     * The implementation returned supports concurrent lock-free reads with <code>READ_COMMITTED</code> transaction
+     * isolation, based on multi-version concurrency control.
+     * See {@link com.googlecode.cqengine.collection.impl.TransactionalIndexedCollection} for details.
+     *
+     * @param <O> The type of objects in the collection
+     * @param objectType The type of objects in the collection
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @return A new {@link TransactionalIndexedCollection} initially containing no objects
+     */
+    public static <O> IndexedCollection<O> newInstance(Class<O> objectType, Factory<Set<O>> backingSetFactory) {
+        return new ConcurrentIndexedCollection<O>(backingSetFactory, new QueryEngineImpl<O>());
+    }
+
+    /**
      * Private constructor, not used.
      */
     CQEngine() {
