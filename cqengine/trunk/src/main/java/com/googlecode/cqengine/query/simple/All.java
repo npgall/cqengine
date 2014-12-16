@@ -57,4 +57,9 @@ public class All<O> extends SimpleQuery<O, O> {
         All that = (All) o;
         return this.objectType.equals(that.objectType);
     }
+
+    @Override
+    public String toString() {
+        return "all(" + super.getAttribute().getObjectType().getSimpleName() + ".class)";
+    }
 }
