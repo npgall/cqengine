@@ -57,4 +57,9 @@ public class None<O> extends SimpleQuery<O, O> {
         None that = (None) o;
         return this.objectType.equals(that.objectType);
     }
+
+    @Override
+    public String toString() {
+        return "none(" + super.getAttribute().getObjectType().getSimpleName() + ".class)";
+    }
 }
