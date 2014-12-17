@@ -46,6 +46,10 @@ public class DeduplicatingIterator<O, A> extends FilteringIterator<O> {
 
     @Override
     public boolean isValid(O object) {
-        return attributeValuesProcessed.addAll(uniqueAttribute.getValues(object));
+        boolean modified = false;
+        for (A value : uniqueAttribute.getValues(object)) {
+            modified = attributeValuesProcessed.add(value) || modified;
+        }
+        return modified;
     }
 }

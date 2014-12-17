@@ -16,10 +16,10 @@
 package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
 
 /**
  * Represents an attribute in an object which has multiple values (such as a field which is itself a collection),
@@ -75,8 +75,8 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
      * @return The values for the attribute
      */
     @Override
-    public List<A> getValues(O object) {
-        List<A> values = getNullableValues(object);
+    public Iterable<A> getValues(O object) {
+        Iterable<A> values = getNullableValues(object);
         // Handle the collection of values itself being null...
         values = (values == null ? Collections.<A>emptyList() : values);
         // Check if we need to check for nulls in the collection of values...
@@ -85,13 +85,13 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
             return values;
         }
         // Check for and skip any nulls in the collection of values...
-        List<A> nonNullValues = new ArrayList<A>(values.size());
-        for (A value : values) {
-            if (value != null) {
-                nonNullValues.add(value);
+        final Iterable<A> finalValues = values;
+        return new Iterable<A>() {
+            @Override
+            public Iterator<A> iterator() {
+                return IteratorUtil.removeNulls(finalValues.iterator());
             }
-        }
-        return nonNullValues;
+        };
     }
 
     /**
@@ -101,5 +101,5 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
      * @param object The object from which the values of the attribute are required
      * @return The values for the attribute, some of which might be null
      */
-    public abstract List<A> getNullableValues(O object);
+    public abstract Iterable<A> getNullableValues(O object);
 }

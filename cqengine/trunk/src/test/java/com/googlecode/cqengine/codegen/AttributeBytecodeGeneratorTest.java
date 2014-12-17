@@ -3,6 +3,7 @@ package com.googlecode.cqengine.codegen;
 import com.googlecode.cqengine.attribute.*;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -279,7 +280,11 @@ public class AttributeBytecodeGeneratorTest {
         assertEquals(pojoClass, attribute.getObjectType());
         assertEquals(attributeType, attribute.getAttributeType());
         assertEquals(attributeName, attribute.getAttributeName());
-        assertTrue("getValues() should return a List, actual was: " + values.getClass().getName(), List.class.isAssignableFrom(values.getClass()));
-        assertEquals(expectedPojoValues, attribute.getValues(pojo));
+        assertTrue("getValues() should return a List, actual was: " + values.getClass().getName(), Iterable.class.isAssignableFrom(values.getClass()));
+        List<A> actualAttributeValues = new ArrayList<A>();
+        for (A actualValue : attribute.getValues(pojo)) {
+            actualAttributeValues.add(actualValue);
+        }
+        assertEquals(expectedPojoValues, actualAttributeValues);
     }
 }

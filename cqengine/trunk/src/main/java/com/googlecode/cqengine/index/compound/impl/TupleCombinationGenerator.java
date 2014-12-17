@@ -15,10 +15,7 @@
  */
 package com.googlecode.cqengine.index.compound.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Contains static utility methods for generating combinations of elements <i>between</i> lists.
@@ -52,13 +49,14 @@ public class TupleCombinationGenerator {
      * @param <T> The type of objects in the lists (supply {@link Object} if mixing types)
      * @return Combinations of objects between the input lists
      */
-    public static <T> List<List<T>> generateCombinations(List<List<T>> inputLists) {
+    public static <T> List<List<T>> generateCombinations(List<? extends Iterable<T>> inputLists) {
         if (inputLists.isEmpty()) {
             return Collections.emptyList();
         }
         List<List<T>> results = new ArrayList<List<T>>();
+        Iterable<T> currentList = inputLists.get(0);
         if (inputLists.size() == 1) {
-            for (T object : inputLists.get(0)) {
+            for (T object : currentList) {
                 // This is the last list in the input lists supplied - processed first due to eager recursion below.
                 // Add each object in this input list as a single element in its own new LinkedList.
                 // The other branch will subsequently add objects from preceding input lists
@@ -69,10 +67,10 @@ public class TupleCombinationGenerator {
         else {
             // Start processing objects from the first input list supplied,
             // but note that we will call this method recursively before we move on to the next object...
-            for (T object : inputLists.get(0)) {
+            for (T object : currentList) {
                 // Prepare a tail list of the input lists (the input lists after this first one).
                 // The tail list is actually a _view_ onto the original input lists, (no data is copied)...
-                List<List<T>> tail = inputLists.subList(1, inputLists.size());
+                List<? extends Iterable<T>> tail = inputLists.subList(1, inputLists.size());
                 // Call this method recursively, getting the first objects in the tail lists first...
                 for (List<T> permutations : generateCombinations(tail)) {
                     // Insert the object from the first list at the _start_ of the permutations list...

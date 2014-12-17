@@ -58,7 +58,7 @@ public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O,
      * {@inheritDoc}
      */
     @Override
-    public List<A> getValues(O object) {
+    public Iterable<A> getValues(O object) {
         A value = getValue(object);
         return value == null ? Collections.<A>emptyList() : Collections.singletonList(value);
     }

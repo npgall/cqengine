@@ -71,7 +71,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>(\"FEATURES\", true) {\n" +
-                "        public List<String> getNullableValues(Car car) { return car.features; }\n" +
+                "        public Iterable<String> getNullableValues(Car car) { return car.features; }\n" +
                 "    };\n" +
                 "\n" +
                 "    /**\n" +
@@ -81,7 +81,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if this field cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, Double> PRICES = new MultiValueNullableAttribute<Car, Double>(\"PRICES\", false) {\n" +
-                "        public List<Double> getNullableValues(final Car car) {\n" +
+                "        public Iterable<Double> getNullableValues(final Car car) {\n" +
                 "            return new AbstractList<Double>() {\n" +
                 "                public Double get(int i) { return car.prices[i]; }\n" +
                 "                public int size() { return car.prices.length; }\n" +
@@ -97,7 +97,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if the array cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> EXTRAS = new MultiValueNullableAttribute<Car, String>(\"EXTRAS\", true) {\n" +
-                "        public List<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }\n" +
+                "        public Iterable<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }\n" +
                 "    };\n" +
                 "\n" +
                 "    /**\n" +
@@ -142,7 +142,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>(\"FEATURES\", true) {\n" +
-                "        public List<String> getNullableValues(Car car) { return car.features; }\n" +
+                "        public Iterable<String> getNullableValues(Car car) { return car.features; }\n" +
                 "    };\n" +
                 "\n" +
                 "    /**\n" +
@@ -152,7 +152,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if this field cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, Double> PRICES = new MultiValueNullableAttribute<Car, Double>(\"PRICES\", false) {\n" +
-                "        public List<Double> getNullableValues(final Car car) {\n" +
+                "        public Iterable<Double> getNullableValues(final Car car) {\n" +
                 "            return new AbstractList<Double>() {\n" +
                 "                public Double get(int i) { return car.prices[i]; }\n" +
                 "                public int size() { return car.prices.length; }\n" +
@@ -168,7 +168,7 @@ public class AttributeSourceGeneratorTest {
                 "    // - if the array cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> EXTRAS = new MultiValueNullableAttribute<Car, String>(\"EXTRAS\", true) {\n" +
-                "        public List<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }\n" +
+                "        public Iterable<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }\n" +
                 "    };\n" +
                 "\n" +
                 "    /**\n" +
