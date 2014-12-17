@@ -26,7 +26,7 @@ import java.util.*;
  * Generates CQEngine {@link com.googlecode.cqengine.attribute.SimpleAttribute}s or
  * {@link com.googlecode.cqengine.attribute.SimpleNullableAttribute}s for regular fields, and generates
  * CQEngine {@link com.googlecode.cqengine.attribute.MultiValueNullableAttribute}s for fields which themselves are
- * Lists or arrays.
+ * Iterables or arrays.
  * <p/>
  * Note that by default this code generator is cautious and generates "Nullable" attributes by default, for all fields
  * which are not primitive. Checking for nulls involves a performance penalty at runtime. So for fields which will not
@@ -150,13 +150,13 @@ public class AttributeSourceGenerator {
             if (field.getType().isPrimitive()) {
                 return generateSimpleAttribute(enclosingClass.getSimpleName(), PRIMITIVES_TO_WRAPPERS.get(field.getType()).getSimpleName(), field.getName());
             }
-            else if (List.class.isAssignableFrom(field.getType())) {
+            else if (Iterable.class.isAssignableFrom(field.getType())) {
                 ParameterizedType parameterizedType = (ParameterizedType)field.getGenericType();
                 if (parameterizedType.getActualTypeArguments().length != 1) {
                     throw new UnsupportedOperationException();
                 }
                 Class<?> genericType = (Class<?>)parameterizedType.getActualTypeArguments()[0];
-                return generateMultiValueNullableAttributeForList(enclosingClass.getSimpleName(), genericType.getSimpleName(), field.getName());
+                return generateMultiValueNullableAttributeForIterable(enclosingClass.getSimpleName(), genericType.getSimpleName(), field.getName());
             }
             else if (field.getType().isArray()) {
                 if (field.getType().getComponentType().isPrimitive()) {
@@ -195,7 +195,7 @@ public class AttributeSourceGenerator {
                 "    };";
     }
     
-    static String generateMultiValueNullableAttributeForList(String objectType, String attributeType, String fieldName) {
+    static String generateMultiValueNullableAttributeForIterable(String objectType, String attributeType, String fieldName) {
         return "    /**\n" +
                 "     * CQEngine attribute for accessing field {@code " + objectType + "." + fieldName + "}.\n" +
                 "     */\n" +
@@ -204,7 +204,7 @@ public class AttributeSourceGenerator {
                 "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", true) {\n" +
-                "        public List<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
                 "    };";
     }
 
@@ -217,7 +217,7 @@ public class AttributeSourceGenerator {
                 "    // - if the array cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", true) {\n" +
-                "        public List<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return Arrays.asList(" + objectType.toLowerCase() + "." + fieldName + "); }\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return Arrays.asList(" + objectType.toLowerCase() + "." + fieldName + "); }\n" +
                 "    };";
     }
 
@@ -229,7 +229,7 @@ public class AttributeSourceGenerator {
                 "    // - if this field cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", false) {\n" +
-                "        public List<" + attributeType + "> getNullableValues(final " + objectType + " " + objectType.toLowerCase() + ") {\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(final " + objectType + " " + objectType.toLowerCase() + ") {\n" +
                 "            return new AbstractList<" + attributeType + ">() {\n" +
                 "                public " + attributeType + " get(int i) { return " + objectType.toLowerCase() + "." + fieldName + "[i]; }\n" +
                 "                public int size() { return " + objectType.toLowerCase() + "." + fieldName + ".length; }\n" +

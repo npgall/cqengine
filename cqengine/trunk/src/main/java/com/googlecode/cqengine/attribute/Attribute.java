@@ -15,8 +15,6 @@
  */
 package com.googlecode.cqengine.attribute;
 
-import java.util.List;
-
 /**
  * @author Niall Gallagher
  */
@@ -51,5 +49,5 @@ public interface Attribute<O, A> {
      * @param object The object from which the values of the attribute are required
      * @return The values for the attribute in the given object
      */
-    List<A> getValues(O object);
+    Iterable<A> getValues(O object);
 }

@@ -81,7 +81,7 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      * {@inheritDoc}
      */
     @Override
-    public List<A> getValues(O object) {
+    public Iterable<A> getValues(O object) {
         return Collections.singletonList(getValue(object));
     }
 

@@ -110,17 +110,17 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
      * @return tuples representing all possible combinations of attribute values against which the object can be indexed
      */
     @Override
-    public List<CompoundValueTuple<O>> getValues(O object) {
+    public Iterable<CompoundValueTuple<O>> getValues(O object) {
         // STEP 1.
         // For each individual attribute comprising the compound attribute,
         // ask the attribute to return a list of values for the field it references in the object.
         // We get a list of values for each field because, because some fields can have multiple values,
         // as supported by MultiValueAttribute. We end up with List<List<Object>>, the outer list containing
         // individual lists of values from each attribute, inner lists containing values...
-        List<List<Object>> attributeValueLists = new ArrayList<List<Object>>(attributes.size());
+        List<Iterable<Object>> attributeValueLists = new ArrayList<Iterable<Object>>(attributes.size());
         for (Attribute<O, ?> attribute : attributes) {
             @SuppressWarnings({"unchecked"})
-            List<Object> values = (List<Object>) attribute.getValues(object);
+            Iterable<Object> values = (Iterable<Object>) attribute.getValues(object);
             attributeValueLists.add(values);
         }
         // STEP 2.

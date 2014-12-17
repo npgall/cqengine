@@ -38,7 +38,9 @@ public class TestUtil {
     public static <O, A> Set<A> valuesOf(Attribute<O, A> attribute, ResultSet<O> resultSet) {
         Set<A> attributeValues = new LinkedHashSet<A>();
         for (O object : resultSet) {
-            attributeValues.addAll(attribute.getValues(object));
+            for (A value : attribute.getValues(object)) {
+                attributeValues.add(value);
+            }
         }
         return attributeValues;
     }

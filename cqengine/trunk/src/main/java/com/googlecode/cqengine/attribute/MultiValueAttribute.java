@@ -17,8 +17,6 @@ package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
 
-import java.util.List;
-
 /**
  * Represents an attribute in an object which has multiple values (such as a field which is itself a collection),
  * where all of the values are known to be non-null.
@@ -65,5 +63,5 @@ public abstract class MultiValueAttribute<O, A> extends AbstractAttribute<O, A> 
      * @return The values for the attribute, which should never be null
      */
     @Override
-    public abstract List<A> getValues(O object);
+    public abstract Iterable<A> getValues(O object);
 }

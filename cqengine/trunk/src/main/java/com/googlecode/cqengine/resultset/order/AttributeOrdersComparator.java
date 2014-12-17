@@ -20,6 +20,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.AttributeOrder;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -62,11 +63,11 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
         }
         else {
             // Slower code path...
-            List<A> o1attributeValues = attribute.getValues(o1);
-            List<A> o2attributeValues = attribute.getValues(o2);
-            for (int i = 0, size = Math.min(o1attributeValues.size(), o2attributeValues.size()); i < size; i++) {
-                A o1attributeValue = o1attributeValues.get(i);
-                A o2attributeValue = o2attributeValues.get(i);
+            Iterator<A> o1attributeValues = attribute.getValues(o1).iterator();
+            Iterator<A> o2attributeValues = attribute.getValues(o2).iterator();
+            while (o1attributeValues.hasNext() && o2attributeValues.hasNext()) {
+                A o1attributeValue = o1attributeValues.next();
+                A o2attributeValue = o2attributeValues.next();
                 int comparison = o1attributeValue.compareTo(o2attributeValue);
                 if (comparison != 0) {
                     // If we found a difference, return it...
@@ -74,10 +75,10 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
                 }
             }
             // If the number of attribute values differs, return a difference, object with fewest elements first...
-            if (o1attributeValues.size() < o2attributeValues.size()) {
+            if (o2attributeValues.hasNext()) {
                 return -1;
             }
-            else if (o1attributeValues.size() > o2attributeValues.size()) {
+            else if (o1attributeValues.hasNext()) {
                 return +1;
             }
             // No differences found...

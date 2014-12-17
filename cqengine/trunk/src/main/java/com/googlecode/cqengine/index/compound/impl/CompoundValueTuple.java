@@ -17,7 +17,6 @@ package com.googlecode.cqengine.index.compound.impl;
 
 import com.googlecode.cqengine.attribute.Attribute;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,7 +40,7 @@ public class CompoundValueTuple<O> {
         this.hashCode = attributeValues.hashCode();
     }
 
-    public List<Object> getAttributeValues() {
+    public Iterable<Object> getAttributeValues() {
         return Collections.unmodifiableList(attributeValues);
     }
 

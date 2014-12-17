@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.iterator;
 
-
+import com.googlecode.concurrenttrees.common.LazyIterator;
 import java.util.Iterator;
 
 /**
@@ -42,5 +42,22 @@ public class IteratorUtil {
             count++;
         }
         return count;
+    }
+
+    /**
+     * Returns the elements of {@code unfiltered} that are not null.
+     */
+    public static <T> Iterator<T> removeNulls(final Iterator<T> unfiltered) {
+        return new LazyIterator<T>() {
+            @Override protected T computeNext() {
+                while (unfiltered.hasNext()) {
+                    T element = unfiltered.next();
+                    if (element != null) {
+                        return element;
+                    }
+                }
+                return endOfData();
+            }
+        };
     }
 }
