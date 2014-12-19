@@ -65,7 +65,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
         this.collection = backingSetFactory.create();
-        queryEngine.init(collection);
+        queryEngine.init(collection, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
         this.indexEngine = queryEngine;
     }
 
@@ -91,8 +91,33 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      * {@inheritDoc}
      */
     @Override
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd) {
+        return update(objectsToRemove, objectsToAdd, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+        boolean modified = doAddAll(objectsToAdd);
+        return doRemoveAll(objectsToRemove) || modified;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void addIndex(Index<O> index) {
         indexEngine.addIndex(index);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+        indexEngine.addIndex(index, queryOptions);
     }
 
     // ----------- Collection Accessor Methods -------------
@@ -171,7 +196,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @Override
             public void remove() {
                 collectionIterator.remove();
-                indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject));
+                indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
             }
         };
     }
@@ -185,7 +210,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         // Indexes handle gracefully the case that the objects supplied already exist in the index...
         boolean modified = collection.add(o);
         if (modified) {
-            indexEngine.notifyObjectsAdded(Collections.singleton(o));
+            indexEngine.notifyObjectsAdded(Collections.singleton(o), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
         }
         return modified;
     }
@@ -199,7 +224,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         O o = (O) object;
         boolean modified = collection.remove(o);
         if  (modified) {
-            indexEngine.notifyObjectsRemoved(Collections.singleton(o));
+            indexEngine.notifyObjectsRemoved(Collections.singleton(o), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
         }
         return modified;
     }
@@ -213,7 +238,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.addAll(objects);
         if  (modified) {
-            indexEngine.notifyObjectsAdded(objects);
+            indexEngine.notifyObjectsAdded(objects, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
         }
         return modified;
     }
@@ -227,7 +252,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.removeAll(objects);
         if (modified) {
-            indexEngine.notifyObjectsRemoved(objects);
+            indexEngine.notifyObjectsRemoved(objects, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
         }
         return modified;
     }
@@ -255,7 +280,31 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public void clear() {
         collection.clear();
-        indexEngine.notifyObjectsCleared();
+        indexEngine.notifyObjectsCleared(Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
     }
 
+    boolean doAddAll(Iterable<O> objects) {
+        if (objects instanceof Collection) {
+            return addAll((Collection<O>) objects);
+        }
+        else {
+            boolean modified = false;
+            for (O object : objects) {
+                modified = add(object) || modified;
+            }
+            return modified;
+        }
+    }
+
+    boolean doRemoveAll(Iterable<O> objects) {
+        if (objects instanceof Collection) {
+            return removeAll((Collection<O>) objects);
+        } else {
+            boolean modified = false;
+            for (O object : objects) {
+                modified = remove(object) || modified;
+            }
+            return modified;
+        }
+    }
 }

@@ -17,6 +17,7 @@ package com.googlecode.cqengine.collection.impl;
 
 import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.query.option.QueryOption;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -117,7 +118,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject));
+                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
                 }
                 finally {
                     lock.unlock();

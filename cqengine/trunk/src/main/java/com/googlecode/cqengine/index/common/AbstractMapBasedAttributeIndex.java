@@ -17,9 +17,11 @@ package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOption;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -61,7 +63,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects) {
+    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
@@ -91,7 +93,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects) {
+    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
@@ -116,15 +118,15 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection) {
-        notifyObjectsAdded(collection);
+    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+        notifyObjectsAdded(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared() {
+    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         this.indexMap.clear();
     }
 

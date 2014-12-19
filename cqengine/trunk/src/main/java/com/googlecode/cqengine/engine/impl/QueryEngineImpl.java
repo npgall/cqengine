@@ -76,12 +76,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
     }
 
     @Override
-    public void init(final Set<O> collection) {
+    public void init(final Set<O> collection, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         this.collection = collection;
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.init(collection);
+                index.init(collection, queryOptions);
                 return true;
             }
         });
@@ -94,24 +94,32 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      */
     @Override
     public void addIndex(Index<O> index) {
+        addIndex(index, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         if (index instanceof StandingQueryIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             StandingQueryIndex<O> standingQueryIndex = (StandingQueryIndex<O>) index;
-            addStandingQueryIndex(standingQueryIndex, standingQueryIndex.getStandingQuery());
+            addStandingQueryIndex(standingQueryIndex, standingQueryIndex.getStandingQuery(), queryOptions);
         }
         else if (index instanceof CompoundIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             CompoundIndex<O> compoundIndex = (CompoundIndex<O>) index;
             CompoundAttribute<O> compoundAttribute = compoundIndex.getAttribute();
-            addCompoundIndex(compoundIndex, compoundAttribute);
+            addCompoundIndex(compoundIndex, compoundAttribute, queryOptions);
         }
         else if (index instanceof AttributeIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
-            addAttributeIndex(attributeIndex);
+            addAttributeIndex(attributeIndex, queryOptions);
         }
         else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
@@ -123,7 +131,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param attributeIndex The index to add
      * @param <A> The type of objects indexed
      */
-    <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex) {
+    <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         if (attributeIndex == null) {
             throw new IllegalArgumentException("The index argument was null.");
         }
@@ -134,7 +142,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
             attributeIndexes.put(attribute, indexesOnThisAttribute);
         }
         indexesOnThisAttribute.add(attributeIndex);
-        attributeIndex.init(collection);
+        attributeIndex.init(collection, queryOptions);
     }
 
     /**
@@ -142,12 +150,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param standingQueryIndex The index to add
      * @param standingQuery The query on which the index is based
      */
-    void addStandingQueryIndex(StandingQueryIndex<O> standingQueryIndex, Query<O> standingQuery) {
+    void addStandingQueryIndex(StandingQueryIndex<O> standingQueryIndex, Query<O> standingQuery, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         StandingQueryIndex<O> existingIndex = standingQueryIndexes.putIfAbsent(standingQuery, standingQueryIndex);
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for standing query: " + standingQuery);
         }
-        standingQueryIndex.init(collection);
+        standingQueryIndex.init(collection, queryOptions);
     }
 
     /**
@@ -155,12 +163,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param compoundIndex The index to add
      * @param compoundAttribute The compound attribute on which the index is based
      */
-    void addCompoundIndex(CompoundIndex<O> compoundIndex, CompoundAttribute<O> compoundAttribute) {
+    void addCompoundIndex(CompoundIndex<O> compoundIndex, CompoundAttribute<O> compoundAttribute, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         CompoundIndex<O> existingIndex = compoundIndexes.putIfAbsent(compoundAttribute, compoundIndex);
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for compound attribute: " + compoundAttribute);
         }
-        compoundIndex.init(collection);
+        compoundIndex.init(collection, queryOptions);
     }
 
     // -------------------- Method for accessing indexes --------------------
@@ -577,12 +585,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(final Collection<O> objects) {
+    public void notifyObjectsAdded(final Collection<O> objects, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsAdded(objects);
+                index.notifyObjectsAdded(objects, queryOptions);
                 return true;
             }
         });
@@ -592,12 +600,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(final Collection<O> objects) {
+    public void notifyObjectsRemoved(final Collection<O> objects, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsRemoved(objects);
+                index.notifyObjectsRemoved(objects, queryOptions);
                 return true;
             }
         });
@@ -607,12 +615,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared() {
+    public void notifyObjectsCleared(final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsCleared();
+                index.notifyObjectsCleared(queryOptions);
                 return true;
             }
         });

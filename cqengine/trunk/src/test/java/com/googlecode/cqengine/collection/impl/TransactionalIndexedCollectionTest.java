@@ -45,7 +45,7 @@ public class TransactionalIndexedCollectionTest {
         assertEquals(1, collection.versions.size());
 
         // Replacing objects in the collection should cause version number to be incremented thrice...
-        collection.applyTransaction(asSet(createCar(5), createCar(6)), asSet(createCar(4)));
+        collection.update(asSet(createCar(4)), asSet(createCar(5), createCar(6)));
         assertEquals(3, collection.size());
         assertEquals(asSet(createCar(1), createCar(5), createCar(6)), collection);
         assertEquals(8, collection.currentVersion);
@@ -53,7 +53,7 @@ public class TransactionalIndexedCollectionTest {
         assertEquals(1, collection.versions.size());
 
         // Replacing no objects should not cause version number to change...
-        collection.applyTransaction(Collections.<Car>emptySet(), Collections.<Car>emptySet());
+        collection.update(Collections.<Car>emptySet(), Collections.<Car>emptySet());
         assertEquals(8, collection.currentVersion);
     }
 
