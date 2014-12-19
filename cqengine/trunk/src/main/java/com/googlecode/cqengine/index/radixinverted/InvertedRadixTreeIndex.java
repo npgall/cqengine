@@ -190,7 +190,7 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects) {
+    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         final InvertedRadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
@@ -217,7 +217,7 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects) {
+    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         final InvertedRadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object);
@@ -238,15 +238,15 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection) {
-        notifyObjectsAdded(collection);
+    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+        notifyObjectsAdded(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared() {
+    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         this.tree = new ConcurrentInvertedRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
     }
 

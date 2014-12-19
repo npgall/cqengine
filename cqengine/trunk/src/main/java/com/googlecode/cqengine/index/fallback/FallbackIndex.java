@@ -117,7 +117,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects) {
+    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         // No need to take any action
     }
 
@@ -127,7 +127,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects) {
+    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         // No need to take any action
     }
 
@@ -138,7 +138,7 @@ public class FallbackIndex<O> implements Index<O> {
      * {@link Index#retrieve(Query, Map)} method can subsequently iterate.</b>
      */
     @Override
-    public void init(Set<O> collection) {
+    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         // Store the collection...
         this.collection = collection;
     }
@@ -147,7 +147,7 @@ public class FallbackIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared() {
+    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         collection.clear();
     }
 }

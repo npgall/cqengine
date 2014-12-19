@@ -100,16 +100,16 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection) {
+    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         storedResultSet.clear();
-        notifyObjectsAdded(collection);
+        notifyObjectsAdded(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects) {
+    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         for (O object : objects) {
             if (standingQuery.matches(object)) {
                 storedResultSet.add(object);
@@ -121,7 +121,7 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects) {
+    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         for (O object : objects) {
             if (standingQuery.matches(object)) {
                 storedResultSet.remove(object);
@@ -133,7 +133,7 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared() {
+    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
         storedResultSet.clear();
     }
 

@@ -16,11 +16,60 @@
 package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngine;
+import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.resultset.ResultSet;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Niall Gallagher
  */
 public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ResultSet<O> retrieve(Query<O> query);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+
+    /**
+     * Removes or adds objects to/from the collection and indexes in bulk.
+     *
+     * @param objectsToRemove The objects to remove from the collection
+     * @param objectsToAdd The objects to add to the collection
+     * @return True if the collection was modified as a result, false if it was not
+     */
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd);
+
+    /**
+     * Removes or adds objects to/from the collection and indexes in bulk.
+     *
+     * @param objectsToRemove The objects to remove from the collection
+     * @param objectsToAdd The objects to add to the collection
+     * @param queryOptions A map of {@link com.googlecode.cqengine.query.option.QueryOption} class to {@link com.googlecode.cqengine.query.option.QueryOption} object containing optional
+     * parameters for the update
+     * @return True if the collection was modified as a result, false if it was not
+     */
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void addIndex(Index<O> index);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
 }

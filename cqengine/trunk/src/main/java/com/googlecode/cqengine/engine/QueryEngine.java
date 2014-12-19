@@ -59,4 +59,16 @@ public interface QueryEngine<O> {
      * @param index The index to add
      */
     public void addIndex(Index<O> index);
+
+    /**
+     * Adds the given index to the collection.
+     * <p/>
+     * Subsequently queries passed to the {@link #retrieve(com.googlecode.cqengine.query.Query)} methods will use these
+     * indexes if suitable for the particular queries, to speed up retrievals.
+     *
+     * @param index The index to add
+     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
+     * parameters for the index
+     */
+    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
 }
