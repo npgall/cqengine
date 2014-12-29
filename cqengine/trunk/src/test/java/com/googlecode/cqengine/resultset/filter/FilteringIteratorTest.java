@@ -15,12 +15,14 @@
  */
 package com.googlecode.cqengine.resultset.filter;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -29,9 +31,9 @@ public class FilteringIteratorTest {
     @Test
     public void testHasNextDoesNotAdvanceIterator(){
         List<String> testList = Arrays.asList("abc", "bcd", "cde");
-        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator()) {
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
             @Override
-            public boolean isValid(String object) {
+            public boolean isValid(String object, QueryOptions queryOptions) {
                 return true;
             }
         };
@@ -44,9 +46,9 @@ public class FilteringIteratorTest {
     @Test
     public void testNextPopulatedWithoutCallingHasNext(){
         List<String> testList = Arrays.asList("abc", "bcd", "cde");
-        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator()) {
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
             @Override
-            public boolean isValid(String object) {
+            public boolean isValid(String object, QueryOptions queryOptions) {
                 return true;
             }
         };
@@ -56,9 +58,9 @@ public class FilteringIteratorTest {
     @Test
     public void testDelegatedIteratorHasNulls() {
         List<String> testList = Arrays.asList("abc", null, "cde");
-        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator()) {
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
             @Override
-            public boolean isValid(String object) {
+            public boolean isValid(String object, QueryOptions queryOptions) {
                 return true;
             }
         };
@@ -71,9 +73,9 @@ public class FilteringIteratorTest {
     @Test
     public void testFiltering() {
         List<String> testList = Arrays.asList("aaa", "bbb", "aab", "bba");
-        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator()) {
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
             @Override
-            public boolean isValid(String object) {
+            public boolean isValid(String object, QueryOptions queryOptions) {
                 return object.startsWith("aa");
             }
         };
@@ -85,9 +87,9 @@ public class FilteringIteratorTest {
     @Test(expected = NoSuchElementException.class)
     public void testEmptyDelegate() {
         List<String> testList = Arrays.asList();
-        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator()) {
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
             @Override
-            public boolean isValid(String object) {
+            public boolean isValid(String object, QueryOptions queryOptions) {
                 return true;
             }
         };

@@ -18,6 +18,7 @@ package com.googlecode.cqengine.query.simple;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * The superclass of {@link Query}s which make assertions on attribute values.
@@ -81,18 +82,18 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
     }
 
     @Override
-    public final boolean matches(O object) {
+    public final boolean matches(O object, QueryOptions queryOptions) {
         if (attributeIsSimple) {
-            return matchesSimpleAttribute(simpleAttribute, object);
+            return matchesSimpleAttribute(simpleAttribute, object, queryOptions);
         }
         else {
-            return matchesNonSimpleAttribute(attribute, object);
+            return matchesNonSimpleAttribute(attribute, object, queryOptions);
         }
     }
 
-    protected abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object);
+    protected abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions);
 
-    protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object);
+    protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions);
 
     @Override
     public int hashCode() {

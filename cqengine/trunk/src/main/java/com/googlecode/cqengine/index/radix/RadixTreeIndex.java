@@ -23,7 +23,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.StringStartsWith;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -75,7 +75,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
     }
 
     @Override
-    public ResultSet<O> retrieve(Query<O> query, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
         final RadixTree<StoredResultSet<O>> tree = this.tree;        
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
@@ -157,9 +157,9 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * @param queryOptions Specifies whether or not logical deduplication is required
      * @return A union view over the given result sets
      */
-    ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, QueryOptions queryOptions) {
         if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
-            return new ResultSetUnion<O>(results) {
+            return new ResultSetUnion<O>(results, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
@@ -190,10 +190,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
         final RadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
 
                 // Look up StoredResultSet for the value...
@@ -217,10 +217,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
         final RadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
                 StoredResultSet<O> valueSet = tree.getValueForExactKey(attributeValue);
                 if (valueSet == null) {
@@ -238,7 +238,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(Set<O> collection, QueryOptions queryOptions) {
         notifyObjectsAdded(collection, queryOptions);
     }
 
@@ -246,7 +246,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(QueryOptions queryOptions) {
         this.tree = new ConcurrentRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
     }
 

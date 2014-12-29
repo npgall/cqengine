@@ -28,7 +28,7 @@ import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
 import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
@@ -76,7 +76,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
     }
 
     @Override
-    public void init(final Set<O> collection, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(final Set<O> collection, final QueryOptions queryOptions) {
         this.collection = collection;
         forEachIndexDo(new IndexOperation<O>() {
             @Override
@@ -94,14 +94,14 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      */
     @Override
     public void addIndex(Index<O> index) {
-        addIndex(index, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        addIndex(index, QueryOptions.noQueryOptions());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void addIndex(Index<O> index, QueryOptions queryOptions) {
         if (index instanceof StandingQueryIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
@@ -131,7 +131,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param attributeIndex The index to add
      * @param <A> The type of objects indexed
      */
-    <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, QueryOptions queryOptions) {
         if (attributeIndex == null) {
             throw new IllegalArgumentException("The index argument was null.");
         }
@@ -150,7 +150,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param standingQueryIndex The index to add
      * @param standingQuery The query on which the index is based
      */
-    void addStandingQueryIndex(StandingQueryIndex<O> standingQueryIndex, Query<O> standingQuery, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    void addStandingQueryIndex(StandingQueryIndex<O> standingQueryIndex, Query<O> standingQuery, QueryOptions queryOptions) {
         StandingQueryIndex<O> existingIndex = standingQueryIndexes.putIfAbsent(standingQuery, standingQueryIndex);
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for standing query: " + standingQuery);
@@ -163,7 +163,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * @param compoundIndex The index to add
      * @param compoundAttribute The compound attribute on which the index is based
      */
-    void addCompoundIndex(CompoundIndex<O> compoundIndex, CompoundAttribute<O> compoundAttribute, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    void addCompoundIndex(CompoundIndex<O> compoundIndex, CompoundAttribute<O> compoundAttribute, QueryOptions queryOptions) {
         CompoundIndex<O> existingIndex = compoundIndexes.putIfAbsent(compoundAttribute, compoundIndex);
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for compound attribute: " + compoundAttribute);
@@ -210,11 +210,10 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * For a definition of retrieval cost see {@link ResultSet#getRetrievalCost()}.
      *
      * @param query The query which refers to an attribute
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
-    <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
@@ -246,7 +245,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      */
     @Override
     public ResultSet<O> retrieve(Query<O> query) {
-        return retrieveRecursive(query, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        return retrieveRecursive(query, QueryOptions.noQueryOptions());
     }
 
     /**
@@ -255,8 +254,9 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
     // Implementation note: this methods actually just pre-processes QueryOption arguments and then delegates
     // to the #retrieveRecursive() method.
     @Override
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
-        OrderByOption<O> orderByOption = OrderByOption.extract(queryOptions);
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
+        @SuppressWarnings("unchecked")
+        OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 
         // Retrieve results...
         ResultSet<O> resultSet = retrieveRecursive(query, queryOptions);
@@ -266,7 +266,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
         if (orderByOption != null) {
             // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
             // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
-            Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders());
+            Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
             resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator);
         }
         else if (DeduplicationOption.isMaterialize(queryOptions)) {
@@ -285,7 +285,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * This method is recursive.
      * <p/>
      * When processing a {@link SimpleQuery}, the method will simply delegate to the helper methods
-     * {@link #retrieveIntersection(Collection, Map)} and {@link #retrieveUnion(Collection, Map)}
+     * {@link #retrieveIntersection(Collection, QueryOptions)} and {@link #retrieveUnion(Collection, QueryOptions)}
      * and will return their results.
      * <p/>
      * When processing a descendant of {@link CompoundQuery} ({@link And}, {@link Or}, {@link Not}), the method
@@ -298,12 +298,11 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * will take care of performing intersections or unions etc. on the child {@link ResultSet}s.
      *
      * @param query A query representing some assertions which sought objects must match
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      * @return A {@link ResultSet} which provides objects matching the given query
      */
-    ResultSet<O> retrieveRecursive(Query<O> query, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    ResultSet<O> retrieveRecursive(Query<O> query, final QueryOptions queryOptions) {
 
         // Check if we can process this query from a standing query index...
         StandingQueryIndex<O> standingQueryIndex = standingQueryIndexes.get(query);
@@ -360,16 +359,23 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
                         }
                     };
                 }
-            });
+            }, queryOptions);
         }
         else if (query instanceof Or) {
             final Or<O> or = (Or<O>) query;
             // If the Or query indicates child queries are disjoint,
             // ignore any instruction to perform deduplication in the queryOptions supplied...
-            final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptionsForOrUnion;
+            final QueryOptions queryOptionsForOrUnion;
             if (or.isDisjoint()) {
-                // Use empty query options (i.e. which don't specify deduplication)...
-                queryOptionsForOrUnion = Collections.emptyMap();
+                // The Or query is disjoint, so there is no need to perform deduplication on its results.
+                // Wrap the QueryOptions object in another which omits the DeduplicationOption if it is requested
+                // when evaluating this Or statement...
+                queryOptionsForOrUnion = new QueryOptions(queryOptions.getOptions()) {
+                    @Override
+                    public Object get(Object key) {
+                        return DeduplicationOption.class.equals(key) ? null : super.get(key);
+                    }
+                };
             }
             else {
                 // Use the supplied queryOptions...
@@ -404,7 +410,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
             };
             // *** Deduplication can be required for unions... ***
             if (DeduplicationOption.isLogicalElimination(queryOptionsForOrUnion)) {
-                return new ResultSetUnion<O>(resultSetsToUnion);
+                return new ResultSetUnion<O>(resultSetsToUnion, queryOptions);
             }
             else {
                 return new ResultSetUnionAll<O>(resultSetsToUnion);
@@ -416,7 +422,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
-            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate);
+            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, queryOptions);
         }
         else {
             throw new IllegalStateException("Unexpected type of query object: " + (query == null ? null : query.getClass().getName()));
@@ -442,23 +448,22 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * <p/>
      * The algorithm then returns a {@link FilteringResultSet} which iterates the {@link ResultSet} with the
      * <i>lowest</i> <u>merge cost</u>. During iteration, this {@link FilteringResultSet} calls a
-     * {@link FilteringResultSet#isValid(Object)} method for each object. This algorithm implements that method to
+     * {@link FilteringResultSet#isValid(Object, com.googlecode.cqengine.query.option.QueryOptions)} method for each object. This algorithm implements that method to
      * return true if the object matches all of the {@link SimpleQuery}s which had the <i>more expensive</i>
      * <u>merge costs</u>.
      * <p/>
      * As such the {@link ResultSet} which had the lowest merge cost drives the iteration.  Note therefore that this
      * method <i>does <u>not</u> perform set intersections in the conventional sense</i> (i.e. using
      * {@link Set#contains(Object)}). It has been tested empirically that it is usually cheaper to invoke
-     * {@link Query#matches(Object)} to test each object in the smallest set against queries which would match the
+     * {@link Query#matches(Object, com.googlecode.cqengine.query.option.QueryOptions)} to test each object in the smallest set against queries which would match the
      * more expensive sets, rather than perform several hash lookups and equality tests between multiple sets.
      *
      * @param queries A collection of {@link SimpleQuery} objects to be retrieved and intersected
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} which provides objects matching the intersection of results for each of the
      * {@link SimpleQuery}s
      */
-    <A> ResultSet<O> retrieveIntersection(Collection<SimpleQuery<O, ?>> queries, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    <A> ResultSet<O> retrieveIntersection(Collection<SimpleQuery<O, ?>> queries, QueryOptions queryOptions) {
         // Iterate through the query objects, store the ResultSet from the index with the lowest merge cost
         // in the following variables, and put the rest of the query in the moreExpensiveQueries list...
         SimpleQuery<O, A> lowestMergeCostQuery = null;
@@ -514,11 +519,11 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
         // cost), and which will test each of these objects on-the-fly to determine if it matches the other more
         // expensive items of query...
         final ResultSet<O> lowestCostResultSetRef = lowestMergeCostResultSet;
-        return new FilteringResultSet<O>(lowestCostResultSetRef) {
+        return new FilteringResultSet<O>(lowestCostResultSetRef, queryOptions) {
             @Override
-            public boolean isValid(O object) {
+            public boolean isValid(O object, QueryOptions queryOptions) {
                 for (SimpleQuery<O, A> query : moreExpensiveQueries) {
-                    if (!(query.matches(object))) {
+                    if (!(query.matches(object, queryOptions))) {
                         return false;
                     }
                 }
@@ -547,13 +552,12 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * set theory rather than maintaining a record of all objects iterated.
      *
      * @param queries A collection of {@link SimpleQuery} objects to be retrieved and unioned
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      * @return A {@link ResultSet} which provides objects matching the union of results for each of the
      * {@link SimpleQuery}s
      */
-    ResultSet<O> retrieveUnion(final Collection<SimpleQuery<O, ?>> queries, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    ResultSet<O> retrieveUnion(final Collection<SimpleQuery<O, ?>> queries, final QueryOptions queryOptions) {
         Iterable<ResultSet<O>> resultSetsToUnion = new Iterable<ResultSet<O>>() {
             @Override
             public Iterator<ResultSet<O>> iterator() {
@@ -574,7 +578,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
         };
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
-            return new ResultSetUnion<O>(resultSetsToUnion);
+            return new ResultSetUnion<O>(resultSetsToUnion, queryOptions);
         }
         else {
             return new ResultSetUnionAll<O>(resultSetsToUnion);
@@ -585,7 +589,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(final Collection<O> objects, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(final Collection<O> objects, final QueryOptions queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
@@ -600,7 +604,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(final Collection<O> objects, final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(final Collection<O> objects, final QueryOptions queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
@@ -613,9 +617,10 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
 
     /**
      * {@inheritDoc}
+     * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(final Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(final QueryOptions queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override

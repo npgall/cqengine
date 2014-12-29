@@ -15,11 +15,11 @@
  */
 package com.googlecode.cqengine.functional;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.QueryOption;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class DeduplicationTest {
 
     @Test
     public void testDeduplication_Materialize() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0));
 
         Query<Car> query = or(
@@ -47,14 +47,14 @@ public class DeduplicationTest {
         results = cars.retrieve(query);
         assertEquals(2, results.size());
 
-        QueryOption<Car> deduplicate = deduplicate(DeduplicationStrategy.MATERIALIZE);
+        DeduplicationOption deduplicate = deduplicate(DeduplicationStrategy.MATERIALIZE);
         results = cars.retrieve(query, queryOptions(deduplicate));
         assertEquals(1, results.size());
     }
 
     @Test
     public void testDeduplication_Logical() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0));
 
         Query<Car> query = or(
@@ -65,7 +65,7 @@ public class DeduplicationTest {
         results = cars.retrieve(query);
         assertEquals(2, results.size());
 
-        QueryOption<Car> deduplicate = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
+        DeduplicationOption deduplicate = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
         results = cars.retrieve(query, queryOptions(deduplicate));
         assertEquals(1, results.size());
     }

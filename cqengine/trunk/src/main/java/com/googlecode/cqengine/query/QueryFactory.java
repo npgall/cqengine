@@ -490,55 +490,47 @@ public class QueryFactory {
      * the strategy indicated.
      *
      * @param deduplicationStrategy The deduplication strategy the query engine should use
-     * @param <O> The type of the object containing the attributes
      * @return A {@link DeduplicationOption} query option, requests duplicate objects to be eliminated from results
      */
-    public static <O> DeduplicationOption<O> deduplicate(DeduplicationStrategy deduplicationStrategy) {
-        return new DeduplicationOption<O>(deduplicationStrategy);
+    public static DeduplicationOption deduplicate(DeduplicationStrategy deduplicationStrategy) {
+        return new DeduplicationOption(deduplicationStrategy);
     }
 
     /**
-     * Creates a {@link DeduplicationOption} query option, encapsulating a given {@link DeduplicationStrategy}, which
-     * when supplied to the query engine requests it to eliminate duplicates objects from the results returned using
-     * the strategy indicated.
+     * Creates a {@link IsolationOption} query option, encapsulating a given {@link IsolationLevel}, which
+     * when supplied to the query engine requests that level of transaction isolation.
      *
-     * @param objectType Allows the object type to be specified explicitly (to work around generics warnings)
-     * @param deduplicationStrategy The deduplication strategy the query engine should use
-     * @param <O> The type of the object containing the attributes
-     * @return A {@link DeduplicationOption} query option, requests duplicate objects to be eliminated from results
+     * @param isolationLevel The transaction isolation level to request
+     * @return An {@link IsolationOption} query option
      */
-    public static <O> DeduplicationOption<O> deduplicate(Class<O> objectType, DeduplicationStrategy deduplicationStrategy) {
-        return new DeduplicationOption<O>(deduplicationStrategy);
+    public static IsolationOption isolationLevel(IsolationLevel isolationLevel) {
+        return new IsolationOption(isolationLevel);
     }
 
     /**
-     * A convenience method to group several {@link QueryOption} objects together in a single map. This map can
-     * then be supplied directly to the
-     * {@link com.googlecode.cqengine.engine.QueryEngine#retrieve(Query, Map)}  method.
+     * A convenience method to encapsulate several objects together as {@link com.googlecode.cqengine.query.option.QueryOptions},
+     * where the class of the object will become its key in the QueryOptions map.
      *
-     * @param queryOptions The {@link QueryOption} objects to wrap in the map
-     * @param <O> The type of the objects referenced by the query
-     * @return A list of {@link QueryOption} objects
+     * @param queryOptions The objects to encapsulate as QueryOptions
+     * @return A {@link QueryOptions} object
      */
-    public static <O> Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions(QueryOption<O>... queryOptions) {
+    public static QueryOptions queryOptions(Object... queryOptions) {
         return queryOptions(Arrays.asList(queryOptions));
     }
 
     /**
-     * A convenience method to group several {@link QueryOption} objects together in a single map. This map can
-     * then be supplied directly to the
-     * {@link com.googlecode.cqengine.engine.QueryEngine#retrieve(Query, Map)}  method.
+     * A convenience method to encapsulate a collection of objects as {@link com.googlecode.cqengine.query.option.QueryOptions},
+     * where the class of the object will become its key in the QueryOptions map.
      *
-     * @param queryOptions The {@link QueryOption} objects to wrap in the map
-     * @param <O> The type of the objects referenced by the query
-     * @return A list of {@link QueryOption} objects
+     * @param queryOptions The objects to encapsulate as QueryOptions
+     * @return A {@link QueryOptions} object
      */
-    public static <O> Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions(Collection<QueryOption<O>> queryOptions) {
-        Map<Class<? extends QueryOption>, QueryOption<O>> map = new HashMap<Class<? extends QueryOption>, QueryOption<O>>(queryOptions.size());
-        for (QueryOption<O> queryOption : queryOptions) {
-            map.put(queryOption.getClass(), queryOption);
+    public static QueryOptions queryOptions(Collection<Object> queryOptions) {
+        QueryOptions resultOptions = new QueryOptions();
+        for (Object queryOption : queryOptions) {
+            resultOptions.put(queryOption.getClass(), queryOption);
         }
-        return map;
+        return resultOptions;
     }
 
     // ***************************************************************************************************************
@@ -765,28 +757,26 @@ public class QueryFactory {
     // ***************************************************************************************************************
 
     /**
-     * Overloaded variant of {@link #queryOptions(com.googlecode.cqengine.query.option.QueryOption[])}  - see that
-     * method for details.
+     * Overloaded variant of {@link #queryOptions(Object...)}  - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions(QueryOption<O> queryOption) {
+    public static QueryOptions queryOptions(Object queryOption) {
         return queryOptions(Collections.singleton(queryOption));
     }
 
     /**
-     * Overloaded variant of {@link #queryOptions(com.googlecode.cqengine.query.option.QueryOption[])}  - see that
-     * method for details.
+     * Overloaded variant of {@link #queryOptions(Object...)}  - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
      */
     @SuppressWarnings({"JavaDoc"})
-    public static <O> Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions(QueryOption<O> queryOption1, QueryOption<O> queryOption2) {
+    public static QueryOptions queryOptions(Object queryOption1, Object queryOption2) {
         @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-        List<QueryOption<O>> queryOptions = Arrays.asList(queryOption1, queryOption2);
+        List<Object> queryOptions = Arrays.asList(queryOption1, queryOption2);
         return queryOptions(queryOptions);
     }
 }

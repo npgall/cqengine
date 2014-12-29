@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.attribute;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
+
 /**
  * An attribute which returns the object itself.
  * <p/>
@@ -35,7 +37,7 @@ public class SelfAttribute<O> extends SimpleAttribute<O, O> {
     }
 
     @Override
-    public O getValue(O object) {
+    public O getValue(O object, QueryOptions queryOptions) {
         return object;
     }
 

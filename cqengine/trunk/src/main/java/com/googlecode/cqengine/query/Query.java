@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
+
 /**
  * An interface implemented by all {@link Query} subclasses, both those descending from
  * {@link com.googlecode.cqengine.query.simple.SimpleQuery} and from
@@ -29,7 +31,9 @@ public interface Query<O> {
      * Tests an object to see if it matches the assertion represented by the query.
      *
      * @param object The object to test
+     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
+     * this attribute to be invoked (either a query, or an update to the collection)
      * @return True if the object matches the query, false if it does not
      */
-    boolean matches(O object);
+    boolean matches(O object, QueryOptions queryOptions);
 }

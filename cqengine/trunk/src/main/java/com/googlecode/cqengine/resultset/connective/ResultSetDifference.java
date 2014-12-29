@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -30,19 +31,21 @@ import java.util.*;
  */
 public class ResultSetDifference<O> extends ResultSet<O> {
 
-    private final ResultSet<O> firstResultSet;
-    private final ResultSet<O> secondResultSet;
+    final ResultSet<O> firstResultSet;
+    final ResultSet<O> secondResultSet;
+    final QueryOptions queryOptions;
 
-    public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet) {
+    public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, QueryOptions queryOptions) {
         this.firstResultSet = firstResultSet;
         this.secondResultSet = secondResultSet;
+        this.queryOptions = queryOptions;
     }
 
     @Override
     public Iterator<O> iterator() {
-        return new FilteringIterator<O>(firstResultSet.iterator()) {
+        return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
             @Override
-            public boolean isValid(O object) {
+            public boolean isValid(O object, QueryOptions queryOptions) {
                 return !secondResultSet.contains(object);
             }
         };

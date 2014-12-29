@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * @author Niall Gallagher
  */
-public class DeduplicationOption<O> implements QueryOption<O> {
+public class DeduplicationOption {
 
     private final DeduplicationStrategy strategy;
 
@@ -40,10 +40,9 @@ public class DeduplicationOption<O> implements QueryOption<O> {
      * @return True if {@link DeduplicationOption} object is contained in those provided and its strategy is
      * {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      */
-    public static <O> boolean isLogicalElimination(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
-        QueryOption<O> option = queryOptions.get(DeduplicationOption.class);
-        return option instanceof DeduplicationOption
-                && DeduplicationStrategy.LOGICAL_ELIMINATION.equals(((DeduplicationOption<O>) option).getStrategy());
+    public static <O> boolean isLogicalElimination(QueryOptions queryOptions) {
+        DeduplicationOption option = queryOptions.get(DeduplicationOption.class);
+        return option != null && DeduplicationStrategy.LOGICAL_ELIMINATION.equals(option.getStrategy());
     }
 
     /**
@@ -54,10 +53,9 @@ public class DeduplicationOption<O> implements QueryOption<O> {
      * @return True if {@link DeduplicationOption} object is contained in those provided and its strategy is
      * {@link DeduplicationStrategy#MATERIALIZE}
      */
-    public static <O> boolean isMaterialize(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
-        QueryOption<O> option = queryOptions.get(DeduplicationOption.class);
-        return option instanceof DeduplicationOption
-                && DeduplicationStrategy.MATERIALIZE.equals(((DeduplicationOption<O>) option).getStrategy());
+    public static <O> boolean isMaterialize(QueryOptions queryOptions) {
+        DeduplicationOption option = queryOptions.get(DeduplicationOption.class);
+        return option != null && DeduplicationStrategy.MATERIALIZE.equals(option.getStrategy());
     }
 
     @Override

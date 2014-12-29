@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.benchmark.tasks;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.benchmark.BenchmarkTask;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
@@ -42,7 +42,9 @@ public class UniqueIndex_CarId implements BenchmarkTask {
     @Override
     public void init(Collection<Car> collection) {
         this.collection = collection;
-        this.indexedCollection = CQEngine.copyFrom(collection);
+        IndexedCollection<Car> indexedCollection1 = new ConcurrentIndexedCollection<Car>();
+        indexedCollection1.addAll(collection);
+        this.indexedCollection = indexedCollection1;
         this.indexedCollection.addIndex(
                 UniqueIndex.onAttribute(Car.CAR_ID)
         );

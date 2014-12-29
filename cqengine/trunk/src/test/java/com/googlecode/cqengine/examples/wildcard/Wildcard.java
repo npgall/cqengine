@@ -15,18 +15,20 @@
  */
 package com.googlecode.cqengine.examples.wildcard;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 
 import java.util.Arrays;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 
 /**
  * Demonstrates how to perform wildcard queries in CQEngine as of CQEngine ~1.0.3.
@@ -39,7 +41,9 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 public class Wildcard {
 
     public static void main(String[] args) {
-        IndexedCollection<String> collection = CQEngine.copyFrom(Arrays.asList("TEAM", "TEST", "TOAST", "T", "TT"));
+        IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
+        indexedCollection.addAll(Arrays.asList("TEAM", "TEST", "TOAST", "T", "TT"));
+        IndexedCollection<String> collection = indexedCollection;
         collection.addIndex(RadixTreeIndex.onAttribute(SELF));
         collection.addIndex(ReversedRadixTreeIndex.onAttribute(SELF));
 
@@ -51,9 +55,9 @@ public class Wildcard {
     public static ResultSet<String> retrieveWildcardMatches(IndexedCollection<String> collection, final String prefix, final String suffix) {
         ResultSet<String> candidates = collection.retrieve(and(startsWith(SELF, prefix), endsWith(SELF, suffix)));
 
-        return new FilteringResultSet<String>(candidates) {
+        return new FilteringResultSet<String>(candidates, noQueryOptions()) {
             @Override
-            public boolean isValid(String candidate) {
+            public boolean isValid(String candidate, QueryOptions queryOptions) {
                 return candidate.length() >= prefix.length() + suffix.length();
             }
         };

@@ -18,10 +18,9 @@ package com.googlecode.cqengine;
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,7 +38,7 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      * {@inheritDoc}
      */
     @Override
-    ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
 
     /**
      * Removes or adds objects to/from the collection and indexes in bulk.
@@ -55,11 +54,10 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      *
      * @param objectsToRemove The objects to remove from the collection
      * @param objectsToAdd The objects to add to the collection
-     * @param queryOptions A map of {@link com.googlecode.cqengine.query.option.QueryOption} class to {@link com.googlecode.cqengine.query.option.QueryOption} object containing optional
-     * parameters for the update
+     * @param queryOptions Optional parameters for the update
      * @return True if the collection was modified as a result, false if it was not
      */
-    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, QueryOptions queryOptions);
 
     /**
      * {@inheritDoc}
@@ -71,5 +69,5 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      * {@inheritDoc}
      */
     @Override
-    void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    void addIndex(Index<O> index, QueryOptions queryOptions);
 }

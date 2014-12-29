@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.examples.introduction;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
@@ -35,7 +35,7 @@ public class Introduction {
 
     public static void main(String[] args) {
         // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         // Add some indexes...
         cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));

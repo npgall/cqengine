@@ -17,10 +17,8 @@ package com.googlecode.cqengine.index;
 
 import com.googlecode.cqengine.engine.ModificationListener;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
-
-import java.util.Map;
 
 /**
  * @author Niall Gallagher
@@ -54,12 +52,11 @@ public interface Index<O> extends ModificationListener<O> {
      * on-the-fly as the application iterates through the {@code ResultSet}.
      *
      * @param query An object which specifies some restriction on an attribute of an object
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * @return A set of objects with attributes matching the restriction imposed by the query
      * @throws IllegalArgumentException if the index does not common the given query
      * @see #supportsQuery(com.googlecode.cqengine.query.Query
      */
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
 
 }

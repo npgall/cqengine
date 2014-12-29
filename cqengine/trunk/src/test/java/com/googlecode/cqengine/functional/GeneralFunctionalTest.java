@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.functional;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
@@ -45,7 +45,7 @@ public class GeneralFunctionalTest {
 
     @Test
     public void testGeneralFunctionality() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         cars.addIndex(HashIndex.onAttribute(Car.MODEL));
         cars.addIndex(HashIndex.onAttribute(Car.COLOR));

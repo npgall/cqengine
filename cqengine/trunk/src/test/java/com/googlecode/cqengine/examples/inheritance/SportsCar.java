@@ -16,9 +16,9 @@
 package com.googlecode.cqengine.examples.inheritance;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.examples.introduction.Car;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.List;
 
@@ -40,6 +40,6 @@ public class SportsCar extends Car {
     }
 
     public static final Attribute<Car, Integer> HORSEPOWER = new SimpleNullableAttribute<Car, Integer>("horsepower") {
-        public Integer getValue(Car car) { return car instanceof SportsCar ? ((SportsCar)car).horsepower : null; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car instanceof SportsCar ? ((SportsCar)car).horsepower : null; }
     };
 }

@@ -19,6 +19,7 @@ import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
@@ -54,17 +55,17 @@ final IndexedCollection<F> foreignCollection;
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        A localValue = attribute.getValue(object);
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        A localValue = attribute.getValue(object, queryOptions);
         return foreignRestrictions == null
                 ? foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty()
                 : foreignCollection.retrieve(and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         if (foreignRestrictions == null) {
-            for (A localValue : attribute.getValues(object)) {
+            for (A localValue : attribute.getValues(object, queryOptions)) {
                 boolean contained = foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty();
                 if (contained) {
                     return true;
@@ -73,7 +74,7 @@ final IndexedCollection<F> foreignCollection;
             return false;
         }
         else {
-            for (A localValue : attribute.getValues(object)) {
+            for (A localValue : attribute.getValues(object, queryOptions)) {
                 boolean contained = foreignCollection.retrieve(and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
                 if (contained) {
                     return true;

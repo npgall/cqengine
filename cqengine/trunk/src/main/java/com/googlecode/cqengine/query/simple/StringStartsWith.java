@@ -17,6 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Asserts than a {@link CharSequence}-based attribute starts with a given {@link CharSequence}-based prefix.
@@ -44,14 +45,14 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        CharSequence attributeValue = attribute.getValue(object);
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        CharSequence attributeValue = attribute.getValue(object, queryOptions);
         return startsWithPrefix(attributeValue, value);
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
-        for (A attributeValue : attribute.getValues(object)) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        for (A attributeValue : attribute.getValues(object, queryOptions)) {
             if (startsWithPrefix(attributeValue, value)) {
                 return true;
             }

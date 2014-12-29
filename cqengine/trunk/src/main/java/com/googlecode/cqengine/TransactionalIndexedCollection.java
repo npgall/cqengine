@@ -1,9 +1,10 @@
-package com.googlecode.cqengine.collection.impl;
+package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.engine.QueryEngineInternal;
+import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -15,8 +16,11 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.googlecode.cqengine.query.QueryFactory.all;
+import static com.googlecode.cqengine.query.QueryFactory.isolationLevel;
+import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
 import static com.googlecode.cqengine.query.option.IsolationLevel.READ_UNCOMMITTED;
 import static com.googlecode.cqengine.query.option.IsolationOption.isIsolationLevel;
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 
 /**
  * Extends {@link ConcurrentIndexedCollection} with support for READ_COMMITTED transaction isolation using
@@ -46,10 +50,28 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     }
 
     /**
-     * {@inheritDoc}
+     * Creates a new {@link TransactionalIndexedCollection} with default settings.
+     *
+     * Uses {@link DefaultConcurrentSetFactory} to create the backing set.
+     *
+     * @param objectType The type of objects which will be stored in the collection
      */
-    public TransactionalIndexedCollection(Class<O> objectType, Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
-        super(backingSetFactory, queryEngine);
+    public TransactionalIndexedCollection(Class<O> objectType) {
+        super(new DefaultConcurrentSetFactory<O>());
+        this.objectType = objectType;
+        // Set up initial version...
+        incrementVersion(Collections.<O>emptySet());
+    }
+
+    /**
+     * Creates a new {@link TransactionalIndexedCollection} which will use the given factory to create the backing set.
+     *
+     * @param objectType The type of objects which will be stored in the collection
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     */
+    public TransactionalIndexedCollection(Class<O> objectType, Factory<Set<O>> backingSetFactory) {
+        super(backingSetFactory);
         this.objectType = objectType;
         // Set up initial version...
         incrementVersion(Collections.<O>emptySet());
@@ -62,7 +84,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      * {@code READ_COMMITTED} transaction isolation by reading threads.
      * <p/>
      * However optionally for performance reasons, this may be overridden on a case-by-case basis, by supplying an
-     * {@link com.googlecode.cqengine.query.option.IsolationOption} to this method requesting
+     * {@link com.googlecode.cqengine.query.option.IsolationOption} query option to this method requesting
      * {@link com.googlecode.cqengine.query.option.IsolationLevel#READ_UNCOMMITTED} transaction isolation instead.
      * In that case the modifications will be made directly to the collection, bypassing multi-version concurrency
      * control. This might be useful when making some modifications to the collection which do not need to be viewed
@@ -70,7 +92,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      */
     @Override
     public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd) {
-        return update(objectsToRemove, objectsToAdd, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        return update(objectsToRemove, objectsToAdd, noQueryOptions());
     }
 
     /**
@@ -80,14 +102,14 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      * {@code READ_COMMITTED} transaction isolation by reading threads.
      * <p/>
      * However optionally for performance reasons, this may be overridden on a case-by-case basis, by supplying an
-     * {@link com.googlecode.cqengine.query.option.IsolationOption} to this method requesting
+     * {@link com.googlecode.cqengine.query.option.IsolationOption} query option to this method requesting
      * {@link com.googlecode.cqengine.query.option.IsolationLevel#READ_UNCOMMITTED} transaction isolation instead.
      * In that case the modifications will be made directly to the collection, bypassing multi-version concurrency
      * control. This might be useful when making some modifications to the collection which do not need to be viewed
      * atomically.
      */
     @Override
-    public boolean update(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public boolean update(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd, QueryOptions queryOptions) {
         if (isIsolationLevel(queryOptions, READ_UNCOMMITTED)) {
             // Write directly to the collection with no MVCC overhead...
             return super.update(objectsToRemove, objectsToAdd, queryOptions);
@@ -180,41 +202,37 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
 
     @Override
     public boolean retainAll(final Collection<?> c) {
-        CloseableResultSet<O> allObjects = null;
-        try {
-            allObjects = retrieve(all(objectType)); // TODO validate locking
-            FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>(allObjects) {
-                @Override
-                public boolean isValid(O object) {
-                    return !c.contains(object);
-                }
-            };
-            return update(subsetToRemove, Collections.<O>emptySet());
-        }
-        finally {
-            if (allObjects != null) {
-                allObjects.close();
+        // Prepare to lazily read all objects from the collection *without using MVCC* (..READ_UNCOMMITTED),
+        // and lazily filter it to return only the subsetToRemove objects which are also in the given collection...
+        FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>(
+                retrieve(all(objectType), queryOptions(isolationLevel(READ_UNCOMMITTED))), noQueryOptions()) {
+            @Override
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return !c.contains(object);
             }
-        }
+        };
+        // We don't need to use MVCC above, because subsetToRemove will be iterated inside the synchronized update()
+        // method...
+        return update(subsetToRemove, Collections.<O>emptySet());
     }
 
     @Override
     public synchronized void clear() {
-        retainAll(Collections.<Object>emptySet());
+        retainAll(Collections.emptySet());
     }
 
     @Override
     public CloseableResultSet<O> retrieve(Query<O> query) {
-        return retrieve(query, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        return retrieve(query, noQueryOptions());
     }
 
     @Override
-    public CloseableResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public CloseableResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         if (isIsolationLevel(queryOptions, READ_UNCOMMITTED)) {
             // Allow the query to read directly from the collection with no filtering overhead...
-            return new CloseableResultSet<O>(super.retrieve(query, queryOptions)) {
+            return new CloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
                 @Override
-                public boolean isValid(O object) {
+                public boolean isValid(O object, QueryOptions queryOptions) {
                     return true;
                 }
 
@@ -236,10 +254,10 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         //   (as configured by writing threads for this version of the collection).
         // - When the ResultSet.close() method is called, we decrement the readers count
         //   to record that this thread is no longer reading this version.
-        return new CloseableResultSet<O>(super.retrieve(query, queryOptions)) {
+        return new CloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
             @Override
-            public boolean isValid(O object) {
-                return !iterableOrCollectionContains(thisVersion.objectsToExclude, object);
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return !iterableContains(thisVersion.objectsToExclude, object);
             }
 
             @Override
@@ -293,9 +311,15 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         }
     }
 
-    static <O> boolean iterableOrCollectionContains(Iterable<O> objects, O o) {
-        return (objects instanceof Collection)
-                ? ((Collection<?>) objects).contains(o)
-                : IteratorUtil.iterableContains(objects, o);
+    static <O> boolean iterableContains(Iterable<O> objects, O o) {
+        if (objects instanceof Collection) {
+            return ((Collection<?>)objects).contains(o);
+        }
+        else if (objects instanceof ResultSet) {
+            return ((ResultSet<O>)objects).contains(o);
+        }
+        else {
+            return IteratorUtil.iterableContains(objects, o);
+        }
     }
 }

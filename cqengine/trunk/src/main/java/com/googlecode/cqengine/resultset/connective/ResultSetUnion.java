@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
@@ -35,9 +36,11 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
     // ResultSets (not in any particular order)...
     private final Iterable<?extends ResultSet<O>> resultSets;
+    final QueryOptions queryOptions;
 
-    public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets) {
+    public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, QueryOptions queryOptions) {
         this.resultSets = resultSets;
+        this.queryOptions = queryOptions;
     }
 
     @Override
@@ -69,9 +72,9 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
         // An iterator which wraps the UNION ALL iterator, filtering out objects which are contained in ResultSets
         // iterated earlier - so effectively implementing UNION (with duplicates eliminated)...
-        return new FilteringIterator<O>(unionAllIterator) {
+        return new FilteringIterator<O>(unionAllIterator, queryOptions) {
             @Override
-            public boolean isValid(O object) {
+            public boolean isValid(O object, QueryOptions queryOptions) {
                 for (ResultSet<O> resultSet : resultSetsAlreadyIterated) {
                     if (resultSet.contains(object)) {
                         return false;

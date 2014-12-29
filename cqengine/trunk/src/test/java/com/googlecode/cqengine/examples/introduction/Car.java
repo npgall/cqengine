@@ -18,6 +18,7 @@ package com.googlecode.cqengine.examples.introduction;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.List;
 
@@ -44,18 +45,18 @@ public class Car {
 
     // -------------------------- Attributes --------------------------
     public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
-        public Integer getValue(Car car) { return car.carId; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
     public static final Attribute<Car, String> NAME = new SimpleAttribute<Car, String>("name") {
-        public String getValue(Car car) { return car.name; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
     };
 
     public static final Attribute<Car, String> DESCRIPTION = new SimpleAttribute<Car, String>("description") {
-        public String getValue(Car car) { return car.description; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.description; }
     };
 
     public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Car, String>("features") {
-        public List<String> getValues(Car car) { return car.features; }
+        public List<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
     };
 }

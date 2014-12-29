@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.compound.impl;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.query.logical.And;
@@ -51,10 +52,10 @@ public class CompoundQuery<O> implements Query<O> {
      * one or more child {@link Equal} queries
      */
     @Override
-    public boolean matches(O object) {
+    public boolean matches(O object, QueryOptions queryOptions) {
         for (SimpleQuery<O, ?> simpleQuery : andQuery.getSimpleQueries()) {
             Equal<O, ?> equal = (Equal<O, ?>) simpleQuery;
-            if (!equal.matches(object)) {
+            if (!equal.matches(object, queryOptions)) {
                 return false;
             }
         }

@@ -17,7 +17,7 @@ package com.googlecode.cqengine.engine;
 
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.Collection;
@@ -41,14 +41,13 @@ public interface QueryEngine<O> {
 
     /**
      * Retrieves a {@link ResultSet} which provides objects matching the given query, additionally accepting
-     * {@link QueryOption} objects which can specify ordering of results, deduplication strategy etc.
+     * {@link QueryOptions} which can specify ordering of results, deduplication strategy etc.
      *
      * @param query A query representing some assertions which sought objects must match
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the query
+     * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} which provides objects matching the given query
      */
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
 
     /**
      * Adds the given index to the collection.
@@ -65,10 +64,8 @@ public interface QueryEngine<O> {
      * <p/>
      * Subsequently queries passed to the {@link #retrieve(com.googlecode.cqengine.query.Query)} methods will use these
      * indexes if suitable for the particular queries, to speed up retrievals.
-     *
      * @param index The index to add
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the index
+     * @param queryOptions Optional parameters for the index
      */
-    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public void addIndex(Index<O> index, QueryOptions queryOptions);
 }

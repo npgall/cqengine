@@ -17,6 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Asserts than an attribute is less than an upper bound.
@@ -59,8 +60,8 @@ public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        A attributeValue = attribute.getValue(object);
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        A attributeValue = attribute.getValue(object, queryOptions);
         if (valueInclusive) {
             return value.compareTo(attributeValue) >= 0;
         }
@@ -70,8 +71,8 @@ public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
-        Iterable<A> attributeValues = attribute.getValues(object);
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        Iterable<A> attributeValues = attribute.getValues(object, queryOptions);
         if (valueInclusive) {
             for (A attributeValue : attributeValues) {
                 if (value.compareTo(attributeValue) >= 0) {

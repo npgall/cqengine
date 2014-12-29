@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.examples.dynamic;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.ReflectiveAttribute;
@@ -63,7 +63,7 @@ public class DynamicIndexer {
      * @return An IndexedCollection configured with indexes on the given attributes.
      */
     public static <O> IndexedCollection<O> newAutoIndexedCollection(Iterable<Attribute<O, Comparable>> attributes) {
-        IndexedCollection<O> autoIndexedCollection = CQEngine.newInstance();
+        IndexedCollection<O> autoIndexedCollection = new ConcurrentIndexedCollection<O>();
         for (Attribute<O, ? extends Comparable> attribute : attributes) {
             // Add a NavigableIndex...
             autoIndexedCollection.addIndex(NavigableIndex.onAttribute(attribute));

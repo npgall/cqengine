@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 /**
@@ -29,13 +30,13 @@ public class QuantizedResultSet<O> extends FilteringResultSet<O> {
 
     private final Query<O> query;
 
-    public QuantizedResultSet(ResultSet<O> wrappedResultSet, Query<O> query) {
-        super(wrappedResultSet);
+    public QuantizedResultSet(ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
+        super(wrappedResultSet, queryOptions);
         this.query = query;
     }
 
     @Override
-    public boolean isValid(O object) {
-        return query.matches(object);
+    public boolean isValid(O object, QueryOptions queryOptions) {
+        return query.matches(object, queryOptions);
     }
 }

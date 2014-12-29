@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.engine;
 
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,34 +31,31 @@ public interface ModificationListener<O> {
      * and update its internal data structures.
      *
      * @param objects The objects being added
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the update
+     * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that the specified objects are being removed from the collection, and so it can take action
      * and update its internal data structures.
-     *
-     * @param objects The objects being removed
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the update
+     *  @param objects The objects being removed
+     * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that all objects have been removed from the collection, and so it can take action
      * and update its internal data structures.
      *
-     * @param queryOptions A map of {@link QueryOption} class to {@link QueryOption} object containing optional
-     * parameters for the update
+     * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public void notifyObjectsCleared(QueryOptions queryOptions);
 
     /**
      * Notifies the listener that the given collection has just been created.
      *
      * @param collection The entire collection
+     * @param queryOptions Optional parameters for the update
      */
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions);
+    public void init(Set<O> collection, QueryOptions queryOptions);
 }

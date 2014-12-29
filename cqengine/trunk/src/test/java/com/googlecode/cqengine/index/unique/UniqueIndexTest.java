@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.index.unique;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.hash.HashIndex;
@@ -36,7 +36,7 @@ public class UniqueIndexTest {
 
     @Test
     public void testUniqueIndex() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         // Add some indexes...
         cars.addIndex(UniqueIndex.onAttribute(Car.CAR_ID));
@@ -56,7 +56,7 @@ public class UniqueIndexTest {
 
     @Test(expected = UniqueIndex.UniqueConstraintViolatedException.class)
     public void testDuplicateObjectDetection_SimpleAttribute() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         // Add some indexes...
         cars.addIndex(UniqueIndex.onAttribute(Car.CAR_ID));
@@ -71,7 +71,7 @@ public class UniqueIndexTest {
 
     @Test(expected = UniqueIndex.UniqueConstraintViolatedException.class)
     public void testDuplicateObjectDetection_MultiValueAttribute() {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         // Add some indexes...
         cars.addIndex(UniqueIndex.onAttribute(Car.FEATURES));

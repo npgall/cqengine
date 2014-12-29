@@ -17,6 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Asserts than a {@link CharSequence}-based attribute is contained in a given {@link CharSequence}-based document.
@@ -44,15 +45,15 @@ public class StringIsContainedIn<O, A extends CharSequence> extends SimpleQuery<
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        CharSequence attributeValue = attribute.getValue(object);
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        CharSequence attributeValue = attribute.getValue(object, queryOptions);
         // Same as string contains, except we swap the arguments...
         return StringContains.containsFragment(value, attributeValue);
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
-        for (A attributeValue : attribute.getValues(object)) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        for (A attributeValue : attribute.getValues(object, queryOptions)) {
             // Same as string contains, except we swap the arguments...
             if (StringContains.containsFragment(value, attributeValue)) {
                 return true;

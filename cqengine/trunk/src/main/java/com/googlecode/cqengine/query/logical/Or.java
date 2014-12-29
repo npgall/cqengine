@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.query.logical;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -64,14 +65,14 @@ public class Or<O> extends LogicalQuery<O> {
      * @return true if at least one child query matches the given object, returns false if none match
      */
     @Override
-    public boolean matches(O object) {
+    public boolean matches(O object, QueryOptions queryOptions) {
         for (Query<O> query : super.getSimpleQueries()) {
-            if (query.matches(object)) {
+            if (query.matches(object, queryOptions)) {
                 return true;
             }
         }
         for (Query<O> query : super.getLogicalQueries()) {
-            if (query.matches(object)) {
+            if (query.matches(object, queryOptions)) {
                 return true;
             }
         }

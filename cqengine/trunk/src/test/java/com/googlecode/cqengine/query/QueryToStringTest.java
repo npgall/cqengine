@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.query;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.join.Garage;
 import com.googlecode.cqengine.testutil.Car;
@@ -49,7 +49,7 @@ public class QueryToStringTest {
 
     @Test
     public void testQueryToString2() {
-        IndexedCollection<Garage> garages = CQEngine.newInstance();
+        IndexedCollection<Garage> garages = new ConcurrentIndexedCollection<Garage>();
         Query<Car> query = and(
                 in(Car.DOORS, 2, 4),
                 existsIn(garages,

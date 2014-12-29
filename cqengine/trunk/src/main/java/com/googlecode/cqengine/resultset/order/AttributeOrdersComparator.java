@@ -18,6 +18,7 @@ package com.googlecode.cqengine.resultset.order;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.AttributeOrder;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -33,9 +34,11 @@ import java.util.List;
 public class AttributeOrdersComparator<O> implements Comparator<O> {
 
     final List<AttributeOrder<O>> attributeSortOrders;
+    final QueryOptions queryOptions;
 
-    public AttributeOrdersComparator(List<AttributeOrder<O>> attributeSortOrders) {
+    public AttributeOrdersComparator(List<AttributeOrder<O>> attributeSortOrders, QueryOptions queryOptions) {
         this.attributeSortOrders = attributeSortOrders;
+        this.queryOptions = queryOptions;
     }
 
     @Override
@@ -59,12 +62,12 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
         if (attribute instanceof SimpleAttribute) {
             // Fast code path...
             SimpleAttribute<O, A> simpleAttribute = (SimpleAttribute<O, A>)attribute;
-            return simpleAttribute.getValue(o1).compareTo(simpleAttribute.getValue(o2));
+            return simpleAttribute.getValue(o1, queryOptions).compareTo(simpleAttribute.getValue(o2, queryOptions));
         }
         else {
             // Slower code path...
-            Iterator<A> o1attributeValues = attribute.getValues(o1).iterator();
-            Iterator<A> o2attributeValues = attribute.getValues(o2).iterator();
+            Iterator<A> o1attributeValues = attribute.getValues(o1, queryOptions).iterator();
+            Iterator<A> o2attributeValues = attribute.getValues(o2, queryOptions).iterator();
             while (o1attributeValues.hasNext() && o2attributeValues.hasNext()) {
                 A o1attributeValue = o1attributeValues.next();
                 A o2attributeValue = o2attributeValues.next();

@@ -1,0 +1,155 @@
+package com.googlecode.cqengine;
+
+import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
+import com.googlecode.cqengine.testutil.Car;
+import junit.framework.Assert;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.*;
+
+import static com.googlecode.cqengine.query.QueryFactory.all;
+import static com.googlecode.cqengine.testutil.CarFactory.createCar;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+
+/**
+ * @author Niall Gallagher
+ */
+public class TransactionalIndexedCollectionTest {
+
+    @Test
+    public void testWritePath() {
+        TransactionalIndexedCollection<Car> collection = new TransactionalIndexedCollection<Car>(Car.class);
+        // Version number initially starts at 1...
+        assertEquals(1, collection.currentVersion);
+        assertEquals(1, collection.versions.size());
+        TransactionalIndexedCollection.Version v1 = collection.versions.get(1L);
+        // Adding objects to the collection should cause version number to be incremented twice...
+        collection.addAll(asSet(createCar(1), createCar(2), createCar(3), createCar(4)));
+        assertEquals(4, collection.size());
+        assertEquals(asSet(createCar(1), createCar(2), createCar(3), createCar(4)), collection);
+        assertEquals(3, collection.currentVersion);
+        // Previous versions should have been removed...
+        assertEquals(1, collection.versions.size());
+        // Each version should have a different object to hold its state...
+        TransactionalIndexedCollection.Version v3 = collection.versions.get(3L);
+        assertNotSame(v1, v3);
+
+        // Removing objects from the collection should cause version number to be incremented twice...
+        collection.removeAll(asSet(createCar(2), createCar(3)));
+        assertEquals(2, collection.size());
+        assertEquals(asSet(createCar(1), createCar(4)), collection);
+        assertEquals(5, collection.currentVersion);
+        // Previous versions should have been removed...
+        assertEquals(1, collection.versions.size());
+
+        // Replacing objects in the collection should cause version number to be incremented thrice...
+        collection.update(asSet(createCar(4)), asSet(createCar(5), createCar(6)));
+        assertEquals(3, collection.size());
+        assertEquals(asSet(createCar(1), createCar(5), createCar(6)), collection);
+        assertEquals(8, collection.currentVersion);
+        // Previous versions should have been removed...
+        assertEquals(1, collection.versions.size());
+
+        // Replacing no objects should not cause version number to change...
+        collection.update(Collections.<Car>emptySet(), Collections.<Car>emptySet());
+        assertEquals(8, collection.currentVersion);
+    }
+
+    @Test
+    public void testReadPath() throws InterruptedException, ExecutionException {
+        // Set up the initial collection to contain 2 objects...
+        final TransactionalIndexedCollection<Car> collection = new TransactionalIndexedCollection<Car>(Car.class);
+        collection.addAll(asSet(createCar(1), createCar(2)));
+        assertEquals(2, collection.size());
+
+        // Set up an executor which will execute tasks in separate threads.
+        ExecutorService executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+        // This thread will subsequently act as a control thread, submitting tasks to background threads and validating the behaviour.
+
+        // == STEP 1: Set up a background thread which will read from the collection... ==
+
+        // Create a semaphore on which the background reading thread will block after it has opened a ResultSet,
+        // but before it has actually read any objects from it...
+        final Semaphore readBlock = new Semaphore(0);
+        // Define a semaphore which allows this control thread to wait for the background read to begin...
+        final Semaphore readStartedSignal = new Semaphore(0);
+
+        // Submit a reading task to a background thread...
+        Future<Set<Car>> resultsFromFirstRead = executor.submit(new Callable<Set<Car>>() {
+            @Override
+            public Set<Car> call() throws Exception {
+                CloseableResultSet<Car> resultSet = collection.retrieve(all(Car.class));
+                // Signal that this reading thread has started...
+                readStartedSignal.release();
+                // BLOCK the reading thread here...
+                readBlock.acquire();
+                // At this point thread was unblocked...
+                // Now read from this ResultSet...
+                Set<Car> materializedObjects = asSet(resultSet);
+                // Close the ResultSet, and return the objects which were read...
+                resultSet.close();
+                return materializedObjects;
+            }
+        });
+        // Block this control thread until the reading thread has actually started...
+        readStartedSignal.acquire();
+        // ...at this point, a background thread has an open ResultSet,
+        // so attempts to modify the collection should block.
+
+        // Try to modify the collection in a different background thread...
+        // Define a semaphore which allows this control thread to wait for the write to begin...
+        final Semaphore writeStartedSignal = new Semaphore(0);
+        // Define a semaphore which allows this control thread to determine that the write has finished...
+        final Semaphore writeFinishedSignal = new Semaphore(0);
+        executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                // Signal that this writing thread has started...
+                writeStartedSignal.release();
+                // Remove Car 2, and add Cars 3 & 4...
+                collection.update(asSet(createCar(2)), asSet(createCar(3), createCar(4)));
+                writeFinishedSignal.release();
+            }
+        });
+        writeStartedSignal.acquire();
+        // Make this control thread sleep to allow time for the writing thread to enter update() where it should block...
+        Thread.sleep(1000L);
+        // Assert that the writing thread is indeed blocked...
+        Assert.assertFalse("Writing thread should block while there is an open ResultSet", writeFinishedSignal.tryAcquire());
+
+        // Unblock the reading thread to allow it to read objects from the ResultSet it opened earlier,
+        // and then to close its ResultSet...
+        readBlock.release();
+        // Now validate that the reading thread did not see any of the modifications submitted to the writing thread...
+        Assert.assertEquals(asSet(createCar(1), createCar(2)), resultsFromFirstRead.get());
+
+        // Make this control thread sleep to allow time for the writing thread to finish...
+        Thread.sleep(1000L);
+        // Assert that the writing thread is now unblocked...
+        Assert.assertTrue("Writing thread should have completed after the open ResultSet was closed", writeFinishedSignal.tryAcquire());
+
+        // Now validate (in this control thread) that the modifications by the writing thread are visible...
+        CloseableResultSet<Car> resultsFromSecondRead = collection.retrieve(all(Car.class));
+        Set<Car> materializedResultsFromSecondRead = asSet(resultsFromSecondRead);
+        resultsFromSecondRead.close();
+        Assert.assertEquals(asSet(createCar(1), createCar(3), createCar(4)), materializedResultsFromSecondRead);
+    }
+
+
+    static <O> Set<O> asSet(O... objects) {
+        return new LinkedHashSet<O>(asList(objects));
+    }
+    static <O> Set<O> asSet(ResultSet<O> resultSet) {
+        Set<O> results = new LinkedHashSet<O>();
+        for (O item : resultSet) {
+            results.add(item);
+        }
+        return results;
+    }
+}

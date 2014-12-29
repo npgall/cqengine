@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.collection.impl;
+package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.engine.QueryEngineInternal;
+import com.googlecode.cqengine.engine.impl.QueryEngineImpl;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.*;
+
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 
 /**
  * An implementation of {@link java.util.Set} which additionally wraps {@link QueryEngineInternal}, thus providing
@@ -57,15 +60,24 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     protected final QueryEngineInternal<O> indexEngine;
 
     /**
-     * Constructor.
+     * Creates a new {@link ConcurrentIndexedCollection} with default settings.
+     *
+     * Uses {@link com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory} to create the backing set.
+     */
+    public ConcurrentIndexedCollection() {
+        this(new DefaultConcurrentSetFactory<O>());
+    }
+
+    /**
+     * Creates a new {@link ConcurrentIndexedCollection} which will use the given factory to create the backing set.
      *
      * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
      * added to the indexed collection will be stored
-     * @param queryEngine The query engine
      */
-    public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory, QueryEngineInternal<O> queryEngine) {
+    public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory) {
         this.collection = backingSetFactory.create();
-        queryEngine.init(collection, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        QueryEngineInternal<O> queryEngine = new QueryEngineImpl<O>();
+        queryEngine.init(collection, noQueryOptions());
         this.indexEngine = queryEngine;
     }
 
@@ -83,7 +95,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         return indexEngine.retrieve(query, queryOptions);
     }
 
@@ -92,14 +104,14 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     @Override
     public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd) {
-        return update(objectsToRemove, objectsToAdd, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        return update(objectsToRemove, objectsToAdd, noQueryOptions());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, QueryOptions queryOptions) {
         boolean modified = doAddAll(objectsToAdd);
         return doRemoveAll(objectsToRemove) || modified;
     }
@@ -116,7 +128,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      * {@inheritDoc}
      */
     @Override
-    public void addIndex(Index<O> index, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void addIndex(Index<O> index, QueryOptions queryOptions) {
         indexEngine.addIndex(index, queryOptions);
     }
 
@@ -196,7 +208,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @Override
             public void remove() {
                 collectionIterator.remove();
-                indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+                indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), noQueryOptions());
             }
         };
     }
@@ -210,7 +222,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         // Indexes handle gracefully the case that the objects supplied already exist in the index...
         boolean modified = collection.add(o);
         if (modified) {
-            indexEngine.notifyObjectsAdded(Collections.singleton(o), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+            indexEngine.notifyObjectsAdded(Collections.singleton(o), noQueryOptions());
         }
         return modified;
     }
@@ -224,7 +236,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         O o = (O) object;
         boolean modified = collection.remove(o);
         if  (modified) {
-            indexEngine.notifyObjectsRemoved(Collections.singleton(o), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+            indexEngine.notifyObjectsRemoved(Collections.singleton(o), noQueryOptions());
         }
         return modified;
     }
@@ -238,7 +250,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.addAll(objects);
         if  (modified) {
-            indexEngine.notifyObjectsAdded(objects, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+            indexEngine.notifyObjectsAdded(objects, noQueryOptions());
         }
         return modified;
     }
@@ -252,7 +264,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.removeAll(objects);
         if (modified) {
-            indexEngine.notifyObjectsRemoved(objects, Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+            indexEngine.notifyObjectsRemoved(objects, noQueryOptions());
         }
         return modified;
     }
@@ -280,7 +292,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public void clear() {
         collection.clear();
-        indexEngine.notifyObjectsCleared(Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+        indexEngine.notifyObjectsCleared(noQueryOptions());
     }
 
     boolean doAddAll(Iterable<O> objects) {

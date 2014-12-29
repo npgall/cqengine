@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.*;
 
@@ -58,8 +59,8 @@ public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O,
      * {@inheritDoc}
      */
     @Override
-    public Iterable<A> getValues(O object) {
-        A value = getValue(object);
+    public Iterable<A> getValues(O object, QueryOptions queryOptions) {
+        A value = getValue(object, queryOptions);
         return value == null ? Collections.<A>emptyList() : Collections.singletonList(value);
     }
 
@@ -67,7 +68,9 @@ public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O,
      * Returns the (possibly null) value of the attribute from the object.
      * <p/>
      * @param object The object from which the value of the attribute is required
+     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
+     * this attribute to be invoked (either a query, or an update to the collection)
      * @return The value for the attribute, which can be null
      */
-    public abstract A getValue(O object);
+    public abstract A getValue(O object, QueryOptions queryOptions);
 }

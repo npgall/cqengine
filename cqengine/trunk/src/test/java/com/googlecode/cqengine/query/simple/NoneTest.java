@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.query.simple;
 
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
@@ -23,7 +24,6 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
 
 
-import static com.googlecode.cqengine.CQEngine.copyFrom;
 import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Arrays.asList;
@@ -33,7 +33,9 @@ public class NoneTest {
 
     @Test
     public void testNone() {
-        IndexedCollection<Integer> collection = copyFrom(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> indexedCollection = new ConcurrentIndexedCollection<Integer>();
+        indexedCollection.addAll(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> collection = indexedCollection;
         Query<Integer> query = none(Integer.class);
         ResultSet<Integer> results = collection.retrieve(query);
         assertEquals(0, results.size());
@@ -42,7 +44,9 @@ public class NoneTest {
 
     @Test
     public void testNoneAnd() {
-        IndexedCollection<Integer> collection = copyFrom(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> indexedCollection = new ConcurrentIndexedCollection<Integer>();
+        indexedCollection.addAll(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> collection = indexedCollection;
         final And<Integer> query = and(
                 none(Integer.class),
                 lessThan(self(Integer.class), 3)
@@ -54,7 +58,9 @@ public class NoneTest {
 
     @Test
     public void testNoneOr() {
-        IndexedCollection<Integer> collection = copyFrom(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> indexedCollection = new ConcurrentIndexedCollection<Integer>();
+        indexedCollection.addAll(asList(1, 2, 3, 4, 5));
+        IndexedCollection<Integer> collection = indexedCollection;
         final Or<Integer> query = or(
                 none(Integer.class),
                 lessThan(self(Integer.class), 3)

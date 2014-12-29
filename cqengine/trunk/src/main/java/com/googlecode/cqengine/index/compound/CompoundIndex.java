@@ -23,7 +23,7 @@ import com.googlecode.cqengine.index.compound.impl.CompoundQuery;
 import com.googlecode.cqengine.index.compound.impl.CompoundValueTuple;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
@@ -109,7 +109,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(CompoundQuery.class)) {
             final CompoundQuery<O> compoundQuery = (CompoundQuery<O>) query;
@@ -118,17 +118,17 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                 @Override
                 public Iterator<O> iterator() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(valueTuple));
-                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, compoundQuery).iterator();
+                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, compoundQuery, queryOptions).iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(valueTuple));
-                    return rs != null && filterForQuantization(rs, compoundQuery).contains(object);
+                    return rs != null && filterForQuantization(rs, compoundQuery, queryOptions).contains(object);
                 }
                 @Override
                 public int size() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(valueTuple));
-                    return rs == null ? 0 : filterForQuantization(rs, compoundQuery).size();
+                    return rs == null ? 0 : filterForQuantization(rs, compoundQuery, queryOptions).size();
                 }
                 @Override
                 public int getRetrievalCost() {
@@ -156,12 +156,13 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * <p/>
      * <b>This default implementation simply returns the given {@link ResultSet} unmodified.</b>
      *
-     * @param storedResultSet A {@link ResultSet} stored against a quantized key in the index
+     * @param storedResultSet A {@link com.googlecode.cqengine.resultset.ResultSet} stored against a quantized key in the index
      * @param query The query against which results should be matched
+     * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} which filters objects from the given {@link ResultSet},
      * to return only those objects matching the query
      */
-    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query) {
+    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query, QueryOptions queryOptions) {
         return storedResultSet;
     }
 
@@ -223,8 +224,8 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
             // ---------- Override the hook methods related to Quantizer ----------
 
             @Override
-            protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query) {
-                return new QuantizedResultSet<O>(resultSet, query);
+            protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query, QueryOptions queryOptions) {
+                return new QuantizedResultSet<O>(resultSet, query, queryOptions);
             }
 
             @Override

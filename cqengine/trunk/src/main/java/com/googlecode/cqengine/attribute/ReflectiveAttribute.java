@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.attribute;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
+
 import java.lang.reflect.Field;
 
 /**
@@ -74,7 +76,7 @@ public class ReflectiveAttribute<O, A> extends SimpleAttribute<O, A> {
     }
 
     @Override
-    public A getValue(O object) {
+    public A getValue(O object, QueryOptions queryOptions) {
         try {
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
             A value = (A) field.get(object);
