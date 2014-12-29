@@ -17,6 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Asserts than an attribute equals a certain value.
@@ -46,13 +47,13 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        return value.equals(attribute.getValue(object));
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        return value.equals(attribute.getValue(object, queryOptions));
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
-        for (A attributeValue : attribute.getValues(object)) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        for (A attributeValue : attribute.getValues(object, queryOptions)) {
             if (value.equals(attributeValue)) {
                 return true;
             }

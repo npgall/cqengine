@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,15 +40,15 @@ public class DeduplicatingIterator<O, A> extends FilteringIterator<O> {
 
     private final Set<A> attributeValuesProcessed = new HashSet<A>();
 
-    public DeduplicatingIterator(Attribute<O, A> uniqueAttribute, Iterator<O> wrappedIterator) {
-        super(wrappedIterator);
+    public DeduplicatingIterator(Attribute<O, A> uniqueAttribute, QueryOptions queryOptions, Iterator<O> wrappedIterator) {
+        super(wrappedIterator, queryOptions);
         this.uniqueAttribute = uniqueAttribute;
     }
 
     @Override
-    public boolean isValid(O object) {
+    public boolean isValid(O object, QueryOptions queryOptions) {
         boolean modified = false;
-        for (A value : uniqueAttribute.getValues(object)) {
+        for (A value : uniqueAttribute.getValues(object, queryOptions)) {
             modified = attributeValuesProcessed.add(value) || modified;
         }
         return modified;

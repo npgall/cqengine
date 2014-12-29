@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.common.QueryCostComparators;
@@ -30,9 +31,11 @@ import java.util.*;
 public class ResultSetIntersection<O> extends ResultSet<O> {
 
     // ResultSets sorted in ascending order of merge cost...
-    private final List<ResultSet<O>> resultSets;
+    final List<ResultSet<O>> resultSets;
+    final QueryOptions queryOptions;
 
-    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets) {
+    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, QueryOptions queryOptions) {
+        this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
         List<ResultSet<O>> sortedResultSets = new ArrayList<ResultSet<O>>();
         for (ResultSet<O> resultSet : resultSets){
@@ -52,9 +55,9 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         }
         ResultSet<O> lowestMergeCostResultSet = resultSets.get(0);
         final List<ResultSet<O>> moreExpensiveResultSets = resultSets.subList(1, resultSets.size());
-        return new FilteringIterator<O>(lowestMergeCostResultSet.iterator()) {
+        return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
             @Override
-            public boolean isValid(O object) {
+            public boolean isValid(O object, QueryOptions queryOptions) {
                 return allResultSetsContain(moreExpensiveResultSets, object);
             }
         };

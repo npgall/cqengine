@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.query.logical;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collections;
 
@@ -44,8 +45,8 @@ public class Not<O> extends LogicalQuery<O> {
      * @return The <i>inverse</i> of whether the negated query matches the given object
      */
     @Override
-    public boolean matches(O object) {
-        return !negatedQuery.matches(object);
+    public boolean matches(O object, QueryOptions queryOptions) {
+        return !negatedQuery.matches(object, queryOptions);
     }
 
     @Override

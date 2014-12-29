@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.*;
 
@@ -81,15 +82,17 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      * {@inheritDoc}
      */
     @Override
-    public Iterable<A> getValues(O object) {
-        return Collections.singletonList(getValue(object));
+    public Iterable<A> getValues(O object, QueryOptions queryOptions) {
+        return Collections.singletonList(getValue(object, queryOptions));
     }
 
     /**
      * Returns the (non-null) value of the attribute from the object.
      * <p/>
      * @param object The object from which the value of the attribute is required
+     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
+     * this attribute to be invoked (either a query, or an update to the collection)
      * @return The value for the attribute, which should never be null
      */
-    public abstract A getValue(O object);
+    public abstract A getValue(O object, QueryOptions queryOptions);
 }

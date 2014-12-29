@@ -17,6 +17,7 @@ package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * @author Niall Gallagher
@@ -24,27 +25,27 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 public class Car {
 
     public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
-        public Integer getValue(Car car) { return car.carId; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
     public static final Attribute<Car, String> MANUFACTURER = new SimpleAttribute<Car, String>("manufacturer") {
-        public String getValue(Car car) { return car.manufacturer; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.manufacturer; }
     };
 
     public static final Attribute<Car, String> MODEL = new SimpleAttribute<Car, String>("model") {
-        public String getValue(Car car) { return car.model; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.model; }
     };
 
     public static final Attribute<Car, Color> COLOR = new SimpleAttribute<Car, Color>("color") {
-        public Color getValue(Car car) { return car.color; }
+        public Color getValue(Car car, QueryOptions queryOptions) { return car.color; }
     };
 
     public static final Attribute<Car, Integer> DOORS = new SimpleAttribute<Car, Integer>("doors") {
-        public Integer getValue(Car car) { return car.doors; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.doors; }
     };
 
     public static final Attribute<Car, Double> PRICE = new SimpleAttribute<Car, Double>("price") {
-        public Double getValue(Car car) { return car.price; }
+        public Double getValue(Car car, QueryOptions queryOptions) { return car.price; }
     };
 
     public enum Color {RED, GREEN, BLUE, BLACK, WHITE}

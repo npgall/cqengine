@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.collection.impl;
+package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.index.common.Factory;
 

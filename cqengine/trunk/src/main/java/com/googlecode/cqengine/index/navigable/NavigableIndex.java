@@ -21,7 +21,7 @@ import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
@@ -97,7 +97,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         // Process Equal queries in the same was as HashIndex...
         if (queryClass.equals(Equal.class)) {
@@ -106,17 +106,17 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 @Override
                 public Iterator<O> iterator() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal).iterator();
+                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal, queryOptions).iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs != null && filterForQuantization(rs, equal).contains(object);
+                    return rs != null && filterForQuantization(rs, equal, queryOptions).contains(object);
                 }
                 @Override
                 public int size() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? 0 : filterForQuantization(rs, equal).size();
+                    return rs == null ? 0 : filterForQuantization(rs, equal, queryOptions).size();
                 }
                 @Override
                 public int getRetrievalCost() {
@@ -181,14 +181,14 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         Iterable<ResultSet<O>> results = (Iterable<ResultSet<O>>) lookupFunction.perform();
 
         // Add filtering for quantization (implemented by subclass supporting a Quantizer, a no-op in this class)...
-        results = addFilteringForQuantization(results, lookupFunction);
+        results = addFilteringForQuantization(results, lookupFunction, queryOptions);
 
         // If a query option specifying logical deduplication is supplied return ResultSetUnion,
         // otherwise return ResultSetUnionAll.
         // We can avoid deduplication if the index is built on a SimpleAttribute however,
         // because the same object could not exist in more than one StoredResultSet...
         if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
-            return new ResultSetUnion<O>(results) {
+            return new ResultSetUnion<O>(results, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
@@ -260,16 +260,17 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * contain objects matching the values in the query, due to objects being mixed with their adjacent counterparts.
      * Therefore it is necessary to filter the {@link ResultSet} at <i>either end</i> of the range.
      *
-     * @param resultSets {@link ResultSet}s stored in the index which were found to match the range query, in ascending
+     * @param resultSets {@link com.googlecode.cqengine.resultset.ResultSet}s stored in the index which were found to match the range query, in ascending
      * order of their associated keys
-     * @param lookupFunction Contains parameters specifying whether the first or last {@link ResultSet}s should be
-     * wrapped in a {@link QuantizedResultSet}, and also encapsulates the {@link Query} against which objects should
+     * @param lookupFunction Contains parameters specifying whether the first or last {@link com.googlecode.cqengine.resultset.ResultSet}s should be
+     * wrapped in a {@link com.googlecode.cqengine.resultset.filter.QuantizedResultSet}, and also encapsulates the {@link com.googlecode.cqengine.query.Query} against which objects should
      * be filtered
+     * @param queryOptions Optional parameters for the query
      *
      * @return An {@link Iterable} optionally with the first and/or last {@link ResultSet}s wrapped in
      * {@link QuantizedResultSet}s
      */
-    protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
+    protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction, QueryOptions queryOptions) {
         return resultSets;
     }
 
@@ -280,12 +281,14 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * <p/>
      * <b>This default implementation simply returns the given {@link ResultSet} unmodified.</b>
      *
-     * @param storedResultSet A {@link ResultSet} stored against a quantized key in the index
+     * @param storedResultSet A {@link com.googlecode.cqengine.resultset.ResultSet} stored against a quantized key in the index
      * @param query The query against which results should be matched
+     * @param queryOptions Optional parameters for the query
+     *
      * @return A {@link ResultSet} which filters objects from the given {@link ResultSet},
      * to return only those objects matching the query
      */
-    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query) {
+    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query, QueryOptions queryOptions) {
         return storedResultSet;
     }
 
@@ -354,7 +357,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             // ---------- Override the hook methods related to Quantizer ----------
 
             @Override
-            protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction) {
+            protected Iterable<ResultSet<O>> addFilteringForQuantization(final Iterable<ResultSet<O>> resultSets, final IndexRangeLookupFunction<O> lookupFunction, final QueryOptions queryOptions) {
                 if (!lookupFunction.filterFirstResultSet && !lookupFunction.filterLastResultSet) {
                     // No filtering required, return the same iterable...
                     return resultSets;
@@ -378,7 +381,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                                     // Filtering is enabled for first ResultSet, and we are processing first ResultSet.
                                     // Wrap it in QuantizedResultSet...
                                     firstResultSet = false;
-                                    return new QuantizedResultSet<O>(rs, lookupFunction.query);
+                                    return new QuantizedResultSet<O>(rs, lookupFunction.query, queryOptions);
                                 }
                                 else if (!lookupFunction.filterLastResultSet || resultSetsIterator.hasNext()) {
                                     // Filtering is disabled for last ResultSet,
@@ -389,7 +392,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                                 else {
                                     // Filtering is enabled for last ResultSet and we are processing last ResultSet.
                                     // Wrap it in QuantizedResultSet...
-                                    return new QuantizedResultSet<O>(rs, lookupFunction.query);
+                                    return new QuantizedResultSet<O>(rs, lookupFunction.query, queryOptions);
                                 }
                             }
                         };
@@ -403,8 +406,8 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             }
 
             @Override
-            protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query) {
-                return new QuantizedResultSet<O>(storedResultSet, query);
+            protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query, QueryOptions queryOptions) {
+                return new QuantizedResultSet<O>(storedResultSet, query, queryOptions);
             }
         };
     }

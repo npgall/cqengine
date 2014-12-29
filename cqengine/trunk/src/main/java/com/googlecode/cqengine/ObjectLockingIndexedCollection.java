@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.collection.impl;
+package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.engine.QueryEngineInternal;
+import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -59,15 +59,46 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
     final StripedLock stripedLock;
 
     /**
-     * Constructor.
+     * Creates a new {@link ObjectLockingIndexedCollection} with default settings.
+     *
+     * Uses {@link com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory} to create the backing set,
+     * and sets concurrency level at a default of 64.
+     */
+    public ObjectLockingIndexedCollection() {
+        this(new DefaultConcurrentSetFactory<O>(), 64);
+    }
+
+    /**
+     * Creates a new {@link ObjectLockingIndexedCollection} which will use the given factory to create the backing set,
+     * and sets concurrency level at a default of 64.
      *
      * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
      * added to the indexed collection will be stored
-     * @param concurrencyLevel The estimated number of concurrently updating threads. 64 could be a sensible default
-     * @param queryEngine The query engine
      */
-    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel, QueryEngineInternal<O> queryEngine) {
-        super(backingSetFactory, queryEngine);
+    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory) {
+        this(backingSetFactory, 64);
+    }
+
+    /**
+     * Creates a new {@link ObjectLockingIndexedCollection} which uses {@link DefaultConcurrentSetFactory} to create the
+     * backing set, and sets concurrency level to the given value.
+     *
+     * @param concurrencyLevel The estimated number of concurrently updating threads
+     */
+    public ObjectLockingIndexedCollection(int concurrencyLevel) {
+        this(new DefaultConcurrentSetFactory<O>(), concurrencyLevel);
+    }
+
+    /**
+     * Creates a new {@link ObjectLockingIndexedCollection}, allowing the backing set implementation and concurrency
+     * level to be set explicitly.
+     *
+     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
+     * added to the indexed collection will be stored
+     * @param concurrencyLevel The estimated number of concurrently updating threads
+     */
+    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel) {
+        super(backingSetFactory);
         this.stripedLock = new StripedLock(concurrencyLevel);
     }
 
@@ -118,7 +149,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), Collections.<Class<? extends QueryOption>, QueryOption<O>>emptyMap());
+                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), QueryOptions.noQueryOptions());
                 }
                 finally {
                     lock.unlock();

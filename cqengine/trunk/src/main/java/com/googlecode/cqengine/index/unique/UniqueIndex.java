@@ -18,18 +18,16 @@ package com.googlecode.cqengine.index.unique;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
@@ -109,7 +107,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
 	}
 	
 	@Override
-	public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+	public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
 		Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) 
         {
@@ -165,10 +163,10 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
         ConcurrentMap<A, O> indexMap = this.indexMap;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
                 O existingValue = indexMap.put(attributeValue, object);
                 if (existingValue != null && !existingValue.equals(object)) {
@@ -188,10 +186,10 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
         ConcurrentMap<A, O> indexMap = this.indexMap;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
                 indexMap.remove(attributeValue);
             }
@@ -202,7 +200,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(Set<O> collection, QueryOptions queryOptions) {
         notifyObjectsAdded(collection, queryOptions);
     }
 
@@ -210,7 +208,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(QueryOptions queryOptions) {
         this.indexMap.clear();
     }
 

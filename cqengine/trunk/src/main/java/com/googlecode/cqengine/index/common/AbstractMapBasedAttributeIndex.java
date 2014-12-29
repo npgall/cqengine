@@ -17,11 +17,10 @@ package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -63,10 +62,10 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
         ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
 
                 // Replace attributeValue with quantized value if applicable...
@@ -93,10 +92,10 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
         ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
         for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object);
+            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
 
                 // Replace attributeValue with quantized value if applicable...
@@ -118,7 +117,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(Set<O> collection, QueryOptions queryOptions) {
         notifyObjectsAdded(collection, queryOptions);
     }
 
@@ -126,7 +125,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(QueryOptions queryOptions) {
         this.indexMap.clear();
     }
 

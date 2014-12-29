@@ -84,6 +84,7 @@ public class AttributeSourceGenerator {
         if (separateAttributesClass) {
             sb.append("package ").append(packageOfAttributesClass).append(";\n\n");
             sb.append("import com.googlecode.cqengine.attribute.*;\n");
+            sb.append("import com.googlecode.cqengine.query.option.QueryOptions;\n");
             sb.append("import java.util.*;\n");
             String targetClassName = targetClass.getName().replace("$", "."); // replacing $ handles nested classes
             sb.append("import ").append(targetClassName).append(";\n\n");
@@ -180,7 +181,7 @@ public class AttributeSourceGenerator {
                 "     * CQEngine attribute for accessing field {@code " + objectType + "." + fieldName + "}.\n" +
                 "     */\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new SimpleAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\") {\n" +
-                "        public " + attributeType + " getValue(" + objectType + " " + objectType.toLowerCase() + ") { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
+                "        public " + attributeType + " getValue(" + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
                 "    };";
     }
 
@@ -191,7 +192,7 @@ public class AttributeSourceGenerator {
                 "    // Note: For best performance:\n" +
                 "    // - if this field cannot be null, replace this SimpleNullableAttribute with a SimpleAttribute\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new SimpleNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\") {\n" +
-                "        public " + attributeType + " getValue(" + objectType + " " + objectType.toLowerCase() + ") { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
+                "        public " + attributeType + " getValue(" + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
                 "    };";
     }
     
@@ -204,7 +205,7 @@ public class AttributeSourceGenerator {
                 "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", true) {\n" +
-                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) { return " + objectType.toLowerCase() + "." + fieldName + "; }\n" +
                 "    };";
     }
 
@@ -217,7 +218,7 @@ public class AttributeSourceGenerator {
                 "    // - if the array cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", true) {\n" +
-                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ") { return Arrays.asList(" + objectType.toLowerCase() + "." + fieldName + "); }\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) { return Arrays.asList(" + objectType.toLowerCase() + "." + fieldName + "); }\n" +
                 "    };";
     }
 
@@ -229,7 +230,7 @@ public class AttributeSourceGenerator {
                 "    // - if this field cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(fieldName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(fieldName) + "\", false) {\n" +
-                "        public Iterable<" + attributeType + "> getNullableValues(final " + objectType + " " + objectType.toLowerCase() + ") {\n" +
+                "        public Iterable<" + attributeType + "> getNullableValues(final " + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) {\n" +
                 "            return new AbstractList<" + attributeType + ">() {\n" +
                 "                public " + attributeType + " get(int i) { return " + objectType.toLowerCase() + "." + fieldName + "[i]; }\n" +
                 "                public int size() { return " + objectType.toLowerCase() + "." + fieldName + ".length; }\n" +

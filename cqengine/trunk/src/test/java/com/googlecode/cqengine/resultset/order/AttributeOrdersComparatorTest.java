@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.resultset.order;
 
 import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,16 +24,13 @@ import org.junit.Test;
 import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 
 /**
  * @author Roberto Socrates
  * @author Niall Gallagher
  */
 public class AttributeOrdersComparatorTest {
-
-    public void temp() {
-        QueryOption<Car> ordering = orderBy(ascending(Car.MANUFACTURER), descending(Car.PRICE));
-    }
 
     @Test
     public void testSortAscending() {
@@ -45,7 +42,7 @@ public class AttributeOrdersComparatorTest {
         );
 
         OrderByOption<Car> ordering = orderBy(ascending(Car.MANUFACTURER), ascending(Car.PRICE));
-        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders()));
+        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
             new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00),
@@ -67,7 +64,7 @@ public class AttributeOrdersComparatorTest {
         );
 
         OrderByOption<Car> ordering = orderBy(descending(Car.MANUFACTURER), descending(Car.PRICE));
-        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders()));
+        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
                 new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00),
@@ -89,7 +86,7 @@ public class AttributeOrdersComparatorTest {
         );
 
         OrderByOption<Car> ordering = orderBy(descending(Car.MANUFACTURER), ascending(Car.PRICE));
-        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders()));
+        Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
                 new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 3000.00),

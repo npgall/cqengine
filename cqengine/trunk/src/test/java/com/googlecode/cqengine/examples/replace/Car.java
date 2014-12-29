@@ -17,6 +17,7 @@ package com.googlecode.cqengine.examples.replace;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -64,7 +65,7 @@ public class Car {
 
     // -------------------------- Attributes --------------------------
     public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
-        public Integer getValue(Car car) { return car.carId; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
 }

@@ -17,7 +17,7 @@ package com.googlecode.cqengine.index.fallback;
 
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -30,7 +30,7 @@ import java.util.*;
  * <p/>
  * This index supports <b>all</b> query types, because it it relies on the supplied query object itself
  * to determine if objects in the collection match the query, by calling
- * {@link Query#matches(Object)}.
+ * {@link Query#matches(Object, com.googlecode.cqengine.query.option.QueryOptions)}.
  * <p/>
  * The query engine automatically uses this <i>fallback</i> index when an attribute is referenced by a query,
  * and no other index has been added for that attribute that supports the query.
@@ -77,14 +77,14 @@ public class FallbackIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(final Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         return new ResultSet<O>() {
             @Override
             public Iterator<O> iterator() {
-                return new FilteringIterator<O>(collection.iterator()) {
+                return new FilteringIterator<O>(collection.iterator(), queryOptions) {
                     @Override
-                    public boolean isValid(O object) {
-                        return query.matches(object);
+                    public boolean isValid(O object, QueryOptions queryOptions) {
+                        return query.matches(object, queryOptions);
                     }
                 };
             }
@@ -117,7 +117,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
         // No need to take any action
     }
 
@@ -127,7 +127,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
         // No need to take any action
     }
 
@@ -135,19 +135,20 @@ public class FallbackIndex<O> implements Index<O> {
      * {@inheritDoc}
      * <p/>
      * <b>In this implementation, stores a reference to the supplied collection, which the
-     * {@link Index#retrieve(Query, Map)} method can subsequently iterate.</b>
+     * {@link Index#retrieve(com.googlecode.cqengine.query.Query, com.googlecode.cqengine.query.option.QueryOptions)} method can subsequently iterate.</b>
      */
     @Override
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(Set<O> collection, QueryOptions queryOptions) {
         // Store the collection...
         this.collection = collection;
     }
 
     /**
      * {@inheritDoc}
+     * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(QueryOptions queryOptions) {
         collection.clear();
     }
 }

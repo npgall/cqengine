@@ -18,6 +18,7 @@ package com.googlecode.cqengine.query.simple;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * A query which matches no objects in the collection.
@@ -36,12 +37,12 @@ public class None<O> extends SimpleQuery<O, O> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, O> attribute, O object) {
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, O> attribute, O object, QueryOptions queryOptions) {
         return false;
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, O> attribute, O object) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, O> attribute, O object, QueryOptions queryOptions) {
         return false;
     }
 

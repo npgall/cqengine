@@ -20,7 +20,7 @@ import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
@@ -82,7 +82,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
             final Equal<O, A> equal = (Equal<O, A>) query;
@@ -90,17 +90,17 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                 @Override
                 public Iterator<O> iterator() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal).iterator();
+                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal, queryOptions).iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs != null && filterForQuantization(rs, equal).contains(object);
+                    return rs != null && filterForQuantization(rs, equal, queryOptions).contains(object);
                 }
                 @Override
                 public int size() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? 0 : filterForQuantization(rs, equal).size();
+                    return rs == null ? 0 : filterForQuantization(rs, equal, queryOptions).size();
                 }
                 @Override
                 public int getRetrievalCost() {
@@ -128,12 +128,13 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
      * <p/>
      * <b>This default implementation simply returns the given {@link ResultSet} unmodified.</b>
      *
-     * @param storedResultSet A {@link ResultSet} stored against a quantized key in the index
+     * @param storedResultSet A {@link com.googlecode.cqengine.resultset.ResultSet} stored against a quantized key in the index
      * @param query The query against which results should be matched
+     * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} which filters objects from the given {@link ResultSet},
      * to return only those objects matching the query
      */
-    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query) {
+    protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query, QueryOptions queryOptions) {
         return storedResultSet;
     }
 
@@ -192,8 +193,8 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
             // ---------- Override the hook methods related to Quantizer ----------
 
             @Override
-            protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query) {
-                return new QuantizedResultSet<O>(resultSet, query);
+            protected ResultSet<O> filterForQuantization(ResultSet<O> resultSet, final Query<O> query, QueryOptions queryOptions) {
+                return new QuantizedResultSet<O>(resultSet, query, queryOptions);
             }
 
             @Override

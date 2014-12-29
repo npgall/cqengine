@@ -15,12 +15,13 @@
  */
 package com.googlecode.cqengine.query.simple;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,10 +36,10 @@ public class HasTest {
     @Test
     public void testExists() {
         // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         Attribute<Car, String> NAME = new SimpleNullableAttribute<Car, String>("name") {
-            public String getValue(Car car) { return car.name; }
+            public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
         };
         // Add some indexes...
         cars.addIndex(StandingQueryIndex.onQuery(has(NAME)));

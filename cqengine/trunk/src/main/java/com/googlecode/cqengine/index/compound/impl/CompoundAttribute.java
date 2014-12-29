@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.compound.impl;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.*;
 
@@ -25,7 +26,7 @@ import java.util.*;
  * <p/>
  * Note that, being like regular {@link com.googlecode.cqengine.attribute.Attribute}s, objects of this type
  * do not represent values but rather the means to obtain values from fields in an object. <i>Values</i> for compound
- * attributes are encapsulated separately in {@link CompoundValueTuple} objects. The {@link #getValues(Object)} method
+ * attributes are encapsulated separately in {@link CompoundValueTuple} objects. The {@link Attribute#getValues(Object, com.googlecode.cqengine.query.option.QueryOptions)} method
  * returns a list of these tuples for a given object.
  * <p/>
  * <b><u>Algorithm to generate tuples</u></b><br/>
@@ -51,7 +52,7 @@ import java.util.*;
  *         object in the index.
  *         <p/>
  *         To generate tuples for {@code CompoundAttribute}s spanning {@code MultiValueAttribute}s, the
- *         {@link #getValues(Object)} method will retrieve a list of values from the object for each of the component
+ *         {@link Attribute#getValues(Object, com.googlecode.cqengine.query.option.QueryOptions)} method will retrieve a list of values from the object for each of the component
  *         attributes. It will then generate all possible combinations of values between these lists as tuples, using
  *         {@link TupleCombinationGenerator#generateCombinations(java.util.List)}.
  *         <p/>
@@ -62,7 +63,7 @@ import java.util.*;
  *         Values from third attribute:  <code>2.0, 3.0, 4.0</code><br/>
  *         The following tuples will be generated:<br/>
  *         <code>[[1, bar, 2.0], [1, bar, 3.0], [1, bar, 4.0], [1, baz, 2.0], [1, baz, 3.0], [1, baz, 4.0]]</code><br/>
- *         The {@link #getValues(Object)} method would then return these tuples as a list of {@link CompoundValueTuple}
+ *         The {@link Attribute#getValues(Object, com.googlecode.cqengine.query.option.QueryOptions)} method would then return these tuples as a list of {@link CompoundValueTuple}
  *         objects
  *     </li>
  * </ul>
@@ -106,11 +107,12 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
      * <p/>
      * See documentation on this class itself for details of the algorithm used to generate these tuples.
      *
-     * @param object The object from which all {@link CompoundValueTuple}s are required
+     * @param object The object from which all {@link com.googlecode.cqengine.index.compound.impl.CompoundValueTuple}s are required
+     * @param queryOptions
      * @return tuples representing all possible combinations of attribute values against which the object can be indexed
      */
     @Override
-    public Iterable<CompoundValueTuple<O>> getValues(O object) {
+    public Iterable<CompoundValueTuple<O>> getValues(O object, QueryOptions queryOptions) {
         // STEP 1.
         // For each individual attribute comprising the compound attribute,
         // ask the attribute to return a list of values for the field it references in the object.
@@ -120,7 +122,7 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
         List<Iterable<Object>> attributeValueLists = new ArrayList<Iterable<Object>>(attributes.size());
         for (Attribute<O, ?> attribute : attributes) {
             @SuppressWarnings({"unchecked"})
-            Iterable<Object> values = (Iterable<Object>) attribute.getValues(object);
+            Iterable<Object> values = (Iterable<Object>) attribute.getValues(object, queryOptions);
             attributeValueLists.add(values);
         }
         // STEP 2.

@@ -17,6 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Asserts that an attribute has a value (is not null).
@@ -45,13 +46,13 @@ public class Has<O, A> extends SimpleQuery<O, A> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object) {
-        return attribute.getValue(object) != null;
+    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        return attribute.getValue(object, queryOptions) != null;
     }
 
     @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object) {
-        for (A attributeValue : attribute.getValues(object)) {
+    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        for (A attributeValue : attribute.getValues(object, queryOptions)) {
             if (attributeValue != null) {
                 return true;
             }

@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.indexingbenchmark.task;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.indexingbenchmark.IndexingTask;
@@ -33,7 +33,9 @@ public class Quantized_HashIndex_CarId implements IndexingTask {
 
     @Override
     public void init(Collection<Car> collection) {
-        indexedCollection = CQEngine.copyFrom(collection);
+        IndexedCollection<Car> indexedCollection1 = new ConcurrentIndexedCollection<Car>();
+        indexedCollection1.addAll(collection);
+        indexedCollection = indexedCollection1;
     }
 
     @Override

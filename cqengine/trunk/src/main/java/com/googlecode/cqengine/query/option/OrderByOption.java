@@ -17,7 +17,6 @@ package com.googlecode.cqengine.query.option;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a list of attributes and associated preferences for sorting results according to those attributes each
@@ -26,7 +25,7 @@ import java.util.Map;
  * @author Roberto Socrates
  * @author Niall Gallagher
  */
-public class OrderByOption<O> implements QueryOption<O> {
+public class OrderByOption<O> {
 
     private final List<AttributeOrder<O>> attributeOrders;
 
@@ -38,20 +37,12 @@ public class OrderByOption<O> implements QueryOption<O> {
         return attributeOrders;
     }
 
-    public static <O> OrderByOption<O> extract(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
-        QueryOption<O> option = queryOptions.get(OrderByOption.class);
-        if (option instanceof OrderByOption) {
-            return (OrderByOption<O>) option;
-        }
-        return null;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("orderBy(");
         for (Iterator<AttributeOrder<O>> iterator = attributeOrders.iterator(); iterator.hasNext(); ) {
-            AttributeOrder<O> childQuery = iterator.next();
+            AttributeOrder<?> childQuery = iterator.next();
             sb.append(childQuery);
             if (iterator.hasNext()) {
                 sb.append(", ");

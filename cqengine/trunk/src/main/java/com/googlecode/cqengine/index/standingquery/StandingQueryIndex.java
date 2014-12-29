@@ -17,14 +17,13 @@ package com.googlecode.cqengine.index.standingquery;
 
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -88,7 +87,7 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(final Query<O> query, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, QueryOptions queryOptions) {
         if (!supportsQuery(query)) {
             // TODO: check necessary?
             throw new IllegalArgumentException("Unsupported query: " + query);
@@ -100,7 +99,7 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void init(Set<O> collection, QueryOptions queryOptions) {
         storedResultSet.clear();
         notifyObjectsAdded(collection, queryOptions);
     }
@@ -109,9 +108,9 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
         for (O object : objects) {
-            if (standingQuery.matches(object)) {
+            if (standingQuery.matches(object, queryOptions)) {
                 storedResultSet.add(object);
             }
         }
@@ -121,9 +120,9 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
         for (O object : objects) {
-            if (standingQuery.matches(object)) {
+            if (standingQuery.matches(object, queryOptions)) {
                 storedResultSet.remove(object);
             }
         }
@@ -131,9 +130,10 @@ public class StandingQueryIndex<O> implements Index<O> {
 
     /**
      * {@inheritDoc}
+     * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(Map<Class<? extends QueryOption>, QueryOption<O>> queryOptions) {
+    public void notifyObjectsCleared(QueryOptions queryOptions) {
         storedResultSet.clear();
     }
 

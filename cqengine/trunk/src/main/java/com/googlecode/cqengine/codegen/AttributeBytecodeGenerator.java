@@ -2,6 +2,7 @@ package com.googlecode.cqengine.codegen;
 
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.codegen.support.GeneratedAttributeSupport;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import javassist.*;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.SignatureAttribute;
@@ -306,15 +307,15 @@ public class AttributeBytecodeGenerator {
 
             // Add the getter method...
             CtMethod getterMethod = CtMethod.make(
-                    "public " + attributeValueType.getName() + " getValue(" + pojoClass.getName() + " object) { "
+                    "public " + attributeValueType.getName() + " getValue(" + pojoClass.getName() + " object, " + QueryOptions.class.getName() + " queryOptions) { "
                             + "return (" + attributeValueType.getName() + ") " + GeneratedAttributeSupport.class.getName() + ".valueOf(" + target + ");"
                             + " }", attributeClass);
             attributeClass.addMethod(getterMethod);
 
             // Add a bridge method for the getter method to account for type erasure (see https://docs.oracle.com/javase/tutorial/java/generics/bridgeMethods.html)...
             CtMethod getterBridgeMethod = CtMethod.make(
-                    "public java.lang.Object getValue(java.lang.Object object) { "
-                            + "return getValue((" + pojoClass.getName() + ")object);"
+                    "public java.lang.Object getValue(java.lang.Object object, " + QueryOptions.class.getName() + " queryOptions) { "
+                            + "return getValue((" + pojoClass.getName() + ")object, queryOptions);"
                             + " }", attributeClass);
             getterBridgeMethod.setModifiers(getterBridgeMethod.getModifiers() | AccessFlag.BRIDGE);
             attributeClass.addMethod(getterBridgeMethod);
@@ -359,7 +360,7 @@ public class AttributeBytecodeGenerator {
 
             // Add the getter method...
             CtMethod getterMethod = CtMethod.make(
-                    "public java.lang.Iterable getValues(" + pojoClass.getName() + " object) { "
+                    "public java.lang.Iterable getValues(" + pojoClass.getName() + " object, " + QueryOptions.class.getName() + " queryOptions) { "
                             + "return " + GeneratedAttributeSupport.class.getName() + ".valueOf(" + target + ");"
                             + " }", attributeClass);
 
@@ -378,8 +379,8 @@ public class AttributeBytecodeGenerator {
 
             // Add a bridge method for the getter method to account for type erasure (see https://docs.oracle.com/javase/tutorial/java/generics/bridgeMethods.html)...
             CtMethod getterBridgeMethod = CtMethod.make(
-                    "public java.lang.Iterable getValues(java.lang.Object object) { "
-                            + "return getValues((" + pojoClass.getName() + ")object);"
+                    "public java.lang.Iterable getValues(java.lang.Object object, " + QueryOptions.class.getName() + " queryOptions) { "
+                            + "return getValues((" + pojoClass.getName() + ")object, queryOptions);"
                             + " }", attributeClass);
             getterBridgeMethod.setModifiers(getterBridgeMethod.getModifiers() | AccessFlag.BRIDGE);
             attributeClass.addMethod(getterBridgeMethod);
@@ -424,7 +425,7 @@ public class AttributeBytecodeGenerator {
 
             // Add the getter method...
             CtMethod getterMethod = CtMethod.make(
-                    "public java.lang.Iterable getNullableValues(" + pojoClass.getName() + " object) { "
+                    "public java.lang.Iterable getNullableValues(" + pojoClass.getName() + " object, " + QueryOptions.class.getName() + " queryOptions) { "
                             + "return " + GeneratedAttributeSupport.class.getName() + ".valueOf(" + target + ");"
                             + " }", attributeClass);
 
@@ -443,8 +444,8 @@ public class AttributeBytecodeGenerator {
 
             // Add a bridge method for the getter method to account for type erasure (see https://docs.oracle.com/javase/tutorial/java/generics/bridgeMethods.html)...
             CtMethod getterBridgeMethod = CtMethod.make(
-                    "public java.lang.Iterable getNullableValues(java.lang.Object object) { "
-                            + "return getNullableValues((" + pojoClass.getName() + ")object);"
+                    "public java.lang.Iterable getNullableValues(java.lang.Object object, " + QueryOptions.class.getName() + " queryOptions) { "
+                            + "return getNullableValues((" + pojoClass.getName() + ")object, queryOptions);"
                             + " }", attributeClass);
             getterBridgeMethod.setModifiers(getterBridgeMethod.getModifiers() | AccessFlag.BRIDGE);
             attributeClass.addMethod(getterBridgeMethod);

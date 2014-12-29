@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.examples.join;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.query.Query;
@@ -33,14 +33,14 @@ public class SqlExistsBasedJoin {
 
     public static void main(String[] args) {
         // Create an indexed collection of cars...
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.add(new Car(1, "Ford Focus", "great condition, low mileage", asList("spare tyre", "sunroof")));
         cars.add(new Car(2, "Ford Taurus", "dirty and unreliable, flat tyre", asList("spare tyre", "radio")));
         cars.add(new Car(3, "Honda Civic", "has a flat tyre and high mileage", asList("radio")));
         cars.add(new Car(4, "BMW M3", "2013 model", asList("radio", "convertible")));
 
         // Create an indexed collection of garages...
-        final IndexedCollection<Garage> garages = CQEngine.newInstance();
+        final IndexedCollection<Garage> garages = new ConcurrentIndexedCollection<Garage>();
         garages.add(new Garage(1, "Joe's garage", "London", asList("Ford Focus", "Honda Civic")));
         garages.add(new Garage(2, "Jane's garage", "Dublin", asList("BMW M3")));
         garages.add(new Garage(3, "John's garage", "Dublin", asList("Ford Focus", "Ford Taurus")));

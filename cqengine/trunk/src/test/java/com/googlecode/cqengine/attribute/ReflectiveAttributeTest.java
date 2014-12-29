@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.attribute;
 
-import com.googlecode.cqengine.CQEngine;
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.hash.HashIndex;
@@ -34,7 +34,7 @@ public class ReflectiveAttributeTest {
     @Test
     public void testExists() {
         // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         // Define an attribute which will use reflection...
         Attribute<Car, String> NAME = ReflectiveAttribute.forField(Car.class, String.class, "name");

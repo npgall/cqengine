@@ -16,11 +16,14 @@
 package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 
 /**
  * Utility methods useful in unit tests.
@@ -38,7 +41,7 @@ public class TestUtil {
     public static <O, A> Set<A> valuesOf(Attribute<O, A> attribute, ResultSet<O> resultSet) {
         Set<A> attributeValues = new LinkedHashSet<A>();
         for (O object : resultSet) {
-            for (A value : attribute.getValues(object)) {
+            for (A value : attribute.getValues(object, noQueryOptions())) {
                 attributeValues.add(value);
             }
         }

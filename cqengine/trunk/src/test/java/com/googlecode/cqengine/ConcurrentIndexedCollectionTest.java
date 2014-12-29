@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.collection.impl;
+package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.engine.impl.QueryEngineImpl;
 import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class ConcurrentIndexedCollectionTest {
 
     private static final Attribute<TestEntity, Integer> valueAttribute = new SimpleAttribute<TestEntity, Integer>() {
         @Override
-        public Integer getValue(TestEntity object) {
+        public Integer getValue(TestEntity object, QueryOptions queryOptions) {
             return object.getValue();
         }
     };
@@ -68,10 +68,7 @@ public class ConcurrentIndexedCollectionTest {
 
     @Before
     public void setUp() {
-        concurrentIndexedCollection = new ConcurrentIndexedCollection<TestEntity>(
-                new DefaultConcurrentSetFactory<TestEntity>(),
-                new QueryEngineImpl<TestEntity>());
-
+        concurrentIndexedCollection = new ConcurrentIndexedCollection<TestEntity>();
         concurrentIndexedCollection.addIndex(HashIndex.onAttribute(valueAttribute));
     }
 

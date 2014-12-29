@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
  * Represents an attribute in an object which has multiple values (such as a field which is itself a collection),
@@ -60,8 +61,10 @@ public abstract class MultiValueAttribute<O, A> extends AbstractAttribute<O, A> 
      * Returns the non-null values of the attribute from the object.
      * <p/>
      * @param object The object from which the values of the attribute are required
+     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
+     * this attribute to be invoked (either a query, or an update to the collection)
      * @return The values for the attribute, which should never be null
      */
     @Override
-    public abstract Iterable<A> getValues(O object);
+    public abstract Iterable<A> getValues(O object, QueryOptions queryOptions);
 }

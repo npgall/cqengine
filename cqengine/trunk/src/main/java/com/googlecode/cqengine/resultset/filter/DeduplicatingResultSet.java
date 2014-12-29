@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
@@ -35,18 +36,19 @@ import java.util.Iterator;
  */
 public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
 
-    private final ResultSet<O> wrappedResultSet;
+    final ResultSet<O> wrappedResultSet;
+    final Attribute<O, A> uniqueAttribute;
+    final QueryOptions queryOptions;
 
-    private final Attribute<O, A> uniqueAttribute;
-
-    public DeduplicatingResultSet(Attribute<O, A> uniqueAttribute, ResultSet<O> wrappedResultSet) {
+    public DeduplicatingResultSet(Attribute<O, A> uniqueAttribute, ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
         this.uniqueAttribute = uniqueAttribute;
         this.wrappedResultSet = wrappedResultSet;
+        this.queryOptions = queryOptions;
     }
 
     @Override
     public Iterator<O> iterator() {
-        return new DeduplicatingIterator<O, A>(uniqueAttribute, wrappedResultSet.iterator());
+        return new DeduplicatingIterator<O, A>(uniqueAttribute, queryOptions, wrappedResultSet.iterator());
     }
 
     @Override

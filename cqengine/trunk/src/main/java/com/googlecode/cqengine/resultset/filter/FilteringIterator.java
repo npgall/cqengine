@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.filter;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
 import java.util.Iterator;
@@ -22,7 +23,7 @@ import java.util.NoSuchElementException;
 
 /**
  * An Iterator which wraps another iterator, and for each object returned by the wrapped iterator, calls an
- * {@link #isValid(Object)} method. If this method returns true, this iterator returns the object, if it returns false
+ * {@link #isValid(Object, com.googlecode.cqengine.query.option.QueryOptions)} method. If this method returns true, this iterator returns the object, if it returns false
  * it skips the object and moves to the next object.
  *
  * @author ngallagher
@@ -30,10 +31,12 @@ import java.util.NoSuchElementException;
  */
 public abstract class FilteringIterator<O> extends UnmodifiableIterator<O> {
 
-    private final Iterator<O> wrappedIterator;
+    final Iterator<O> wrappedIterator;
+    final QueryOptions queryOptions;
 
-    public FilteringIterator(Iterator<O> wrappedIterator) {
+    public FilteringIterator(Iterator<O> wrappedIterator, QueryOptions queryOptions) {
         this.wrappedIterator = wrappedIterator;
+        this.queryOptions = queryOptions;
     }
 
     private O nextObject = null;
@@ -46,7 +49,7 @@ public abstract class FilteringIterator<O> extends UnmodifiableIterator<O> {
         }
         while (wrappedIterator.hasNext()) {
             nextObject = wrappedIterator.next();
-            if (isValid(nextObject)) {
+            if (isValid(nextObject, queryOptions)) {
                 nextObjectIsNull = (nextObject == null);
                 return true;
             } // else object not valid, skip to next object
@@ -66,6 +69,6 @@ public abstract class FilteringIterator<O> extends UnmodifiableIterator<O> {
         return objectToReturn;
     }
 
-    public abstract boolean isValid(O object);
+    public abstract boolean isValid(O object, QueryOptions queryOptions);
 
 }

@@ -37,7 +37,7 @@ import static com.googlecode.cqengine.query.QueryFactory.orderBy;
 public class CQEngineDemo {
 
     public static void main(String[] args) {
-        IndexedCollection<Car> cars = CQEngine.newInstance();
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         cars.addIndex(HashIndex.onAttribute(Car.MODEL));
         cars.addIndex(HashIndex.onAttribute(Car.COLOR));

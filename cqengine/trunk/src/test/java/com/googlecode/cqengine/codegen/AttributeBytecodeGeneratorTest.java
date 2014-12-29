@@ -1,6 +1,10 @@
 package com.googlecode.cqengine.codegen;
 
 import com.googlecode.cqengine.attribute.*;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -8,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.googlecode.cqengine.codegen.AttributeBytecodeGenerator.*;
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -275,14 +280,14 @@ public class AttributeBytecodeGeneratorTest {
     // ====== Test helper methods ======
 
     static <O, A, T extends Attribute<O, A>> void validateAttribute(T attribute, Class<O> pojoClass, Class<A> attributeType, String attributeName, O pojo, List<A> expectedPojoValues) {
-        Object values = attribute.getValues(pojo);
+        Object values = attribute.getValues(pojo, noQueryOptions());
         assertNotNull("getValues() should not return null", values);
         assertEquals(pojoClass, attribute.getObjectType());
         assertEquals(attributeType, attribute.getAttributeType());
         assertEquals(attributeName, attribute.getAttributeName());
         assertTrue("getValues() should return a List, actual was: " + values.getClass().getName(), Iterable.class.isAssignableFrom(values.getClass()));
         List<A> actualAttributeValues = new ArrayList<A>();
-        for (A actualValue : attribute.getValues(pojo)) {
+        for (A actualValue : attribute.getValues(pojo, noQueryOptions())) {
             actualAttributeValues.add(actualValue);
         }
         assertEquals(expectedPojoValues, actualAttributeValues);

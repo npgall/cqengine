@@ -15,14 +15,14 @@
  */
 package com.googlecode.cqengine.resultset.filter;
 
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * A {@link ResultSet} which wraps an {@link Iterable} and which calls an abstract {@link #isValid(Object)} method
+ * A {@link ResultSet} which wraps an {@link Iterable} and which calls an abstract {@link #isValid(Object, com.googlecode.cqengine.query.option.QueryOptions)} method
  * for each object. Returns the object if the implementation of the method returns true, or skips to the
  * next object if the method returns false.
  *
@@ -30,18 +30,20 @@ import java.util.Iterator;
  */
 public abstract class FilteringResultSet<O> extends ResultSet<O> {
 
-    private final ResultSet<O> wrappedResultSet;
+    final ResultSet<O> wrappedResultSet;
+    final QueryOptions queryOptions;
 
-    public FilteringResultSet(ResultSet<O> wrappedResultSet) {
+    public FilteringResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
         this.wrappedResultSet = wrappedResultSet;
+        this.queryOptions = queryOptions;
     }
 
     @Override
     public Iterator<O> iterator() {
-        return new FilteringIterator<O>(wrappedResultSet.iterator()) {
+        return new FilteringIterator<O>(wrappedResultSet.iterator(), queryOptions) {
             @Override
-            public boolean isValid(O object) {
-                return FilteringResultSet.this.isValid(object);
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return FilteringResultSet.this.isValid(object, queryOptions);
             }
         };
     }
@@ -52,7 +54,7 @@ public abstract class FilteringResultSet<O> extends ResultSet<O> {
         return IteratorUtil.iterableContains(this, object);
     }
 
-    public abstract boolean isValid(O object);
+    public abstract boolean isValid(O object, QueryOptions queryOptions);
 
     @Override
     public int size() {
