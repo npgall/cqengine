@@ -24,6 +24,18 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import java.util.Set;
 
 /**
+ * A Java collection which can maintain indexes on the data contained in in, allowing objects matching complex queries
+ * to be retrieved with very low latency.
+ * <p/>
+ * The {@link #retrieve(com.googlecode.cqengine.query.Query)} methods accept a {@link com.googlecode.cqengine.query.Query}
+ * and return a {@link com.googlecode.cqengine.resultset.ResultSet} of objects matching that query.
+ * <p/>
+ * The {@link #addIndex(com.googlecode.cqengine.index.Index)} methods allowing indexes to be added to the collection to
+ * improve query performance.
+ * <p/>
+ * Several implementations of this interface exist each with different performance or transaction isolation
+ * characteristics. See documentation on the implementations for further details.
+ *
  * @author Niall Gallagher
  */
 public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
