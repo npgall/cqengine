@@ -203,7 +203,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     @Override
     public boolean retainAll(final Collection<?> c) {
         // Prepare to lazily read all objects from the collection *without using MVCC* (..READ_UNCOMMITTED),
-        // and lazily filter it to return only the subsetToRemove objects which are also in the given collection...
+        // and lazily filter it to return only the subsetToRemove objects which are not in the given collection...
         FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>(
                 retrieve(all(objectType), queryOptions(isolationLevel(READ_UNCOMMITTED))), noQueryOptions()) {
             @Override
