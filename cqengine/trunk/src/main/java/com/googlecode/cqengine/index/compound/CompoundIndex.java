@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.compound;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.common.MapBasedIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
@@ -50,7 +51,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> {
+public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> implements MapBasedIndex<CompoundValueTuple<O>, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 20;
 
@@ -145,6 +146,16 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
         else {
             throw new IllegalArgumentException("Unsupported query: " + query);
         }
+    }
+
+    @Override
+    public Set<CompoundValueTuple<O>> getDistinctKeys() {
+        return super.getDistinctKeys();
+    }
+
+    @Override
+    public Integer getCountForKey(CompoundValueTuple<O> key) {
+        return super.getCountForKey(key);
     }
 
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------

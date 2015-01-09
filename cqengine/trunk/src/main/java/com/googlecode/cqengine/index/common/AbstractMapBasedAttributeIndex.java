@@ -21,6 +21,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -129,6 +130,14 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
         this.indexMap.clear();
     }
 
+    protected Set<A> getDistinctKeys() {
+        return Collections.unmodifiableSet(this.indexMap.keySet());
+    }
+
+    protected Integer getCountForKey(A key) {
+        StoredResultSet<O> objectsForKey = this.indexMap.get(key);
+        return objectsForKey == null ? 0 : objectsForKey.size();
+    }
 
     // ---------- Hook methods which can be overridden by indexes using a Quantizer ----------
 
