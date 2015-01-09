@@ -205,6 +205,24 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
 
     // -------------------- Method for accessing indexes --------------------
 
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterable<Index<O>> getIndexes() {
+        List<Index<O>> indexes = new ArrayList<Index<O>>();
+        for (Set<Index<O>> attributeIndexes : this.attributeIndexes.values()) {
+            indexes.addAll(attributeIndexes);
+        }
+        indexes.addAll(this.compoundIndexes.values());
+        indexes.addAll(this.standingQueryIndexes.values());
+        for (Set<QueryTypeIndex<O>> queryTypeIndexes : this.queryTypeIndexes.values()) {
+            indexes.addAll(queryTypeIndexes);
+        }
+        return indexes;
+    }
+
     /**
      * Returns an {@link Iterable} over all indexes which have been added on the given attribute, including the
      * {@link FallbackIndex} which is implicitly available on all attributes.
