@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.attribute;
 
-import com.googlecode.cqengine.attribute.impl.AbstractAttribute;
+import com.googlecode.cqengine.attribute.support.AbstractAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 

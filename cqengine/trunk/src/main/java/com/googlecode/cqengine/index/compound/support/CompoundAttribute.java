@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.index.compound.impl;
+package com.googlecode.cqengine.index.compound.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -107,7 +107,7 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
      * <p/>
      * See documentation on this class itself for details of the algorithm used to generate these tuples.
      *
-     * @param object The object from which all {@link com.googlecode.cqengine.index.compound.impl.CompoundValueTuple}s are required
+     * @param object The object from which all {@link com.googlecode.cqengine.index.compound.support.CompoundValueTuple}s are required
      * @param queryOptions
      * @return tuples representing all possible combinations of attribute values against which the object can be indexed
      */
