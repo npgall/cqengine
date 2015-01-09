@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.index.compound.impl;
+package com.googlecode.cqengine.index.compound.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;

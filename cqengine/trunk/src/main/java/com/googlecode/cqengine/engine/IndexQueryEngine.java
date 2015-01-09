@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.engine.impl;
+package com.googlecode.cqengine.engine;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
-import com.googlecode.cqengine.index.compound.impl.CompoundAttribute;
-import com.googlecode.cqengine.index.compound.impl.CompoundQuery;
+import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
+import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
@@ -57,7 +56,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
+public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
 
     private volatile Set<O> collection = Collections.emptySet();
 
@@ -72,7 +71,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
     // Initially true, updated as indexes are added in addIndex()...
     private volatile boolean allIndexesAreMutable = true;
 
-    public QueryEngineImpl() {
+    public IndexQueryEngine() {
     }
 
     @Override
@@ -650,7 +649,7 @@ public class QueryEngineImpl<O> implements QueryEngineInternal<O> {
 
     /**
      * A closure/callback object invoked for each index in turn by method
-     * {@link QueryEngineImpl#forEachIndexDo(IndexOperation)}.
+     * {@link IndexQueryEngine#forEachIndexDo(IndexOperation)}.
      */
     interface IndexOperation<O> {
         /**

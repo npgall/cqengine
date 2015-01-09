@@ -16,7 +16,7 @@
 package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngineInternal;
-import com.googlecode.cqengine.engine.impl.QueryEngineImpl;
+import com.googlecode.cqengine.engine.IndexQueryEngine;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
@@ -76,7 +76,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory) {
         this.collection = backingSetFactory.create();
-        QueryEngineInternal<O> queryEngine = new QueryEngineImpl<O>();
+        QueryEngineInternal<O> queryEngine = new IndexQueryEngine<O>();
         queryEngine.init(collection, noQueryOptions());
         this.indexEngine = queryEngine;
     }

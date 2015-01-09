@@ -18,9 +18,9 @@ package com.googlecode.cqengine.index.compound;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.compound.impl.CompoundAttribute;
-import com.googlecode.cqengine.index.compound.impl.CompoundQuery;
-import com.googlecode.cqengine.index.compound.impl.CompoundValueTuple;
+import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
+import com.googlecode.cqengine.index.compound.support.CompoundQuery;
+import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * Supports query types:
  * <ul>
  *     <li>
- *         {@link com.googlecode.cqengine.index.compound.impl.CompoundQuery}
+ *         {@link com.googlecode.cqengine.index.compound.support.CompoundQuery}
  *     </li>
  * </ul>
  * The constructor of this index accepts {@link Factory} objects, from which it will create the map and value sets it
