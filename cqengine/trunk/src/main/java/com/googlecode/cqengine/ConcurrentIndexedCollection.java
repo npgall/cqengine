@@ -132,6 +132,11 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         indexEngine.addIndex(index, queryOptions);
     }
 
+    @Override
+    public Iterable<Index<O>> getIndexes() {
+        return indexEngine.getIndexes();
+    }
+
     // ----------- Collection Accessor Methods -------------
 
     /**

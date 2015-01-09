@@ -20,9 +20,6 @@ import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
-import java.util.Collection;
-import java.util.Map;
-
 /**
  * The main component of {@code CQEngine} - maintains a set of indexes on a collection and accepts queries which
  * it performs and optimizes for those indexes.
@@ -68,4 +65,13 @@ public interface QueryEngine<O> {
      * @param queryOptions Optional parameters for the index
      */
     public void addIndex(Index<O> index, QueryOptions queryOptions);
+
+    /**
+     * Returns the set of which were previously added to the collection via the
+     * {@link #addIndex(com.googlecode.cqengine.index.Index)} method.
+     *
+     * @return The set of which were previously added to the collection via the
+     * {@link #addIndex(com.googlecode.cqengine.index.Index)} method
+     */
+    public Iterable<Index<O>> getIndexes();
 }
