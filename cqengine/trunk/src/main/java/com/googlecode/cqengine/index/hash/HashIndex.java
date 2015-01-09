@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.hash;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.common.MapBasedIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -48,7 +49,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> {
+public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> implements MapBasedIndex<A, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 30;
 
@@ -138,6 +139,15 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
         return storedResultSet;
     }
 
+    @Override
+    public Integer getCountForKey(A key) {
+        return super.getCountForKey(key);
+    }
+
+    @Override
+    public Set<A> getDistinctKeys() {
+        return super.getDistinctKeys();
+    }
 
     // ---------- Static factory methods to create HashIndexes ----------
 
