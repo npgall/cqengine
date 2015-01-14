@@ -25,7 +25,6 @@ import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
-import com.googlecode.cqengine.index.querytype.QueryTypeIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
@@ -69,8 +68,6 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
     private final ConcurrentMap<CompoundAttribute<O>, CompoundIndex<O>> compoundIndexes = new ConcurrentHashMap<CompoundAttribute<O>, CompoundIndex<O>>();
     // Map of queries to standing query index on that query...
     private final ConcurrentMap<Query<O>, StandingQueryIndex<O>> standingQueryIndexes = new ConcurrentHashMap<Query<O>, StandingQueryIndex<O>>();
-    // Map of query types to one or more special indexes which can evaluate the type...
-    private final ConcurrentMap<Class<? extends Query>, Set<QueryTypeIndex<O>>> queryTypeIndexes = new ConcurrentHashMap<Class<? extends Query>, Set<QueryTypeIndex<O>>>();
     // Fallback index (handles queries which other indexes don't common)...
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Initially true, updated as indexes are added in addIndex()...
@@ -125,12 +122,6 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             addAttributeIndex(attributeIndex, queryOptions);
         }
-        else if (index instanceof QueryTypeIndex) {
-            allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
-            @SuppressWarnings({"unchecked"})
-            QueryTypeIndex<O> queryTypeIndex = (QueryTypeIndex<O>) index;
-            addQueryTypeIndex(queryTypeIndex, queryTypeIndex.getSupportedQueryTypes(), queryOptions);
-        }
         else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
         }
@@ -181,30 +172,6 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         compoundIndex.init(collection, queryOptions);
     }
 
-    /**
-     * Adds a {@link QueryTypeIndex}.
-     * @param queryTypeIndex The index to add
-     * @param queryTypes The types of query supported by the index
-     */
-    void addQueryTypeIndex(QueryTypeIndex<O> queryTypeIndex, Set<Class<? extends Query>> queryTypes, QueryOptions queryOptions) {
-        if (queryTypeIndex == null) {
-            throw new IllegalArgumentException("The index argument was null.");
-        }
-        if (queryTypes == null) {
-            throw new IllegalArgumentException("The query type argument was null.");
-        }
-        for (Class<? extends Query> queryType : queryTypes) {
-            Set<QueryTypeIndex<O>> indexesOnThisQueryType = queryTypeIndexes.get(queryType);
-            if (indexesOnThisQueryType == null) {
-                indexesOnThisQueryType = new HashSet<QueryTypeIndex<O>>();
-                queryTypeIndexes.put(queryType, indexesOnThisQueryType);
-            }
-            indexesOnThisQueryType.add(queryTypeIndex);
-        }
-
-        queryTypeIndex.init(collection, queryOptions);
-    }
-
     // -------------------- Method for accessing indexes --------------------
 
 
@@ -219,9 +186,6 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         indexes.addAll(this.compoundIndexes.values());
         indexes.addAll(this.standingQueryIndexes.values());
-        for (Set<QueryTypeIndex<O>> queryTypeIndexes : this.queryTypeIndexes.values()) {
-            indexes.addAll(queryTypeIndexes);
-        }
         return indexes;
     }
 
@@ -442,7 +406,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      * supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      * @return A {@link ResultSet} which provides objects matching the given query
      */
-    ResultSet<O> retrieveRecursive(final Query<O> query, final QueryOptions queryOptions) {
+    ResultSet<O> retrieveRecursive(Query<O> query, final QueryOptions queryOptions) {
 
         // Check if we can process this query from a standing query index...
         StandingQueryIndex<O> standingQueryIndex = standingQueryIndexes.get(query);
@@ -565,23 +529,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
             return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, queryOptions);
         }
         else {
-            // Check if any QueryType indexes can accelerate this query...
-            @SuppressWarnings("unchecked")
-            Class<? extends Query<O>> queryClass = (Class<? extends Query<O>>)query.getClass();
-            Set<QueryTypeIndex<O>> availableQueryTypeIndexes = queryTypeIndexes.get(queryClass);
-            for (QueryTypeIndex<O> availableQueryTypeIndex : availableQueryTypeIndexes) {
-                if (availableQueryTypeIndex.supportsQuery(query)) {
-                    return availableQueryTypeIndex.retrieve(query, queryOptions);
-                }
-            }
-
-            // No QueryTypeIndexes available, evaluate the query by filtering...
-            return new FilteringResultSet<O>(getEntireCollectionAsResultSet(), queryOptions) {
-                @Override
-                public boolean isValid(O object, QueryOptions queryOptions) {
-                    return query.matches(object, queryOptions);
-                }
-            };
+            throw new IllegalStateException("Unexpected type of query object: " + (query == null ? null : query.getClass().getName()));
         }
     }
 
