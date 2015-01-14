@@ -211,6 +211,11 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
             protected A getQuantizedValue(A attributeValue) {
                 return quantizer.getQuantizedValue(attributeValue);
             }
+
+            @Override
+            protected boolean isIndexQuantized() {
+                return true;
+            }
         };
     }
 

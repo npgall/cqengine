@@ -243,6 +243,11 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
             protected CompoundValueTuple<O> getQuantizedValue(CompoundValueTuple<O> attributeValue) {
                 return quantizer.getQuantizedValue(attributeValue);
             }
+
+            @Override
+            protected boolean isIndexQuantized() {
+                return true;
+            }
         };
     }
 

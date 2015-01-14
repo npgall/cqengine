@@ -100,6 +100,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     @Override
     public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
+        final boolean indexIsQuantized = isIndexQuantized();
         // Process Equal queries in the same was as HashIndex...
         if (queryClass.equals(Equal.class)) {
             final Equal<O, A> equal = (Equal<O, A>) query;
@@ -140,7 +141,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 public Iterable<StoredResultSet<O>> perform() {
                     return indexMap.headMap(
                             getQuantizedValue(lessThan.getValue()),
-                            lessThan.isValueInclusive()
+                            lessThan.isValueInclusive() || indexIsQuantized
                     ).values();
                 }
             };
@@ -152,7 +153,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 public Iterable<StoredResultSet<O>> perform() {
                     return indexMap.tailMap(
                             getQuantizedValue(greaterThan.getValue()),
-                            greaterThan.isValueInclusive()
+                            greaterThan.isValueInclusive() || indexIsQuantized
                     ).values();
                 }
             };
@@ -164,9 +165,9 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 public Iterable<StoredResultSet<O>> perform() {
                     return indexMap.subMap(
                             getQuantizedValue(between.getLowerValue()),
-                            between.isLowerInclusive(),
+                            between.isLowerInclusive() || indexIsQuantized,
                             getQuantizedValue(between.getUpperValue()),
-                            between.isUpperInclusive()
+                            between.isUpperInclusive() || indexIsQuantized
                     ).values();
                 }
             };
@@ -424,6 +425,11 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             @Override
             protected ResultSet<O> filterForQuantization(ResultSet<O> storedResultSet, Query<O> query, QueryOptions queryOptions) {
                 return new QuantizedResultSet<O>(storedResultSet, query, queryOptions);
+            }
+
+            @Override
+            protected boolean isIndexQuantized() {
+                return true;
             }
         };
     }
