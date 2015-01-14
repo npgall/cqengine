@@ -49,7 +49,7 @@ public abstract class FilteringResultSet<O> extends ResultSet<O> {
     }
 
     @Override
-    public final boolean contains(O object) {
+    public boolean contains(O object) {
         // Check if this ResultSet contains the given object by iterating the ResultSet...
         return IteratorUtil.iterableContains(this, object);
     }
