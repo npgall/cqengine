@@ -142,6 +142,15 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
     // ---------- Hook methods which can be overridden by indexes using a Quantizer ----------
 
     /**
+     * A method which should be overridden to return true, by subclasses which use a
+     * {@link com.googlecode.cqengine.quantizer.Quantizer}.
+     *
+     * @return True if keys in the index are quantized, false if not.
+     */
+    protected boolean isIndexQuantized() {
+        return false;
+    }
+    /**
      * A no-op method which may be overridden by subclasses which use a
      * {@link com.googlecode.cqengine.quantizer.Quantizer}.
      * <p/>
