@@ -18,7 +18,7 @@ package com.googlecode.cqengine.index.navigable;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
+import com.googlecode.cqengine.index.common.NavigableMapBasedAttributeIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -62,7 +62,7 @@ import java.util.concurrent.*;
  *
  * @author Niall Gallagher
  */
-public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements NavigableMapBasedIndex<A, O> {
+public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements NavigableMapBasedAttributeIndex<A, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 40;
 
