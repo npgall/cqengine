@@ -18,7 +18,7 @@ package com.googlecode.cqengine.index.hash;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.MapBasedIndex;
+import com.googlecode.cqengine.index.common.MapBasedAttributeIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -49,7 +49,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> implements MapBasedIndex<A, O> {
+public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> implements MapBasedAttributeIndex<A, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 30;
 
