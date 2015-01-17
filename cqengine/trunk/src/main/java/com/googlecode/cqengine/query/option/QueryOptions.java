@@ -49,4 +49,9 @@ public class QueryOptions {
     public static QueryOptions noQueryOptions() {
         return EMPTY_OPTIONS;
     }
+
+    @Override
+    public String toString() {
+        return "queryOptions(" + options + ')';
+    }
 }

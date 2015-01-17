@@ -141,7 +141,7 @@
         <dependency>
             <groupId>com.googlecode.concurrent-trees</groupId>
             <artifactId>concurrent-trees</artifactId>
-            <version>2.1.0</version>
+            <version>2.4.0</version>
         </dependency>
         <dependency>
             <!-- Optional dependency, required only if the host application wishes to use CQEngine's AttributeBytecodeGenerator.
@@ -154,7 +154,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.2</version>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.java</groupId>
+            <artifactId>junit-dataprovider</artifactId>
+            <version>1.9.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

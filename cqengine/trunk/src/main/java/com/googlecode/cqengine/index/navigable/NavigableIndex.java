@@ -428,7 +428,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             }
 
             @Override
-            protected boolean isIndexQuantized() {
+            public boolean isIndexQuantized() {
                 return true;
             }
         };

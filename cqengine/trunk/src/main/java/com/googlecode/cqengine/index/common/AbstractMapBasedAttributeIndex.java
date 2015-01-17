@@ -147,7 +147,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      *
      * @return True if keys in the index are quantized, false if not.
      */
-    protected boolean isIndexQuantized() {
+    public boolean isIndexQuantized() {
         return false;
     }
     /**
