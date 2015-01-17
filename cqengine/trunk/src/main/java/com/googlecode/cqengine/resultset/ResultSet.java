@@ -15,9 +15,10 @@
  */
 package com.googlecode.cqengine.resultset;
 
+import com.googlecode.cqengine.resultset.common.NoSuchObjectException;
+import com.googlecode.cqengine.resultset.common.NonUniqueObjectException;
+
 import java.util.Iterator;
-import com.googlecode.cqengine.resultset.common.*;
-import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 /**
  * @author Niall Gallagher
@@ -147,5 +148,15 @@ public abstract class ResultSet<O> implements Iterable<O> {
      */
     public boolean isNotEmpty() {
         return iterator().hasNext();
+    }
+
+    /**
+     * Releases any resources or closes the transaction which was opened for this ResultSet.
+     * <p/>
+     * Whether or not it is necessary to close the ResultSet depends on which implementation of
+     * IndexedCollection is in use.
+     */
+    public void close() {
+        // No op by default.
     }
 }
