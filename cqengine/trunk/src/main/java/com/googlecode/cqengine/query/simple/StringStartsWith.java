@@ -75,7 +75,7 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof StringStartsWith)) return false;
 
         StringStartsWith that = (StringStartsWith) o;
 

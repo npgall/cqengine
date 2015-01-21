@@ -66,7 +66,7 @@ public class StringIsContainedIn<O, A extends CharSequence> extends SimpleQuery<
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof StringIsContainedIn)) return false;
 
         StringIsContainedIn that = (StringIsContainedIn) o;
 

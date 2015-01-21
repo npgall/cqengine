@@ -90,7 +90,7 @@ public class ReflectiveAttribute<O, A> extends SimpleAttribute<O, A> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ReflectiveAttribute)) return false;
         if (!super.equals(o)) return false;
 
         ReflectiveAttribute that = (ReflectiveAttribute) o;

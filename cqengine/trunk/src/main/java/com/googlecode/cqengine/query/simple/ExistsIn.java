@@ -38,20 +38,16 @@ final IndexedCollection<F> foreignCollection;
     final Attribute<F, A> foreignKeyAttribute;
     final Query<F> foreignRestrictions;
 
+    public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute) {
+        this(foreignCollection, localKeyAttribute, foreignKeyAttribute, null);
+    }
+
     public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute, Query<F> foreignRestrictions) {
         super(localKeyAttribute);
         this.foreignCollection = foreignCollection;
         this.localKeyAttribute = localKeyAttribute;
         this.foreignKeyAttribute = foreignKeyAttribute;
         this.foreignRestrictions = foreignRestrictions;
-    }
-
-    public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute) {
-        super(localKeyAttribute);
-        this.foreignCollection = foreignCollection;
-        this.localKeyAttribute = localKeyAttribute;
-        this.foreignKeyAttribute = foreignKeyAttribute;
-        this.foreignRestrictions = null;
     }
 
     @Override
@@ -107,7 +103,7 @@ final IndexedCollection<F> foreignCollection;
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ExistsIn)) return false;
 
         ExistsIn existsIn = (ExistsIn) o;
 

@@ -148,7 +148,7 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof CompoundAttribute)) return false;
 
         CompoundAttribute that = (CompoundAttribute) o;
 

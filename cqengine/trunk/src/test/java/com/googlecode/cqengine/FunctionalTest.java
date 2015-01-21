@@ -202,6 +202,159 @@ public class FunctionalTest {
                             }};
                         }},
                         new QueryToEvaluate() {{
+                            query = equal(Car.FEATURES, "hybrid");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 200;
+                                containsCarIds = asSet(1, 7);
+                                doesNotContainCarIds = asSet(0, 2, 3, 4, 5, 6, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = in(Car.FEATURES, "hybrid", "coupe");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(1, 7, 9);
+                                doesNotContainCarIds = asSet(0, 2, 3, 4, 5, 6, 8);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.FEATURES, "grade a", "grade c"); // note: lexicographically between
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(2, 3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.FEATURES, "grade a", false, "grade c", true); // note: lexicographically between
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 200;
+                                containsCarIds = asSet(3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 2, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.FEATURES, "grade a", true, "grade c", false); // note: lexicographically between
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 200;
+                                containsCarIds = asSet(2, 3);
+                                doesNotContainCarIds = asSet(0, 1, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.FEATURES, "grade a", false, "grade c", false); // note: lexicographically between
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(3);
+                                doesNotContainCarIds = asSet(0, 1, 2, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(greaterThan(Car.FEATURES, "grade a"), lessThan(Car.FEATURES, "grade c"));
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(3);
+                                doesNotContainCarIds = asSet(0, 1, 2, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(greaterThanOrEqualTo(Car.FEATURES, "grade a"), lessThanOrEqualTo(Car.FEATURES, "grade c"));
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(2, 3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = startsWith(Car.FEATURES, "grade");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(2, 3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = startsWith(Car.MANUFACTURER, "Hon");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(3, 4, 5);
+                                doesNotContainCarIds = asSet(0, 1, 2, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = contains(Car.FEATURES, "ade");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(2, 3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = contains(Car.MANUFACTURER, "on");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(3, 4, 5);
+                                doesNotContainCarIds = asSet(0, 1, 2, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = isContainedIn(Car.MANUFACTURER, "I would like to buy a Honda car");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(3, 4, 5);
+                                doesNotContainCarIds = asSet(0, 1, 2, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = isContainedIn(Car.MANUFACTURER, "I would like to buy a Honda car");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(3, 4, 5);
+                                doesNotContainCarIds = asSet(0, 1, 2, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = isContainedIn(Car.FEATURES, "I would like a coupe or a sunroof please");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 200;
+                                containsCarIds = asSet(7, 9);
+                                doesNotContainCarIds = asSet(0, 1, 2, 3, 4, 5, 6, 8);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = matchesRegex(Car.MODEL, "F.+n");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(1);
+                                doesNotContainCarIds = asSet(0, 2, 3, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = matchesRegex(Car.FEATURES, ".*ade.*");
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 300;
+                                containsCarIds = asSet(2, 3, 4);
+                                doesNotContainCarIds = asSet(0, 1, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
                             query = or(between(Car.CAR_ID, 400, 500), between(Car.CAR_ID, 450, 550));
                             queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
                             expectedResults = new ExpectedResults() {{
@@ -218,6 +371,22 @@ public class FunctionalTest {
                                 containsCarIds = integersBetween(400, 550);
                                 doesNotContainCarIds = asSet(399, 551);
                             }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = endsWith(Car.FEATURES, "roof");
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(7);
+                                doesNotContainCarIds = asSet(0, 1, 2, 3, 4, 5, 6, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = endsWith(Car.MODEL, "sight");
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(5);
+                                doesNotContainCarIds = asSet(0, 1, 2, 3, 4, 6, 7, 8, 9);
+                            }};
                         }}
                 );
                 indexCombinations = indexCombinations(
@@ -226,7 +395,9 @@ public class FunctionalTest {
                         indexCombination(HashIndex.onAttribute(Car.CAR_ID)),
                         indexCombination(HashIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID)),
                         indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
-                        indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID))
+                        indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID)),
+                        indexCombination(NavigableIndex.onAttribute(Car.FEATURES))
+
                 );
             }},
             new MacroScenario() {{
@@ -568,7 +739,7 @@ public class FunctionalTest {
     }
 
     @DataProvider
-    public static List<List<Object>> expandCrossProductScenarios() {
+    public static List<List<Object>> expandMacroScenarios() {
         List<List<Object>> scenarios = new ArrayList<List<Object>>();
         for (int i = 0; i < MACRO_SCENARIOS.size(); i++) {
             final MacroScenario macroScenario = MACRO_SCENARIOS.get(i);
@@ -599,7 +770,7 @@ public class FunctionalTest {
     }
 
     @Test
-    @UseDataProvider(value = "expandCrossProductScenarios")
+    @UseDataProvider(value = "expandMacroScenarios")
     @SuppressWarnings("unchecked")
     public void testScenario(Scenario scenario) {
         if (!IndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {

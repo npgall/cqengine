@@ -67,7 +67,7 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof StringMatchesRegex)) return false;
         StringMatchesRegex that = (StringMatchesRegex) o;
         return this.attribute.equals(that.attribute)
                 && this.regexPattern.pattern().equals(that.regexPattern.pattern())

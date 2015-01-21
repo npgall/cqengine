@@ -63,7 +63,7 @@ public class Has<O, A> extends SimpleQuery<O, A> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Has)) return false;
 
         Has equal = (Has) o;
 
