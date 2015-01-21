@@ -77,7 +77,7 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof StringEndsWith)) return false;
 
         StringEndsWith that = (StringEndsWith) o;
 

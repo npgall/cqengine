@@ -63,7 +63,7 @@ public class And<O> extends LogicalQuery<O> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof And)) return false;
 
         And and = (And) o;
 

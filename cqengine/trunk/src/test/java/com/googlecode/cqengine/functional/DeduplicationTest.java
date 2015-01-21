@@ -24,6 +24,8 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.testutil.Car.COLOR;
 import static com.googlecode.cqengine.testutil.Car.Color.BLUE;
@@ -37,7 +39,7 @@ public class DeduplicationTest {
     @Test
     public void testDeduplication_Materialize() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0));
+        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
 
         Query<Car> query = or(
                 equal(COLOR, BLUE),
@@ -55,7 +57,7 @@ public class DeduplicationTest {
     @Test
     public void testDeduplication_Logical() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0));
+        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
 
         Query<Car> query = or(
                 equal(COLOR, BLUE),

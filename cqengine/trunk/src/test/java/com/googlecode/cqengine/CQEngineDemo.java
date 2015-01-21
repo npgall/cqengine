@@ -25,8 +25,9 @@ import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.Car.Color;
 
+import java.util.Collections;
+
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.QueryFactory.orderBy;
 
 /**
  * Demonstrates creating an indexed collection, adding various indexes to it, adding various objects to the collection,
@@ -47,11 +48,11 @@ public class CQEngineDemo {
         cars.addIndex(InvertedRadixTreeIndex.onAttribute(Car.MODEL));
         cars.addIndex(SuffixTreeIndex.onAttribute(Car.MODEL));
 
-        cars.add(new Car(1, "Ford",   "Focus",  Color.BLUE,  5, 9000.50));
-        cars.add(new Car(2, "Ford",   "Fiesta", Color.BLUE,  2, 5000.00));
-        cars.add(new Car(3, "Ford",   "F-150",  Color.RED,   2, 9500.00));
-        cars.add(new Car(4, "Honda",  "Civic",  Color.RED,   5, 5000.00));
-        cars.add(new Car(5, "Toyota", "Prius",  Color.BLACK, 3, 9700.00));
+        cars.add(new Car(1, "Ford",   "Focus",  Color.BLUE,  5, 9000.50, Collections.<String>emptyList()));
+        cars.add(new Car(2, "Ford",   "Fiesta", Color.BLUE,  2, 5000.00, Collections.<String>emptyList()));
+        cars.add(new Car(3, "Ford",   "F-150",  Color.RED,   2, 9500.00, Collections.<String>emptyList()));
+        cars.add(new Car(4, "Honda",  "Civic",  Color.RED,   5, 5000.00, Collections.<String>emptyList()));
+        cars.add(new Car(5, "Toyota", "Prius",  Color.BLACK, 3, 9700.00, Collections.<String>emptyList()));
 
         Query<Car> query;
 

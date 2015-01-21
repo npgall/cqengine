@@ -16,8 +16,11 @@
 package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
+
+import java.util.List;
 
 /**
  * @author Niall Gallagher
@@ -48,6 +51,10 @@ public class Car {
         public Double getValue(Car car, QueryOptions queryOptions) { return car.price; }
     };
 
+    public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Car, String>("features") {
+        public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
+    };
+
     public enum Color {RED, GREEN, BLUE, BLACK, WHITE}
     private final int carId;
     private final String manufacturer;
@@ -55,14 +62,16 @@ public class Car {
     private final Color color;
     private final int doors;
     private final double price;
+    private final List<String> features;
 
-    public Car(int carId, String manufacturer, String model, Color color, int doors, double price) {
+    public Car(int carId, String manufacturer, String model, Color color, int doors, double price, List<String> features) {
         this.carId = carId;
         this.manufacturer = manufacturer;
         this.model = model;
         this.color = color;
         this.doors = doors;
         this.price = price;
+        this.features = features;
     }
 
     public int getCarId() {
@@ -104,7 +113,7 @@ public class Car {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Car)) return false;
 
         Car car = (Car) o;
 

@@ -16,7 +16,6 @@
 package com.googlecode.cqengine.resultset.order;
 
 import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,20 +34,20 @@ public class AttributeOrdersComparatorTest {
     @Test
     public void testSortAscending() {
         List<Car> cars = Arrays.asList(
-                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00),
-                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00),
-                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00),
-                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00)
+                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00, Collections.<String>emptyList()),
+                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00, Collections.<String>emptyList()),
+                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00, Collections.<String>emptyList()),
+                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00, Collections.<String>emptyList())
         );
 
         OrderByOption<Car> ordering = orderBy(ascending(Car.MANUFACTURER), ascending(Car.PRICE));
         Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
-            new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00),
-            new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00),
-            new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00),
-            new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00)
+            new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00, Collections.<String>emptyList()),
+            new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00, Collections.<String>emptyList()),
+            new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00, Collections.<String>emptyList()),
+            new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00, Collections.<String>emptyList())
         );
 
         Assert.assertEquals(expected, cars);
@@ -57,20 +56,20 @@ public class AttributeOrdersComparatorTest {
     @Test
     public void testSortDescending() {
         List<Car> cars = Arrays.asList(
-                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00),
-                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00),
-                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00),
-                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00)
+                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00, Collections.<String>emptyList()),
+                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00, Collections.<String>emptyList()),
+                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00, Collections.<String>emptyList()),
+                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00, Collections.<String>emptyList())
         );
 
         OrderByOption<Car> ordering = orderBy(descending(Car.MANUFACTURER), descending(Car.PRICE));
         Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
-                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00),
-                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00),
-                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00),
-                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00)
+                new Car(3, "Honda", "Civic",  Car.Color.WHITE, 5, 6000.00, Collections.<String>emptyList()),
+                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 7000.00, Collections.<String>emptyList()),
+                new Car(1, "Ford",  "Focus",  Car.Color.BLUE,  5, 5000.00, Collections.<String>emptyList()),
+                new Car(2, "BMW",   "M6",     Car.Color.RED,   2, 9000.00, Collections.<String>emptyList())
         );
 
         Assert.assertEquals(expected, cars);
@@ -79,20 +78,20 @@ public class AttributeOrdersComparatorTest {
     @Test
     public void testSortMixed() {
         List<Car> cars = Arrays.asList(
-                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 2000.00),
-                new Car(1, "Ford",  "Taurus", Car.Color.BLACK, 4, 1000.00),
-                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 4000.00),
-                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 3000.00)
+                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 2000.00, Collections.<String>emptyList()),
+                new Car(1, "Ford",  "Taurus", Car.Color.BLACK, 4, 1000.00, Collections.<String>emptyList()),
+                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 4000.00, Collections.<String>emptyList()),
+                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 3000.00, Collections.<String>emptyList())
         );
 
         OrderByOption<Car> ordering = orderBy(descending(Car.MANUFACTURER), ascending(Car.PRICE));
         Collections.sort(cars, new AttributeOrdersComparator<Car>(ordering.getAttributeOrders(), noQueryOptions()));
 
         List<Car> expected = Arrays.asList(
-                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 3000.00),
-                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 4000.00),
-                new Car(1, "Ford",  "Taurus", Car.Color.BLACK, 4, 1000.00),
-                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 2000.00)
+                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 3000.00, Collections.<String>emptyList()),
+                new Car(3, "Honda", "Civic",  Car.Color.BLACK, 4, 4000.00, Collections.<String>emptyList()),
+                new Car(1, "Ford",  "Taurus", Car.Color.BLACK, 4, 1000.00, Collections.<String>emptyList()),
+                new Car(0, "Ford",  "Taurus", Car.Color.BLACK, 4, 2000.00, Collections.<String>emptyList())
         );
 
         Assert.assertEquals(expected, cars);

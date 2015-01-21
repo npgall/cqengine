@@ -42,7 +42,7 @@ public class ConcurrentIndexedCollectionTest {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof TestEntity)) return false;
 
             TestEntity that = (TestEntity) o;
 

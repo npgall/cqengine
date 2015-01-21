@@ -49,16 +49,16 @@ public class Garage {
                 '}';
     }
 
-    public static Attribute<Garage, Integer> GARAGE_ID = new SimpleAttribute<Garage, Integer>("garageId") {
+    public static final Attribute<Garage, Integer> GARAGE_ID = new SimpleAttribute<Garage, Integer>("garageId") {
         public Integer getValue(Garage garage, QueryOptions queryOptions) { return garage.garageId; }
     };
-    public static Attribute<Garage, String> NAME = new SimpleAttribute<Garage, String>("name") {
+    public static final Attribute<Garage, String> NAME = new SimpleAttribute<Garage, String>("name") {
         public String getValue(Garage garage, QueryOptions queryOptions) { return garage.name; }
     };
-    public static Attribute<Garage, String> LOCATION = new SimpleAttribute<Garage, String>("location") {
+    public static final Attribute<Garage, String> LOCATION = new SimpleAttribute<Garage, String>("location") {
         public String getValue(Garage garage, QueryOptions queryOptions) { return garage.location; }
     };
-    public static Attribute<Garage, String> BRANDS_SERVICED = new MultiValueAttribute<Garage, String>("brandsServiced") {
+    public static final Attribute<Garage, String> BRANDS_SERVICED = new MultiValueAttribute<Garage, String>("brandsServiced") {
         public List<String> getValues(Garage garage, QueryOptions queryOptions) { return garage.brandsServiced; }
     };
 }

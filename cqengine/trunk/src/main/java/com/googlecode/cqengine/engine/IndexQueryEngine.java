@@ -15,23 +15,23 @@
  */
 package com.googlecode.cqengine.engine;
 
-import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
-import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
-import com.googlecode.cqengine.query.option.*;
+import com.googlecode.cqengine.query.option.DeduplicationOption;
+import com.googlecode.cqengine.query.option.DeduplicationStrategy;
+import com.googlecode.cqengine.query.option.OrderByOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
@@ -49,8 +49,6 @@ import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static com.googlecode.cqengine.query.QueryFactory.*;
 
 /**
  * The main component of {@code CQEngine} - maintains a set of indexes on a collection and accepts queries which
@@ -274,10 +272,10 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 
-        // Check if we can use an index to drive the sort...
-        if (OrderStrategyOption.isIndex(queryOptions)) {
-            return retrieveWithIndexOrdering(query, queryOptions, orderByOption);
-        }
+//        // Check if we can use an index to drive the sort...
+//        if (OrderStrategyOption.isIndex(queryOptions)) {
+//            return retrieveWithIndexOrdering(query, queryOptions, orderByOption);
+//        }
         // Retrieve results...
         ResultSet<O> resultSet = retrieveRecursive(query, queryOptions);
 
@@ -299,89 +297,89 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         return resultSet;
     }
 
-    /**
-     * Experimental support to use a NavigableIndex to order results.
-     * TODO: Needs further work.
-     */
-    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, OrderByOption<O> orderByOption) {
-        List<AttributeOrder<O>> attributeOrders = orderByOption.getAttributeOrders();
-
-        if (attributeOrders.size() != 1) {
-            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with compound orderBy clause '" + orderByOption + "'");
-        }
-        AttributeOrder<O> order = attributeOrders.iterator().next();
-        final Attribute<O, ? extends Comparable> attribute = order.getAttribute();
-        if (!(attribute instanceof SimpleAttribute)) {
-            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with non-simple attribute in orderBy clause '" + orderByOption + "'");
-        }
-        @SuppressWarnings("unchecked")
-        final SimpleAttribute<O, Comparable> simpleAttribute = (SimpleAttribute<O, Comparable>)attribute;
-        NavigableIndex<?, O> navigableIndexOnAttribute = null;
-        for (Index<O> index : this.getIndexesOnAttribute(simpleAttribute)) {
-            if (index instanceof NavigableIndex) {
-                navigableIndexOnAttribute = (NavigableIndex<?, O>)index;
-                break;
-            }
-        }
-        if (navigableIndexOnAttribute == null) {
-            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' requires a NavigableIndex on the attribute in orderBy clause '" + orderByOption + "'");
-        }
-        final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
-        if (!order.isDescending()) {
-            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
-                @Override
-                public Iterator<ResultSet<O>> iterator() {
-                    return new LazyIterator<ResultSet<O>>() {
-                        Comparable previousKey = null;
-                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeys().iterator();
-                        @Override
-                        protected ResultSet<O> computeNext() {
-                            if (!indexKeys.hasNext()) {
-                                return endOfData();
-                            }
-                            Comparable currentKey = indexKeys.next();
-                            Query<O> rangeRestriction = (previousKey == null)
-                                    ? lessThan(simpleAttribute, currentKey)
-                                    : between(simpleAttribute, previousKey, false, currentKey, true);
-
-                            Query<O> restrictedQuery = and(query, rangeRestriction);
-
-                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
-                            previousKey = currentKey;
-                            return resultsForThisKey;
-                        }
-                    };
-                }
-            });
-        }
-        else {
-            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
-                @Override
-                public Iterator<ResultSet<O>> iterator() {
-                    return new LazyIterator<ResultSet<O>>() {
-                        Comparable previousKey = null;
-                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeysDescending().iterator();
-                        @Override
-                        protected ResultSet<O> computeNext() {
-                            if (!indexKeys.hasNext()) {
-                                return endOfData();
-                            }
-                            Comparable currentKey = indexKeys.next();
-                            Query<O> rangeRestriction = (previousKey == null)
-                                    ? greaterThan(simpleAttribute, currentKey)
-                                    : between(simpleAttribute, currentKey, true, previousKey, false);
-
-                            Query<O> restrictedQuery = and(query, rangeRestriction);
-
-                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
-                            this.previousKey = currentKey;
-                            return resultsForThisKey;
-                        }
-                    };
-                }
-            });
-        }
-    }
+//    /**
+//     * Experimental support to use a NavigableIndex to order results.
+//     * TODO: Needs further work.
+//     */
+//    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, OrderByOption<O> orderByOption) {
+//        List<AttributeOrder<O>> attributeOrders = orderByOption.getAttributeOrders();
+//
+//        if (attributeOrders.size() != 1) {
+//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with compound orderBy clause '" + orderByOption + "'");
+//        }
+//        AttributeOrder<O> order = attributeOrders.iterator().next();
+//        final Attribute<O, ? extends Comparable> attribute = order.getAttribute();
+//        if (!(attribute instanceof SimpleAttribute)) {
+//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with non-simple attribute in orderBy clause '" + orderByOption + "'");
+//        }
+//        @SuppressWarnings("unchecked")
+//        final SimpleAttribute<O, Comparable> simpleAttribute = (SimpleAttribute<O, Comparable>)attribute;
+//        NavigableIndex<?, O> navigableIndexOnAttribute = null;
+//        for (Index<O> index : this.getIndexesOnAttribute(simpleAttribute)) {
+//            if (index instanceof NavigableIndex) {
+//                navigableIndexOnAttribute = (NavigableIndex<?, O>)index;
+//                break;
+//            }
+//        }
+//        if (navigableIndexOnAttribute == null) {
+//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' requires a NavigableIndex on the attribute in orderBy clause '" + orderByOption + "'");
+//        }
+//        final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
+//        if (!order.isDescending()) {
+//            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
+//                @Override
+//                public Iterator<ResultSet<O>> iterator() {
+//                    return new LazyIterator<ResultSet<O>>() {
+//                        Comparable previousKey = null;
+//                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeys().iterator();
+//                        @Override
+//                        protected ResultSet<O> computeNext() {
+//                            if (!indexKeys.hasNext()) {
+//                                return endOfData();
+//                            }
+//                            Comparable currentKey = indexKeys.next();
+//                            Query<O> rangeRestriction = (previousKey == null)
+//                                    ? lessThan(simpleAttribute, currentKey)
+//                                    : between(simpleAttribute, previousKey, false, currentKey, true);
+//
+//                            Query<O> restrictedQuery = and(query, rangeRestriction);
+//
+//                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
+//                            previousKey = currentKey;
+//                            return resultsForThisKey;
+//                        }
+//                    };
+//                }
+//            });
+//        }
+//        else {
+//            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
+//                @Override
+//                public Iterator<ResultSet<O>> iterator() {
+//                    return new LazyIterator<ResultSet<O>>() {
+//                        Comparable previousKey = null;
+//                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeysDescending().iterator();
+//                        @Override
+//                        protected ResultSet<O> computeNext() {
+//                            if (!indexKeys.hasNext()) {
+//                                return endOfData();
+//                            }
+//                            Comparable currentKey = indexKeys.next();
+//                            Query<O> rangeRestriction = (previousKey == null)
+//                                    ? greaterThan(simpleAttribute, currentKey)
+//                                    : between(simpleAttribute, currentKey, true, previousKey, false);
+//
+//                            Query<O> restrictedQuery = and(query, rangeRestriction);
+//
+//                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
+//                            this.previousKey = currentKey;
+//                            return resultsForThisKey;
+//                        }
+//                    };
+//                }
+//            });
+//        }
+//    }
 
     /**
      * Implements the bulk of query processing.

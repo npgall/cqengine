@@ -53,7 +53,7 @@ public class Car {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Car)) return false;
         Car other = (Car) o;
         return this.carId == other.carId && this.version == other.version;
     }
