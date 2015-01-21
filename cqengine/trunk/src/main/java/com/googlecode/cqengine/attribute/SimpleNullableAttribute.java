@@ -56,6 +56,29 @@ public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O,
     }
 
     /**
+     * Creates an attribute with no name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     */
+    public SimpleNullableAttribute(Class<O> objectType, Class<A> attributeType) {
+        super(objectType, attributeType);
+    }
+
+    /**
+     * Creates an attribute with the given name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     * @param attributeName The name for this attribute
+     */
+    public SimpleNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
+        super(objectType, attributeType, attributeName);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
