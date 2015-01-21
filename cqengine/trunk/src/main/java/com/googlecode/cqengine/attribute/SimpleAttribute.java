@@ -55,6 +55,8 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
         super(attributeName);
     }
 
+
+
     /**
      * Creates an attribute with no name, and manually specifies the type of the attribute and its enclosing
      * object.

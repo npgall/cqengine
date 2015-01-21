@@ -58,6 +58,29 @@ public abstract class MultiValueAttribute<O, A> extends AbstractAttribute<O, A> 
     }
 
     /**
+     * Creates an attribute with no name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     */
+    public MultiValueAttribute(Class<O> objectType, Class<A> attributeType) {
+        super(objectType, attributeType);
+    }
+
+    /**
+     * Creates an attribute with the given name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     * @param attributeName The name for this attribute
+     */
+    public MultiValueAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
+        super(objectType, attributeType, attributeName);
+    }
+
+    /**
      * Returns the non-null values of the attribute from the object.
      * <p/>
      * @param object The object from which the values of the attribute are required

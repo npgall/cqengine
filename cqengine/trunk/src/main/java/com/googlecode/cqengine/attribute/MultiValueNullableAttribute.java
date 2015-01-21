@@ -70,6 +70,35 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
     }
 
     /**
+     * Creates an attribute with no name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     * @param componentValuesNullable Supply true if some of the multiple values in the list returned might be null,
+     * supply false if only the collection returned itself might be null
+     */
+    public MultiValueNullableAttribute(Class<O> objectType, Class<A> attributeType, boolean componentValuesNullable) {
+        super(objectType, attributeType);
+        this.componentValuesNullable = componentValuesNullable;
+    }
+
+    /**
+     * Creates an attribute with the given name, and manually specifies the type of the attribute and its enclosing
+     * object.
+     *
+     * @param objectType The type of the object containing this attribute
+     * @param attributeType The type of this attribute
+     * @param attributeName The name for this attribute
+     * @param componentValuesNullable Supply true if some of the multiple values in the list returned might be null,
+     * supply false if only the collection returned itself might be null
+     */
+    public MultiValueNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, boolean componentValuesNullable) {
+        super(objectType, attributeType, attributeName);
+        this.componentValuesNullable = componentValuesNullable;
+    }
+
+    /**
      * Returns the values of the attribute from the object, omitting any null values.
      * <p/>
      * @param object The object from which the values of the attribute are required
