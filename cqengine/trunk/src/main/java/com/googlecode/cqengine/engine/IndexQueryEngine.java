@@ -131,9 +131,6 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      * @param <A> The type of objects indexed
      */
     <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, QueryOptions queryOptions) {
-        if (attributeIndex == null) {
-            throw new IllegalArgumentException("The index argument was null.");
-        }
         Attribute<O, A> attribute = attributeIndex.getAttribute();
         Set<Index<O>> indexesOnThisAttribute = attributeIndexes.get(attribute);
         if (indexesOnThisAttribute == null) {

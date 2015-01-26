@@ -29,34 +29,34 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
     private final Class<A> attributeType;
     private final String attributeName;
 
-    private final int hashCode;
+    private final int cachedHashCode;
 
     public AbstractAttribute() {
         this.attributeName = "<Unnamed attribute, " + getClass() + ">";
-        this.objectType = readObjectType();
-        this.attributeType = readAttributeType();
-        this.hashCode = calcHashCode();
+        this.objectType = readGenericObjectType(getClass(), attributeName);
+        this.attributeType = readGenericAttributeType(getClass(), attributeName);
+        this.cachedHashCode = calcHashCode();
     }
 
     public AbstractAttribute(String attributeName) {
         this.attributeName = attributeName;
-        this.objectType = readObjectType();
-        this.attributeType = readAttributeType();
-        this.hashCode = calcHashCode();
+        this.objectType = readGenericObjectType(getClass(), attributeName);
+        this.attributeType = readGenericAttributeType(getClass(), attributeName);
+        this.cachedHashCode = calcHashCode();
     }
 
     protected AbstractAttribute(Class<O> objectType, Class<A> attributeType) {
         this.attributeName = "<Unnamed attribute, " + getClass() + ">";
         this.objectType = objectType;
         this.attributeType = attributeType;
-        this.hashCode = calcHashCode();
+        this.cachedHashCode = calcHashCode();
     }
 
     protected AbstractAttribute(Class<O> objectType, Class<A> attributeType, String attributeName) {
         this.attributeName = attributeName;
         this.objectType = objectType;
         this.attributeType = attributeType;
-        this.hashCode = calcHashCode();
+        this.cachedHashCode = calcHashCode();
     }
     @Override
     public Class<O> getObjectType() {
@@ -82,9 +82,36 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
                 '}';
     }
 
-    Class<O> readObjectType() {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractAttribute)) return false;
+
+        AbstractAttribute that = (AbstractAttribute) o;
+
+        if (cachedHashCode != that.cachedHashCode) return false;
+        if (!attributeName.equals(that.attributeName)) return false;
+        if (!attributeType.equals(that.attributeType)) return false;
+        if (!objectType.equals(that.objectType)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return cachedHashCode;
+    }
+
+    int calcHashCode() {
+        int result = objectType.hashCode();
+        result = 31 * result + attributeType.hashCode();
+        result = 31 * result + attributeName.hashCode();
+        return result;
+    }
+
+    static <O> Class<O> readGenericObjectType(Class<?> attributeClass, String attributeName) {
         try {
-            ParameterizedType superclass = (ParameterizedType) getClass().getGenericSuperclass();
+            ParameterizedType superclass = (ParameterizedType) attributeClass.getGenericSuperclass();
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
             Type actualType = superclass.getActualTypeArguments()[0];
             Class<O> cls;
@@ -102,14 +129,14 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
             return cls;
         }
         catch (Exception e) {
-            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + getClass() + ")";
+            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + attributeClass + ")";
             throw new IllegalStateException("Attribute '" + attributeName + "'" + attributeClassStr + " is invalid, cannot read generic type information from it. Attributes should typically EITHER be declared in code with generic type information as a (possibly anonymous) subclass of one of the provided attribute types, OR you can use a constructor of the attribute which allows the types to be specified manually.");
         }
     }
 
-    Class<A> readAttributeType() {
+    static <A> Class<A> readGenericAttributeType(Class<?> attributeClass, String attributeName) {
         try {
-            ParameterizedType superclass = (ParameterizedType) getClass().getGenericSuperclass();
+            ParameterizedType superclass = (ParameterizedType) attributeClass.getGenericSuperclass();
             Type actualType = superclass.getActualTypeArguments()[1];
             Class<A> cls;
             if (actualType instanceof ParameterizedType) {
@@ -126,35 +153,8 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
             return cls;
         }
         catch (Exception e) {
-            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + getClass() + ")";
+            String attributeClassStr = attributeName.startsWith("<Unnamed attribute, class ") ? "" : " (" + attributeClass + ")";
             throw new IllegalStateException("Attribute '" + attributeName + "'" + attributeClassStr + " is invalid, cannot read generic type information from it. Attributes should typically EITHER be declared in code with generic type information as a (possibly anonymous) subclass of one of the provided attribute types, OR you can use a constructor of the attribute which allows the types to be specified manually.");
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AbstractAttribute)) return false;
-
-        AbstractAttribute that = (AbstractAttribute) o;
-
-        if (hashCode != that.hashCode) return false;
-        if (!attributeName.equals(that.attributeName)) return false;
-        if (!attributeType.equals(that.attributeType)) return false;
-        if (!objectType.equals(that.objectType)) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    int calcHashCode() {
-        int result = objectType.hashCode();
-        result = 31 * result + attributeType.hashCode();
-        result = 31 * result + attributeName.hashCode();
-        return result;
     }
 }

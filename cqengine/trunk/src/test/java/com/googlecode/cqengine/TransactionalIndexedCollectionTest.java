@@ -1,11 +1,17 @@
 package com.googlecode.cqengine;
 
+import com.google.common.collect.testing.SetTestSuiteBuilder;
+import com.google.common.collect.testing.TestStringSetGenerator;
+import com.google.common.collect.testing.features.CollectionFeature;
+import com.google.common.collect.testing.features.CollectionSize;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.testutil.Car;
-import junit.framework.Assert;
-import org.junit.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.junit.Assert;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -14,15 +20,40 @@ import java.util.concurrent.*;
 import static com.googlecode.cqengine.query.QueryFactory.all;
 import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
 
 /**
+ * Unit tests for {@link TransactionalIndexedCollection}. Note that tests for common behavior (such as query processing)
+ * which applies to all implementations of {@link IndexedCollection} can be found in
+ * {@link com.googlecode.cqengine.IndexedCollectionFunctionalTest}.
+ * <p/>
+ * In addition to the unit tests in this class, this class also runs a further 197 unit tests in
+ * <a href="https://code.google.com/p/guava-libraries/source/browse/guava-testlib">guava-testlib</a> on the
+ * IndexedCollection to validate its compliance with the API specifications of java.util.Set.
+ *
  * @author Niall Gallagher
  */
-public class TransactionalIndexedCollectionTest {
+public class TransactionalIndexedCollectionTest extends TestCase {
 
-    @Test
+    public static junit.framework.Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTest(SetTestSuiteBuilder.using(indexedCollectionGenerator())
+                .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE)
+                .named("TransactionalIndexedCollectionAPICompliance")
+                .createTestSuite());
+        suite.addTestSuite(TransactionalIndexedCollectionTest.class);
+        return suite;
+    }
+
+    private static TestStringSetGenerator indexedCollectionGenerator() {
+        return new TestStringSetGenerator() {
+            @Override protected Set<String> create(String[] elements) {
+                IndexedCollection<String> indexedCollection = new TransactionalIndexedCollection<String>(String.class);
+                indexedCollection.addAll(Arrays.asList(elements));
+                return indexedCollection;
+            }
+        };
+    }
+
     public void testWritePath() {
         TransactionalIndexedCollection<Car> collection = new TransactionalIndexedCollection<Car>(Car.class);
         // Version number initially starts at 1...
@@ -61,7 +92,6 @@ public class TransactionalIndexedCollectionTest {
         assertEquals(8, collection.currentVersion);
     }
 
-    @Test
     public void testReadPath() throws InterruptedException, ExecutionException {
         // Set up the initial collection to contain 2 objects...
         final TransactionalIndexedCollection<Car> collection = new TransactionalIndexedCollection<Car>(Car.class);

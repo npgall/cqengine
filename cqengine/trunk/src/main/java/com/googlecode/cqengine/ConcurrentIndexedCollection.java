@@ -324,4 +324,25 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             return modified;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Set)) return false;
+        Set that = (Set) o;
+
+        if (!collection.equals(that)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return collection.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return collection.toString();
+    }
 }

@@ -15,83 +15,121 @@
  */
 package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.google.common.collect.testing.SetTestSuiteBuilder;
+import com.google.common.collect.testing.TestStringSetGenerator;
+import com.google.common.collect.testing.features.CollectionFeature;
+import com.google.common.collect.testing.features.CollectionSize;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.hash.HashIndex;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.testutil.Car;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import java.util.*;
+
+import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.testutil.TestUtil.setOf;
+import static java.util.Arrays.asList;
 
 /**
- * @author Atul Vasu
+ * Unit tests for {@link ConcurrentIndexedCollection}. Note that tests for common behavior (such as query processing)
+ * which applies to all implementations of {@link IndexedCollection} can be found in
+ * {@link com.googlecode.cqengine.IndexedCollectionFunctionalTest}.
+ * <p/>
+ * In addition to the unit tests in this class, this class also runs a further 197 unit tests in
+ * <a href="https://code.google.com/p/guava-libraries/source/browse/guava-testlib">guava-testlib</a> on the
+ * IndexedCollection to validate its compliance with the API specifications of java.util.Set.
+ *
+ * @author Niall Gallagher
  */
-public class ConcurrentIndexedCollectionTest {
+public class ConcurrentIndexedCollectionTest extends TestCase {
 
-    public static class TestEntity {
-        private final int value;
-
-        public TestEntity(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof TestEntity)) return false;
-
-            TestEntity that = (TestEntity) o;
-
-            if (value != that.value) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return value;
-        }
+    public static junit.framework.Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTest(SetTestSuiteBuilder.using(indexedCollectionGenerator())
+                .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE)
+                .named("ConcurrentIndexedCollectionAPICompliance")
+                .createTestSuite());
+        suite.addTestSuite(ConcurrentIndexedCollectionTest.class);
+        return suite;
     }
 
-    private static final Attribute<TestEntity, Integer> valueAttribute = new SimpleAttribute<TestEntity, Integer>() {
-        @Override
-        public Integer getValue(TestEntity object, QueryOptions queryOptions) {
-            return object.getValue();
+    private static TestStringSetGenerator indexedCollectionGenerator() {
+        return new TestStringSetGenerator() {
+            @Override protected Set<String> create(String[] elements) {
+                IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
+                indexedCollection.addAll(asList(elements));
+                return indexedCollection;
+            }
+        };
+    }
+
+    public void testUpdate() {
+        IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
+        Assert.assertTrue(indexedCollection.update(Collections.<String>emptyList(), asList("a", "b", "c")));
+
+        Assert.assertEquals(setOf("a", "b", "c"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asList("b"), Collections.<String>emptyList()));
+        Assert.assertEquals(setOf("a", "c"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asList("a"), asList("d")));
+        Assert.assertEquals(setOf("c", "d"), indexedCollection);
+
+        Assert.assertFalse(indexedCollection.update(asList("a"), Collections.<String>emptyList()));
+        Assert.assertEquals(setOf("c", "d"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asList("c", "e"), Collections.<String>emptyList()));
+        Assert.assertEquals(setOf("d"), indexedCollection);
+    }
+
+    public void testUpdate_IterableArguments() {
+        IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
+        Assert.assertTrue(indexedCollection.update(asIterable(Collections.<String>emptyList()), asIterable(asList("a", "b", "c"))));
+        Assert.assertEquals(setOf("a", "b", "c"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asIterable(asList("b")), asIterable(Collections.<String>emptyList())));
+        Assert.assertEquals(setOf("a", "c"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asIterable(asList("a")), asIterable(asList("d"))));
+        Assert.assertEquals(setOf("c", "d"), indexedCollection);
+
+        Assert.assertFalse(indexedCollection.update(asIterable(asList("a")), asIterable(Collections.<String>emptyList())));
+        Assert.assertEquals(setOf("c", "d"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asIterable(asList("c", "e")), asIterable(Collections.<String>emptyList())));
+        Assert.assertEquals(setOf("d"), indexedCollection);
+
+        Assert.assertTrue(indexedCollection.update(asIterable(Collections.<String>emptyList()), asIterable(asList("e", "d"))));
+        Assert.assertEquals(setOf("d", "e"), indexedCollection);
+
+        Assert.assertFalse(indexedCollection.update(asIterable(Collections.<String>emptyList()), asIterable(asList("e", "d"))));
+        Assert.assertEquals(setOf("d", "e"), indexedCollection);
+    }
+
+
+
+    public void testGetIndexes() {
+        IndexedCollection<Car> indexedCollection = new ConcurrentIndexedCollection<Car>();
+        indexedCollection.addIndex(HashIndex.onAttribute(Car.CAR_ID), noQueryOptions());
+
+        List<Index<Car>> indexes = new ArrayList<Index<Car>>();
+        for (Index<Car> index : indexedCollection.getIndexes()) {
+            indexes.add(index);
         }
-    };
 
-    private ConcurrentIndexedCollection<TestEntity> concurrentIndexedCollection;
-
-    @Before
-    public void setUp() {
-        concurrentIndexedCollection = new ConcurrentIndexedCollection<TestEntity>();
-        concurrentIndexedCollection.addIndex(HashIndex.onAttribute(valueAttribute));
+        Assert.assertEquals(1, indexes.size());
+        Assert.assertEquals(HashIndex.class, indexes.get(0).getClass());
     }
 
-    @Test
-    @SuppressWarnings({"SuspiciousMethodCalls"})
-    public void testRemove() {
-        concurrentIndexedCollection.add(new TestEntity(1));
-        Assert.assertEquals(1, concurrentIndexedCollection.size());
 
-        // Remove object of a type which cannot be stored in the collection...
-        boolean removed = concurrentIndexedCollection.remove("foobar");
-        Assert.assertFalse(removed);
-        Assert.assertEquals(1, concurrentIndexedCollection.size());
-
-        // Remove object of correct type but not equal to one stored in the collection...
-        removed = concurrentIndexedCollection.remove(new TestEntity(2));
-        Assert.assertFalse(removed);
-        Assert.assertEquals(1, concurrentIndexedCollection.size());
-
-        // Remove object equal to one stored in the collection...
-        removed = concurrentIndexedCollection.remove(new TestEntity(1));
-        Assert.assertTrue(removed);
-        Assert.assertEquals(0, concurrentIndexedCollection.size());
+    static <O> Iterable<O> asIterable(final Collection<O> collection) {
+        return new Iterable<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                return collection.iterator();
+            }
+        };
     }
-
 }
