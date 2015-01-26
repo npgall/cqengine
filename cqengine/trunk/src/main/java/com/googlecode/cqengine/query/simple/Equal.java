@@ -26,12 +26,10 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  */
 public class Equal<O, A> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
     private final A value;
 
     public Equal(Attribute<O, A> attribute, A value) {
         super(attribute);
-        this.attribute = attribute;
         this.value = value;
     }
 

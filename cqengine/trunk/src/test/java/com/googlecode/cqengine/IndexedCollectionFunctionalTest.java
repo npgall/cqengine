@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
  * @author Niall Gallagher
  */
 @RunWith(DataProviderRunner.class)
-public class FunctionalTest {
+public class IndexedCollectionFunctionalTest {
 
     static final Set<Car> REGULAR_DATASET = CarFactory.createCollectionOfCars(1000);
     static final Set<Car> SMALL_DATASET = CarFactory.createCollectionOfCars(10);
@@ -646,7 +646,17 @@ public class FunctionalTest {
                                 size = 6;
                                 carIdsInOrder = asList(6, 7, 8, 0, 1, 2);
                             }};
-                        }}
+                        }},
+                        new QueryToEvaluate() {{
+                                  query = all(Car.class);
+                                  // Should order cars without any features first, followed by cars with features
+                                  // in ascending alphabetical order of feature string...
+                                  queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)));
+                                  expectedResults = new ExpectedResults() {{
+                                      size = 10;
+                                      carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
+                                  }};
+                              }}
                 );
                 indexCombinations = indexCombinations(noIndexes());
             }},
@@ -763,7 +773,7 @@ public class FunctionalTest {
                     }
                 }
             } catch (Exception e) {
-                throw new IllegalStateException("Configuration issue for CrossProductScenario " + i + " in the list: " + macroScenario.name, e);
+                throw new IllegalStateException("Configuration issue for MacroScenario " + i + " in the list: " + macroScenario.name, e);
             }
         }
         return scenarios;

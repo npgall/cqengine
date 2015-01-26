@@ -145,6 +145,9 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
 
             @Override
             public void remove() {
+                if (currentObject == null) {
+                    throw new IllegalStateException();
+                }
                 Lock lock = stripedLock.getLockForObject(currentObject);
                 lock.lock();
                 try {

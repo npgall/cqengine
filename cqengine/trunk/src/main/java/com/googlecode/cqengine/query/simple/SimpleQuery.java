@@ -33,8 +33,8 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
     protected final boolean attributeIsSimple;
     protected final Attribute<O, A> attribute;
     protected final SimpleAttribute<O, A> simpleAttribute;
-    // Lazy calculate and cache hashCode...
-    private int hashCode = 0;
+    // Lazy calculate and cache hash code...
+    public transient int cachedHashCode = 0;
 
     /**
      * Creates a new {@link SimpleQuery} initialized to make assertions on values of the specified attribute
@@ -97,14 +97,14 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
 
     @Override
     public int hashCode() {
-        // Lazy calculate and cache hashCode...
-        int h = this.hashCode;
-        if (h == 0) { // hashCode not cached
+        // Lazy calculate and cache hash code...
+        int h = this.cachedHashCode;
+        if (h == 0) { // hash code not cached
             h = calcHashCode();
-            if (h == 0) { // 0 is normally a valid hashCode, coalesce with another...
+            if (h == 0) { // 0 is normally a valid hash code, coalesce with another...
                 h = -1838660945; // was randomly chosen
             }
-            this.hashCode = h; // cache hashCode
+            this.cachedHashCode = h; // cache hash code
         }
         return h;
     }
