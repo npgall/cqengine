@@ -35,7 +35,7 @@ public class CompoundValueTuple<O> {
     private final List<?> attributeValues;
     private final int hashCode;
 
-    CompoundValueTuple(List<?> attributeValues) {
+    public CompoundValueTuple(List<?> attributeValues) {
         this.attributeValues = attributeValues;
         this.hashCode = attributeValues.hashCode();
     }
