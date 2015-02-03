@@ -154,9 +154,7 @@ public abstract class ResultSet<O> implements Iterable<O> {
      * Releases any resources or closes the transaction which was opened for this ResultSet.
      * <p/>
      * Whether or not it is necessary to close the ResultSet depends on which implementation of
-     * IndexedCollection is in use.
+     * IndexedCollection is in use and the types of indexes added to it.
      */
-    public void close() {
-        // No op by default.
-    }
+    public abstract void close();
 }

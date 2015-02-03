@@ -106,6 +106,10 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
                     ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
                     return rs == null ? 0 : rs.size();
                 }
+                @Override
+                public void close() {
+                    // No op.
+                }
             };
         }
         else if (queryClass.equals(StringIsContainedIn.class)) {
@@ -138,6 +142,10 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContainedIn(stringIsContainedIn.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.getMergeCost();
+                }
+                @Override
+                public void close() {
+                    // No op.
                 }
             };
         }

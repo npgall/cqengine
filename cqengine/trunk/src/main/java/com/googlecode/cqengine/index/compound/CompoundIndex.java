@@ -141,6 +141,10 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(valueTuple));
                     return rs == null ? 0 : rs.size();
                 }
+                @Override
+                public void close() {
+                    // No op.
+                }
             };
         }
         else {

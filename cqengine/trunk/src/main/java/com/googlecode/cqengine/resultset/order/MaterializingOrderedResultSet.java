@@ -107,4 +107,12 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
     public int size() {
         return IteratorUtil.countElements(this);
     }
+
+    /**
+     * Closes the wrapped {@code ResultSet}.
+     */
+    @Override
+    public void close() {
+        wrappedResultSet.close();
+    }
 }

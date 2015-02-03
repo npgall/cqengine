@@ -5,7 +5,7 @@ import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
+import com.googlecode.cqengine.resultset.closeable.ValidatingCloseableResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
@@ -222,15 +222,15 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     }
 
     @Override
-    public CloseableResultSet<O> retrieve(Query<O> query) {
+    public ResultSet<O> retrieve(Query<O> query) {
         return retrieve(query, noQueryOptions());
     }
 
     @Override
-    public CloseableResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         if (isIsolationLevel(queryOptions, READ_UNCOMMITTED)) {
             // Allow the query to read directly from the collection with no filtering overhead...
-            return new CloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
+            return new ValidatingCloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {
                     return true;
@@ -254,7 +254,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         //   (as configured by writing threads for this version of the collection).
         // - When the ResultSet.close() method is called, we decrement the readers count
         //   to record that this thread is no longer reading this version.
-        return new CloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
+        return new ValidatingCloseableResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
                 return !iterableContains(thisVersion.objectsToExclude, object);

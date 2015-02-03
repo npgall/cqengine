@@ -5,7 +5,7 @@ import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
+import com.googlecode.cqengine.resultset.closeable.ValidatingCloseableResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -114,7 +114,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         Future<Set<Car>> resultsFromFirstRead = executor.submit(new Callable<Set<Car>>() {
             @Override
             public Set<Car> call() throws Exception {
-                CloseableResultSet<Car> resultSet = collection.retrieve(all(Car.class));
+                ResultSet<Car> resultSet = collection.retrieve(all(Car.class));
                 // Signal that this reading thread has started...
                 readStartedSignal.release();
                 // BLOCK the reading thread here...
@@ -165,7 +165,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         Assert.assertTrue("Writing thread should have completed after the open ResultSet was closed", writeFinishedSignal.tryAcquire());
 
         // Now validate (in this control thread) that the modifications by the writing thread are visible...
-        CloseableResultSet<Car> resultsFromSecondRead = collection.retrieve(all(Car.class));
+        ResultSet<Car> resultsFromSecondRead = collection.retrieve(all(Car.class));
         Set<Car> materializedResultsFromSecondRead = asSet(resultsFromSecondRead);
         resultsFromSecondRead.close();
         Assert.assertEquals(asSet(createCar(1), createCar(3), createCar(4)), materializedResultsFromSecondRead);

@@ -103,4 +103,9 @@ public class StoredSetBasedResultSet<O> extends StoredResultSet<O> {
     public int getMergeCost() {
         return backingSet.size();
     }
+
+    @Override
+    public void close() {
+        // No op.
+    }
 }

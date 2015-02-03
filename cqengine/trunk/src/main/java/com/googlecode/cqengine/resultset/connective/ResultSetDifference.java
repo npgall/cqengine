@@ -86,4 +86,10 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     public int getMergeCost() {
         return firstResultSet.getMergeCost();
     }
+
+    @Override
+    public void close() {
+        firstResultSet.close();
+        secondResultSet.close();
+    }
 }

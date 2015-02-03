@@ -105,4 +105,14 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
         }
         return (int)Math.min(mergeCost, Integer.MAX_VALUE);
     }
+
+    /**
+     * Closes all of the underlying {@code ResultSet}s.
+     */
+    @Override
+    public void close() {
+        for (ResultSet<O> resultSet : this.resultSets) {
+            resultSet.close();
+        }
+    }
 }

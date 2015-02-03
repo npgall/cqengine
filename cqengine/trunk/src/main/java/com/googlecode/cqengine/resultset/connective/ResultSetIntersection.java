@@ -120,4 +120,14 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
             return lowestMergeCostResultSet.getMergeCost();
         }
     }
+
+    /**
+     * Closes all of the underlying {@code ResultSet}s.
+     */
+    @Override
+    public void close() {
+        for (ResultSet<O> resultSet : this.resultSets) {
+            resultSet.close();
+        }
+    }
 }

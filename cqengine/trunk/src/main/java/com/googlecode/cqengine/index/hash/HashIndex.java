@@ -113,6 +113,10 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
                     return rs == null ? 0 : rs.size();
                 }
+                @Override
+                public void close() {
+                    // No op.
+                }
             };
         }
         else {
