@@ -120,12 +120,10 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
                 public Iterator<O> iterator() {
                     return new UnmodifiableIterator<O>() {
                     	boolean hasNext = (obj != null);
-                    	
 						@Override
 						public boolean hasNext() {
 							return this.hasNext;
 						}
-
 						@Override
 						public O next() {
 							this.hasNext=false;
@@ -133,26 +131,25 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
 						}
                     };
                 }
-            	
                 @Override
                 public boolean contains(O object) {
                 	return (object != null && obj != null && object.equals(obj));
                 }
-                
                 @Override
                 public int size() {
                 	return obj == null ? 0 : 1;
-                		
                 }
-                
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
                 }
-                
                 @Override
                 public int getMergeCost() {
                 	return obj == null ? 0 : 1;
+                }
+                @Override
+                public void close() {
+                    // No op.
                 }
             };
         }

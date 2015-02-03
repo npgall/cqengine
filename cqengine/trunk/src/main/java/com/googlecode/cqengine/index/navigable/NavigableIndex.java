@@ -130,6 +130,10 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
                     return rs == null ? 0 : rs.size();
                 }
+                @Override
+                public void close() {
+                    // No op.
+                }
             };
         }
         // Process LessThan, GreaterThan and Between queries as follows...

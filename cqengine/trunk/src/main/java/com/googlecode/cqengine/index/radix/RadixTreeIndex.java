@@ -106,6 +106,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                     ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
                     return rs == null ? 0 : rs.size();
                 }
+                @Override
+                public void close() {
+                    // No op.
+                }
             };
         }
         else if (queryClass.equals(StringStartsWith.class)) {
@@ -138,6 +142,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysStartingWith(stringStartsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
                     return rs.getMergeCost();
+                }
+                @Override
+                public void close() {
+                    // No op.
                 }
             };
         }

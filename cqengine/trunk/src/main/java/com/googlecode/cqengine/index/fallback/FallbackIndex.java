@@ -108,6 +108,10 @@ public class FallbackIndex<O> implements Index<O> {
                 // the size of the filtered result set...
                 return collection.size();
             }
+            @Override
+            public void close() {
+                // No op.
+            }
         };
     }
 

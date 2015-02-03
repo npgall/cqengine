@@ -71,4 +71,9 @@ public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
     public int getMergeCost() {
         return wrappedResultSet.getMergeCost();
     }
+
+    @Override
+    public void close() {
+        wrappedResultSet.close();
+    }
 }

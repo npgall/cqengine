@@ -8,14 +8,13 @@ import java.io.Closeable;
 import java.util.Iterator;
 
 /**
- * A ResultSet which has a {@link #close} method, which typically allows the application to release locks or
- * resources the query was using.
+ * A ResultSet which throws exceptions if an attempt to use it is made after its {@link #close} method has been called.
  */
-public abstract class CloseableResultSet<O> extends FilteringResultSet<O> implements Closeable {
+public abstract class ValidatingCloseableResultSet<O> extends FilteringResultSet<O> implements Closeable {
 
     boolean closed = false;
 
-    public CloseableResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
+    public ValidatingCloseableResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
         super(wrappedResultSet, queryOptions);
     }
 
@@ -69,6 +68,7 @@ public abstract class CloseableResultSet<O> extends FilteringResultSet<O> implem
 
     @Override
     public void close() {
+        super.close();
         closed = true;
     }
 }
