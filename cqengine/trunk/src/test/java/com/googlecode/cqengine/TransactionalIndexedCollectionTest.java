@@ -4,8 +4,8 @@ import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
+import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.closeable.ValidatingCloseableResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -169,6 +169,15 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         Set<Car> materializedResultsFromSecondRead = asSet(resultsFromSecondRead);
         resultsFromSecondRead.close();
         Assert.assertEquals(asSet(createCar(1), createCar(3), createCar(4)), materializedResultsFromSecondRead);
+    }
+
+    public void testConstructor() {
+        TransactionalIndexedCollection<Car> indexedCollection = new TransactionalIndexedCollection<Car>(
+                Car.class,
+                new DefaultConcurrentSetFactory<Car>()
+        );
+        assertEquals(indexedCollection.objectType, Car.class);
+        assertEquals(1L, indexedCollection.currentVersion);
     }
 
 

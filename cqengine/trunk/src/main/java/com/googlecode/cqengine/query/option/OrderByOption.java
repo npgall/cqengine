@@ -51,4 +51,21 @@ public class OrderByOption<O> {
         sb.append(")");
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OrderByOption)) return false;
+
+        OrderByOption that = (OrderByOption) o;
+
+        if (!attributeOrders.equals(that.attributeOrders)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return attributeOrders.hashCode();
+    }
 }

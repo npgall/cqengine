@@ -19,9 +19,13 @@ import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 
 import static com.googlecode.cqengine.query.QueryFactory.equal;
@@ -32,7 +36,7 @@ import static com.googlecode.cqengine.query.QueryFactory.equal;
 public class ReflectiveAttributeTest {
 
     @Test
-    public void testExists() {
+    public void testReflectiveAttribute() {
         // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
@@ -60,6 +64,33 @@ public class ReflectiveAttributeTest {
             expected = nsfe;
         }
         Assert.assertNotNull(expected);
+    }
+
+    @Test
+    public void testEqualsAndHashCode() throws NoSuchFieldException {
+        EqualsVerifier.forClass(ReflectiveAttribute.class)
+                .withRedefinedSuperclass()
+                .withPrefabValues(Field.class, Foo.class.getDeclaredField("foo"), Bar.class.getDeclaredField("bar"))
+                .withCachedHashCode("cachedHashCode", "calcHashCode")
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
+                .verify();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidField() {
+        ReflectiveAttribute.forField(Foo.class, int.class, "baz");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidFieldType() {
+        ReflectiveAttribute.forField(Foo.class, double.class, "foo");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @SuppressWarnings("unchecked")
+    public void testGetValueInvalidObject() {
+        ReflectiveAttribute reflectiveAttribute = ReflectiveAttribute.forField(Foo.class, int.class, "foo");
+        reflectiveAttribute.getValue("", QueryOptions.noQueryOptions());
     }
 
     static class Foo {

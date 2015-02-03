@@ -62,4 +62,21 @@ public class DeduplicationOption {
     public String toString() {
         return "deduplicate(" + strategy + ")";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DeduplicationOption)) return false;
+
+        DeduplicationOption that = (DeduplicationOption) o;
+
+        if (strategy != that.strategy) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return strategy.hashCode();
+    }
 }
