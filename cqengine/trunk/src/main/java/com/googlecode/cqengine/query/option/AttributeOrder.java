@@ -49,4 +49,24 @@ public class AttributeOrder<O> {
                 ? "descending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")"
                 : "ascending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AttributeOrder)) return false;
+
+        AttributeOrder that = (AttributeOrder) o;
+
+        if (descending != that.descending) return false;
+        if (!attribute.equals(that.attribute)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = attribute.hashCode();
+        result = 31 * result + (descending ? 1 : 0);
+        return result;
+    }
 }

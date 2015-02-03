@@ -524,7 +524,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
             return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, queryOptions);
         }
         else {
-            throw new IllegalStateException("Unexpected type of query object: " + (query == null ? null : query.getClass().getName()));
+            throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));
         }
     }
 
@@ -794,5 +794,9 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         // Perform the operation on the fallback index...
         return indexOperation.perform(fallbackIndex);
+    }
+
+    static String getClassNameNullSafe(Object object) {
+        return object == null ? null : object.getClass().getName();
     }
 }

@@ -89,12 +89,18 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
 
         AbstractAttribute that = (AbstractAttribute) o;
 
-        if (cachedHashCode != that.cachedHashCode) return false;
+        // TODO: reinstate this cachedHashCode comparison once EqualsVerifier supports cached hash code "shortcut":
+        //if (cachedHashCode != that.cachedHashCode) return false;
+        if (!that.canEqual(this)) return false;
         if (!attributeName.equals(that.attributeName)) return false;
         if (!attributeType.equals(that.attributeType)) return false;
         if (!objectType.equals(that.objectType)) return false;
 
         return true;
+    }
+
+    public boolean canEqual(Object other) {
+        return other instanceof AbstractAttribute;
     }
 
     @Override

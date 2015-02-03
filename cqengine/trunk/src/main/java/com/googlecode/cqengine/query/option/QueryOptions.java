@@ -54,4 +54,21 @@ public class QueryOptions {
     public String toString() {
         return "queryOptions(" + options + ')';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof QueryOptions)) return false;
+
+        QueryOptions that = (QueryOptions) o;
+
+        if (!options.equals(that.options)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return options.hashCode();
+    }
 }

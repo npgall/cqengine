@@ -97,4 +97,9 @@ public abstract class SimpleAttribute<O, A> extends AbstractAttribute<O, A> {
      * @return The value for the attribute, which should never be null
      */
     public abstract A getValue(O object, QueryOptions queryOptions);
+
+    @Override
+    public boolean canEqual(Object other) {
+        return other instanceof SimpleAttribute;
+    }
 }

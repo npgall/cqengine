@@ -4,6 +4,8 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.compound.CompoundIndex;
+import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -12,6 +14,7 @@ import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
+import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -319,10 +322,10 @@ public class IndexedCollectionFunctionalTest {
                             }};
                         }},
                         new QueryToEvaluate() {{
-                            query = isContainedIn(Car.MANUFACTURER, "I would like to buy a Honda car");
+                            query = and(lessThan(Car.CAR_ID, 100), or(none(Car.class), isContainedIn(Car.MANUFACTURER, "I would like to buy a Honda car")));
                             queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
                             expectedResults = new ExpectedResults() {{
-                                size = 300;
+                                size = 30;
                                 containsCarIds = asSet(3, 4, 5);
                                 doesNotContainCarIds = asSet(0, 1, 2, 6, 7, 8, 9);
                             }};
@@ -373,6 +376,15 @@ public class IndexedCollectionFunctionalTest {
                             }};
                         }},
                         new QueryToEvaluate() {{
+                            query = or(between(Car.CAR_ID, 400, 450), or(between(Car.CAR_ID, 451, 499), between(Car.CAR_ID, 500, 550)));
+                            queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                            expectedResults = new ExpectedResults() {{
+                                size = 151;
+                                containsCarIds = integersBetween(400, 550);
+                                doesNotContainCarIds = asSet(399, 551);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
                             query = endsWith(Car.FEATURES, "roof");
                             expectedResults = new ExpectedResults() {{
                                 size = 100;
@@ -387,6 +399,20 @@ public class IndexedCollectionFunctionalTest {
                                 containsCarIds = asSet(5);
                                 doesNotContainCarIds = asSet(0, 1, 2, 3, 4, 6, 7, 8, 9);
                             }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Fusion"));
+                            expectedResults = new ExpectedResults() {{
+                                size = 100;
+                                containsCarIds = asSet(1);
+                                doesNotContainCarIds = asSet(0, 2, 3, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "XXX"));
+                            expectedResults = new ExpectedResults() {{
+                                size = 0;
+                            }};
                         }}
                 );
                 indexCombinations = indexCombinations(
@@ -396,8 +422,23 @@ public class IndexedCollectionFunctionalTest {
                         indexCombination(HashIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID)),
                         indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
                         indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID)),
-                        indexCombination(NavigableIndex.onAttribute(Car.FEATURES))
-
+                        indexCombination(NavigableIndex.onAttribute(Car.FEATURES)),
+                        indexCombination(RadixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                        indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                        indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                        indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                        indexCombination(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL)),
+                        indexCombination(CompoundIndex.withQuantizerOnAttributes(new Quantizer<CompoundValueTuple<Car>>() {
+                                    @Override
+                                    public CompoundValueTuple<Car> getQuantizedValue(CompoundValueTuple<Car> tuple) {
+                                        Iterator<Object> tupleValues = tuple.getAttributeValues().iterator();
+                                        String manufacturer = (String) tupleValues.next();
+                                        String model = (String) tupleValues.next();
+                                        String quantizedModel = "Focus".equals(model) ? "Focus" : "Other";
+                                        return new CompoundValueTuple<Car>(Arrays.asList(manufacturer, quantizedModel));
+                                    }
+                                }, Car.MANUFACTURER, Car.MODEL)
+                        )
                 );
             }},
             new MacroScenario() {{
@@ -538,6 +579,21 @@ public class IndexedCollectionFunctionalTest {
                         }}
                 );
                 indexCombinations = indexCombinations(indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)));
+            }},
+            new MacroScenario() {{
+                name = "retrieval cost with CompoundIndex";
+                dataSet = SMALL_DATASET;
+                collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                queriesToEvaluate = asList(
+                        new QueryToEvaluate() {{
+                            query = and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Fusion"));
+                            expectedResults = new ExpectedResults() {{
+                                retrievalCost = 20;
+                                mergeCost = 1;
+                            }};
+                        }}
+                );
+                indexCombinations = indexCombinations(indexCombination(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL)));
             }},
             new MacroScenario() {{
                 name = "string queries 1";
@@ -972,7 +1028,10 @@ public class IndexedCollectionFunctionalTest {
 
     static String getIndexDescription(Index index) {
         String description = index.getClass().getSimpleName();
-        if (index instanceof AttributeIndex) {
+        if (index instanceof CompoundIndex) {
+            description += ".onAttribute(<CompoundAttribute>)";
+        }
+        else if (index instanceof AttributeIndex) {
             Attribute attribute = ((AttributeIndex) index).getAttribute();
             description += ".onAttribute(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
         }
@@ -982,7 +1041,7 @@ public class IndexedCollectionFunctionalTest {
         return description;
     }
 
-    static <C extends Collection<Integer>> C extractCarIds(ResultSet<Car> resultSet, C output) {
+    public static <C extends Collection<Integer>> C extractCarIds(Iterable<Car> resultSet, C output) {
         for (Car car : resultSet) {
             output.add(car.getCarId());
         }
