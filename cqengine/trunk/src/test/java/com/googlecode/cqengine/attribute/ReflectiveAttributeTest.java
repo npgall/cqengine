@@ -19,7 +19,7 @@ import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.hash.HashIndex;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.QueryFactory;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Assert;
@@ -90,7 +90,7 @@ public class ReflectiveAttributeTest {
     @SuppressWarnings("unchecked")
     public void testGetValueInvalidObject() {
         ReflectiveAttribute reflectiveAttribute = ReflectiveAttribute.forField(Foo.class, int.class, "foo");
-        reflectiveAttribute.getValue("", QueryOptions.noQueryOptions());
+        reflectiveAttribute.getValue("", QueryFactory.noQueryOptions());
     }
 
     static class Foo {

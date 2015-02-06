@@ -17,7 +17,6 @@ package com.googlecode.cqengine.examples.replace;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.DeduplicatingResultSet;
 
@@ -82,7 +81,7 @@ public class Replace {
     static Car retrieveOnlyOneVersion(IndexedCollection<Car> cars, int carId) {
         ResultSet<Car> multipleCarVersions = cars.retrieve(equal(Car.CAR_ID, carId));
         // Wrap in a result set which will return only one car per version number...
-        ResultSet<Car> deduplicatedCars = new DeduplicatingResultSet<Car, Integer>(Car.CAR_ID, multipleCarVersions, QueryOptions.noQueryOptions());
+        ResultSet<Car> deduplicatedCars = new DeduplicatingResultSet<Car, Integer>(Car.CAR_ID, multipleCarVersions, noQueryOptions());
 
         return deduplicatedCars.uniqueResult();
     }

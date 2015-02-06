@@ -18,7 +18,7 @@ public class IndexQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation1() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(null);
     }
@@ -26,14 +26,14 @@ public class IndexQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation2() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.retrieveRecursive(new Query<Car>() {
             @Override
             public boolean matches(Car object, QueryOptions queryOptions) {
                 return false;
             }
-        }, QueryOptions.noQueryOptions());
+        }, QueryFactory.noQueryOptions());
     }
 
     @Test
@@ -45,7 +45,7 @@ public class IndexQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateStandingQueryIndex() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)));
         queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)));
@@ -54,7 +54,7 @@ public class IndexQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateCompoundIndex() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL));
         queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL));
@@ -63,7 +63,7 @@ public class IndexQueryEngineTest {
     @Test
     public void testIsMutable() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         Assert.assertTrue(queryEngine.isMutable());
         queryEngine.addIndex(createImmutableIndex());
@@ -73,10 +73,10 @@ public class IndexQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testEnsureMutable() throws Exception {
         IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryOptions.noQueryOptions());
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(createImmutableIndex());
-        queryEngine.notifyObjectsAdded(Collections.singleton(CarFactory.createCar(1)), QueryOptions.noQueryOptions());
+        queryEngine.notifyObjectsAdded(Collections.singleton(CarFactory.createCar(1)), QueryFactory.noQueryOptions());
     }
 
     static HashIndex<Integer, Car> createImmutableIndex() {

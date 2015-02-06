@@ -55,7 +55,7 @@ public interface Index<O> extends ModificationListener<O> {
      * @param queryOptions Optional parameters for the query
      * @return A set of objects with attributes matching the restriction imposed by the query
      * @throws IllegalArgumentException if the index does not common the given query
-     * @see #supportsQuery(com.googlecode.cqengine.query.Query
+     * @see #supportsQuery(com.googlecode.cqengine.query.Query)
      */
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
 

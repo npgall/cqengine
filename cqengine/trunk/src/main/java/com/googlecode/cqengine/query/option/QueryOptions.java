@@ -43,13 +43,6 @@ public class QueryOptions {
         options.put(key, value);
     }
 
-
-    static final QueryOptions EMPTY_OPTIONS = new QueryOptions(Collections.emptyMap());
-
-    public static QueryOptions noQueryOptions() {
-        return EMPTY_OPTIONS;
-    }
-
     @Override
     public String toString() {
         return "queryOptions(" + options + ')';

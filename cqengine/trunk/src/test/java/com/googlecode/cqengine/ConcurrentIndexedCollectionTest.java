@@ -28,7 +28,7 @@ import org.junit.Assert;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 import static com.googlecode.cqengine.testutil.TestUtil.setOf;
 import static java.util.Arrays.asList;
 

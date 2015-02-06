@@ -26,7 +26,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * An implementation of {@link java.util.Set} which additionally wraps {@link QueryEngineInternal}, thus providing
@@ -112,8 +112,8 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     @Override
     public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, QueryOptions queryOptions) {
-        boolean modified = doAddAll(objectsToAdd);
-        return doRemoveAll(objectsToRemove) || modified;
+        boolean modified = doAddAll(objectsToAdd, queryOptions);
+        return doRemoveAll(objectsToRemove, queryOptions) || modified;
     }
 
     /**
@@ -300,26 +300,44 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         indexEngine.notifyObjectsCleared(noQueryOptions());
     }
 
-    boolean doAddAll(Iterable<O> objects) {
+    boolean doAddAll(Iterable<O> objects, QueryOptions queryOptions) {
         if (objects instanceof Collection) {
-            return addAll((Collection<O>) objects);
+            Collection<O> c = (Collection<O>) objects;
+            boolean modified = this.collection.addAll(c);
+            if  (modified) {
+                indexEngine.notifyObjectsAdded(c, queryOptions);
+            }
+            return modified;
         }
         else {
             boolean modified = false;
             for (O object : objects) {
-                modified = add(object) || modified;
+                boolean added = collection.add(object);
+                if (modified) {
+                    indexEngine.notifyObjectsAdded(Collections.singleton(object), queryOptions);
+                }
+                modified = added || modified;
             }
             return modified;
         }
     }
 
-    boolean doRemoveAll(Iterable<O> objects) {
+    boolean doRemoveAll(Iterable<O> objects, QueryOptions queryOptions) {
         if (objects instanceof Collection) {
-            return removeAll((Collection<O>) objects);
+            Collection<O> c = (Collection<O>) objects;
+            boolean modified = this.collection.removeAll(c);
+            if (modified) {
+                indexEngine.notifyObjectsRemoved(c, queryOptions);
+            }
+            return modified;
         } else {
             boolean modified = false;
             for (O object : objects) {
-                modified = remove(object) || modified;
+                boolean removed = collection.remove(object);
+                if (removed) {
+                    indexEngine.notifyObjectsRemoved(Collections.singleton(object), queryOptions);
+                }
+                modified = removed || modified;
             }
             return modified;
         }

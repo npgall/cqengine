@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
  */
 public class QueryFactory {
 
+    static final QueryOptions EMPTY_OPTIONS = new QueryOptions(Collections.emptyMap());
+
     /**
      * Private constructor, not used.
      */
@@ -531,6 +533,16 @@ public class QueryFactory {
             resultOptions.put(queryOption.getClass(), queryOption);
         }
         return resultOptions;
+    }
+
+    /**
+     * A convenience method to encapsulate an empty collection of objects as
+     * {@link com.googlecode.cqengine.query.option.QueryOptions}.
+     *
+     * @return A {@link QueryOptions} object
+     */
+    public static QueryOptions noQueryOptions() {
+        return EMPTY_OPTIONS;
     }
 
     // ***************************************************************************************************************

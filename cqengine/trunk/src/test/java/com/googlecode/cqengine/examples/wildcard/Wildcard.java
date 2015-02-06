@@ -28,7 +28,7 @@ import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import java.util.Arrays;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Demonstrates how to perform wildcard queries in CQEngine as of CQEngine ~1.0.3.

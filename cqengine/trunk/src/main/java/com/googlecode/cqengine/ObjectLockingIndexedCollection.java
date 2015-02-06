@@ -17,7 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.QueryFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -152,7 +152,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), QueryOptions.noQueryOptions());
+                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), QueryFactory.noQueryOptions());
                 }
                 finally {
                     lock.unlock();
