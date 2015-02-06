@@ -136,27 +136,28 @@
                 </executions>
             </plugin>
 
-                <plugin>
-                  <groupId>org.jacoco</groupId>
-                  <artifactId>jacoco-maven-plugin</artifactId>
-                  <version>0.7.2.201409121644</version>
-                  <executions>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.2.201409121644</version>
+                <executions>
                     <execution>
-                      <id>default-prepare-agent</id>
-                      <goals><goal>prepare-agent</goal></goals>
+                        <id>default-prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
                     </execution>
                     <execution>
-                      <id>default-report</id>
-                      <phase>prepare-package</phase>
-                      <goals><goal>report</goal></goals>
+                        <id>default-report</id>
+                        <phase>prepare-package</phase>
+                        <goals><goal>report</goal></goals>
                     </execution>
                     <execution>
-                      <id>default-check</id>
-                      <goals><goal>check</goal></goals>
+                        <id>default-check</id>
+                        <goals><goal>check</goal></goals>
                     </execution>
-                  </executions>
-                </plugin>
-              </plugins>
+                </executions>
+                <configuration><rules/></configuration>
+            </plugin>
+        </plugins>
     </build>
     <dependencies>
         <dependency>
