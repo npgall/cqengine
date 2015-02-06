@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * @author Roberto Socrates

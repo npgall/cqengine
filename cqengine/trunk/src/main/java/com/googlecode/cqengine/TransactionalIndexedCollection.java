@@ -20,7 +20,7 @@ import static com.googlecode.cqengine.query.QueryFactory.isolationLevel;
 import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
 import static com.googlecode.cqengine.query.option.IsolationLevel.READ_UNCOMMITTED;
 import static com.googlecode.cqengine.query.option.IsolationOption.isIsolationLevel;
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Extends {@link ConcurrentIndexedCollection} with support for READ_COMMITTED transaction isolation using
@@ -130,7 +130,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 waitForReadersOfPreviousVersionsToFinish();
 
                 // Now add the given objects...
-                modified = doAddAll(objectsToAdd);
+                modified = doAddAll(objectsToAdd, queryOptions);
             }
             if (objectsToRemoveIterator.hasNext()) {
                 // Configure (or reconfigure) new reading threads to (instead) exclude the objects we will remove...
@@ -140,7 +140,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 waitForReadersOfPreviousVersionsToFinish();
 
                 // Now remove the given objects...
-                modified = doRemoveAll(objectsToRemove) || modified;
+                modified = doRemoveAll(objectsToRemove, queryOptions) || modified;
             }
 
             // Finally, remove the exclusion...
@@ -284,31 +284,6 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 }
             }
         };
-    }
-
-    boolean doAddAll(Iterable<O> objects) {
-        if (objects instanceof Collection) {
-            return super.addAll((Collection<O>) objects);
-        }
-        else {
-            boolean modified = false;
-            for (O object : objects) {
-                modified = super.add(object) || modified;
-            }
-            return modified;
-        }
-    }
-
-    boolean doRemoveAll(Iterable<O> objects) {
-        if (objects instanceof Collection) {
-            return super.removeAll((Collection<O>) objects);
-        } else {
-            boolean modified = false;
-            for (O object : objects) {
-                modified = super.remove(object) || modified;
-            }
-            return modified;
-        }
     }
 
     static <O> boolean iterableContains(Iterable<O> objects, O o) {

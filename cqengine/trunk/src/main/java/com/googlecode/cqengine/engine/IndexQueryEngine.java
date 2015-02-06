@@ -24,6 +24,7 @@ import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
@@ -93,7 +94,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      */
     @Override
     public void addIndex(Index<O> index) {
-        addIndex(index, QueryOptions.noQueryOptions());
+        addIndex(index, QueryFactory.noQueryOptions());
     }
 
     /**
@@ -256,7 +257,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      */
     @Override
     public ResultSet<O> retrieve(Query<O> query) {
-        return retrieveRecursive(query, QueryOptions.noQueryOptions());
+        return retrieveRecursive(query, QueryFactory.noQueryOptions());
     }
 
     /**

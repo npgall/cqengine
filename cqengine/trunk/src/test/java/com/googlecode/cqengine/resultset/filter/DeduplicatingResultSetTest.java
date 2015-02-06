@@ -1,7 +1,7 @@
 package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.IndexedCollectionFunctionalTest;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -23,7 +23,7 @@ public class DeduplicatingResultSetTest {
         DeduplicatingResultSet<Car, String> deduplicatingResultSet = new DeduplicatingResultSet<Car, String>(
                 Car.MANUFACTURER,
                 new StoredSetBasedResultSet<Car>(new LinkedHashSet<Car>(cars)),
-                QueryOptions.noQueryOptions()
+                QueryFactory.noQueryOptions()
         );
         List<Integer> carIdsReturned = new ArrayList<Integer>();
         IndexedCollectionFunctionalTest.extractCarIds(deduplicatingResultSet, carIdsReturned);

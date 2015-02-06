@@ -16,14 +16,13 @@
 package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static com.googlecode.cqengine.query.option.QueryOptions.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Utility methods useful in unit tests.

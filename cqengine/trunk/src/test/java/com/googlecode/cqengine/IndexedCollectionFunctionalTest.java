@@ -783,7 +783,7 @@ public class IndexedCollectionFunctionalTest {
         Collection<Car> removeDataSet = Collections.emptySet();
         Boolean clearDataSet = false;
         Query<Car> query = none(Car.class);
-        QueryOptions queryOptions = QueryOptions.noQueryOptions();
+        QueryOptions queryOptions = noQueryOptions();
         ExpectedResults expectedResults = null;
         Class collectionImplementation;
         Iterable<Index> indexCombination;
@@ -920,7 +920,7 @@ public class IndexedCollectionFunctionalTest {
 
     static class QueryToEvaluate {
         Query<Car> query = none(Car.class);
-        QueryOptions queryOptions = QueryOptions.noQueryOptions();
+        QueryOptions queryOptions = noQueryOptions();
         ExpectedResults expectedResults = null;
     }
 
