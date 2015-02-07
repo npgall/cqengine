@@ -17,6 +17,7 @@ import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
+import com.googlecode.cqengine.query.option.OrderingStrategy;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -30,6 +31,8 @@ import org.junit.runner.RunWith;
 import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
+import static com.googlecode.cqengine.query.option.OrderingStrategy.MATERIALIZE;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -704,17 +707,156 @@ public class IndexedCollectionFunctionalTest {
                             }};
                         }},
                         new QueryToEvaluate() {{
-                                  query = all(Car.class);
-                                  // Should order cars without any features first, followed by cars with features
-                                  // in ascending alphabetical order of feature string...
-                                  queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)));
-                                  expectedResults = new ExpectedResults() {{
-                                      size = 10;
-                                      carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
-                                  }};
-                              }}
+                            query = all(Car.class);
+                            // Should order cars without any features first, followed by cars with features
+                            // in ascending alphabetical order of feature string...
+                            queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)));
+                            expectedResults = new ExpectedResults() {{
+                                size = 10;
+                                carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
+                            }};
+                        }}
                 );
                 indexCombinations = indexCombinations(noIndexes());
+            }},
+            new MacroScenario() {{
+                name = "index ordering";
+                dataSet = SMALL_DATASET;
+                collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                queriesToEvaluate = asList(
+                        new QueryToEvaluate() {{
+                            query = all(Car.class);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 10;
+                                carIdsInOrder = asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.CAR_ID, 4, 6);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 3;
+                                carIdsInOrder = asList(4, 5, 6);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = lessThan(Car.CAR_ID, 6);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 6;
+                                carIdsInOrder = asList(0, 1, 2, 3, 4, 5);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = lessThanOrEqualTo(Car.CAR_ID, 6);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 7;
+                                carIdsInOrder = asList(0, 1, 2, 3, 4, 5, 6);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = greaterThan(Car.CAR_ID, 3);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 6;
+                                carIdsInOrder = asList(4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = greaterThanOrEqualTo(Car.CAR_ID, 3);
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 7;
+                                carIdsInOrder = asList(3, 4, 5, 6, 7, 8, 9);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = all(Car.class);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 10;
+                                carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = between(Car.CAR_ID, 4, 6);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 3;
+                                carIdsInOrder = asList(6, 5, 4);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = lessThan(Car.CAR_ID, 6);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 6;
+                                carIdsInOrder = asList(5, 4 ,3 ,2 ,1, 0);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = lessThanOrEqualTo(Car.CAR_ID, 6);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 7;
+                                carIdsInOrder = asList(6, 5, 4 ,3 ,2 ,1, 0);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = greaterThan(Car.CAR_ID, 3);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 6;
+                                carIdsInOrder = asList(9, 8, 7, 6, 5, 4);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = greaterThanOrEqualTo(Car.CAR_ID, 3);
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 7;
+                                carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(greaterThanOrEqualTo(Car.CAR_ID, 3), lessThanOrEqualTo(Car.CAR_ID, 6));
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 4;
+                                carIdsInOrder = asList(6, 5, 4, 3);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = or(greaterThanOrEqualTo(Car.CAR_ID, 7), none(Car.class));
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 3;
+                                carIdsInOrder = asList(9, 8, 7);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(or(greaterThanOrEqualTo(Car.CAR_ID, 7), none(Car.class)), or(all(Car.class), none(Car.class)));
+                            queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 3;
+                                carIdsInOrder = asList(9, 8, 7);
+                            }};
+                        }},
+                        new QueryToEvaluate() {{
+                            query = and(equal(Car.CAR_ID, 8), all(Car.class));
+                            queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                            expectedResults = new ExpectedResults() {{
+                                size = 1;
+                                carIdsInOrder = asList(8);
+                            }};
+                        }}
+                );
+                indexCombinations = indexCombinations(
+                        indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
+                        indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID))
+                );
             }},
             new MacroScenario() {{
                 name = "remove objects";
@@ -914,7 +1056,7 @@ public class IndexedCollectionFunctionalTest {
             }
         }
         catch (Exception e) {
-            throw new IllegalStateException("Failed to retrieve results for query: " + query);
+            throw new IllegalStateException("Failed to retrieve results for query: " + query, e);
         }
     }
 
