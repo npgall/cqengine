@@ -19,6 +19,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.index.common.NavigableMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.common.UnmodifiableNavigableSet;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -245,13 +246,8 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     }
 
     @Override
-    public SortedSet<A> getDistinctKeys() {
-        return Collections.unmodifiableSortedSet(this.indexMap.keySet());
-    }
-
-    @Override
-    public SortedSet<A> getDistinctKeysDescending() {
-        return Collections.unmodifiableSortedSet(this.indexMap.descendingKeySet());
+    public NavigableSet<A> getDistinctKeys() {
+        return new UnmodifiableNavigableSet<A>(this.indexMap.keySet());
     }
 
     @Override

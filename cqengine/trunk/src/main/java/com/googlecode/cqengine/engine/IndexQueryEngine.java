@@ -15,13 +15,17 @@
  */
 package com.googlecode.cqengine.engine;
 
+import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -29,10 +33,10 @@ import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
-import com.googlecode.cqengine.query.option.DeduplicationOption;
-import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.OrderByOption;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.option.*;
+import com.googlecode.cqengine.query.simple.Between;
+import com.googlecode.cqengine.query.simple.GreaterThan;
+import com.googlecode.cqengine.query.simple.LessThan;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
@@ -50,6 +54,7 @@ import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 
 /**
  * The main component of {@code CQEngine} - maintains a set of indexes on a collection and accepts queries which
@@ -270,10 +275,10 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 
-//        // Check if we can use an index to drive the sort...
-//        if (OrderStrategyOption.isIndex(queryOptions)) {
-//            return retrieveWithIndexOrdering(query, queryOptions, orderByOption);
-//        }
+        // Check if we can use an index to drive the sort...
+        if (OrderingStrategyOption.isIndex(queryOptions)) {
+            return retrieveWithIndexOrdering(query, queryOptions, orderByOption);
+        }
         // Retrieve results...
         ResultSet<O> resultSet = retrieveRecursive(query, queryOptions);
 
@@ -295,89 +300,170 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         return resultSet;
     }
 
-//    /**
-//     * Experimental support to use a NavigableIndex to order results.
-//     * TODO: Needs further work.
-//     */
-//    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, OrderByOption<O> orderByOption) {
-//        List<AttributeOrder<O>> attributeOrders = orderByOption.getAttributeOrders();
-//
-//        if (attributeOrders.size() != 1) {
-//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with compound orderBy clause '" + orderByOption + "'");
-//        }
-//        AttributeOrder<O> order = attributeOrders.iterator().next();
-//        final Attribute<O, ? extends Comparable> attribute = order.getAttribute();
-//        if (!(attribute instanceof SimpleAttribute)) {
-//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' is not compatible with non-simple attribute in orderBy clause '" + orderByOption + "'");
-//        }
-//        @SuppressWarnings("unchecked")
-//        final SimpleAttribute<O, Comparable> simpleAttribute = (SimpleAttribute<O, Comparable>)attribute;
-//        NavigableIndex<?, O> navigableIndexOnAttribute = null;
-//        for (Index<O> index : this.getIndexesOnAttribute(simpleAttribute)) {
-//            if (index instanceof NavigableIndex) {
-//                navigableIndexOnAttribute = (NavigableIndex<?, O>)index;
-//                break;
-//            }
-//        }
-//        if (navigableIndexOnAttribute == null) {
-//            throw new IllegalStateException("Order strategy '" + queryOptions.get(OrderStrategyOption.class) + "' requires a NavigableIndex on the attribute in orderBy clause '" + orderByOption + "'");
-//        }
-//        final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
-//        if (!order.isDescending()) {
-//            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
-//                @Override
-//                public Iterator<ResultSet<O>> iterator() {
-//                    return new LazyIterator<ResultSet<O>>() {
-//                        Comparable previousKey = null;
-//                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeys().iterator();
-//                        @Override
-//                        protected ResultSet<O> computeNext() {
-//                            if (!indexKeys.hasNext()) {
-//                                return endOfData();
-//                            }
-//                            Comparable currentKey = indexKeys.next();
-//                            Query<O> rangeRestriction = (previousKey == null)
-//                                    ? lessThan(simpleAttribute, currentKey)
-//                                    : between(simpleAttribute, previousKey, false, currentKey, true);
-//
-//                            Query<O> restrictedQuery = and(query, rangeRestriction);
-//
-//                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
-//                            previousKey = currentKey;
-//                            return resultsForThisKey;
-//                        }
-//                    };
-//                }
-//            });
-//        }
-//        else {
-//            return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
-//                @Override
-//                public Iterator<ResultSet<O>> iterator() {
-//                    return new LazyIterator<ResultSet<O>>() {
-//                        Comparable previousKey = null;
-//                        final Iterator<? extends Comparable> indexKeys = navigableIndexRef.getDistinctKeysDescending().iterator();
-//                        @Override
-//                        protected ResultSet<O> computeNext() {
-//                            if (!indexKeys.hasNext()) {
-//                                return endOfData();
-//                            }
-//                            Comparable currentKey = indexKeys.next();
-//                            Query<O> rangeRestriction = (previousKey == null)
-//                                    ? greaterThan(simpleAttribute, currentKey)
-//                                    : between(simpleAttribute, currentKey, true, previousKey, false);
-//
-//                            Query<O> restrictedQuery = and(query, rangeRestriction);
-//
-//                            ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
-//                            this.previousKey = currentKey;
-//                            return resultsForThisKey;
-//                        }
-//                    };
-//                }
-//            });
-//        }
-//    }
+    /**
+     * Use an index to order results.
+     */
+    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, final OrderByOption<O> orderByOption) {
+        final List<AttributeOrder<O>> attributeOrders = orderByOption.getAttributeOrders();
+
+        if (attributeOrders.size() != 1) {
+            throw new IllegalStateException("Ordering strategy '" + queryOptions.get(OrderingStrategyOption.class) + "' is not compatible with compound orderBy clause '" + orderByOption + "'");
+        }
+        AttributeOrder<O> order = attributeOrders.iterator().next();
+        final Attribute<O, ? extends Comparable> attribute = order.getAttribute();
+        if (!(attribute instanceof SimpleAttribute)) {
+            throw new IllegalStateException("Ordering strategy '" + queryOptions.get(OrderingStrategyOption.class) + "' is not compatible with non-simple attribute in orderBy clause '" + orderByOption + "'");
+        }
+        @SuppressWarnings("unchecked")
+        final SimpleAttribute<O, Comparable> simpleAttribute = (SimpleAttribute<O, Comparable>)attribute;
+        NavigableIndex<?, O> navigableIndexOnAttribute = null;
+        for (Index<O> index : this.getIndexesOnAttribute(simpleAttribute)) {
+            if (index instanceof NavigableIndex) {
+                navigableIndexOnAttribute = (NavigableIndex<?, O>)index;
+                break;
+            }
+        }
+        if (navigableIndexOnAttribute == null) {
+            throw new IllegalStateException("Ordering strategy '" + queryOptions.get(OrderingStrategyOption.class) + "' requires a NavigableIndex on the attribute in orderBy clause '" + orderByOption + "'");
+        }
+        final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
+
+        final RangeBounds rangeBoundsFromQuery = getBoundsFromQuery(query, simpleAttribute);
+        final boolean descending = order.isDescending();
+        return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
+            @Override
+            public Iterator<ResultSet<O>> iterator() {
+                return new LazyIterator<ResultSet<O>>() {
+                    Comparable previousKey = null;
+                    boolean lastKeyProcessed = false;
+
+                    final Iterator<? extends Comparable> keysInRange = (descending)
+                            ? getKeysInRange(navigableIndexRef, rangeBoundsFromQuery).descendingIterator()
+                            : getKeysInRange(navigableIndexRef, rangeBoundsFromQuery).iterator();
+
+                    @Override
+                    protected ResultSet<O> computeNext() {
+                        Comparable currentKey = null;
+                        if (!keysInRange.hasNext()) {
+                            if (lastKeyProcessed) {
+                                return endOfData();
+                            }
+                            lastKeyProcessed = true;
+                        }
+                        else {
+                            currentKey = keysInRange.next();
+                        }
+                        Query<O> rangeRestriction = getRangeRestriction(descending, simpleAttribute, currentKey, previousKey);
+
+                        Query<O> restrictedQuery = and(query, rangeRestriction);
+
+                        ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
+
+                        // We must also sort results within each bucket, in case the index is quantized,
+                        // or in case there are additional sort orders after the first one...
+                        Comparator<O> comparator = new AttributeOrdersComparator<O>(attributeOrders, queryOptions);
+                        resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator);
+
+                        previousKey = currentKey;
+                        return resultsForThisKey;
+                    }
+                };
+            }
+        });
+    }
+
+    static <O> Query<O> getRangeRestriction(boolean descending, SimpleAttribute<O, Comparable> attribute, Comparable currentKey, Comparable previousKey) {
+        if (!descending) {
+            return (previousKey == null)
+                    ? lessThanOrEqualTo(attribute, currentKey)
+                    : (currentKey == null)
+                        ? greaterThan(attribute, previousKey)
+                        : between(attribute, previousKey, false, currentKey, true);
+        } else {
+            return (previousKey == null)
+                    ? greaterThan(attribute, currentKey)
+                    : (currentKey == null)
+                        ? lessThanOrEqualTo(attribute, previousKey)
+                        : between(attribute, currentKey, false, previousKey, true);
+        }
+    }
+
+    static <O> NavigableSet<? extends Comparable> getKeysInRange(NavigableMapBasedIndex<? extends Comparable, O> index, RangeBounds queryBounds) {
+        @SuppressWarnings("unchecked")
+        NavigableSet<Comparable> distinctKeys = (NavigableSet<Comparable>) index.getDistinctKeys();
+        NavigableSet<Comparable> subset;
+        if (queryBounds.lowerBound != null && queryBounds.upperBound != null) {
+            subset = distinctKeys.subSet(
+                    queryBounds.lowerBound, queryBounds.lowerInclusive,
+                    queryBounds.upperBound, queryBounds.upperInclusive);
+        }
+        else if (queryBounds.lowerBound != null) {
+            subset = distinctKeys.tailSet(
+                    queryBounds.lowerBound, queryBounds.lowerInclusive);
+        }
+        else if (queryBounds.upperBound != null) {
+            subset = distinctKeys.headSet(
+                    queryBounds.upperBound, queryBounds.upperInclusive);
+        }
+        else {
+            subset = distinctKeys;
+        }
+        return subset;
+    }
+
+    static class RangeBounds {
+        final Comparable lowerBound;
+        final boolean lowerInclusive;
+        final Comparable upperBound;
+        final Boolean upperInclusive;
+
+        public RangeBounds(Comparable lowerBound, boolean lowerInclusive, Comparable upperBound, Boolean upperInclusive) {
+            this.lowerBound = lowerBound;
+            this.lowerInclusive = lowerInclusive;
+            this.upperBound = upperBound;
+            this.upperInclusive = upperInclusive;
+        }
+    }
+
+    static <O> RangeBounds getBoundsFromQuery(Query<O> query, SimpleAttribute<O, ? extends Comparable> attribute) {
+        Comparable lowerBound = null, upperBound = null;
+        boolean lowerInclusive = false, upperInclusive = false;
+        List<SimpleQuery<O, ?>> candidateRangeQueries = Collections.emptyList();
+        if (query instanceof SimpleQuery) {
+            candidateRangeQueries = Collections.<SimpleQuery<O, ?>>singletonList((SimpleQuery<O, ?>) query);
+        }
+        else if (query instanceof And) {
+            And<O> and = (And<O>)query;
+            if (and.hasSimpleQueries()) {
+                candidateRangeQueries = and.getSimpleQueries();
+            }
+        }
+        for (SimpleQuery<O, ?> candidate : candidateRangeQueries) {
+            if (attribute.equals(candidate.getAttribute())) {
+                if (candidate instanceof GreaterThan) {
+                    @SuppressWarnings("unchecked")
+                    GreaterThan<O, ? extends Comparable> bound = (GreaterThan<O, ? extends Comparable>) candidate;
+                    lowerBound = bound.getValue();
+                    lowerInclusive = bound.isValueInclusive();
+                }
+                else if (candidate instanceof LessThan) {
+                    @SuppressWarnings("unchecked")
+                    LessThan<O, ? extends Comparable> bound = (LessThan<O, ? extends Comparable>) candidate;
+                    upperBound = bound.getValue();
+                    upperInclusive = bound.isValueInclusive();
+                }
+                else if (candidate instanceof Between) {
+                    @SuppressWarnings("unchecked")
+                    Between<O, ? extends Comparable> bound = (Between<O, ? extends Comparable>) candidate;
+                    lowerBound = bound.getLowerValue();
+                    lowerInclusive = bound.isLowerInclusive();
+                    upperBound = bound.getUpperValue();
+                    upperInclusive = bound.isUpperInclusive();
+                }
+            }
+        }
+        return new RangeBounds(lowerBound, lowerInclusive, upperBound, upperInclusive);
+    }
 
     /**
      * Implements the bulk of query processing.

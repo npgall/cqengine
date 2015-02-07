@@ -1,6 +1,6 @@
 package com.googlecode.cqengine.index.common;
 
-import java.util.SortedSet;
+import java.util.NavigableSet;
 
 /**
  * An index which allows the set of distinct keys to be queried in sorted order, and which can return statistics on the
@@ -11,7 +11,5 @@ import java.util.SortedSet;
 public interface NavigableMapBasedIndex<A, O> extends MapBasedIndex<A, O> {
 
     @Override
-    public SortedSet<A> getDistinctKeys();
-
-    public SortedSet<A> getDistinctKeysDescending();
+    public NavigableSet<A> getDistinctKeys();
 }

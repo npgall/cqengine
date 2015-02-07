@@ -487,6 +487,17 @@ public class QueryFactory {
     }
 
     /**
+     * Creates an {@link OrderingStrategyOption} query option, encapsulating a given {@link OrderingStrategy}, which
+     * when supplied to the query engine requests it to use the given strategy to order results.
+     *
+     * @param orderingStrategy The ordering strategy the query engine should use
+     * @return An {@link OrderingStrategyOption} query option
+     */
+    public static <O> OrderingStrategyOption orderingStrategy(OrderingStrategy orderingStrategy) {
+        return new OrderingStrategyOption(orderingStrategy);
+    }
+
+    /**
      * Creates a {@link DeduplicationOption} query option, encapsulating a given {@link DeduplicationStrategy}, which
      * when supplied to the query engine requests it to eliminate duplicates objects from the results returned using
      * the strategy indicated.

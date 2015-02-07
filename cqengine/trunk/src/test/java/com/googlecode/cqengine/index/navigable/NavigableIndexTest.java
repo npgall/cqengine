@@ -35,7 +35,7 @@ public class NavigableIndexTest {
             assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model));
         }
 
-        SortedSet<String> distinctModelsDescending = MODEL_INDEX.getDistinctKeysDescending();
+        SortedSet<String> distinctModelsDescending = MODEL_INDEX.getDistinctKeys().descendingSet();
         assertEquals(asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord"), new ArrayList<String>(distinctModelsDescending));
     }
 
