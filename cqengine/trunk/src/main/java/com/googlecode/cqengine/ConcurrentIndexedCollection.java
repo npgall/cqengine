@@ -112,8 +112,8 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     @Override
     public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, QueryOptions queryOptions) {
-        boolean modified = doAddAll(objectsToAdd, queryOptions);
-        return doRemoveAll(objectsToRemove, queryOptions) || modified;
+        boolean modified = doRemoveAll(objectsToRemove, queryOptions);
+        return doAddAll(objectsToAdd, queryOptions) || modified;
     }
 
     /**

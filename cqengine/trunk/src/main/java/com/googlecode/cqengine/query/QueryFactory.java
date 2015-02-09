@@ -521,6 +521,18 @@ public class QueryFactory {
     }
 
     /**
+     * Creates an {@link ArgumentValidationOption} query option, encapsulating a given
+     * {@link ArgumentValidationStrategy}, which when supplied to the query engine requests that some argument
+     * validation may be disabled (or enabled) for performance or reliability reasons.
+     *
+     * @param strategy The argument validation strategy to request
+     * @return An {@link ArgumentValidationOption} query option
+     */
+    public static ArgumentValidationOption argumentValidation(ArgumentValidationStrategy strategy) {
+        return new ArgumentValidationOption(strategy);
+    }
+
+    /**
      * A convenience method to encapsulate several objects together as {@link com.googlecode.cqengine.query.option.QueryOptions},
      * where the class of the object will become its key in the QueryOptions map.
      *

@@ -3,6 +3,7 @@ package com.googlecode.cqengine;
 import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.ArgumentValidationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.ValidatingCloseableResultSet;
@@ -27,7 +28,53 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * <a href="http://en.wikipedia.org/wiki/Multiversion_concurrency_control">Multiversion concurrency control</a>
  * (MVCC).
  * <p/>
- * <b>This class is feature complete but needs further testing!</b>
+ * A transaction is composed of a set of objects to be added to the collection, and a set of objects to be removed from
+ * the collection. Either one of those sets can be empty, so this supports bulk <i>atomic addition</i> and <i>atomic
+ * removal</i> of objects from the collection. But if both sets are non-empty then it allows bulk
+ * <i>atomic replacement</i> of objects in the collection.
+ * <p/>
+ * <b>Atomically replacing objects</b><br/>
+ * A restriction is that if you want to replace objects in the collection, then for each object to be removed,
+ * {@code objectToRemove.equals(objectToAdd)} should return {@code false}. That is, the sets of objects to be removed
+ * and added must be <i>disjoint</i>. You can achieve that by adding a hidden version field in your object as follows:
+ * <pre>
+ * {@code
+ *
+ * public class Car {
+ *
+ *     static final AtomicLong VERSION_GENERATOR = new AtomicLong();
+ *
+ *     final int carId;
+ *     final String name;
+ *     final long version = VERSION_GENERATOR.incrementAndGet();
+ *
+ *     public Car(int carId, String name) {
+ *         this.carId = carId;
+ *         this.name = name;
+ *     }
+ *
+ *     @Override
+ *     public int hashCode() {
+ *         return carId;
+ *     }
+ *
+ *     @Override
+ *     public boolean equals(Object o) {
+ *         if (this == o) return true;
+ *         if (o == null || getClass() != o.getClass()) return false;
+ *         Car other = (Car) o;
+ *         if (this.carId != other.carId) return false;
+ *         if (this.version != other.version) return false;
+ *         return true;
+ *     }
+ * }
+ * }
+ * </pre>
+ * <b>Argument validation</b><br/>
+ * By default this class will <b>validate</b> that objects to be replaced adhere to the requirement above, which adds
+ * some overhead to query processing. Therefore once applications are confirmed as being compliant, this validation
+ * can be switched off by supplying a QueryOption. See the JavaDoc on the {@code update()} method for details.
+ * @see #update(Iterable, Iterable, com.googlecode.cqengine.query.option.QueryOptions)
  *
  * @author Niall Gallagher
  */
@@ -78,17 +125,10 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     }
 
     /**
-     * {@inheritDoc}
+     * This is the same as calling without any query options:
+     * {@link #update(Iterable, Iterable, com.googlecode.cqengine.query.option.QueryOptions)}.
      * <p/>
-     * This method applies multi-version concurrency control by default such that update is seen to occur with
-     * {@code READ_COMMITTED} transaction isolation by reading threads.
-     * <p/>
-     * However optionally for performance reasons, this may be overridden on a case-by-case basis, by supplying an
-     * {@link com.googlecode.cqengine.query.option.IsolationOption} query option to this method requesting
-     * {@link com.googlecode.cqengine.query.option.IsolationLevel#READ_UNCOMMITTED} transaction isolation instead.
-     * In that case the modifications will be made directly to the collection, bypassing multi-version concurrency
-     * control. This might be useful when making some modifications to the collection which do not need to be viewed
-     * atomically.
+     * @see #update(Iterable, Iterable, com.googlecode.cqengine.query.option.QueryOptions)
      */
     @Override
     public boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd) {
@@ -98,15 +138,26 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     /**
      * {@inheritDoc}
      * <p/>
-     * This method applies multi-version concurrency control by default such that update is seen to occur with
-     * {@code READ_COMMITTED} transaction isolation by reading threads.
+     * This method applies multi-version concurrency control by default such that the update is seen to occur
+     * <i>atomically</i> with {@code READ_COMMITTED} transaction isolation by reading threads.
      * <p/>
-     * However optionally for performance reasons, this may be overridden on a case-by-case basis, by supplying an
-     * {@link com.googlecode.cqengine.query.option.IsolationOption} query option to this method requesting
+     * For performance reasons, transaction isolation may (optionally) be overridden on a case-by-case basis by
+     * supplying an {@link com.googlecode.cqengine.query.option.IsolationOption} query option to this method requesting
      * {@link com.googlecode.cqengine.query.option.IsolationLevel#READ_UNCOMMITTED} transaction isolation instead.
      * In that case the modifications will be made directly to the collection, bypassing multi-version concurrency
      * control. This might be useful when making some modifications to the collection which do not need to be viewed
      * atomically.
+     * <p/>
+     * <b>Atomically replacing objects and argument validation</b><br/>
+     * As discussed in this class' JavaDoc, the sets of objects to be removed and objects to be added supplied to this
+     * method as arguments, must be <i>disjoint</i> and <i>this method will validate that this is the case by
+     * default</i>.
+     * <p/>
+     * To disable this validation for performance reasons, supply QueryOption: <code>argumentValidation(SKIP)</code>.
+     * <p/>
+     * Note that if the application disables this validation and proceeds to call this method with non-compliant
+     * arguments anyway, then indexes may become inconsistent. Validation should only be skipped when it is certain that
+     * the application will be compliant.
      */
     @Override
     public boolean update(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd, QueryOptions queryOptions) {
@@ -114,6 +165,11 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
             // Write directly to the collection with no MVCC overhead...
             return super.update(objectsToRemove, objectsToAdd, queryOptions);
         }
+        // By default, validate that the sets of objectsToRemove and objectsToAdd are disjoint...
+        if (!ArgumentValidationOption.isSkip(queryOptions)) {
+            ensureUpdateSetsAreDisjoint(objectsToRemove, objectsToAdd);
+        }
+
         // Otherwise apply MVCC to support READ_COMMITTED isolation...
         synchronized (writeMutex) {
             Iterator<O> objectsToRemoveIterator = objectsToRemove.iterator();
@@ -295,6 +351,14 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         }
         else {
             return IteratorUtil.iterableContains(objects, o);
+        }
+    }
+
+    static <O> void ensureUpdateSetsAreDisjoint(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd) {
+        for (O objectToRemove : objectsToRemove) {
+            if (iterableContains(objectsToAdd, objectToRemove)) {
+                throw new IllegalArgumentException("The sets of objectsToRemove and objectsToAdd are not disjoint [for all objectsToRemove, objectToRemove.equals(objectToAdd) must return false].");
+            }
         }
     }
 }
