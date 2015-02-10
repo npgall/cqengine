@@ -4,6 +4,7 @@ import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
+import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
@@ -29,7 +30,7 @@ public class ObjectLockingIndexedCollectionTest extends TestCase {
                 .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE)
                 .named("ObjectLockingIndexedCollectionAPICompliance")
                 .createTestSuite());
-        //suite.addTestSuite(ObjectLockingIndexedCollectionTest.class);
+        suite.addTestSuite(ObjectLockingIndexedCollectionTest.class);
         return suite;
     }
 
@@ -41,5 +42,15 @@ public class ObjectLockingIndexedCollectionTest extends TestCase {
                 return indexedCollection;
             }
         };
+    }
+
+    public void testConstructor() {
+        ObjectLockingIndexedCollection<Integer> collection1 = new ObjectLockingIndexedCollection<Integer>();
+        ObjectLockingIndexedCollection<Integer> collection2 = new ObjectLockingIndexedCollection<Integer>(new DefaultConcurrentSetFactory<Integer>());
+        ObjectLockingIndexedCollection<Integer> collection3 = new ObjectLockingIndexedCollection<Integer>(64);
+
+        assertEquals(64, collection1.stripedLock.concurrencyLevel);
+        assertEquals(64, collection2.stripedLock.concurrencyLevel);
+        assertEquals(64, collection3.stripedLock.concurrencyLevel);
     }
 }

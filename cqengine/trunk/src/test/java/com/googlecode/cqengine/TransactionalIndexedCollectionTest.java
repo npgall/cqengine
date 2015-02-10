@@ -6,18 +6,19 @@ import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.junit.Assert;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.all;
+import static com.googlecode.cqengine.query.QueryFactory.argumentValidation;
+import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
+import static com.googlecode.cqengine.query.option.ArgumentValidationStrategy.SKIP;
 import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 import static java.util.Arrays.asList;
 
@@ -180,6 +181,50 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         assertEquals(1L, indexedCollection.currentVersion);
     }
 
+    public void testArgumentValidation_NotDisjoint() {
+        Set<Integer> s1 = asSet(1, 2, 3);
+        Set<Integer> s2 = asSet(3, 4, 5); // overlaps
+        TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+        try {
+            indexedCollection.update(s1, s2);
+            fail("Expected IllegalArgumentException");
+        }
+        catch (IllegalArgumentException expected) {
+            // Ignore
+        }
+    }
+
+    public void testArgumentValidation_NotDisjoint_ValidationSkipped() {
+        Set<Integer> s1 = asSet(1, 2, 3);
+        Set<Integer> s2 = asSet(3, 4, 5); // overlaps
+        TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+        indexedCollection.update(s1, s2, queryOptions(argumentValidation(SKIP)));
+    }
+
+    public void testArgumentValidation_Disjoint() {
+        Set<Integer> s1 = asSet(1, 2, 3);
+        Set<Integer> s2 = asSet(4, 5, 6); // does not overlap
+        TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+        indexedCollection.update(s1, s2);
+    }
+
+    public void testIterableContains() {
+        final Set<Integer> collection = asSet(1, 2, 3);
+        ResultSet<Integer> resultSet = new StoredSetBasedResultSet<Integer>(collection);
+        Iterable<Integer> iterable = new Iterable<Integer>() {
+            @Override
+            public Iterator<Integer> iterator() {
+                return collection.iterator();
+            }
+        };
+
+        assertTrue(TransactionalIndexedCollection.iterableContains(collection, 1));
+        assertFalse(TransactionalIndexedCollection.iterableContains(collection, 4));
+        assertTrue(TransactionalIndexedCollection.iterableContains(resultSet, 1));
+        assertFalse(TransactionalIndexedCollection.iterableContains(resultSet, 4));
+        assertTrue(TransactionalIndexedCollection.iterableContains(iterable, 1));
+        assertFalse(TransactionalIndexedCollection.iterableContains(iterable, 4));
+    }
 
     static <O> Set<O> asSet(O... objects) {
         return new LinkedHashSet<O>(asList(objects));
