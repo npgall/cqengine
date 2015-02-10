@@ -2,9 +2,7 @@ package com.googlecode.cqengine.index.common;
 
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.google.common.collect.testing.NavigableSetTestSuiteBuilder;
-import com.google.common.collect.testing.SafeTreeSet;
-import com.google.common.collect.testing.TestStringSetGenerator;
+import com.google.common.collect.testing.*;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import junit.framework.TestCase;
@@ -15,7 +13,7 @@ import java.util.*;
 /**
  * Unit tests for {@link UnmodifiableNavigableSet}.
  * <p/>
- * Uses guava-testlib to validate compliance; in total there are 175 tests.
+ * Uses guava-testlib to validate compliance.
  *
  * @author Niall Gallagher
  */
@@ -25,18 +23,16 @@ public class UnmodifiableNavigableSetTest extends TestCase {
         TestSuite suite = new TestSuite();
         suite.addTest(NavigableSetTestSuiteBuilder.using(testStringSetGenerator())
                 .named("UnmodifiableNavigableSetAPICompliance")
-                .withFeatures(CollectionSize.ANY, CollectionFeature.KNOWN_ORDER)
+                .withFeatures(CollectionSize.SEVERAL, CollectionFeature.KNOWN_ORDER)
                 .createTestSuite());
-
         suite.addTestSuite(UnmodifiableNavigableSetTest.class);
         return suite;
     }
 
-    static TestStringSetGenerator testStringSetGenerator() {
-        return new TestStringSetGenerator() {
-            @Override protected Set<String> create(String[] elements) {
-                SafeTreeSet<String> set = new SafeTreeSet<String>(Arrays.asList(elements));
-                return new UnmodifiableNavigableSet<String>(set);
+    static TestStringSortedSetGenerator testStringSetGenerator() {
+        return new TestStringSortedSetGenerator() {
+            @Override protected SortedSet<String> create(String[] elements) {
+                return new UnmodifiableNavigableSet<String>(new TreeSet<String>(Arrays.asList(elements)));
             }
 
             @Override
@@ -47,7 +43,7 @@ public class UnmodifiableNavigableSetTest extends TestCase {
     }
 
     @SuppressWarnings("EmptyCatchBlock")
-    public void testUnmodifiableNavigableSet() {
+    public void testUnmodifiability() {
         TreeSet<Integer> mod = Sets.newTreeSet();
         mod.add(1);
         mod.add(2);
