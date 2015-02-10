@@ -76,11 +76,7 @@ public class UnmodifiableNavigableSet<E> implements NavigableSet<E> {
     }
 
     @Override
-    public NavigableSet<E> subSet(
-            E fromElement,
-            boolean fromInclusive,
-            E toElement,
-            boolean toInclusive) {
+    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
         return new UnmodifiableNavigableSet<E>(delegate.subSet(
                 fromElement,
                 fromInclusive,
@@ -116,17 +112,17 @@ public class UnmodifiableNavigableSet<E> implements NavigableSet<E> {
 
     @Override
     public SortedSet<E> subSet(E fromElement, E toElement) {
-        return Collections.unmodifiableSortedSet(delegate.subSet(fromElement, toElement));
+        return new UnmodifiableNavigableSet<E>(delegate.subSet(fromElement, true, toElement, false));
     }
 
     @Override
     public SortedSet<E> headSet(E toElement) {
-        return Collections.unmodifiableSortedSet(delegate.headSet(toElement));
+        return new UnmodifiableNavigableSet<E>(delegate.headSet(toElement, false));
     }
 
     @Override
     public SortedSet<E> tailSet(E fromElement) {
-        return Collections.unmodifiableSortedSet(delegate.tailSet(fromElement));
+        return new UnmodifiableNavigableSet<E>(delegate.tailSet(fromElement, true));
     }
 
     @Override
@@ -141,7 +137,7 @@ public class UnmodifiableNavigableSet<E> implements NavigableSet<E> {
 
     @Override
     public E last() {
-        return delegate.first();
+        return delegate.last();
     }
 
     @Override
