@@ -1,0 +1,576 @@
+package com.googlecode.cqengine.index.disk;
+
+import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.disk.support.ConnectionManager;
+import com.googlecode.cqengine.index.disk.support.DBQueries;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.testutil.Car;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+
+import static com.googlecode.cqengine.query.QueryFactory.equal;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for {@link DiskIndex}
+ *
+ * @author Silvano Riz
+ */
+public class DiskIndexTest {
+
+    public static final SimpleAttribute<Car, Integer> OBJECT_TO_ID = Car.CAR_ID;
+
+    public static final SimpleAttribute<Integer, Car> ID_TO_OBJECT = new SimpleAttribute<Integer, Car>("carFromId") {
+        public Car getValue(Integer carId, QueryOptions queryOptions) { return null; }
+    };
+
+    public static List<Car> data = Arrays.asList(
+            new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")),
+            new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")),
+            new Car(3, "Toyota", "Prius", Car.Color.BLACK, 3, 9700.00, Arrays.asList("abs"))
+    );
+
+    @Test
+    public void testNewStandalone() throws Exception {
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = DiskIndex.onAttribute(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                mock(ConnectionManager.class)
+        );
+
+        assertNotNull(carFeaturesDiskIndex);
+    }
+
+    @Test
+    public void testNewNonStandalone() throws Exception {
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = DiskIndex.onAttribute(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT
+        );
+
+        assertNotNull(carFeaturesDiskIndex);
+    }
+
+    @Test
+    public void testGetConnectionManager_Standalone(){
+
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+
+        Assert.assertEquals(connectionManager, carFeaturesDiskIndex.getConnectionManager(new QueryOptions()));
+    }
+
+    @Test
+    public void testGetConnectionManager_NonStandalone(){
+
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        QueryOptions queryOptions = mock(QueryOptions.class);
+        when(queryOptions.get(ConnectionManager.class)).thenReturn(connectionManager);
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                null
+        );
+
+        Assert.assertEquals(connectionManager, carFeaturesDiskIndex.getConnectionManager(queryOptions));
+    }
+
+    @Test
+    public void testNotifyObjectsRemoved() throws Exception{
+
+        // Mock
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("DELETE FROM features WHERE objectKey = ?;")).thenReturn(preparedStatement);
+
+        // The objects to add
+        Set<Car> removedObjects = new HashSet<Car>(2);
+        removedObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
+        removedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
+
+        @SuppressWarnings({"unchecked", "unused"})
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+
+        carFeaturesDiskIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
+
+        // Verify
+        verify(preparedStatement, times(1)).setObject(1, 1);
+        verify(preparedStatement, times(1)).setObject(1, 2);
+        verify(preparedStatement, times(2)).addBatch();
+        verify(preparedStatement, times(1)).executeBatch();
+        verify(connectionManager, times(1)).closeConnection(connection);
+    }
+
+    @Test
+    public void testNotifyObjectsAdded() throws Exception {
+
+        // Mock
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
+
+        // The objects to add
+        Set<Car> addedObjects = new HashSet<Car>(2);
+        addedObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
+        addedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
+
+        // Create the index and cal the notifyObjectsAdded
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+        carFeaturesDiskIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
+
+        // Verify
+        verify(preparedStatement, times(2)).setObject(1, 1);
+        verify(preparedStatement, times(1)).setObject(1, 2);
+        verify(preparedStatement, times(1)).setObject(2, "abs");
+        verify(preparedStatement, times(1)).setObject(2, "gps");
+        verify(preparedStatement, times(1)).setObject(2, "airbags");
+        verify(preparedStatement, times(3)).addBatch();
+        verify(preparedStatement, times(1)).executeBatch();
+        verify(connectionManager, times(1)).closeConnection(connection);
+    }
+
+    @Test
+    public void testNotifyObjectsCleared() throws Exception{
+
+        // Mock
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(Statement.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+
+        @SuppressWarnings({"unchecked", "unused"})
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+
+        carFeaturesDiskIndex.notifyObjectsCleared(new QueryOptions());
+
+        // Verify
+        verify(statement, times(1)).executeUpdate("DELETE FROM features;");
+        verify(connectionManager, times(1)).closeConnection(connection);
+    }
+
+    @Test
+    public void testInit_EmptyCollection() throws Exception{
+
+        // Mock
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(Statement.class);
+
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+
+        carFeaturesDiskIndex.init(Collections.<Car>emptySet(), new QueryOptions());
+        carFeaturesDiskIndex.init(Collections.<Car>emptySet(), new QueryOptions());// Call twice to verify the second time the table is not created
+
+        // Verify
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).close();
+        verify(connectionManager, times(1)).closeConnection(connection);
+    }
+
+    @Test
+    public void testInit_NonEmptyCollection() throws Exception{
+
+        // Mock
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Connection connection1 = mock(Connection.class);
+        Statement statement = mock(Statement.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+
+        when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connection.createStatement()).thenReturn(statement);
+
+        // The objects to add
+        Set<Car> initWithObjects = new HashSet<Car>(2);
+        initWithObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
+        initWithObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
+
+        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager
+        );
+
+        carFeaturesDiskIndex.init(initWithObjects, new QueryOptions());
+
+        // Verify
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).close();
+        verify(connectionManager, times(1)).closeConnection(connection);
+
+        verify(preparedStatement, times(2)).setObject(1, 1);
+        verify(preparedStatement, times(1)).setObject(1, 2);
+        verify(preparedStatement, times(1)).setObject(2, "abs");
+        verify(preparedStatement, times(1)).setObject(2, "gps");
+        verify(preparedStatement, times(1)).setObject(2, "airbags");
+        verify(preparedStatement, times(3)).addBatch();
+        verify(preparedStatement, times(1)).executeBatch();
+        verify(preparedStatement, times(1)).close();
+        verify(connectionManager, times(1)).closeConnection(connection1);
+    }
+
+    @Test
+    public void testNewResultSet_Size() throws Exception{
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt(1)).thenReturn(3);
+
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
+
+
+        Assert.assertNotNull(carsWithAbs);
+        int size = carsWithAbs.size();
+
+        Assert.assertEquals(3, size);
+        verify(connectionManager, times(1)).closeConnection(connection);
+
+    }
+
+    @Test
+    public void testNewResultSet_GetRetrievalCost() throws Exception{
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
+
+        Assert.assertEquals(DiskIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
+
+    }
+
+    @Test
+    public void testNewResultSet_GetMergeCost() throws Exception{
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt(1)).thenReturn(3);
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
+
+        Assert.assertNotNull(carsWithAbs);
+        int size = carsWithAbs.getMergeCost();
+
+        Assert.assertEquals(3, size);
+        verify(connectionManager, times(1)).closeConnection(connection);
+
+    }
+
+    @Test
+    public void testNewResultSet_Contains() throws Exception{
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connectionContains = mock(Connection.class);
+        Connection connectionDoNotContain = mock(Connection.class);
+        PreparedStatement preparedStatementContains = mock(PreparedStatement.class);
+        PreparedStatement preparedStatementDoNotContains = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSetContains = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
+        when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
+        when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
+        when(preparedStatementDoNotContains.executeQuery()).thenReturn(resultSetDoNotContain);
+        when(resultSetContains.next()).thenReturn(true).thenReturn(false);
+        when(resultSetContains.getInt(1)).thenReturn(1);
+        when(resultSetDoNotContain.next()).thenReturn(true).thenReturn(false);
+        when(resultSetDoNotContain.getInt(1)).thenReturn(0);
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
+
+        Assert.assertNotNull(carsWithAbs);
+        boolean resultContains = carsWithAbs.contains(data.get(0));
+        Assert.assertTrue(resultContains);
+        verify(connectionManager, times(1)).closeConnection(connectionContains);
+
+        boolean resultDoNotContain = carsWithAbs.contains(data.get(1));
+        Assert.assertFalse(resultDoNotContain);
+        verify(connectionManager, times(1)).closeConnection(connectionDoNotContain);
+
+
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testNewResultSet_Iterator_Exception_Close() throws Exception{
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getObject(1)).thenReturn(1).thenThrow(new SQLException("SQL exception"));
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+
+        // Iterator
+        try {
+            ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                    Car.FEATURES,
+                    OBJECT_TO_ID,
+                    idToObject,
+                    connectionManager)
+
+                    .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
+
+            Assert.assertNotNull(carsWithAbs);
+            Iterator<Car> carsWithAbsIterator = carsWithAbs.iterator();
+            Assert.assertNotNull(carsWithAbsIterator.next());
+            carsWithAbsIterator.next();// Should throw exception!
+
+        }finally {
+            verify(connectionManager, times(1)).closeConnection(connection);
+            verify(preparedStatement, times(1)).close();
+            verify(resultSet, times(1)).close();
+        }
+
+    }
+
+    @Test
+    public void testNewResultSet_Iterator_Close() throws Exception{
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getObject(1)).thenReturn(1).thenReturn(3);
+        when(idToObject.getValue(1,queryOptions)).thenReturn(data.get(0));
+        when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                idToObject,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
+
+
+        Assert.assertNotNull(carsWithAbs);
+        Iterator carsWithAbsIterator = carsWithAbs.iterator();
+        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        Assert.assertNotNull(carsWithAbsIterator.next());
+        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        Assert.assertNotNull(carsWithAbsIterator.next());
+        Assert.assertFalse(carsWithAbsIterator.hasNext());
+
+        // The end of the iteration should close the resources
+        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(preparedStatement, times(1)).close();
+        verify(resultSet, times(1)).close();
+
+    }
+
+    @Test
+    public void testNewResultSet_Close() throws Exception{
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getObject(1)).thenReturn(1).thenReturn(3);
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+        when(idToObject.getValue(3, queryOptions)).thenReturn(data.get(2));
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                idToObject,
+                connectionManager)
+
+                .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
+
+        Assert.assertNotNull(carsWithAbs);
+        Iterator carsWithAbsIterator = carsWithAbs.iterator();
+        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        Assert.assertNotNull(carsWithAbsIterator.next());
+        // Do not continue with the iteration, but close
+        carsWithAbs.close();
+
+        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(preparedStatement, times(1)).close();
+        verify(resultSet, times(1)).close();
+
+    }
+
+    @Test
+    public void testRowIterable(){
+
+        Iterable<DBQueries.Row<Integer, String>> rows = DiskIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
+        Assert.assertNotNull(rows);
+
+        Iterator<DBQueries.Row<Integer, String>> rowsIterator = rows.iterator();
+        Assert.assertNotNull(rowsIterator);
+        Assert.assertTrue(rowsIterator.hasNext());
+        Assert.assertEquals(new DBQueries.Row<Integer, String>(1, "abs"),rowsIterator.next());
+        Assert.assertTrue(rowsIterator.hasNext());
+        Assert.assertEquals(new DBQueries.Row<Integer, String>(1, "gps"),rowsIterator.next());
+        Assert.assertTrue(rowsIterator.hasNext());
+        Assert.assertEquals(new DBQueries.Row<Integer, String>(2, "airbags"),rowsIterator.next());
+        Assert.assertTrue(rowsIterator.hasNext());
+        Assert.assertEquals(new DBQueries.Row<Integer, String>(3, "abs"),rowsIterator.next());
+        Assert.assertFalse(rowsIterator.hasNext());
+    }
+
+    @Test
+    public void testObjectKeyItarable(){
+
+        Iterable<Integer> objectKeys = DiskIndex.objectKeyItarable(data, Car.CAR_ID, null);
+        Assert.assertNotNull(objectKeys);
+
+        Iterator<Integer> objectKeysIterator = objectKeys.iterator();
+        Assert.assertNotNull(objectKeysIterator);
+        Assert.assertTrue(objectKeysIterator.hasNext());
+        Assert.assertEquals(new Integer(1), objectKeysIterator.next());
+        Assert.assertTrue(objectKeysIterator.hasNext());
+        Assert.assertEquals(new Integer(2),objectKeysIterator.next());
+        Assert.assertTrue(objectKeysIterator.hasNext());
+        Assert.assertEquals(new Integer(3),objectKeysIterator.next());
+        Assert.assertFalse(objectKeysIterator.hasNext());
+    }
+
+}

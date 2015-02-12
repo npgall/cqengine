@@ -20,10 +20,12 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.common.CloseableQueryResources;
 import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
+import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
@@ -39,6 +41,7 @@ import com.googlecode.cqengine.query.simple.GreaterThan;
 import com.googlecode.cqengine.query.simple.LessThan;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
@@ -54,6 +57,7 @@ import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
 /**
@@ -76,6 +80,9 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Initially true, updated as indexes are added in addIndex()...
     private volatile boolean allIndexesAreMutable = true;
+    // This will be set to true if any index is added which requires
+    // the outer ResultSet.close() method to close resources added to QueryOptions...
+    private volatile boolean useCloseableResultSet = false;
 
     public IndexQueryEngine() {
     }
@@ -122,6 +129,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         else if (index instanceof AttributeIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
+            useCloseableResultSet = index instanceof DiskIndex || useCloseableResultSet;
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             addAttributeIndex(attributeIndex, queryOptions);
@@ -275,29 +283,45 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 
+        ResultSet<O> resultSet;
         // Check if we can use an index to drive the sort...
         if (OrderingStrategyOption.isIndex(queryOptions)) {
-            return retrieveWithIndexOrdering(query, queryOptions, orderByOption);
+            resultSet = retrieveWithIndexOrdering(query, queryOptions, orderByOption);
         }
-        // Retrieve results...
-        ResultSet<O> resultSet = retrieveRecursive(query, queryOptions);
+        else {
+            // Retrieve results...
+            resultSet = retrieveRecursive(query, queryOptions);
 
-        // Check if we need to wrap ResultSet to order and/or deduplicate results (deduplicate using MATERIAIZE rather
-        // than LOGICAL_ELIMINATION strategy)...
-        if (orderByOption != null) {
-            // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
-            // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
-            Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
-            resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator);
-        }
-        else if (DeduplicationOption.isMaterialize(queryOptions)) {
-            // A DeduplicationOption was specified, wrap the results in an MaterializingResultSet,
-            // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
-            resultSet = new MaterializingResultSet<O>(resultSet);
+            // Check if we need to wrap ResultSet to order and/or deduplicate results (deduplicate using MATERIAIZE rather
+            // than LOGICAL_ELIMINATION strategy)...
+            if (orderByOption != null) {
+                // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
+                // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
+                Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
+                resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator);
+            } else if (DeduplicationOption.isMaterialize(queryOptions)) {
+                // A DeduplicationOption was specified, wrap the results in an MaterializingResultSet,
+                // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
+                resultSet = new MaterializingResultSet<O>(resultSet);
+            }
         }
 
         // Return the results...
-        return resultSet;
+        if (useCloseableResultSet) {
+            return new CloseableResultSet<O>(resultSet, queryOptions) {
+                @Override
+                public void close() {
+                    super.close();
+                    CloseableQueryResources closeableQueryResources = queryOptions.get(CloseableQueryResources.class);
+                    if (closeableQueryResources != null) {
+                        closeableQueryResources.closeAll();
+                    }
+                }
+            };
+        }
+        else {
+            return resultSet;
+        }
     }
 
     /**
