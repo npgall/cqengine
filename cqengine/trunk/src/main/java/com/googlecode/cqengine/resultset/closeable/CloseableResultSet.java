@@ -2,7 +2,6 @@ package com.googlecode.cqengine.resultset.closeable;
 
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 
 import java.io.Closeable;
 import java.util.Iterator;
@@ -10,54 +9,63 @@ import java.util.Iterator;
 /**
  * A ResultSet which throws exceptions if an attempt to use it is made after its {@link #close} method has been called.
  */
-public abstract class ValidatingCloseableResultSet<O> extends FilteringResultSet<O> implements Closeable {
+public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
 
+    final ResultSet<O> wrapped;
+    final QueryOptions queryOptions;
     boolean closed = false;
 
-    public ValidatingCloseableResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
-        super(wrappedResultSet, queryOptions);
+    protected CloseableResultSet(ResultSet<O> wrapped, QueryOptions queryOptions) {
+        this.wrapped = wrapped;
+        this.queryOptions = queryOptions;
     }
 
     @Override
     public Iterator<O> iterator() {
         ensureNotClosed();
-        return super.iterator();
+        return wrapped.iterator();
+    }
+
+    @Override
+    public boolean contains(O object) {
+        ensureNotClosed();
+        return wrapped.contains(object);
     }
 
     @Override
     public int size() {
         ensureNotClosed();
-        return super.size();
+        return wrapped.size();
     }
 
     @Override
     public int getRetrievalCost() {
         ensureNotClosed();
-        return super.getRetrievalCost();
+        return wrapped.getRetrievalCost();
     }
 
     @Override
     public int getMergeCost() {
         ensureNotClosed();
-        return super.getMergeCost();
+        return wrapped.getMergeCost();
     }
 
     @Override
     public O uniqueResult() {
         ensureNotClosed();
-        return super.uniqueResult();
+        return wrapped.uniqueResult();
     }
 
     @Override
     public boolean isEmpty() {
         ensureNotClosed();
-        return super.isEmpty();
+        return wrapped.isEmpty();
     }
 
     @Override
     public boolean isNotEmpty() {
         ensureNotClosed();
-        return super.isNotEmpty();
+        return wrapped.isNotEmpty();
     }
 
     void ensureNotClosed() {
@@ -68,7 +76,7 @@ public abstract class ValidatingCloseableResultSet<O> extends FilteringResultSet
 
     @Override
     public void close() {
-        super.close();
+        wrapped.close();
         closed = true;
     }
 }

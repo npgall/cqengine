@@ -35,8 +35,6 @@ import java.util.regex.Pattern;
  */
 public class QueryFactory {
 
-    static final QueryOptions EMPTY_OPTIONS = new QueryOptions(Collections.emptyMap());
-
     /**
      * Private constructor, not used.
      */
@@ -565,7 +563,7 @@ public class QueryFactory {
      * @return A {@link QueryOptions} object
      */
     public static QueryOptions noQueryOptions() {
-        return EMPTY_OPTIONS;
+        return new QueryOptions();
     }
 
     // ***************************************************************************************************************

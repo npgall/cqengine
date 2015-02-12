@@ -1,6 +1,5 @@
 package com.googlecode.cqengine.query.option;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +25,7 @@ public class QueryOptions {
     }
 
     public Map<Object, Object> getOptions() {
-        return Collections.unmodifiableMap(this.options);
+        return this.options;
     }
 
     public <T> T get(Class<T> optionType) {

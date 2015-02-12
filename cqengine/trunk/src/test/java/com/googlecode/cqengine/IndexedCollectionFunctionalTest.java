@@ -1,11 +1,15 @@
 package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.disk.TemporaryFileDatabase;
+import com.googlecode.cqengine.index.disk.TemporaryInMemoryDatabase;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -17,7 +21,6 @@ import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.OrderingStrategy;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -25,6 +28,7 @@ import com.googlecode.cqengine.testutil.CarFactory;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,11 +36,8 @@ import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
-import static com.googlecode.cqengine.query.option.OrderingStrategy.MATERIALIZE;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests CQEngine handing a wide range of queries, with different configurations of indexes.
@@ -49,12 +50,19 @@ public class IndexedCollectionFunctionalTest {
     static final Set<Car> REGULAR_DATASET = CarFactory.createCollectionOfCars(1000);
     static final Set<Car> SMALL_DATASET = CarFactory.createCollectionOfCars(10);
 
+    @ClassRule
+    public static TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
+
+    @ClassRule
+    public static TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
+
     // Macro scenarios specify sets of IndexedCollection implementations,
     // sets of index combinations, and sets of queries. Macro scenarios will be expanded
     // to many individual scenarios comprised of the distinct combinations of these sets.
     // Each individual scenario resulting from the expansion will be run as a separate test.
     // This allows to run the same set of queries with different combinations of indexes etc.
-    static final List<MacroScenario> MACRO_SCENARIOS = Arrays.asList(
+    static List<MacroScenario> getMacroScenarios() {
+        return Arrays.asList(
             new MacroScenario() {{
                 name = "typical queries and deduplication";
                 dataSet = REGULAR_DATASET;
@@ -66,7 +74,8 @@ public class IndexedCollectionFunctionalTest {
                                 size = 1;
                                 carIdsAnyOrder = asSet(500);
                             }};
-                        }},
+                        }}
+                        ,
                         new QueryToEvaluate() {{
                             query = between(Car.CAR_ID, 500, 500);
                             expectedResults = new ExpectedResults() {{
@@ -441,6 +450,32 @@ public class IndexedCollectionFunctionalTest {
                                         return new CompoundValueTuple<Car>(Arrays.asList(manufacturer, quantizedModel));
                                     }
                                 }, Car.MANUFACTURER, Car.MODEL)
+                        ),
+                        indexCombination(DiskIndex.onAttribute(
+                                        Car.MANUFACTURER,
+                                        Car.CAR_ID,
+                                        new SimpleAttribute<Integer, Car>() {
+                                            @Override
+                                            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+                                                return CarFactory.createCar(carId);
+                                            }
+                                        },
+                                        temporaryInMemoryDatabase.getConnectionManager()
+                                )
+
+                        ),
+                        indexCombination(DiskIndex.onAttribute(
+                                        Car.MANUFACTURER,
+                                        Car.CAR_ID,
+                                        new SimpleAttribute<Integer, Car>() {
+                                            @Override
+                                            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+                                                return CarFactory.createCar(carId);
+                                            }
+                                        },
+                                        temporaryFileDatabase.getConnectionManager()
+                                )
+
                         )
                 );
             }},
@@ -906,7 +941,8 @@ public class IndexedCollectionFunctionalTest {
                         indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER))
                 );
             }}
-    );
+        );
+    }
 
 
     static class MacroScenario {
@@ -948,9 +984,10 @@ public class IndexedCollectionFunctionalTest {
 
     @DataProvider
     public static List<List<Object>> expandMacroScenarios() {
+        List<MacroScenario> macroScenarios = getMacroScenarios();
         List<List<Object>> scenarios = new ArrayList<List<Object>>();
-        for (int i = 0; i < MACRO_SCENARIOS.size(); i++) {
-            final MacroScenario macroScenario = MACRO_SCENARIOS.get(i);
+        for (int i = 0; i < macroScenarios.size(); i++) {
+            final MacroScenario macroScenario = macroScenarios.get(i);
             try {
                 for (final Class currentCollectionImplementation : macroScenario.collectionImplementations) {
                     for (final Iterable<Index> currentIndexCombination : macroScenario.indexCombinations) {
