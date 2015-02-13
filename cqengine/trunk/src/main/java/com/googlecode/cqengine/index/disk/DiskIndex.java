@@ -56,16 +56,15 @@ import static com.googlecode.cqengine.index.disk.support.DBQueries.Row;
  * </ul>
  * @author Silvano Riz
  */
-public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
-{
+public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
 
-    static final int INDEX_RETRIEVAL_COST = 50;
+    static final int INDEX_RETRIEVAL_COST = 60;
 
-    private final String tableName;
-    private final SimpleAttribute<O, K> objectToIdAttribute;
-    private final SimpleAttribute<K, O> idToObjectAttribute;
-    private final ConnectionManager connectionManager;
-    private boolean indexTableCreated = false;
+    final String tableName;
+    final SimpleAttribute<O, K> objectToIdAttribute;
+    final SimpleAttribute<K, O> idToObjectAttribute;
+    final ConnectionManager connectionManager;
+    volatile boolean indexTableCreated = false;
 
     // ---------- Static factory methods to create HashIndexes ----------
 
@@ -156,7 +155,6 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
 
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
-
         final ConnectionManager connectionManager = getConnectionManager(queryOptions);
 
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
@@ -261,7 +259,6 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
                                                       final Attribute<O, A> indexAttribute,
                                                       final QueryOptions queryOptions){
         return new Iterable<Row<K, A>>() {
-
             @Override
             public Iterator<Row<K, A>> iterator() {
 
@@ -321,7 +318,6 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
     static <O, K> Iterable<K> objectKeyItarable(final Iterable<O> objects,
                                                 final SimpleAttribute<O, K> objectToIdAttribute,
                                                 final QueryOptions queryOptions){
-
         return new Iterable<K>() {
 
             @Override
@@ -373,15 +369,13 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
      * @param queryOptions The {@link QueryOptions}.
      */
     void createTableIndexIfNeeded(QueryOptions queryOptions){
-
-        if (indexTableCreated)
+        if (indexTableCreated) {
             return;
-
+        }
         synchronized (this) {
-
-            if(indexTableCreated)
+            if(indexTableCreated) {
                 return;
-
+            }
             // Create the table.
             ConnectionManager connectionManager = getConnectionManager(queryOptions);
             Connection connection = null;
@@ -389,7 +383,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O>
                 connection = connectionManager.getConnection(this);
                 DBQueries.createIndexTable(tableName, objectToIdAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
                 indexTableCreated = true;
-            }finally{
+            } finally {
                 connectionManager.closeConnection(connection);
             }
         }
