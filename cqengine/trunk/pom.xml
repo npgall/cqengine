@@ -182,6 +182,12 @@
             <version>3.8.6</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>3.0.0</version>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Test-scope dependencies... -->
         <dependency>
