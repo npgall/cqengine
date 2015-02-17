@@ -1,8 +1,8 @@
-package com.googlecode.cqengine.index.disk;
+package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.disk.support.ConnectionManager;
-import com.googlecode.cqengine.index.disk.support.DBQueries;
+import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
+import com.googlecode.cqengine.index.offheap.support.DBQueries;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -20,11 +20,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link DiskIndex}
+ * Unit tests for {@link OffHeapIndex}
  *
  * @author Silvano Riz
  */
-public class DiskIndexTest {
+public class OffHeapIndexTest {
 
     public static final SimpleAttribute<Car, Integer> OBJECT_TO_ID = Car.CAR_ID;
 
@@ -43,26 +43,26 @@ public class DiskIndexTest {
     @Test
     public void testNewStandalone() throws Exception {
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = DiskIndex.onAttribute(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = OffHeapIndex.onAttribute(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 mock(ConnectionManager.class)
         );
 
-        assertNotNull(carFeaturesDiskIndex);
+        assertNotNull(carFeaturesOffHeapIndex);
     }
 
     @Test
     public void testNewNonStandalone() throws Exception {
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = DiskIndex.onAttribute(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = OffHeapIndex.onAttribute(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT
         );
 
-        assertNotNull(carFeaturesDiskIndex);
+        assertNotNull(carFeaturesOffHeapIndex);
     }
 
     @Test
@@ -70,14 +70,14 @@ public class DiskIndexTest {
 
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
 
-        Assert.assertEquals(connectionManager, carFeaturesDiskIndex.getConnectionManager(new QueryOptions()));
+        Assert.assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(new QueryOptions()));
     }
 
     @Test
@@ -87,14 +87,14 @@ public class DiskIndexTest {
         QueryOptions queryOptions = mock(QueryOptions.class);
         when(queryOptions.get(ConnectionManager.class)).thenReturn(connectionManager);
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 null
         );
 
-        Assert.assertEquals(connectionManager, carFeaturesDiskIndex.getConnectionManager(queryOptions));
+        Assert.assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(queryOptions));
     }
 
     @Test
@@ -108,8 +108,8 @@ public class DiskIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("DELETE FROM features WHERE objectKey = ?;")).thenReturn(preparedStatement);
 
@@ -119,14 +119,14 @@ public class DiskIndexTest {
         removedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
         @SuppressWarnings({"unchecked", "unused"})
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
 
-        carFeaturesDiskIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
+        carFeaturesOffHeapIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -151,8 +151,8 @@ public class DiskIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
 
@@ -162,13 +162,13 @@ public class DiskIndexTest {
         addedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
         // Create the index and cal the notifyObjectsAdded
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
-        carFeaturesDiskIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
+        carFeaturesOffHeapIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -196,20 +196,20 @@ public class DiskIndexTest {
         Statement statement1 = mock(Statement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.createStatement()).thenReturn(statement1);
 
         @SuppressWarnings({"unchecked", "unused"})
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
 
-        carFeaturesDiskIndex.notifyObjectsCleared(new QueryOptions());
+        carFeaturesOffHeapIndex.notifyObjectsCleared(new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -226,15 +226,15 @@ public class DiskIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
 
-        carFeaturesDiskIndex.init(Collections.<Car>emptySet(), new QueryOptions());
-        verify(connectionManager, times(0)).getConnection(any(DiskIndex.class));
+        carFeaturesOffHeapIndex.init(Collections.<Car>emptySet(), new QueryOptions());
+        verify(connectionManager, times(0)).getConnection(any(OffHeapIndex.class));
     }
 
     @Test
@@ -248,8 +248,8 @@ public class DiskIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
 
         // The objects to add
@@ -257,14 +257,14 @@ public class DiskIndexTest {
         initWithObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
         initWithObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
-        DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
+        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
 
-        carFeaturesDiskIndex.init(initWithObjects, new QueryOptions());
+        carFeaturesOffHeapIndex.init(initWithObjects, new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -293,14 +293,14 @@ public class DiskIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt(1)).thenReturn(3);
 
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -324,7 +324,7 @@ public class DiskIndexTest {
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -332,7 +332,7 @@ public class DiskIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
-        Assert.assertEquals(DiskIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
+        Assert.assertEquals(OffHeapIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
 
     }
 
@@ -346,7 +346,7 @@ public class DiskIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -354,7 +354,7 @@ public class DiskIndexTest {
         when(resultSet.getInt(1)).thenReturn(3);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -383,7 +383,7 @@ public class DiskIndexTest {
         java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
         when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
         when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
@@ -394,7 +394,7 @@ public class DiskIndexTest {
         when(resultSetDoNotContain.getInt(1)).thenReturn(0);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -428,7 +428,7 @@ public class DiskIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -438,7 +438,7 @@ public class DiskIndexTest {
 
         // Iterator
         try {
-            ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+            ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                     Car.FEATURES,
                     OBJECT_TO_ID,
                     idToObject,
@@ -473,7 +473,7 @@ public class DiskIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -483,7 +483,7 @@ public class DiskIndexTest {
         when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 idToObject,
@@ -523,7 +523,7 @@ public class DiskIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -533,7 +533,7 @@ public class DiskIndexTest {
         when(idToObject.getValue(3, queryOptions)).thenReturn(data.get(2));
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new DiskIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 idToObject,
@@ -557,7 +557,7 @@ public class DiskIndexTest {
     @Test
     public void testRowIterable(){
 
-        Iterable<DBQueries.Row<Integer, String>> rows = DiskIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
+        Iterable<DBQueries.Row<Integer, String>> rows = OffHeapIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
         Assert.assertNotNull(rows);
 
         Iterator<DBQueries.Row<Integer, String>> rowsIterator = rows.iterator();
@@ -578,7 +578,7 @@ public class DiskIndexTest {
     @Test
     public void testObjectKeyItarable(){
 
-        Iterable<Integer> objectKeys = DiskIndex.objectKeyIterable(data, Car.CAR_ID, null);
+        Iterable<Integer> objectKeys = OffHeapIndex.objectKeyIterable(data, Car.CAR_ID, null);
         Assert.assertNotNull(objectKeys);
 
         Iterator<Integer> objectKeysIterator = objectKeys.iterator();

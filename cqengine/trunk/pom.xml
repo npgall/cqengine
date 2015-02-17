@@ -175,7 +175,7 @@
         </dependency>
 
         <dependency>
-            <!-- Optional dependency, required only if the host application wishes to use CQEngine's DiskIndex.
+            <!-- Optional dependency, required only if the host application wishes to use CQEngine's OffHeapIndex.
                 To use that, re-declare this dependency in the host application's pom. -->
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
