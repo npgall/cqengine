@@ -1,14 +1,14 @@
-package com.googlecode.cqengine.index.disk;
+package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.common.CloseableQueryResources;
-import com.googlecode.cqengine.index.disk.support.CloseableSet;
-import com.googlecode.cqengine.index.disk.support.ConnectionManager;
-import com.googlecode.cqengine.index.disk.support.DBQueries;
-import com.googlecode.cqengine.index.disk.support.DBUtils;
+import com.googlecode.cqengine.index.offheap.support.CloseableSet;
+import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
+import com.googlecode.cqengine.index.offheap.support.DBQueries;
+import com.googlecode.cqengine.index.offheap.support.DBUtils;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
@@ -21,12 +21,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static com.googlecode.cqengine.index.disk.support.DBQueries.Row;
+import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
 
 
 /**
  * <p>
- *      {@link com.googlecode.cqengine.index.common.AbstractAttributeIndex} storing the index to disk in a database (by default a SQLite database).
+ *      {@link com.googlecode.cqengine.index.common.AbstractAttributeIndex} storing the index off-heap in a database
+ *      (by default a SQLite database).
  * </p>
  *      The database schema is:
  * <pre>
@@ -55,7 +56,7 @@ import static com.googlecode.cqengine.index.disk.support.DBQueries.Row;
  * </ul>
  * @author Silvano Riz
  */
-public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
+public class OffHeapIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
 
     static final int INDEX_RETRIEVAL_COST = 60;
 
@@ -67,7 +68,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
     // ---------- Static factory methods to create HashIndexes ----------
 
     /**
-     * Creates a new {@link DiskIndex} where the {@link ConnectionManager} will always be supplied via {@link QueryOptions}
+     * Creates a new {@link OffHeapIndex} where the {@link ConnectionManager} will always be supplied via {@link QueryOptions}
      * by the caller.
      *
      * @param attribute The {@link Attribute} on which the index will be built.
@@ -76,17 +77,17 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param <A> The type of the attribute.
      * @param <O> The type of the object containing the attributes.
      * @param <K> The type of the object key.
-     * @return a new instance of the {@link DiskIndex}
+     * @return a new instance of the {@link OffHeapIndex}
      */
-    public static <A, O, K> DiskIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+    public static <A, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
                                                            final SimpleAttribute<O, K> objectKeyAttribute,
                                                            final SimpleAttribute<K, O> idToObjectAttribute) {
 
-        return new DiskIndex<A,O, K>(attribute, objectKeyAttribute, idToObjectAttribute, null);
+        return new OffHeapIndex<A,O, K>(attribute, objectKeyAttribute, idToObjectAttribute, null);
     }
 
     /**
-     * Creates a new {@link DiskIndex} where the {@link ConnectionManager} is set at construction time.
+     * Creates a new {@link OffHeapIndex} where the {@link ConnectionManager} is set at construction time.
      *
      * @param attribute The {@link Attribute} on which the index will be built.
      * @param objectKeyAttribute The {@link SimpleAttribute} used to retrieve the object key.
@@ -95,14 +96,14 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param <A> The type of the attribute.
      * @param <O> The type of the object containing the attributes.
      * @param <K> The type of the object key.
-     * @return a new instance of a standalone {@link DiskIndex}
+     * @return a new instance of a standalone {@link OffHeapIndex}
      */
-    public static <A, O, K> DiskIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+    public static <A, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
                                                            final SimpleAttribute<O, K> objectKeyAttribute,
                                                            final SimpleAttribute<K, O> idToObjectAttribute,
                                                            final ConnectionManager connectionManager) {
 
-        return new DiskIndex<A, O, K>(attribute, objectKeyAttribute, idToObjectAttribute, connectionManager);
+        return new OffHeapIndex<A, O, K>(attribute, objectKeyAttribute, idToObjectAttribute, connectionManager);
     }
 
     /**
@@ -113,10 +114,10 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param idToObjectAttribute The {@link SimpleAttribute} to map a query result into the domain object.
      * @param connectionManager The {@link ConnectionManager} or null if it will be provided via QueryOptions.
      */
-    DiskIndex(final Attribute<O, A> attribute,
-              final SimpleAttribute<O, K> objectToIdAttribute,
-              final SimpleAttribute<K, O> idToObjectAttribute,
-              final ConnectionManager connectionManager) {
+    OffHeapIndex(final Attribute<O, A> attribute,
+                 final SimpleAttribute<O, K> objectToIdAttribute,
+                 final SimpleAttribute<K, O> idToObjectAttribute,
+                 final ConnectionManager connectionManager) {
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
@@ -152,7 +153,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
             @Override
             public Iterator<O> iterator() {
 
-                final Connection searchConnection = connectionManager.getConnection(DiskIndex.this);
+                final Connection searchConnection = connectionManager.getConnection(OffHeapIndex.this);
                 resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
                 final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection);
@@ -191,7 +192,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
             @Override
             public boolean contains(O object) {
                 final K objectKey = objectToIdAttribute.getValue(object, queryOptions);
-                final Connection connection = connectionManager.getConnection(DiskIndex.this);
+                final Connection connection = connectionManager.getConnection(OffHeapIndex.this);
                 try{
                     return DBQueries.contains(objectKey, query, tableName, connection);
                 }finally {
@@ -201,7 +202,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
 
             @Override
             public int size() {
-                final Connection connection = connectionManager.getConnection(DiskIndex.this);
+                final Connection connection = connectionManager.getConnection(OffHeapIndex.this);
                 try {
                     return DBQueries.count(query, tableName, connection);
                 } finally {

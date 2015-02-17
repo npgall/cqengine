@@ -1,7 +1,7 @@
-package com.googlecode.cqengine.index.disk;
+package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.disk.support.ConnectionManager;
+import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
@@ -134,9 +134,9 @@ public class TemporaryDatabase {
         }
 
         /**
-         * Returns the {@link com.googlecode.cqengine.index.disk.support.ConnectionManager} for the tmp database.
+         * Returns the {@link com.googlecode.cqengine.index.offheap.support.ConnectionManager} for the tmp database.
          *
-         * @return The {@link com.googlecode.cqengine.index.disk.support.ConnectionManager} for the tmp database.
+         * @return The {@link com.googlecode.cqengine.index.offheap.support.ConnectionManager} for the tmp database.
          */
         public ConnectionManager getConnectionManager(final boolean applyUpdateForIndexEnabled) {
             return new ConnectionManager() {

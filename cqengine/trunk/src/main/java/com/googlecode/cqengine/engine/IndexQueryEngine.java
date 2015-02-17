@@ -25,7 +25,7 @@ import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
-import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
@@ -129,7 +129,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         else if (index instanceof AttributeIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
-            useCloseableResultSet = index instanceof DiskIndex || useCloseableResultSet;
+            useCloseableResultSet = index instanceof OffHeapIndex || useCloseableResultSet;
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             addAttributeIndex(attributeIndex, queryOptions);

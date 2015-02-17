@@ -7,7 +7,7 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -32,8 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.index.disk.TemporaryDatabase.TemporaryFileDatabase;
-import static com.googlecode.cqengine.index.disk.TemporaryDatabase.TemporaryInMemoryDatabase;
+import static com.googlecode.cqengine.index.offheap.TemporaryDatabase.TemporaryFileDatabase;
+import static com.googlecode.cqengine.index.offheap.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
 import static java.util.Arrays.asList;
@@ -451,7 +451,7 @@ public class IndexedCollectionFunctionalTest {
                                     }
                                 }, Car.MANUFACTURER, Car.MODEL)
                         ),
-                        indexCombination(DiskIndex.onAttribute(
+                        indexCombination(OffHeapIndex.onAttribute(
                                         Car.MANUFACTURER,
                                         Car.CAR_ID,
                                         new SimpleAttribute<Integer, Car>() {
@@ -464,7 +464,7 @@ public class IndexedCollectionFunctionalTest {
                                 )
 
                         ),
-                        indexCombination(DiskIndex.onAttribute(
+                        indexCombination(OffHeapIndex.onAttribute(
                                         Car.MANUFACTURER,
                                         Car.CAR_ID,
                                         new SimpleAttribute<Integer, Car>() {
@@ -477,7 +477,7 @@ public class IndexedCollectionFunctionalTest {
                                 )
 
                         )
-//                        ,indexCombination(DiskIndex.onAttribute(
+//                        ,indexCombination(OffHeapIndex.onAttribute(
 //                                        Car.MANUFACTURER,
 //                                        Car.CAR_ID,
 //                                        new SimpleAttribute<Integer, Car>() {

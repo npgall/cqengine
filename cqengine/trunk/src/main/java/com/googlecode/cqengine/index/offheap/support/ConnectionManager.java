@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.disk.support;
+package com.googlecode.cqengine.index.offheap.support;
 
 import com.googlecode.cqengine.index.Index;
 

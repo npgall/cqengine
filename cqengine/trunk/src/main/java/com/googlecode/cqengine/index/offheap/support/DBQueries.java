@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.disk.support;
+package com.googlecode.cqengine.index.offheap.support;
 
 import com.googlecode.concurrenttrees.common.CharSequences;
 import com.googlecode.cqengine.query.Query;
@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Database (SQLite) query executor used by the {@link com.googlecode.cqengine.index.disk.DiskIndex}.
+ * Database (SQLite) query executor used by the {@link com.googlecode.cqengine.index.offheap.OffHeapIndex}.
  *
  * @author Silvano Riz
  */
