@@ -5,6 +5,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.common.CloseableQueryResources;
+import com.googlecode.cqengine.index.disk.support.CloseableSet;
 import com.googlecode.cqengine.index.disk.support.ConnectionManager;
 import com.googlecode.cqengine.index.disk.support.DBQueries;
 import com.googlecode.cqengine.index.disk.support.DBUtils;
@@ -14,8 +15,6 @@ import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.HashSet;
@@ -64,7 +63,6 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
     final SimpleAttribute<O, K> objectToIdAttribute;
     final SimpleAttribute<K, O> idToObjectAttribute;
     final ConnectionManager connectionManager;
-    volatile boolean indexTableCreated = false;
 
     // ---------- Static factory methods to create HashIndexes ----------
 
@@ -126,6 +124,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
             add(GreaterThan.class);
             add(Between.class);
             add(StringStartsWith.class);
+            add(All.class);
         }});
 
         this.tableName = attribute.getAttributeName();
@@ -138,19 +137,6 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
     @Override
     public boolean isMutable() {
         return true;
-    }
-
-    /**
-     * Utility class to facilitate the addition of ResultSet's resources in the QueryOptions' CloseableQueryResources.
-     */
-    static class CloseableSet extends HashSet<Closeable> implements Closeable{
-        @Override
-        public void close() throws IOException {
-            for(Closeable closeable : this){
-                CloseableQueryResources.closeQuietly(closeable);
-            }
-            this.clear();
-        }
     }
 
     @Override
@@ -167,7 +153,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
             public Iterator<O> iterator() {
 
                 final Connection searchConnection = connectionManager.getConnection(DiskIndex.this);
-                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection, connectionManager));
+                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
                 final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection);
                 resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
@@ -181,7 +167,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
                                 close();
                                 return endOfData();
                             }
-                            @SuppressWarnings("unchecked") final K objectKey = (K)searchResultSet.getObject(1);
+                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, objectToIdAttribute.getAttributeType());
                             return idToObjectAttribute.getValue(objectKey, queryOptions);
                         }catch (Exception e){
                             endOfData();
@@ -209,7 +195,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
                 try{
                     return DBQueries.contains(objectKey, query, tableName, connection);
                 }finally {
-                    connectionManager.closeConnection(connection);
+                    DBUtils.closeQuietly(connection);
                 }
             }
 
@@ -219,7 +205,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
                 try {
                     return DBQueries.count(query, tableName, connection);
                 } finally {
-                    connectionManager.closeConnection(connection);
+                    DBUtils.closeQuietly(connection);
                 }
             }
 
@@ -233,14 +219,20 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
 
     @Override
     public void notifyObjectsAdded(final Collection<O> objects, final QueryOptions queryOptions) {
+
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
+            return;
+        }
+        createTableIndexIfNeeded(connectionManager);
+
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
             Iterable<Row<K, A>> rows = rowIterable(objects, objectToIdAttribute, getAttribute(), queryOptions);
             DBQueries.bulkAdd(rows, tableName, connection);
         }finally {
-            connectionManager.closeConnection(connection);
+            DBUtils.closeQuietly(connection);
         }
     }
 
@@ -262,31 +254,41 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
             @Override
             public Iterator<Row<K, A>> iterator() {
 
-                return new UnmodifiableIterator<Row<K, A>>() {
+                return new LazyIterator<Row<K, A>>() {
 
                     final Iterator<O> objectIterator = objects.iterator();
                     Iterator<A> valuesIterator = null;
                     K currentObjectKey;
+                    boolean hasNext = true;
 
                     @Override
-                    public boolean hasNext() {
+                    protected Row<K, A> computeNext() {
+                        Row<K, A> next;
+                        while(hasNext && (next = computeNextOrNull()) != null){
+                            return next;
+                        }
+                        return endOfData();
+                    }
+
+                    Row<K, A> computeNextOrNull(){
                         if (valuesIterator == null || !valuesIterator.hasNext()){
-                            return objectIterator.hasNext();
+                            if (objectIterator.hasNext()){
+                                O next = objectIterator.next();
+                                currentObjectKey = objectToIdAttribute.getValue(next, queryOptions);
+                                valuesIterator = indexAttribute.getValues(next, queryOptions).iterator();
+                            }else{
+                                hasNext = false;
+                                return null;
+                            }
+                        }
+
+                        if (valuesIterator.hasNext()){
+                            return new Row<K, A>(currentObjectKey, valuesIterator.next());
                         }else{
-                            return valuesIterator != null && valuesIterator.hasNext();
+                            return null;
                         }
                     }
 
-                    @Override
-                    public Row<K, A> next() {
-
-                        if (valuesIterator == null || !valuesIterator.hasNext()){
-                            O next = objectIterator.next();
-                            currentObjectKey = objectToIdAttribute.getValue(next, queryOptions);
-                            valuesIterator = indexAttribute.getValues(next, queryOptions).iterator();
-                        }
-                        return new Row<K, A>(currentObjectKey, valuesIterator.next());
-                    }
                 };
             }
         };
@@ -296,14 +298,19 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
     @Override
     public void notifyObjectsRemoved(final Collection<O> objects, final QueryOptions queryOptions) {
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
+            return;
+        }
+        createTableIndexIfNeeded(connectionManager);
+
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
-            Iterable<K> objectKeys = objectKeyItarable(objects, objectToIdAttribute, queryOptions);
+            Iterable<K> objectKeys = objectKeyIterable(objects, objectToIdAttribute, queryOptions);
 
             DBQueries.bulkRemove(objectKeys, tableName, connection);
         }finally {
-            connectionManager.closeConnection(connection);
+            DBUtils.closeQuietly(connection);
         }
     }
 
@@ -315,7 +322,7 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param queryOptions The {@link QueryOptions}.
      * @return {@link Iterable} over the objects ids.
      */
-    static <O, K> Iterable<K> objectKeyItarable(final Iterable<O> objects,
+    static <O, K> Iterable<K> objectKeyIterable(final Iterable<O> objects,
                                                 final SimpleAttribute<O, K> objectToIdAttribute,
                                                 final QueryOptions queryOptions){
         return new Iterable<K>() {
@@ -345,20 +352,25 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
 
     @Override
     public void notifyObjectsCleared(QueryOptions queryOptions) {
+
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
+            return;
+        }
+        createTableIndexIfNeeded(connectionManager);
+
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
             DBQueries.clearIndexTable(tableName, connection);
         }finally {
-            connectionManager.closeConnection(connection);
+            DBUtils.closeQuietly(connection);
         }
     }
 
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
-        createTableIndexIfNeeded(queryOptions);
-        if (collection != null && !collection.isEmpty()) {
+        if (!collection.isEmpty()) {
             notifyObjectsAdded(collection, queryOptions);
         }
     }
@@ -366,26 +378,15 @@ public class DiskIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
     /**
      * Utility method to create the index table if needed.
      *
-     * @param queryOptions The {@link QueryOptions}.
+     * @param connectionManager The {@link ConnectionManager}.
      */
-    void createTableIndexIfNeeded(QueryOptions queryOptions){
-        if (indexTableCreated) {
-            return;
-        }
-        synchronized (this) {
-            if(indexTableCreated) {
-                return;
-            }
-            // Create the table.
-            ConnectionManager connectionManager = getConnectionManager(queryOptions);
-            Connection connection = null;
-            try {
-                connection = connectionManager.getConnection(this);
-                DBQueries.createIndexTable(tableName, objectToIdAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
-                indexTableCreated = true;
-            } finally {
-                connectionManager.closeConnection(connection);
-            }
+    void createTableIndexIfNeeded(final ConnectionManager connectionManager){
+        Connection connection = null;
+        try {
+            connection = connectionManager.getConnection(this);
+            DBQueries.createIndexTable(tableName, objectToIdAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
+        } finally {
+            DBUtils.closeQuietly(connection);
         }
     }
 

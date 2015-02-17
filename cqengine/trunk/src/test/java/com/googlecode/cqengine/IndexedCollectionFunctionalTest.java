@@ -8,8 +8,6 @@ import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.disk.DiskIndex;
-import com.googlecode.cqengine.index.disk.TemporaryFileDatabase;
-import com.googlecode.cqengine.index.disk.TemporaryInMemoryDatabase;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -34,6 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.index.disk.TemporaryDatabase.TemporaryFileDatabase;
+import static com.googlecode.cqengine.index.disk.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
 import static java.util.Arrays.asList;
@@ -460,7 +460,7 @@ public class IndexedCollectionFunctionalTest {
                                                 return CarFactory.createCar(carId);
                                             }
                                         },
-                                        temporaryInMemoryDatabase.getConnectionManager()
+                                        temporaryInMemoryDatabase.getConnectionManager(true)
                                 )
 
                         ),
@@ -473,10 +473,23 @@ public class IndexedCollectionFunctionalTest {
                                                 return CarFactory.createCar(carId);
                                             }
                                         },
-                                        temporaryFileDatabase.getConnectionManager()
+                                        temporaryFileDatabase.getConnectionManager(true)
                                 )
 
                         )
+//                        ,indexCombination(DiskIndex.onAttribute(
+//                                        Car.MANUFACTURER,
+//                                        Car.CAR_ID,
+//                                        new SimpleAttribute<Integer, Car>() {
+//                                            @Override
+//                                            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+//                                                return CarFactory.createCar(carId);
+//                                            }
+//                                        },
+//                                        temporaryFileDatabase.getSingleConnectionManager()
+//                                )
+//
+//                        )
                 );
             }},
             new MacroScenario() {{

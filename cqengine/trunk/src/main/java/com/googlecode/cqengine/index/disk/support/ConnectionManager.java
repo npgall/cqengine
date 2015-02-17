@@ -20,9 +20,10 @@ public interface ConnectionManager {
     Connection getConnection(Index<?> index);
 
     /**
-     * Closes a {@link Connection}.
+     * Informs if index updates should be applied.
      *
-     * @param connection The {@link Connection} to close
+     * @param index The index.
+     * @return true if updates on the index should be applied. False otherwise.
      */
-    void closeConnection(Connection connection);
+    boolean isApplyUpdateForIndexEnabled(Index<?> index);
 }

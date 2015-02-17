@@ -35,7 +35,9 @@ public class DiskIndexTest {
     public static List<Car> data = Arrays.asList(
             new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")),
             new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")),
-            new Car(3, "Toyota", "Prius", Car.Color.BLACK, 3, 9700.00, Arrays.asList("abs"))
+            new Car(3, "Toyota", "Prius", Car.Color.BLACK, 3, 9700.00, Arrays.asList("abs")),
+            new Car(4, "Fiat", "Panda", Car.Color.BLUE, 5, 5600.00, Collections.<String>emptyList()),
+            new Car(5, "Fiat", "Punto", Car.Color.BLUE, 5, 5600.00, Arrays.asList("gps"))
     );
 
     @Test
@@ -101,11 +103,15 @@ public class DiskIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
+        Connection connection1 = mock(Connection.class);
+        Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("DELETE FROM features WHERE objectKey = ?;")).thenReturn(preparedStatement);
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connection.createStatement()).thenReturn(statement);
+        when(connection1.prepareStatement("DELETE FROM features WHERE objectKey = ?;")).thenReturn(preparedStatement);
 
         // The objects to add
         Set<Car> removedObjects = new HashSet<Car>(2);
@@ -123,11 +129,15 @@ public class DiskIndexTest {
         carFeaturesDiskIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
 
         // Verify
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(connection, times(1)).close();
+
         verify(preparedStatement, times(1)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
         verify(preparedStatement, times(2)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection1, times(1)).close();
     }
 
     @Test
@@ -136,11 +146,15 @@ public class DiskIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
+        Connection connection1 = mock(Connection.class);
+        Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
+        when(connection.createStatement()).thenReturn(statement);
+        when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
 
         // The objects to add
         Set<Car> addedObjects = new HashSet<Car>(2);
@@ -157,6 +171,10 @@ public class DiskIndexTest {
         carFeaturesDiskIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
 
         // Verify
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(connection, times(1)).close();
+
         verify(preparedStatement, times(2)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
         verify(preparedStatement, times(1)).setObject(2, "abs");
@@ -164,7 +182,7 @@ public class DiskIndexTest {
         verify(preparedStatement, times(1)).setObject(2, "airbags");
         verify(preparedStatement, times(3)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection1, times(1)).close();
     }
 
     @Test
@@ -173,11 +191,15 @@ public class DiskIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
+        Connection connection1 = mock(Connection.class);
         Statement statement = mock(Statement.class);
+        Statement statement1 = mock(Statement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
+        when(connection1.createStatement()).thenReturn(statement1);
 
         @SuppressWarnings({"unchecked", "unused"})
         DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
@@ -190,8 +212,12 @@ public class DiskIndexTest {
         carFeaturesDiskIndex.notifyObjectsCleared(new QueryOptions());
 
         // Verify
-        verify(statement, times(1)).executeUpdate("DELETE FROM features;");
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(connection, times(1)).close();
+
+        verify(statement1, times(1)).executeUpdate("DELETE FROM features;");
+        verify(connection1, times(1)).close();
     }
 
     @Test
@@ -199,11 +225,6 @@ public class DiskIndexTest {
 
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
-        Connection connection = mock(Connection.class);
-        Statement statement = mock(Statement.class);
-
-        when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection);
-        when(connection.createStatement()).thenReturn(statement);
 
         DiskIndex<String, Car, Integer> carFeaturesDiskIndex = new DiskIndex<String, Car, Integer>(
                 Car.FEATURES,
@@ -213,13 +234,7 @@ public class DiskIndexTest {
         );
 
         carFeaturesDiskIndex.init(Collections.<Car>emptySet(), new QueryOptions());
-        carFeaturesDiskIndex.init(Collections.<Car>emptySet(), new QueryOptions());// Call twice to verify the second time the table is not created
-
-        // Verify
-        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
-        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
-        verify(statement, times(1)).close();
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connectionManager, times(0)).getConnection(any(DiskIndex.class));
     }
 
     @Test
@@ -234,6 +249,7 @@ public class DiskIndexTest {
 
         when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
         when(connectionManager.getConnection(any(DiskIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(DiskIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
 
         // The objects to add
@@ -254,7 +270,7 @@ public class DiskIndexTest {
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
         verify(statement, times(1)).close();
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection, times(1)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
@@ -264,7 +280,7 @@ public class DiskIndexTest {
         verify(preparedStatement, times(3)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
         verify(preparedStatement, times(1)).close();
-        verify(connectionManager, times(1)).closeConnection(connection1);
+        verify(connection1, times(1)).close();
     }
 
     @Test
@@ -297,7 +313,7 @@ public class DiskIndexTest {
         int size = carsWithAbs.size();
 
         Assert.assertEquals(3, size);
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection, times(1)).close();
 
     }
 
@@ -350,7 +366,7 @@ public class DiskIndexTest {
         int size = carsWithAbs.getMergeCost();
 
         Assert.assertEquals(3, size);
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection, times(1)).close();
 
     }
 
@@ -389,11 +405,11 @@ public class DiskIndexTest {
         Assert.assertNotNull(carsWithAbs);
         boolean resultContains = carsWithAbs.contains(data.get(0));
         Assert.assertTrue(resultContains);
-        verify(connectionManager, times(1)).closeConnection(connectionContains);
+        verify(connectionContains, times(1)).close();
 
         boolean resultDoNotContain = carsWithAbs.contains(data.get(1));
         Assert.assertFalse(resultDoNotContain);
-        verify(connectionManager, times(1)).closeConnection(connectionDoNotContain);
+        verify(connectionDoNotContain, times(1)).close();
 
 
     }
@@ -417,7 +433,7 @@ public class DiskIndexTest {
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(resultSet.getObject(1)).thenReturn(1).thenThrow(new SQLException("SQL exception"));
+        when(resultSet.getInt(1)).thenReturn(1).thenThrow(new SQLException("SQL exception"));
         when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
 
         // Iterator
@@ -436,7 +452,7 @@ public class DiskIndexTest {
             carsWithAbsIterator.next();// Should throw exception!
 
         }finally {
-            verify(connectionManager, times(1)).closeConnection(connection);
+            verify(connection, times(1)).close();
             verify(preparedStatement, times(1)).close();
             verify(resultSet, times(1)).close();
         }
@@ -462,7 +478,7 @@ public class DiskIndexTest {
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(resultSet.getObject(1)).thenReturn(1).thenReturn(3);
+        when(resultSet.getInt(1)).thenReturn(1).thenReturn(3);
         when(idToObject.getValue(1,queryOptions)).thenReturn(data.get(0));
         when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
 
@@ -478,6 +494,7 @@ public class DiskIndexTest {
 
         Assert.assertNotNull(carsWithAbs);
         Iterator carsWithAbsIterator = carsWithAbs.iterator();
+
         Assert.assertTrue(carsWithAbsIterator.hasNext());
         Assert.assertNotNull(carsWithAbsIterator.next());
         Assert.assertTrue(carsWithAbsIterator.hasNext());
@@ -485,7 +502,7 @@ public class DiskIndexTest {
         Assert.assertFalse(carsWithAbsIterator.hasNext());
 
         // The end of the iteration should close the resources
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection, times(1)).close();
         verify(preparedStatement, times(1)).close();
         verify(resultSet, times(1)).close();
 
@@ -511,7 +528,7 @@ public class DiskIndexTest {
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(resultSet.getObject(1)).thenReturn(1).thenReturn(3);
+        when(resultSet.getInt(1)).thenReturn(1).thenReturn(3);
         when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
         when(idToObject.getValue(3, queryOptions)).thenReturn(data.get(2));
 
@@ -531,7 +548,7 @@ public class DiskIndexTest {
         // Do not continue with the iteration, but close
         carsWithAbs.close();
 
-        verify(connectionManager, times(1)).closeConnection(connection);
+        verify(connection, times(1)).close();
         verify(preparedStatement, times(1)).close();
         verify(resultSet, times(1)).close();
 
@@ -556,10 +573,12 @@ public class DiskIndexTest {
         Assert.assertFalse(rowsIterator.hasNext());
     }
 
+
+
     @Test
     public void testObjectKeyItarable(){
 
-        Iterable<Integer> objectKeys = DiskIndex.objectKeyItarable(data, Car.CAR_ID, null);
+        Iterable<Integer> objectKeys = DiskIndex.objectKeyIterable(data, Car.CAR_ID, null);
         Assert.assertNotNull(objectKeys);
 
         Iterator<Integer> objectKeysIterator = objectKeys.iterator();
@@ -570,6 +589,10 @@ public class DiskIndexTest {
         Assert.assertEquals(new Integer(2),objectKeysIterator.next());
         Assert.assertTrue(objectKeysIterator.hasNext());
         Assert.assertEquals(new Integer(3),objectKeysIterator.next());
+        Assert.assertTrue(objectKeysIterator.hasNext());
+        Assert.assertEquals(new Integer(4),objectKeysIterator.next());
+        Assert.assertTrue(objectKeysIterator.hasNext());
+        Assert.assertEquals(new Integer(5),objectKeysIterator.next());
         Assert.assertFalse(objectKeysIterator.hasNext());
     }
 
