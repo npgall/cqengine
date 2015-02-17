@@ -1,6 +1,5 @@
 package com.googlecode.cqengine.index.disk.support;
 
-import com.googlecode.cqengine.index.disk.TemporaryFileDatabase;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
@@ -10,6 +9,7 @@ import org.junit.Test;
 import java.sql.*;
 import java.util.*;
 
+import static com.googlecode.cqengine.index.disk.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
 import static org.junit.Assert.assertEquals;
@@ -33,7 +33,7 @@ public class DBQueriesTest {
         Connection connection = null;
         Statement statement = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             connection = spy(connectionManager.getConnection(null));
             statement = spy(connection.createStatement());
             when(connection.createStatement()).thenReturn(statement);
@@ -55,7 +55,7 @@ public class DBQueriesTest {
         Connection connection = null;
         Statement statement = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             createSchema(connectionManager);
 
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
@@ -80,7 +80,7 @@ public class DBQueriesTest {
         Connection connection = null;
         Statement statement = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             createSchema(connectionManager);
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
             assertObjectExistenceInSQLIteMasterTable("idx_" + TABLE_NAME + "_value", "index", true, connectionManager);
@@ -103,7 +103,7 @@ public class DBQueriesTest {
     public void testBulkAdd() throws SQLException {
         Connection connection = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             createSchema(connectionManager);
 
             List<DBQueries.Row<Integer, String>> rowsToAdd = new ArrayList<DBQueries.Row<Integer, String>>(4);
@@ -126,7 +126,7 @@ public class DBQueriesTest {
 
         Connection connection = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
@@ -147,7 +147,7 @@ public class DBQueriesTest {
 
         Connection connection = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");
@@ -167,7 +167,7 @@ public class DBQueriesTest {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");
@@ -191,7 +191,7 @@ public class DBQueriesTest {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             LessThan<Car, String> lessThan = lessThan(Car.FEATURES, "abz");
@@ -215,7 +215,7 @@ public class DBQueriesTest {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             GreaterThan<Car, String> greaterThan = greaterThan(Car.FEATURES, "abz");
@@ -239,7 +239,7 @@ public class DBQueriesTest {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             Between<Car, String> between = between(Car.FEATURES, "a", "b");
@@ -264,7 +264,7 @@ public class DBQueriesTest {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             StringStartsWith<Car, String> startsWith = startsWith(Car.FEATURES, "ab");
@@ -284,11 +284,37 @@ public class DBQueriesTest {
     }
 
     @Test
+    public void testSearch_All() throws SQLException {
+        Connection connection = null;
+        ResultSet resultSet = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            All<Car> all = (All<Car>)all(Car.class);
+
+            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
+            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(1, "gps"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
+
+            connection = connectionManager.getConnection(null);
+            resultSet = DBQueries.search(all, TABLE_NAME, connection);
+            assertResultSet(resultSet, expectedRows);
+
+        }finally {
+            DBUtils.closeQuietly(connection);
+            DBUtils.closeQuietly(resultSet);
+        }
+    }
+
+    @Test
     public void testContains() throws SQLException {
         Connection connection = null;
 
         try {
-            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager();
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");

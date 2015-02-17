@@ -197,11 +197,15 @@ public class DBQueries {
         final Class queryClass = query.getClass();
         PreparedStatement statement;
 
-        if (queryClass == Equal.class){
+        if (queryClass == All.class){
+            stringBuilder.append(suffix);
+            statement = connection.prepareStatement(stringBuilder.toString());
+
+        }else if (queryClass == Equal.class){
             final Equal<O, A> equal =(Equal<O, A>) query;
             stringBuilder.append("WHERE value = ?").append(suffix);
             statement = connection.prepareStatement(stringBuilder.toString());
-            statement.setObject(bindingIndex++, equal.getValue());
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, equal.getValue());
 
         }else if (queryClass == LessThan.class){
             final LessThan<O, ? extends Comparable<A>> lessThan =(LessThan<O, ? extends Comparable<A>>) query;
@@ -212,14 +216,14 @@ public class DBQueries {
                 stringBuilder.append("WHERE value < ?").append(suffix);
             }
             statement = connection.prepareStatement(stringBuilder.toString());
-            statement.setObject(bindingIndex++, lessThan.getValue());
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lessThan.getValue());
 
         }else if (queryClass == StringStartsWith.class){
             final StringStartsWith<O, ? extends CharSequence> stringStartsWith =(StringStartsWith<O, ? extends CharSequence>) query;
             stringBuilder.append("WHERE value LIKE ?").append(suffix);
             final String prefix = CharSequences.toString(stringStartsWith.getValue());
             statement = connection.prepareStatement(stringBuilder.toString());
-            statement.setObject(bindingIndex++, prefix + '%');
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, prefix + '%');
 
         }else if (queryClass == GreaterThan.class){
             final GreaterThan<O, ? extends Comparable<A>> greaterThan = (GreaterThan<O, ? extends Comparable<A>>)query;
@@ -230,7 +234,7 @@ public class DBQueries {
                 stringBuilder.append("WHERE value > ?").append(suffix);
             }
             statement = connection.prepareStatement(stringBuilder.toString());
-            statement.setObject(bindingIndex++, greaterThan.getValue());
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, greaterThan.getValue());
 
         }else if (queryClass == Between.class){
             final Between<O, ? extends Comparable<A>> between = (Between<O, ? extends Comparable<A>>)query;
@@ -246,15 +250,15 @@ public class DBQueries {
             }
             stringBuilder.append(suffix);
             statement = connection.prepareStatement(stringBuilder.toString());
-            statement.setObject(bindingIndex++, between.getLowerValue());
-            statement.setObject(bindingIndex++, between.getUpperValue());
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getLowerValue());
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getUpperValue());
 
         }else{
             throw new IllegalStateException("Query " + queryClass + " not supported.");
         }
 
         for (WhereClause additionalWhereClause : additionalWhereClauses){
-            statement.setObject(bindingIndex++, additionalWhereClause.objectToBind);
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, additionalWhereClause.objectToBind);
         }
 
         return statement;
