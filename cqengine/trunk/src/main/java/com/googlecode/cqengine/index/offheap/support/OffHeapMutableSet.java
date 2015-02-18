@@ -1,9 +1,7 @@
 package com.googlecode.cqengine.index.offheap.support;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.engine.ModificationListener;
 import com.googlecode.cqengine.index.offheap.OffHeapIdentityIndex;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
@@ -15,7 +13,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 /**
  * @author Niall Gallagher
  */
-public class OffHeapMutableSet<O, A extends Comparable<A>> extends ResultSet<O> implements ModificationListener<O> {
+public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
 
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final Class<O> objectType;
@@ -35,7 +33,9 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends ResultSet<O> 
     }
 
     @Override
-    public boolean contains(O object) {
+    public boolean contains(Object o) {
+        @SuppressWarnings("unchecked")
+        O object = (O) o;
         A objectId = primaryKeyAttribute.getValue(object, noQueryOptions());
         return offHeapIdentityIndex.retrieve(equal(primaryKeyAttribute, objectId), noQueryOptions()).size() > 0;
     }
@@ -60,42 +60,87 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends ResultSet<O> 
             public void close() throws IOException {
                 rs.close();
             }
-        };
+        }
+        ;
         return new CloseableIteratorImpl();
     }
 
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        offHeapIdentityIndex.init(collection, queryOptions);
+    public boolean isEmpty() {
+        return size() == 0;
     }
 
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
-        offHeapIdentityIndex.notifyObjectsAdded(objects, queryOptions);
+    public boolean add(O object) {
+        offHeapIdentityIndex.notifyObjectsAdded(Collections.singleton(object), noQueryOptions());
+        return true;
     }
 
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
-        offHeapIdentityIndex.notifyObjectsRemoved(objects, queryOptions);
+    public boolean remove(Object o) {
+        @SuppressWarnings("unchecked")
+        O object = (O) o;
+        offHeapIdentityIndex.notifyObjectsRemoved(Collections.singleton(object), noQueryOptions());
+        return true;
     }
 
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
-        offHeapIdentityIndex.notifyObjectsCleared(queryOptions);
+    public boolean containsAll(Collection<?> c) {
+        for (Object o : c) {
+            if (!contains(o)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public void close() {
-        // No op
+    public boolean addAll(Collection<? extends O> c) {
+        @SuppressWarnings("unchecked")
+        Collection<O> objects = (Collection<O>) c;
+        offHeapIdentityIndex.notifyObjectsAdded(objects, noQueryOptions());
+        return true;
     }
 
     @Override
-    public int getRetrievalCost() {
-        return retrievalCost;
+    public boolean retainAll(Collection<?> c) {
+        // Note: this could be optimized...
+        Collection<O> objectsToRemove = new ArrayList<O>();
+        ResultSet<O> allObjects = offHeapIdentityIndex.retrieve(all(objectType), noQueryOptions());
+        try {
+            for (O object : allObjects) {
+                if (!c.contains(object)) {
+                    objectsToRemove.add(object);
+                }
+            }
+        }
+        finally {
+            allObjects.close();
+        }
+        offHeapIdentityIndex.notifyObjectsRemoved(objectsToRemove, noQueryOptions());
+        return true;
     }
 
     @Override
-    public int getMergeCost() {
-        return size();
+    public boolean removeAll(Collection<?> c) {
+        @SuppressWarnings("unchecked")
+        Collection<O> objects = (Collection<O>) c;
+        offHeapIdentityIndex.notifyObjectsRemoved(objects, noQueryOptions());
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        offHeapIdentityIndex.notifyObjectsCleared(noQueryOptions());
+    }
+
+    @Override
+    public Object[] toArray() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        throw new UnsupportedOperationException();
     }
 }
