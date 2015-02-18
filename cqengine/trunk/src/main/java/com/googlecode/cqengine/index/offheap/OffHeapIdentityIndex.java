@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * @author niall.gallagher
  */
-public class OffHeapIdentityIndex<A, O> implements AttributeIndex<A, O> {
+public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements AttributeIndex<A, O> {
 
     final OffHeapIndex<A, O, byte[]> offHeapIndex;
     final Class<O> objectType;
@@ -134,7 +134,7 @@ public class OffHeapIdentityIndex<A, O> implements AttributeIndex<A, O> {
      * @param <O> The type of the object containing the attributes.
      * @return a new instance of a standalone {@link OffHeapIdentityIndex}
      */
-    public static <A, O> OffHeapIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute,
+    public static <A extends Comparable<A>, O> OffHeapIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute,
                                                            final ConnectionManager connectionManager) {
         return new OffHeapIdentityIndex<A, O>(primaryKeyAttribute, connectionManager);
     }
