@@ -15,7 +15,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 /**
  * @author Niall Gallagher
  */
-public class OffHeapMutableSet<O, A> extends ResultSet<O> implements ModificationListener<O> {
+public class OffHeapMutableSet<O, A extends Comparable<A>> extends ResultSet<O> implements ModificationListener<O> {
 
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final Class<O> objectType;

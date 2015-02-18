@@ -56,7 +56,7 @@ import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
  * </ul>
  * @author Silvano Riz
  */
-public class OffHeapIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
+public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> {
 
     static final int INDEX_RETRIEVAL_COST = 60;
 
@@ -79,7 +79,7 @@ public class OffHeapIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param <K> The type of the object key.
      * @return a new instance of the {@link OffHeapIndex}
      */
-    public static <A, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+    public static <A extends Comparable<A>, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
                                                            final SimpleAttribute<O, K> objectKeyAttribute,
                                                            final SimpleAttribute<K, O> idToObjectAttribute) {
 
@@ -98,7 +98,7 @@ public class OffHeapIndex<A, O, K> extends AbstractAttributeIndex<A, O> {
      * @param <K> The type of the object key.
      * @return a new instance of a standalone {@link OffHeapIndex}
      */
-    public static <A, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+    public static <A extends Comparable<A>, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
                                                            final SimpleAttribute<O, K> objectKeyAttribute,
                                                            final SimpleAttribute<K, O> idToObjectAttribute,
                                                            final ConnectionManager connectionManager) {
