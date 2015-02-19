@@ -261,33 +261,34 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                     final Iterator<O> objectIterator = objects.iterator();
                     Iterator<A> valuesIterator = null;
                     K currentObjectKey;
-                    boolean hasNext = true;
-
+                    Row<K, A> next;
                     @Override
                     protected Row<K, A> computeNext() {
-                        Row<K, A> next;
-                        while(hasNext && (next = computeNextOrNull()) != null){
-                            return next;
+
+                        while(computeNextOrNull()){
+                            if (next!=null)
+                                return next;
                         }
                         return endOfData();
                     }
 
-                    Row<K, A> computeNextOrNull(){
+                    boolean computeNextOrNull(){
                         if (valuesIterator == null || !valuesIterator.hasNext()){
                             if (objectIterator.hasNext()){
                                 O next = objectIterator.next();
                                 currentObjectKey = objectToIdAttribute.getValue(next, queryOptions);
                                 valuesIterator = indexAttribute.getValues(next, queryOptions).iterator();
                             }else{
-                                hasNext = false;
-                                return null;
+                                return false;
                             }
                         }
 
                         if (valuesIterator.hasNext()){
-                            return new Row<K, A>(currentObjectKey, valuesIterator.next());
+                            next = new Row<K, A>(currentObjectKey, valuesIterator.next());
+                            return true;
                         }else{
-                            return null;
+                            next = null;
+                            return true;
                         }
                     }
 

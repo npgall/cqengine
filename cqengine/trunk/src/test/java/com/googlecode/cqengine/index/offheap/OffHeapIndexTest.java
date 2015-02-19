@@ -26,8 +26,8 @@ import static org.mockito.Mockito.*;
  */
 public class OffHeapIndexTest {
 
-    private static final String TABLE_NAME = "tbl_features";
-    private static final String INDEX_NAME = "idx_features_value";
+    private static final String TABLE_NAME = "cqtbl_features";
+    private static final String INDEX_NAME = "cqidx_features_value";
 
     public static final SimpleAttribute<Car, Integer> OBJECT_TO_ID = Car.CAR_ID;
 
@@ -573,6 +573,8 @@ public class OffHeapIndexTest {
         Assert.assertEquals(new DBQueries.Row<Integer, String>(2, "airbags"),rowsIterator.next());
         Assert.assertTrue(rowsIterator.hasNext());
         Assert.assertEquals(new DBQueries.Row<Integer, String>(3, "abs"),rowsIterator.next());
+        Assert.assertTrue(rowsIterator.hasNext());
+        Assert.assertEquals(new DBQueries.Row<Integer, String>(5, "gps"),rowsIterator.next());
         Assert.assertFalse(rowsIterator.hasNext());
     }
 

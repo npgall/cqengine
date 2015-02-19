@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
 public class DBQueriesTest {
 
     private static final String NAME = "features";
-    private static final String TABLE_NAME = "tbl_" + NAME;
-    private static final String INDEX_NAME = "idx_" + NAME + "_value";
+    private static final String TABLE_NAME = "cqtbl_" + NAME;
+    private static final String INDEX_NAME = "cqidx_" + NAME + "_value";
 
     @Rule
     public TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();

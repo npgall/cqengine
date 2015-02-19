@@ -69,13 +69,13 @@ public class DBQueries {
         final String objectValueSQLiteType = DBUtils.getDBTypeForClass(valueClass);
 
         final String sqlCreateTable = String.format(
-                "CREATE TABLE IF NOT EXISTS tbl_%s (objectKey %s, value %s, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;",
+                "CREATE TABLE IF NOT EXISTS cqtbl_%s (objectKey %s, value %s, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;",
                 tableName,
                 objectKeySQLiteType,
                 objectValueSQLiteType);
 
         final String sqlCreateIndex = String.format(
-                "CREATE INDEX IF NOT EXISTS idx_%s_value ON tbl_%s (value);",
+                "CREATE INDEX IF NOT EXISTS cqidx_%s_value ON cqtbl_%s (value);",
                 tableName,
                 tableName);
 
@@ -93,8 +93,8 @@ public class DBQueries {
     }
 
     public static void dropIndexTable(final String tableName, final Connection connection){
-        final String sqlDropIndex = String.format("DROP INDEX IF EXISTS idx_%s_value;",tableName);
-        final String sqlDropTable = String.format("DROP TABLE IF EXISTS tbl_%s;", tableName);
+        final String sqlDropIndex = String.format("DROP INDEX IF EXISTS cqidx_%s_value;",tableName);
+        final String sqlDropTable = String.format("DROP TABLE IF EXISTS cqtbl_%s;", tableName);
         Statement statement = null;
         try {
             statement = connection.createStatement();
@@ -108,7 +108,7 @@ public class DBQueries {
     }
 
     public static void clearIndexTable(final String tableName, final Connection connection){
-        final String clearTable = String.format("DELETE FROM tbl_%s;",tableName);
+        final String clearTable = String.format("DELETE FROM cqtbl_%s;",tableName);
         Statement statement = null;
         try {
             statement = connection.createStatement();
@@ -121,7 +121,7 @@ public class DBQueries {
     }
 
     public static <K,A> void bulkAdd(Iterable<Row<K, A>> rows, final String tableName, final Connection connection){
-        final String sql = String.format("INSERT OR REPLACE INTO tbl_%s values(?, ?);", tableName);
+        final String sql = String.format("INSERT OR REPLACE INTO cqtbl_%s values(?, ?);", tableName);
         PreparedStatement statement = null;
         Boolean previousAutocommit = null;
         try {
@@ -146,7 +146,7 @@ public class DBQueries {
     }
 
     public static <K> void bulkRemove(Iterable<K> objectKeys, final String tableName, final Connection connection){
-        final String sql = String.format("DELETE FROM tbl_%s WHERE objectKey = ?;", tableName);
+        final String sql = String.format("DELETE FROM cqtbl_%s WHERE objectKey = ?;", tableName);
         PreparedStatement statement = null;
         Boolean previousAutocommit = null;
         try{
@@ -266,7 +266,7 @@ public class DBQueries {
 
     public static <O> int count(final Query<O> query, final String tableName, final Connection connection){
 
-        final String selectSql = String.format("SELECT COUNT(objectKey) FROM tbl_%s", tableName);
+        final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, Collections.<WhereClause>emptyList(), query, connection);
@@ -286,7 +286,7 @@ public class DBQueries {
     }
 
     public static <O> java.sql.ResultSet search(final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT objectKey, value FROM tbl_%s",tableName);
+        final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s",tableName);
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, Collections.<WhereClause>emptyList(), query, connection);
@@ -300,7 +300,7 @@ public class DBQueries {
     }
 
     public static <K, O> boolean contains(final K objectKey, final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT COUNT(objectKey) FROM tbl_%s", tableName);
+        final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
             List<WhereClause> additionalWhereClauses = Arrays.asList(new WhereClause("AND objectKey = ?", objectKey));
