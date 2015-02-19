@@ -226,9 +226,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         // Add the object to the index.
         // Indexes handle gracefully the case that the objects supplied already exist in the index...
         boolean modified = collection.add(o);
-        if (modified) {
-            indexEngine.notifyObjectsAdded(Collections.singleton(o), noQueryOptions());
-        }
+        indexEngine.notifyObjectsAdded(Collections.singleton(o), noQueryOptions());
         return modified;
     }
 
@@ -240,9 +238,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         @SuppressWarnings({"unchecked"})
         O o = (O) object;
         boolean modified = collection.remove(o);
-        if  (modified) {
-            indexEngine.notifyObjectsRemoved(Collections.singleton(o), noQueryOptions());
-        }
+        indexEngine.notifyObjectsRemoved(Collections.singleton(o), noQueryOptions());
         return modified;
     }
 
@@ -254,9 +250,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         @SuppressWarnings({"unchecked"})
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.addAll(objects);
-        if  (modified) {
-            indexEngine.notifyObjectsAdded(objects, noQueryOptions());
-        }
+        indexEngine.notifyObjectsAdded(objects, noQueryOptions());
         return modified;
     }
 
@@ -268,9 +262,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         @SuppressWarnings({"unchecked"})
         Collection<O> objects = (Collection<O>) c;
         boolean modified = this.collection.removeAll(objects);
-        if (modified) {
-            indexEngine.notifyObjectsRemoved(objects, noQueryOptions());
-        }
+        indexEngine.notifyObjectsRemoved(objects, noQueryOptions());
         return modified;
     }
 
@@ -304,18 +296,14 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (objects instanceof Collection) {
             Collection<O> c = (Collection<O>) objects;
             boolean modified = this.collection.addAll(c);
-            if  (modified) {
-                indexEngine.notifyObjectsAdded(c, queryOptions);
-            }
+            indexEngine.notifyObjectsAdded(c, queryOptions);
             return modified;
         }
         else {
             boolean modified = false;
             for (O object : objects) {
                 boolean added = collection.add(object);
-                if (modified) {
-                    indexEngine.notifyObjectsAdded(Collections.singleton(object), queryOptions);
-                }
+                indexEngine.notifyObjectsAdded(Collections.singleton(object), queryOptions);
                 modified = added || modified;
             }
             return modified;
@@ -326,17 +314,13 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (objects instanceof Collection) {
             Collection<O> c = (Collection<O>) objects;
             boolean modified = this.collection.removeAll(c);
-            if (modified) {
-                indexEngine.notifyObjectsRemoved(c, queryOptions);
-            }
+            indexEngine.notifyObjectsRemoved(c, queryOptions);
             return modified;
         } else {
             boolean modified = false;
             for (O object : objects) {
                 boolean removed = collection.remove(object);
-                if (removed) {
-                    indexEngine.notifyObjectsRemoved(Collections.singleton(object), queryOptions);
-                }
+                indexEngine.notifyObjectsRemoved(Collections.singleton(object), queryOptions);
                 modified = removed || modified;
             }
             return modified;
