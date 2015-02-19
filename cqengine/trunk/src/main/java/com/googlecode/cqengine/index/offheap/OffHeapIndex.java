@@ -43,7 +43,8 @@ import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
  * <ul>
  * <li>
  *     <i>${table_name}</i> is the name of the table.
- *     The name of the Attribute (on which the index will be built) is used to name the table.
+ *     The name of the Attribute (on which the index will be built) is used to name the table. Anyway, the "tbl_" string
+ *     will be prefixed and all the non alpha-numeric chars will be stripped out.
  * </li>
  * <li>
  *     <i>${objectKey_type}</i> is the type of the object key defined at construction time
@@ -128,7 +129,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
             add(All.class);
         }});
 
-        this.tableName = attribute.getAttributeName();
+        this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9\\s]", "");
         this.objectToIdAttribute = objectToIdAttribute;
         this.idToObjectAttribute = idToObjectAttribute;
         this.connectionManager = connectionManager;
