@@ -22,7 +22,9 @@ import static org.mockito.Mockito.*;
  */
 public class DBQueriesTest {
 
-    private static final String TABLE_NAME = "features";
+    private static final String NAME = "features";
+    private static final String TABLE_NAME = "tbl_" + NAME;
+    private static final String INDEX_NAME = "idx_" + NAME + "_value";
 
     @Rule
     public TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
@@ -38,10 +40,10 @@ public class DBQueriesTest {
             statement = spy(connection.createStatement());
             when(connection.createStatement()).thenReturn(statement);
 
-            DBQueries.createIndexTable(TABLE_NAME, Integer.class, String.class, connection);
+            DBQueries.createIndexTable(NAME, Integer.class, String.class, connection);
 
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
-            assertObjectExistenceInSQLIteMasterTable("idx_" + TABLE_NAME + "_value", "index", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
             verify(statement, times(1)).close();
         }finally {
             DBUtils.closeQuietly(connection);
@@ -59,15 +61,15 @@ public class DBQueriesTest {
             createSchema(connectionManager);
 
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
-            assertObjectExistenceInSQLIteMasterTable("idx_" + TABLE_NAME + "_value", "index", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
 
             connection = spy(connectionManager.getConnection(null));
             statement = spy(connection.createStatement());
             when(connection.createStatement()).thenReturn(statement);
-            DBQueries.dropIndexTable(TABLE_NAME, connection);
+            DBQueries.dropIndexTable(NAME, connection);
 
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", false, connectionManager);
-            assertObjectExistenceInSQLIteMasterTable("idx_" + TABLE_NAME + "_value", "index", false, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", false, connectionManager);
             verify(statement, times(1)).close();
         }finally {
             DBUtils.closeQuietly(connection);
@@ -83,15 +85,15 @@ public class DBQueriesTest {
             ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             createSchema(connectionManager);
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
-            assertObjectExistenceInSQLIteMasterTable("idx_" + TABLE_NAME + "_value", "index", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
 
             connection = spy(connectionManager.getConnection(null));
             statement = spy(connection.createStatement());
             when(connection.createStatement()).thenReturn(statement);
-            DBQueries.clearIndexTable(TABLE_NAME, connection);
+            DBQueries.clearIndexTable(NAME, connection);
 
             List<DBQueries.Row<Integer, String>> expectedRows = Collections.emptyList();
-            assertQueryResultSet("SELECT * FROM " +TABLE_NAME, expectedRows, connectionManager);
+            assertQueryResultSet("SELECT * FROM " + TABLE_NAME, expectedRows, connectionManager);
             verify(statement, times(1)).close();
         }finally {
             DBUtils.closeQuietly(connection);
@@ -113,7 +115,7 @@ public class DBQueriesTest {
             rowsToAdd.add(new DBQueries.Row<Integer, String>(2, "abs"));
 
             connection = connectionManager.getConnection(null);
-            DBQueries.bulkAdd(rowsToAdd, TABLE_NAME, connection);
+            DBQueries.bulkAdd(rowsToAdd, NAME, connection);
             assertQueryResultSet("SELECT * FROM " + TABLE_NAME, rowsToAdd, connectionManager);
 
         }finally {
@@ -134,7 +136,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            DBQueries.bulkRemove(Arrays.asList(1), TABLE_NAME, connection);
+            DBQueries.bulkRemove(Arrays.asList(1), NAME, connection);
             assertQueryResultSet("SELECT * FROM " + TABLE_NAME, expectedRows, connectionManager);
 
         }finally {
@@ -153,7 +155,7 @@ public class DBQueriesTest {
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");
 
             connection = connectionManager.getConnection(null);
-            int count = DBQueries.count(equal, TABLE_NAME, connection);
+            int count = DBQueries.count(equal, NAME, connection);
             Assert.assertEquals(2, count);
 
         }finally {
@@ -177,7 +179,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(equal, TABLE_NAME, connection);
+            resultSet = DBQueries.search(equal, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -201,7 +203,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(lessThan, TABLE_NAME, connection);
+            resultSet = DBQueries.search(lessThan, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -225,7 +227,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(greaterThan, TABLE_NAME, connection);
+            resultSet = DBQueries.search(greaterThan, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -250,7 +252,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(between, TABLE_NAME, connection);
+            resultSet = DBQueries.search(between, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -274,7 +276,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(startsWith, TABLE_NAME, connection);
+            resultSet = DBQueries.search(startsWith, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -300,7 +302,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(all, TABLE_NAME, connection);
+            resultSet = DBQueries.search(all, NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
@@ -320,8 +322,8 @@ public class DBQueriesTest {
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");
 
             connection = connectionManager.getConnection(null);
-            Assert.assertTrue(DBQueries.contains(1, equal, TABLE_NAME, connection));
-            Assert.assertFalse(DBQueries.contains(4, equal, TABLE_NAME, connection));
+            Assert.assertTrue(DBQueries.contains(1, equal, NAME, connection));
+            Assert.assertFalse(DBQueries.contains(4, equal, NAME, connection));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -335,8 +337,8 @@ public class DBQueriesTest {
         try {
             connection = connectionManager.getConnection(null);
             statement = connection.createStatement();
-            assertEquals(statement.executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT)"), 0);
-            assertEquals(statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features(value)"), 0);
+            assertEquals(statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT)"), 0);
+            assertEquals(statement.executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + "(value)"), 0);
         }catch(Exception e){
             throw new IllegalStateException("Unable to create test database schema", e);
         }finally{
@@ -354,10 +356,10 @@ public class DBQueriesTest {
         try {
             connection = connectionManager.getConnection(null);
             statement = connection.createStatement();
-            assertEquals(statement.executeUpdate("INSERT INTO features values (1, 'abs')"), 1);
-            assertEquals(statement.executeUpdate("INSERT INTO features values (1, 'gps')"), 1);
-            assertEquals(statement.executeUpdate("INSERT INTO features values (2, 'airbags')"), 1);
-            assertEquals(statement.executeUpdate("INSERT INTO features values (3, 'abs')"), 1);
+            assertEquals(statement.executeUpdate("INSERT INTO " + TABLE_NAME + " values (1, 'abs')"), 1);
+            assertEquals(statement.executeUpdate("INSERT INTO " + TABLE_NAME + " values (1, 'gps')"), 1);
+            assertEquals(statement.executeUpdate("INSERT INTO " + TABLE_NAME + " values (2, 'airbags')"), 1);
+            assertEquals(statement.executeUpdate("INSERT INTO " + TABLE_NAME + " values (3, 'abs')"), 1);
         }catch(Exception e){
             throw new IllegalStateException("Unable to initialize test database",e);
         }finally{

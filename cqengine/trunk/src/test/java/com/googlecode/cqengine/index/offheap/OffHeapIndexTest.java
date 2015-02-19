@@ -26,6 +26,9 @@ import static org.mockito.Mockito.*;
  */
 public class OffHeapIndexTest {
 
+    private static final String TABLE_NAME = "tbl_features";
+    private static final String INDEX_NAME = "idx_features_value";
+
     public static final SimpleAttribute<Car, Integer> OBJECT_TO_ID = Car.CAR_ID;
 
     public static final SimpleAttribute<Integer, Car> ID_TO_OBJECT = new SimpleAttribute<Integer, Car>("carFromId") {
@@ -111,7 +114,7 @@ public class OffHeapIndexTest {
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
-        when(connection1.prepareStatement("DELETE FROM features WHERE objectKey = ?;")).thenReturn(preparedStatement);
+        when(connection1.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
 
         // The objects to add
         Set<Car> removedObjects = new HashSet<Car>(2);
@@ -129,8 +132,8 @@ public class OffHeapIndexTest {
         carFeaturesOffHeapIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
 
         // Verify
-        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
-        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
         verify(connection, times(1)).close();
 
         verify(preparedStatement, times(1)).setObject(1, 1);
@@ -154,7 +157,7 @@ public class OffHeapIndexTest {
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
-        when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
+        when(connection1.prepareStatement("INSERT OR REPLACE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
 
         // The objects to add
         Set<Car> addedObjects = new HashSet<Car>(2);
@@ -171,8 +174,8 @@ public class OffHeapIndexTest {
         carFeaturesOffHeapIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
 
         // Verify
-        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
-        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
         verify(connection, times(1)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);
@@ -212,11 +215,11 @@ public class OffHeapIndexTest {
         carFeaturesOffHeapIndex.notifyObjectsCleared(new QueryOptions());
 
         // Verify
-        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
-        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
         verify(connection, times(1)).close();
 
-        verify(statement1, times(1)).executeUpdate("DELETE FROM features;");
+        verify(statement1, times(1)).executeUpdate("DELETE FROM " + TABLE_NAME + ";");
         verify(connection1, times(1)).close();
     }
 
@@ -247,7 +250,7 @@ public class OffHeapIndexTest {
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
-        when(connection1.prepareStatement("INSERT OR REPLACE INTO features values(?, ?);")).thenReturn(preparedStatement);
+        when(connection1.prepareStatement("INSERT OR REPLACE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
@@ -267,8 +270,8 @@ public class OffHeapIndexTest {
         carFeaturesOffHeapIndex.init(initWithObjects, new QueryOptions());
 
         // Verify
-        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS features (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
-        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS idx_features_value ON features (value);");
+        verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+        verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
         verify(statement, times(1)).close();
         verify(connection, times(1)).close();
 
@@ -294,7 +297,7 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true);
@@ -347,7 +350,7 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true);
@@ -384,8 +387,8 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
-        when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
-        when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM features WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
+        when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
+        when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
         when(preparedStatementDoNotContains.executeQuery()).thenReturn(resultSetDoNotContain);
         when(resultSetContains.next()).thenReturn(true).thenReturn(false);
@@ -429,7 +432,7 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
@@ -474,7 +477,7 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
@@ -524,7 +527,7 @@ public class OffHeapIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT objectKey, value FROM features WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
