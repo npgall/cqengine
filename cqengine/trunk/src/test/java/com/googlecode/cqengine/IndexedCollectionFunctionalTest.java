@@ -465,6 +465,19 @@ public class IndexedCollectionFunctionalTest {
 
                         ),
                         indexCombination(OffHeapIndex.onAttribute(
+                                        Car.FEATURES,
+                                        Car.CAR_ID,
+                                        new SimpleAttribute<Integer, Car>() {
+                                            @Override
+                                            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+                                                return CarFactory.createCar(carId);
+                                            }
+                                        },
+                                        temporaryInMemoryDatabase.getConnectionManager(true)
+                                )
+
+                        ),
+                        indexCombination(OffHeapIndex.onAttribute(
                                         Car.MANUFACTURER,
                                         Car.CAR_ID,
                                         new SimpleAttribute<Integer, Car>() {
@@ -477,19 +490,6 @@ public class IndexedCollectionFunctionalTest {
                                 )
 
                         )
-//                        ,indexCombination(OffHeapIndex.onAttribute(
-//                                        Car.MANUFACTURER,
-//                                        Car.CAR_ID,
-//                                        new SimpleAttribute<Integer, Car>() {
-//                                            @Override
-//                                            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
-//                                                return CarFactory.createCar(carId);
-//                                            }
-//                                        },
-//                                        temporaryFileDatabase.getSingleConnectionManager()
-//                                )
-//
-//                        )
                 );
             }},
             new MacroScenario() {{
