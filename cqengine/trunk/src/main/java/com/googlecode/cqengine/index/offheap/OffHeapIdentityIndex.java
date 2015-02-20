@@ -3,6 +3,7 @@ package com.googlecode.cqengine.index.offheap;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
@@ -13,8 +14,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An index which allows objects to be persisted directly in the index in serialized form, and to be accessed using a
@@ -29,15 +29,17 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
 
     final OffHeapIndex<A, O, byte[]> offHeapIndex;
     final Class<O> objectType;
+    final SimpleAttribute<O, A> primaryKeyAttribute;
 
     public OffHeapIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute, ConnectionManager connectionManager) {
         this.offHeapIndex = OffHeapIndex.onAttribute(
                 primaryKeyAttribute,
-                new SerializingAttribute(),
-                new DeserializingAttribute(),
+                new SerializingAttribute(primaryKeyAttribute.getObjectType(), byte[].class),
+                new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType()),
                 connectionManager
         );
         this.objectType = primaryKeyAttribute.getObjectType();
+        this.primaryKeyAttribute = primaryKeyAttribute;
     }
 
     @Override
@@ -86,11 +88,21 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
         protected Kryo initialValue() {
             Kryo kryo = new Kryo();
             kryo.register(objectType);
+            // Workaround for Kryo v3 failing to serialize Arrays.asList()...
+            kryo.register(Arrays.asList().getClass(), new CollectionSerializer() {
+                protected Collection create(Kryo kryo, Input input, Class<Collection> type) {
+                    return new ArrayList();
+                }
+            });
             return kryo;
         }
     };
 
     class SerializingAttribute extends SimpleAttribute<O, byte[]> {
+
+        public SerializingAttribute(Class<O> objectType, Class<byte[]> attributeType) {
+            super(objectType, attributeType);
+        }
 
         @Override
         public byte[] getValue(O object, QueryOptions queryOptions) {
@@ -109,6 +121,10 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
     }
 
     class DeserializingAttribute extends SimpleAttribute<byte[], O> {
+
+        public DeserializingAttribute(Class<byte[]> objectType, Class<O> attributeType) {
+            super(objectType, attributeType);
+        }
 
         @Override
         public O getValue(byte[] bytes, QueryOptions queryOptions) {
