@@ -3,14 +3,17 @@ package com.googlecode.cqengine.index.offheap;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
+import com.googlecode.cqengine.index.common.ResourceIndex;
 import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
+import de.javakaffee.kryoserializers.ArraysAsListSerializer;
+import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
+import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,7 +28,7 @@ import java.util.*;
  *
  * @author niall.gallagher
  */
-public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements AttributeIndex<A, O> {
+public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements AttributeIndex<A, O>, ResourceIndex {
 
     final OffHeapIndex<A, O, byte[]> offHeapIndex;
     final Class<O> objectType;
@@ -87,13 +90,12 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
         @Override
         protected Kryo initialValue() {
             Kryo kryo = new Kryo();
+            // Register the object which this index will persist...
             kryo.register(objectType);
-            // Workaround for Kryo v3 failing to serialize Arrays.asList()...
-            kryo.register(Arrays.asList().getClass(), new CollectionSerializer() {
-                protected Collection create(Kryo kryo, Input input, Class<Collection> type) {
-                    return new ArrayList();
-                }
-            });
+            // Register additional serializers which are not built-in to Kryo 3.0...
+            kryo.register(Arrays.asList().getClass(), new ArraysAsListSerializer());
+            UnmodifiableCollectionsSerializer.registerSerializers(kryo);
+            SynchronizedCollectionsSerializer.registerSerializers(kryo);
             return kryo;
         }
     };
