@@ -5,6 +5,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.common.CloseableQueryResources;
+import com.googlecode.cqengine.index.common.ResourceIndex;
 import com.googlecode.cqengine.index.offheap.support.CloseableSet;
 import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
 import com.googlecode.cqengine.index.offheap.support.DBQueries;
@@ -57,7 +58,7 @@ import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
  * </ul>
  * @author Silvano Riz
  */
-public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> {
+public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements ResourceIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
 

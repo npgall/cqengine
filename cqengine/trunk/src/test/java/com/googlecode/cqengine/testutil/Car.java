@@ -106,6 +106,7 @@ public class Car {
                 ", color=" + color +
                 ", doors=" + doors +
                 ", price=" + price +
+                ", features=" + features +
                 '}';
     }
 
