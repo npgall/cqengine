@@ -7,6 +7,7 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
+import com.googlecode.cqengine.index.offheap.OffHeapIdentityIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
@@ -26,7 +27,6 @@ import com.googlecode.cqengine.testutil.CarFactory;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -50,11 +50,14 @@ public class IndexedCollectionFunctionalTest {
     static final Set<Car> REGULAR_DATASET = CarFactory.createCollectionOfCars(1000);
     static final Set<Car> SMALL_DATASET = CarFactory.createCollectionOfCars(10);
 
-    @ClassRule
-    public static TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
+    // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
+    // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
+    // Set this true to skip the slow tests *during development only!*...
+    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "false"));
 
-    @ClassRule
-    public static TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
+    // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
+    static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
+    static final TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
 
     // Macro scenarios specify sets of IndexedCollection implementations,
     // sets of index combinations, and sets of queries. Macro scenarios will be expanded
@@ -64,9 +67,11 @@ public class IndexedCollectionFunctionalTest {
     static List<MacroScenario> getMacroScenarios() {
         return Arrays.asList(
                 new MacroScenario() {{
-                    name = "typical queries and deduplication";
+                    name = "typical queries";
                     dataSet = REGULAR_DATASET;
-                    collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                    collectionImplementations = SKIP_SLOW_TESTS
+                            ? classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class)
+                            : classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
                     queriesToEvaluate = asList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.CAR_ID, 500);
@@ -487,8 +492,18 @@ public class IndexedCollectionFunctionalTest {
                                             },
                                             temporaryFileDatabase.getConnectionManager(true)
                                     )
+                            ),
+                            indexCombination(OffHeapIdentityIndex.onAttribute(
+                                            Car.CAR_ID,
+                                            temporaryFileDatabase.getConnectionManager(true)
+                                    )
 
-                        )
+                            ),
+                            indexCombination(OffHeapIdentityIndex.onAttribute(
+                                            Car.CAR_ID,
+                                            temporaryInMemoryDatabase.getConnectionManager(true)
+                                    )
+                            )
                     );
                 }},
                 new MacroScenario() {{
@@ -529,7 +544,19 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(RadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER))
+                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            Car.MANUFACTURER,
+                                            Car.CAR_ID,
+                                            new SimpleAttribute<Integer, Car>() {
+                                                @Override
+                                                public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+                                                    return CarFactory.createCar(carId);
+                                                }
+                                            },
+                                            temporaryInMemoryDatabase.getConnectionManager(true)
+                                    )
+                            )
                     );
                 }},
                 new MacroScenario() {{
@@ -1030,6 +1057,8 @@ public class IndexedCollectionFunctionalTest {
     @UseDataProvider(value = "expandMacroScenarios")
     @SuppressWarnings("unchecked")
     public void testScenario(Scenario scenario) {
+        temporaryFileDatabase.before();
+        temporaryInMemoryDatabase.before();
         if (!IndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
             throw new IllegalStateException("Invalid IndexedCollection class: " + scenario.collectionImplementation);
         }
@@ -1062,6 +1091,8 @@ public class IndexedCollectionFunctionalTest {
         }
 
         evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
+        temporaryFileDatabase.after();
+        temporaryInMemoryDatabase.after();
     }
 
     static void evaluateQuery(IndexedCollection<Car> indexedCollection, Query<Car> query, QueryOptions queryOptions, ExpectedResults expectedResults) {
