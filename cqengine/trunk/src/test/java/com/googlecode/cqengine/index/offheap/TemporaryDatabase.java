@@ -112,20 +112,23 @@ public class TemporaryDatabase {
         }
 
         @Override
-        protected void before() throws Throwable {
-            super.before();
-            dbFile = newFile();
-            url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
-            dataSource = new SQLiteDataSource(config);
-            dataSource.setUrl(url);
-            System.out.println("Temporary file database created: " + url);
+        public void before() {
+            try {
+                super.before();
+                dbFile = newFile();
+                url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
+                dataSource = new SQLiteDataSource(config);
+                dataSource.setUrl(url);
+            }
+            catch (Throwable throwable) {
+                throw new IllegalStateException(throwable);
+            }
         }
 
         @Override
-        protected void after() {
+        public void after() {
             super.after();
             Assert.assertFalse(dbFile.exists());
-            System.out.println("Temporary file purged: " + dbFile.getAbsolutePath());
 
             for (Connection connection : singleConnections) {
                 closeQuietly(connection);
@@ -227,11 +230,11 @@ public class TemporaryDatabase {
         }
 
 
-        private void after() {
+        public void after() {
             closeQuietly(connection);
         }
 
-        private void before() {
+        public void before() {
             try {
                 if (config != null) {
                     connection = createConnectionProxy(DriverManager.getConnection("jdbc:sqlite:", config.toProperties()));

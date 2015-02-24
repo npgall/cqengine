@@ -3,8 +3,7 @@ package com.googlecode.cqengine.index.common;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.io.Closeable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A QueryOption that allows to keep track of query resources that need to be closed.<br>
@@ -14,9 +13,10 @@ import java.util.Set;
  */
 public class CloseableQueryResources {
 
-    private Set<Closeable> closeableQueryResources = new HashSet<Closeable>();
+    final Collection<Closeable> closeableQueryResources = Collections.newSetFromMap(new IdentityHashMap<Closeable, Boolean>());
 
-    private CloseableQueryResources(){}
+    CloseableQueryResources() {
+    }
 
     /**
      * Method that returns the existing CloseableQueryResources in the QueryOptions or a new
@@ -26,7 +26,7 @@ public class CloseableQueryResources {
      * @param queryOptions The {@link QueryOptions}
      * @return The existing QueryOptions's CloseableQueryResources or a new instance.
      */
-    public static CloseableQueryResources from(final QueryOptions queryOptions){
+    public static CloseableQueryResources from(final QueryOptions queryOptions) {
         CloseableQueryResources closeableQueryResources = queryOptions.get(CloseableQueryResources.class);
         if (closeableQueryResources == null) {
             closeableQueryResources = new CloseableQueryResources();
@@ -40,7 +40,7 @@ public class CloseableQueryResources {
      *
      * @param closeable The resource that needs to be closed
      */
-    public void add(Closeable closeable){
+    public void add(Closeable closeable) {
         closeableQueryResources.add(closeable);
     }
 
@@ -49,7 +49,7 @@ public class CloseableQueryResources {
      *
      * @param closeable the resource to close and release.
      */
-    public void closeAndRemove(Closeable closeable){
+    public void closeAndRemove(Closeable closeable) {
         closeQuietly(closeable);
         closeableQueryResources.remove(closeable);
     }
@@ -64,11 +64,13 @@ public class CloseableQueryResources {
         closeableQueryResources.clear();
     }
 
-    public static void closeQuietly(Closeable closeable){
-        try{
-            if (closeable != null)
+    public static void closeQuietly(Closeable closeable) {
+        try {
+            if (closeable != null) {
                 closeable.close();
-        }catch (Exception e){
+            }
+        }
+        catch (Exception e) {
             // Ignore
         }
     }
