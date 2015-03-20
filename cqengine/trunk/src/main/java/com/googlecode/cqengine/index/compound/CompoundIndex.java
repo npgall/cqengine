@@ -18,10 +18,11 @@ package com.googlecode.cqengine.index.compound;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.MapBasedAttributeIndex;
+import com.googlecode.cqengine.index.common.KeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -51,7 +52,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> implements MapBasedAttributeIndex<CompoundValueTuple<O>, O> {
+public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> implements KeyStatisticsAttributeIndex<CompoundValueTuple<O>, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 20;
 
@@ -153,7 +154,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
     }
 
     @Override
-    public Set<CompoundValueTuple<O>> getDistinctKeys() {
+    public CloseableIterable<CompoundValueTuple<O>> getDistinctKeys() {
         return super.getDistinctKeys();
     }
 

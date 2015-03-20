@@ -2,7 +2,7 @@ package com.googlecode.cqengine.index.navigable;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
+import com.googlecode.cqengine.index.common.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedSet;
+import java.util.Set;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.testutil.TestUtil.setOf;
@@ -24,18 +24,18 @@ public class NavigableIndexTest {
     @Test
     public void testGetDistinctKeysAndCounts() {
         IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
-        NavigableMapBasedIndex<String, Car> MODEL_INDEX = NavigableIndex.onAttribute(Car.MODEL);
+        SortedKeyStatisticsIndex<String, Car> MODEL_INDEX = NavigableIndex.onAttribute(Car.MODEL);
         collection.addIndex(MODEL_INDEX);
 
         collection.addAll(CarFactory.createCollectionOfCars(20));
 
-        SortedSet<String> distinctModels = MODEL_INDEX.getDistinctKeys();
-        assertEquals(setOf("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus"), distinctModels);
+        Set<String> distinctModels = setOf(MODEL_INDEX.getDistinctKeys());
+        assertEquals(asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus"), new ArrayList<String>(distinctModels));
         for (String model : distinctModels) {
             assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model));
         }
 
-        SortedSet<String> distinctModelsDescending = MODEL_INDEX.getDistinctKeys().descendingSet();
+        Set<String> distinctModelsDescending = setOf(MODEL_INDEX.getDistinctKeysDescending());
         assertEquals(asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord"), new ArrayList<String>(distinctModelsDescending));
     }
 
