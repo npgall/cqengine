@@ -18,7 +18,8 @@ package com.googlecode.cqengine.index.hash;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.MapBasedAttributeIndex;
+import com.googlecode.cqengine.index.common.KeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -49,7 +50,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> implements MapBasedAttributeIndex<A, O> {
+public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentMap<A, StoredResultSet<O>>> implements KeyStatisticsAttributeIndex<A, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 30;
 
@@ -149,7 +150,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     }
 
     @Override
-    public Set<A> getDistinctKeys() {
+    public CloseableIterable<A> getDistinctKeys() {
         return super.getDistinctKeys();
     }
 

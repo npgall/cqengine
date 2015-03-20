@@ -18,8 +18,8 @@ package com.googlecode.cqengine.index.navigable;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.NavigableMapBasedAttributeIndex;
-import com.googlecode.cqengine.index.common.UnmodifiableNavigableSet;
+import com.googlecode.cqengine.index.common.SortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -63,7 +63,7 @@ import java.util.concurrent.*;
  *
  * @author Niall Gallagher
  */
-public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements NavigableMapBasedAttributeIndex<A, O> {
+public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements SortedKeyStatisticsAttributeIndex<A, O> {
 
     protected static final int INDEX_RETRIEVAL_COST = 40;
 
@@ -246,8 +246,40 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     }
 
     @Override
-    public NavigableSet<A> getDistinctKeys() {
-        return new UnmodifiableNavigableSet<A>(this.indexMap.keySet());
+    public CloseableIterable<A> getDistinctKeys() {
+        return wrapNonCloseable(getDistinctKeysInRange(null, true, null, true));
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+        return wrapNonCloseable(getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive));
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending() {
+        return wrapNonCloseable(getDistinctKeysInRange(null, true, null, true).descendingSet());
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+        return wrapNonCloseable(getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive).descendingSet());
+    }
+
+    NavigableSet<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+        NavigableSet<A> results;
+        if (lowerBound != null && upperBound != null) {
+            results = indexMap.keySet().subSet(lowerBound, lowerInclusive, upperBound, upperInclusive);
+        }
+        else if (lowerBound != null) {
+            results = indexMap.keySet().tailSet(lowerBound, lowerInclusive);
+        }
+        else if (upperBound != null) {
+            results = indexMap.keySet().headSet(upperBound, upperInclusive);
+        }
+        else {
+            results = indexMap.keySet();
+        }
+        return results;
     }
 
     @Override

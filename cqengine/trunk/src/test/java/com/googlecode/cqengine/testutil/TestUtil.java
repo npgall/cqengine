@@ -55,4 +55,12 @@ public class TestUtil {
         return new LinkedHashSet<A>(Arrays.asList(values));
     }
 
+    public static <A> Set<A> setOf(Iterable<A> values) {
+        Set<A> result = new LinkedHashSet<A>();
+        for (A value : values) {
+            result.add(value);
+        }
+        return result;
+    }
+
 }

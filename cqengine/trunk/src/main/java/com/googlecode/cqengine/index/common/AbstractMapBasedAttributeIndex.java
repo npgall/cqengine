@@ -16,12 +16,15 @@
 package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterator;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -130,8 +133,35 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
         this.indexMap.clear();
     }
 
-    protected Set<A> getDistinctKeys() {
-        return Collections.unmodifiableSet(this.indexMap.keySet());
+    protected CloseableIterable<A> getDistinctKeys() {
+        return wrapNonCloseable(this.indexMap.keySet());
+    }
+
+    protected static <T> CloseableIterable<T> wrapNonCloseable(final Iterable<T> iterable) {
+        return new CloseableIterable<T>() {
+            @Override
+            public CloseableIterator<T> iterator() {
+                return new CloseableIterator<T>() {
+                    final Iterator<T> iterator = iterable.iterator();
+                    @Override
+                    public void close() throws IOException {
+                        // No-op.
+                    }
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
+                    @Override
+                    public T next() {
+                        return iterator.next();
+                    }
+                };
+            }
+        };
     }
 
     protected Integer getCountForKey(A key) {

@@ -21,13 +21,15 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.common.CloseableQueryResources;
-import com.googlecode.cqengine.index.common.NavigableMapBasedIndex;
+import com.googlecode.cqengine.index.common.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.index.common.ResourceIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
+import com.googlecode.cqengine.index.offheap.support.CloseableIterator;
+import com.googlecode.cqengine.index.offheap.support.CloseableSet;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -352,8 +354,14 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
 
-        final RangeBounds rangeBoundsFromQuery = getBoundsFromQuery(query, simpleAttribute);
+        final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, simpleAttribute);
         final boolean descending = order.isDescending();
+
+        // Ensure that at the end of processing the request, that we close any resources we opened...
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
+
         return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
             @Override
             public Iterator<ResultSet<O>> iterator() {
@@ -361,15 +369,16 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
                     Comparable previousKey = null;
                     boolean lastKeyProcessed = false;
 
-                    final Iterator<? extends Comparable> keysInRange = (descending)
-                            ? getKeysInRange(navigableIndexRef, rangeBoundsFromQuery).descendingIterator()
-                            : getKeysInRange(navigableIndexRef, rangeBoundsFromQuery).iterator();
+                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(navigableIndexRef, rangeBoundsFromQuery, descending);
+                    // Ensure this CloseableIterator gets closed...
+                    {resultSetResourcesToClose.add(keysInRange);}
 
                     @Override
                     protected ResultSet<O> computeNext() {
                         Comparable currentKey = null;
                         if (!keysInRange.hasNext()) {
                             if (lastKeyProcessed) {
+                                CloseableQueryResources.closeQuietly(keysInRange);
                                 return endOfData();
                             }
                             lastKeyProcessed = true;
@@ -412,36 +421,30 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
     }
 
-    static <O> NavigableSet<? extends Comparable> getKeysInRange(NavigableMapBasedIndex<? extends Comparable, O> index, RangeBounds queryBounds) {
+    static <A extends Comparable<A>, O> CloseableIterator<A> getKeysInRange(SortedKeyStatisticsIndex<A, O> index, RangeBounds<?> queryBounds, boolean descending) {
         @SuppressWarnings("unchecked")
-        NavigableSet<Comparable> distinctKeys = (NavigableSet<Comparable>) index.getDistinctKeys();
-        NavigableSet<Comparable> subset;
-        if (queryBounds.lowerBound != null && queryBounds.upperBound != null) {
-            subset = distinctKeys.subSet(
-                    queryBounds.lowerBound, queryBounds.lowerInclusive,
-                    queryBounds.upperBound, queryBounds.upperInclusive);
-        }
-        else if (queryBounds.lowerBound != null) {
-            subset = distinctKeys.tailSet(
-                    queryBounds.lowerBound, queryBounds.lowerInclusive);
-        }
-        else if (queryBounds.upperBound != null) {
-            subset = distinctKeys.headSet(
-                    queryBounds.upperBound, queryBounds.upperInclusive);
+        RangeBounds<A> typedBounds = (RangeBounds<A>) queryBounds;
+        if (!descending) {
+            return index.getDistinctKeys(
+                    typedBounds.lowerBound, typedBounds.lowerInclusive,
+                    typedBounds.upperBound, typedBounds.upperInclusive
+            ).iterator();
         }
         else {
-            subset = distinctKeys;
+            return index.getDistinctKeysDescending(
+                    typedBounds.lowerBound, typedBounds.lowerInclusive,
+                    typedBounds.upperBound, typedBounds.upperInclusive
+            ).iterator();
         }
-        return subset;
     }
 
-    static class RangeBounds {
-        final Comparable lowerBound;
+    static class RangeBounds<A extends Comparable<A>> {
+        final A lowerBound;
         final boolean lowerInclusive;
-        final Comparable upperBound;
+        final A upperBound;
         final Boolean upperInclusive;
 
-        public RangeBounds(Comparable lowerBound, boolean lowerInclusive, Comparable upperBound, Boolean upperInclusive) {
+        public RangeBounds(A lowerBound, boolean lowerInclusive, A upperBound, Boolean upperInclusive) {
             this.lowerBound = lowerBound;
             this.lowerInclusive = lowerInclusive;
             this.upperBound = upperBound;
@@ -449,8 +452,8 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
     }
 
-    static <O> RangeBounds getBoundsFromQuery(Query<O> query, SimpleAttribute<O, ? extends Comparable> attribute) {
-        Comparable lowerBound = null, upperBound = null;
+    static <A extends Comparable<A>, O> RangeBounds getBoundsFromQuery(Query<O> query, SimpleAttribute<O, A> attribute) {
+        A lowerBound = null, upperBound = null;
         boolean lowerInclusive = false, upperInclusive = false;
         List<SimpleQuery<O, ?>> candidateRangeQueries = Collections.emptyList();
         if (query instanceof SimpleQuery) {
@@ -466,19 +469,19 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
             if (attribute.equals(candidate.getAttribute())) {
                 if (candidate instanceof GreaterThan) {
                     @SuppressWarnings("unchecked")
-                    GreaterThan<O, ? extends Comparable> bound = (GreaterThan<O, ? extends Comparable>) candidate;
+                    GreaterThan<O, A> bound = (GreaterThan<O, A>) candidate;
                     lowerBound = bound.getValue();
                     lowerInclusive = bound.isValueInclusive();
                 }
                 else if (candidate instanceof LessThan) {
                     @SuppressWarnings("unchecked")
-                    LessThan<O, ? extends Comparable> bound = (LessThan<O, ? extends Comparable>) candidate;
+                    LessThan<O, A> bound = (LessThan<O, A>) candidate;
                     upperBound = bound.getValue();
                     upperInclusive = bound.isValueInclusive();
                 }
                 else if (candidate instanceof Between) {
                     @SuppressWarnings("unchecked")
-                    Between<O, ? extends Comparable> bound = (Between<O, ? extends Comparable>) candidate;
+                    Between<O, A> bound = (Between<O, A>) candidate;
                     lowerBound = bound.getLowerValue();
                     lowerInclusive = bound.isLowerInclusive();
                     upperBound = bound.getUpperValue();
@@ -486,7 +489,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
                 }
             }
         }
-        return new RangeBounds(lowerBound, lowerInclusive, upperBound, upperInclusive);
+        return new RangeBounds<A>(lowerBound, lowerInclusive, upperBound, upperInclusive);
     }
 
     /**
