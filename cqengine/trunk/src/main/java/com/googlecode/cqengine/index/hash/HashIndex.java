@@ -145,12 +145,12 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     }
 
     @Override
-    public Integer getCountForKey(A key) {
+    public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return super.getCountForKey(key);
     }
 
     @Override
-    public CloseableIterable<A> getDistinctKeys() {
+    public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
         return super.getDistinctKeys();
     }
 

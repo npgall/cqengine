@@ -246,22 +246,22 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     }
 
     @Override
-    public CloseableIterable<A> getDistinctKeys() {
+    public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
         return wrapNonCloseable(getDistinctKeysInRange(null, true, null, true));
     }
 
     @Override
-    public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+    public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
         return wrapNonCloseable(getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive));
     }
 
     @Override
-    public CloseableIterable<A> getDistinctKeysDescending() {
+    public CloseableIterable<A> getDistinctKeysDescending(QueryOptions queryOptions) {
         return wrapNonCloseable(getDistinctKeysInRange(null, true, null, true).descendingSet());
     }
 
     @Override
-    public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+    public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
         return wrapNonCloseable(getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive).descendingSet());
     }
 
@@ -283,7 +283,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     }
 
     @Override
-    public Integer getCountForKey(A key) {
+    public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return super.getCountForKey(key);
     }
 

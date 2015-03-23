@@ -6,5 +6,5 @@ package com.googlecode.cqengine.index.offheap.support;
 public interface CloseableIterable<T> extends Iterable<T> {
 
     @Override
-    CloseableIterator<T> iterator();
+    abstract CloseableIterator<T> iterator();
 }

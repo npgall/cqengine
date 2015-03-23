@@ -178,6 +178,7 @@ public class DBQueries {
     }
 
     static <O, A> PreparedStatement createAndBindSelectPreparedStatement(final String selectPrefix,
+                                                                         String orderByClause,
                                                                          final List<WhereClause> additionalWhereClauses,
                                                                          final Query<O> query,
                                                                          final Connection connection) throws SQLException {
@@ -186,11 +187,13 @@ public class DBQueries {
         StringBuilder stringBuilder = new StringBuilder(selectPrefix).append(' ');
         StringBuilder suffix = new StringBuilder();
         if (additionalWhereClauses.size() == 0){
+            suffix.append(orderByClause);
             suffix.append(';');
         }else{
             for (WhereClause additionalWhereClause : additionalWhereClauses){
                 suffix.append(' ').append(additionalWhereClause.whereClause);
             }
+            suffix.append(orderByClause);
             suffix.append(';');
         }
 
@@ -269,7 +272,7 @@ public class DBQueries {
         final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
-            statement = createAndBindSelectPreparedStatement(selectSql, Collections.<WhereClause>emptyList(), query, connection);
+            statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
 
             if (!resultSet.next()){
@@ -289,11 +292,26 @@ public class DBQueries {
         final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s",tableName);
         PreparedStatement statement = null;
         try{
-            statement = createAndBindSelectPreparedStatement(selectSql, Collections.<WhereClause>emptyList(), query, connection);
+            statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
             return statement.executeQuery();
         }catch(Exception e){
             DBUtils.closeQuietly(statement);
             throw new IllegalStateException("Unable to execute search. Query: " + query, e);
+        }
+        // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
+
+    }
+
+    public static <O> java.sql.ResultSet getDistinctKeys(final Query<O> query, boolean descending, final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT DISTINCT value FROM cqtbl_%s",tableName);
+        PreparedStatement statement = null;
+        try{
+            String orderByClause = descending ? " ORDER BY value DESC" : " ORDER BY value ASC";
+            statement = createAndBindSelectPreparedStatement(selectSql, orderByClause, Collections.<WhereClause>emptyList(), query, connection);
+            return statement.executeQuery();
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to look up keys. Query: " + query, e);
         }
         // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
 
@@ -304,7 +322,7 @@ public class DBQueries {
         PreparedStatement statement = null;
         try{
             List<WhereClause> additionalWhereClauses = Arrays.asList(new WhereClause("AND objectKey = ?", objectKey));
-            statement = createAndBindSelectPreparedStatement(selectSql, additionalWhereClauses, query, connection);
+            statement = createAndBindSelectPreparedStatement(selectSql, "", additionalWhereClauses, query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
 
             if (!resultSet.next()){

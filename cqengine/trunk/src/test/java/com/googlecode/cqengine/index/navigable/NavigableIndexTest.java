@@ -5,6 +5,7 @@ import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.common.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -29,13 +30,13 @@ public class NavigableIndexTest {
 
         collection.addAll(CarFactory.createCollectionOfCars(20));
 
-        Set<String> distinctModels = setOf(MODEL_INDEX.getDistinctKeys());
+        Set<String> distinctModels = setOf(MODEL_INDEX.getDistinctKeys(noQueryOptions()));
         assertEquals(asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus"), new ArrayList<String>(distinctModels));
         for (String model : distinctModels) {
-            assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model));
+            assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model, noQueryOptions()));
         }
 
-        Set<String> distinctModelsDescending = setOf(MODEL_INDEX.getDistinctKeysDescending());
+        Set<String> distinctModelsDescending = setOf(MODEL_INDEX.getDistinctKeysDescending(noQueryOptions()));
         assertEquals(asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord"), new ArrayList<String>(distinctModelsDescending));
     }
 

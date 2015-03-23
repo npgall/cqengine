@@ -1,12 +1,16 @@
 package com.googlecode.cqengine.index.offheap;
 
+import com.google.common.collect.Lists;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
 import com.googlecode.cqengine.index.offheap.support.DBQueries;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
+import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -16,7 +20,8 @@ import java.sql.Statement;
 import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.equal;
-import static org.junit.Assert.assertNotNull;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -42,6 +47,9 @@ public class OffHeapIndexTest {
             new Car(4, "Fiat", "Panda", Car.Color.BLUE, 5, 5600.00, Collections.<String>emptyList()),
             new Car(5, "Fiat", "Punto", Car.Color.BLUE, 5, 5600.00, Arrays.asList("gps"))
     );
+
+    @Rule
+    public TemporaryDatabase.TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryDatabase.TemporaryInMemoryDatabase();
 
     @Test
     public void testNewStandalone() throws Exception {
@@ -80,7 +88,7 @@ public class OffHeapIndexTest {
                 connectionManager
         );
 
-        Assert.assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(new QueryOptions()));
+        assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(new QueryOptions()));
     }
 
     @Test
@@ -97,7 +105,7 @@ public class OffHeapIndexTest {
                 null
         );
 
-        Assert.assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(queryOptions));
+        assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(queryOptions));
     }
 
     @Test
@@ -315,7 +323,7 @@ public class OffHeapIndexTest {
         Assert.assertNotNull(carsWithAbs);
         int size = carsWithAbs.size();
 
-        Assert.assertEquals(3, size);
+        assertEquals(3, size);
         verify(connection, times(1)).close();
 
     }
@@ -335,7 +343,7 @@ public class OffHeapIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
-        Assert.assertEquals(OffHeapIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
+        assertEquals(OffHeapIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
 
     }
 
@@ -368,7 +376,7 @@ public class OffHeapIndexTest {
         Assert.assertNotNull(carsWithAbs);
         int size = carsWithAbs.getMergeCost();
 
-        Assert.assertEquals(3, size);
+        assertEquals(3, size);
         verify(connection, times(1)).close();
 
     }
@@ -407,11 +415,11 @@ public class OffHeapIndexTest {
 
         Assert.assertNotNull(carsWithAbs);
         boolean resultContains = carsWithAbs.contains(data.get(0));
-        Assert.assertTrue(resultContains);
+        assertTrue(resultContains);
         verify(connectionContains, times(1)).close();
 
         boolean resultDoNotContain = carsWithAbs.contains(data.get(1));
-        Assert.assertFalse(resultDoNotContain);
+        assertFalse(resultDoNotContain);
         verify(connectionDoNotContain, times(1)).close();
 
 
@@ -498,11 +506,11 @@ public class OffHeapIndexTest {
         Assert.assertNotNull(carsWithAbs);
         Iterator carsWithAbsIterator = carsWithAbs.iterator();
 
-        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        assertTrue(carsWithAbsIterator.hasNext());
         Assert.assertNotNull(carsWithAbsIterator.next());
-        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        assertTrue(carsWithAbsIterator.hasNext());
         Assert.assertNotNull(carsWithAbsIterator.next());
-        Assert.assertFalse(carsWithAbsIterator.hasNext());
+        assertFalse(carsWithAbsIterator.hasNext());
 
         // The end of the iteration should close the resources
         verify(connection, times(1)).close();
@@ -546,7 +554,7 @@ public class OffHeapIndexTest {
 
         Assert.assertNotNull(carsWithAbs);
         Iterator carsWithAbsIterator = carsWithAbs.iterator();
-        Assert.assertTrue(carsWithAbsIterator.hasNext());
+        assertTrue(carsWithAbsIterator.hasNext());
         Assert.assertNotNull(carsWithAbsIterator.next());
         // Do not continue with the iteration, but close
         carsWithAbs.close();
@@ -565,40 +573,250 @@ public class OffHeapIndexTest {
 
         Iterator<DBQueries.Row<Integer, String>> rowsIterator = rows.iterator();
         Assert.assertNotNull(rowsIterator);
-        Assert.assertTrue(rowsIterator.hasNext());
-        Assert.assertEquals(new DBQueries.Row<Integer, String>(1, "abs"),rowsIterator.next());
-        Assert.assertTrue(rowsIterator.hasNext());
-        Assert.assertEquals(new DBQueries.Row<Integer, String>(1, "gps"),rowsIterator.next());
-        Assert.assertTrue(rowsIterator.hasNext());
-        Assert.assertEquals(new DBQueries.Row<Integer, String>(2, "airbags"),rowsIterator.next());
-        Assert.assertTrue(rowsIterator.hasNext());
-        Assert.assertEquals(new DBQueries.Row<Integer, String>(3, "abs"),rowsIterator.next());
-        Assert.assertTrue(rowsIterator.hasNext());
-        Assert.assertEquals(new DBQueries.Row<Integer, String>(5, "gps"),rowsIterator.next());
-        Assert.assertFalse(rowsIterator.hasNext());
+        assertTrue(rowsIterator.hasNext());
+        assertEquals(new DBQueries.Row<Integer, String>(1, "abs"), rowsIterator.next());
+        assertTrue(rowsIterator.hasNext());
+        assertEquals(new DBQueries.Row<Integer, String>(1, "gps"), rowsIterator.next());
+        assertTrue(rowsIterator.hasNext());
+        assertEquals(new DBQueries.Row<Integer, String>(2, "airbags"), rowsIterator.next());
+        assertTrue(rowsIterator.hasNext());
+        assertEquals(new DBQueries.Row<Integer, String>(3, "abs"), rowsIterator.next());
+        assertTrue(rowsIterator.hasNext());
+        assertEquals(new DBQueries.Row<Integer, String>(5, "gps"), rowsIterator.next());
+        assertFalse(rowsIterator.hasNext());
     }
 
-
-
     @Test
-    public void testObjectKeyItarable(){
+    public void testObjectKeyIterable(){
 
         Iterable<Integer> objectKeys = OffHeapIndex.objectKeyIterable(data, Car.CAR_ID, null);
         Assert.assertNotNull(objectKeys);
 
         Iterator<Integer> objectKeysIterator = objectKeys.iterator();
         Assert.assertNotNull(objectKeysIterator);
-        Assert.assertTrue(objectKeysIterator.hasNext());
-        Assert.assertEquals(new Integer(1), objectKeysIterator.next());
-        Assert.assertTrue(objectKeysIterator.hasNext());
-        Assert.assertEquals(new Integer(2),objectKeysIterator.next());
-        Assert.assertTrue(objectKeysIterator.hasNext());
-        Assert.assertEquals(new Integer(3),objectKeysIterator.next());
-        Assert.assertTrue(objectKeysIterator.hasNext());
-        Assert.assertEquals(new Integer(4),objectKeysIterator.next());
-        Assert.assertTrue(objectKeysIterator.hasNext());
-        Assert.assertEquals(new Integer(5),objectKeysIterator.next());
-        Assert.assertFalse(objectKeysIterator.hasNext());
+        assertTrue(objectKeysIterator.hasNext());
+        assertEquals(new Integer(1), objectKeysIterator.next());
+        assertTrue(objectKeysIterator.hasNext());
+        assertEquals(new Integer(2), objectKeysIterator.next());
+        assertTrue(objectKeysIterator.hasNext());
+        assertEquals(new Integer(3), objectKeysIterator.next());
+        assertTrue(objectKeysIterator.hasNext());
+        assertEquals(new Integer(4), objectKeysIterator.next());
+        assertTrue(objectKeysIterator.hasNext());
+        assertEquals(new Integer(5), objectKeysIterator.next());
+        assertFalse(objectKeysIterator.hasNext());
+    }
+
+    @Test
+    public void testGetDistinctKeys_AllAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+
+        List<String> expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_AllDescending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+
+        List<String> expected = Arrays.asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord");
+        List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending(noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_GreaterThanExclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("", false, null, true, noQueryOptions()));
+        assertEquals(expected, actual);
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("A", false, null, true, noQueryOptions()));
+        assertEquals(expected, actual);
+
+        expected = Arrays.asList("Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("Accord", false, null, true, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_GreaterThanInclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("Accord", true, null, true, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_LessThanExclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList();
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(null, true, "", false, noQueryOptions()));
+        assertEquals(expected, actual);
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(null, true, "Z", false, noQueryOptions()));
+        assertEquals(expected, actual);
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(null, true, "Prius", false, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_LessThanInclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(null, true, "Prius", true, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_BetweenExclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Focus", "Fusion", "Hilux");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("Civic", false, "Insight", false, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_BetweenInclusiveAscending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Civic", "Focus", "Fusion", "Hilux", "Insight");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeys("Civic", true, "Insight", true, noQueryOptions()));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetDistinctKeys_BetweenInclusiveDescending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+                Car.MODEL,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        List<String> expected, actual;
+
+        expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");
+        actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending("Civic", true, "Insight", true, noQueryOptions()));
+        assertEquals(expected, actual);
     }
 
 }
