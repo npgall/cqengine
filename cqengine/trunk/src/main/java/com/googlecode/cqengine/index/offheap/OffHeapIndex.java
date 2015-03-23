@@ -6,10 +6,8 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.common.CloseableQueryResources;
 import com.googlecode.cqengine.index.common.ResourceIndex;
-import com.googlecode.cqengine.index.offheap.support.CloseableSet;
-import com.googlecode.cqengine.index.offheap.support.ConnectionManager;
-import com.googlecode.cqengine.index.offheap.support.DBQueries;
-import com.googlecode.cqengine.index.offheap.support.DBUtils;
+import com.googlecode.cqengine.index.common.SortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.offheap.support.*;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
@@ -23,6 +21,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 
 
 /**
@@ -58,7 +57,7 @@ import static com.googlecode.cqengine.index.offheap.support.DBQueries.Row;
  * </ul>
  * @author Silvano Riz
  */
-public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements ResourceIndex {
+public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
 
@@ -412,6 +411,88 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                 throw new IllegalStateException("Cannot find the ConnectionManager in the QueryOptions.");
             return connectionManagerFromQueryOptions;
         }
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeys(final QueryOptions queryOptions) {
+        return getDistinctKeys(null, true, null, true, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final QueryOptions queryOptions) {
+        return getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, false, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending(QueryOptions queryOptions) {
+        return getDistinctKeysDescending(null, true, null, true, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, true, queryOptions);
+    }
+
+    public CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
+        final Query<O> query;
+        if (lowerBound != null && upperBound != null) {
+            query = between(attribute, lowerBound, lowerInclusive, upperBound, upperInclusive);
+        }
+        else if (lowerBound != null) {
+            query = lowerInclusive ? greaterThanOrEqualTo(attribute, lowerBound) : greaterThan(attribute, lowerBound);
+        }
+        else if (upperBound != null) {
+            query = upperInclusive ? lessThanOrEqualTo(attribute, upperBound) : lessThan(attribute, upperBound);
+        }
+        else {
+            query = all(attribute.getObjectType());
+        }
+
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
+
+        return new CloseableIterable<A>() {
+            @Override
+            public CloseableIterator<A> iterator() {
+                final ConnectionManager connectionManager = getConnectionManager(queryOptions);
+                final Connection searchConnection = connectionManager.getConnection(OffHeapIndex.this);
+
+                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
+
+
+                final java.sql.ResultSet searchResultSet = DBQueries.getDistinctKeys(query, descending, tableName, searchConnection);
+                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+
+                return new LazyCloseableIterator<A>() {
+                    @Override
+                    protected A computeNext() {
+                        try {
+                            if (!searchResultSet.next()) {
+                                close();
+                                return endOfData();
+                            }
+                            return DBUtils.getValueFromResultSet(1, searchResultSet, attribute.getAttributeType());
+                        }
+                        catch (Exception e) {
+                            endOfData();
+                            close();
+                            throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
+                        }
+                    }
+
+                    @Override
+                    public void close() {
+                        closeableQueryResources.closeAndRemove(resultSetResourcesToClose);
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
+    public Integer getCountForKey(A key, QueryOptions queryOptions) {
+        return retrieve(equal(attribute, key), queryOptions).size();
     }
 }
 

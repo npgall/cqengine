@@ -61,7 +61,6 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
                 rs.close();
             }
         }
-        ;
         return new CloseableIteratorImpl();
     }
 

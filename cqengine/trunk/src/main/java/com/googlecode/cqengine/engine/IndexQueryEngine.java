@@ -27,7 +27,6 @@ import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
-import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.offheap.support.CloseableIterator;
 import com.googlecode.cqengine.index.offheap.support.CloseableSet;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
@@ -342,17 +341,17 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         @SuppressWarnings("unchecked")
         final SimpleAttribute<O, Comparable> simpleAttribute = (SimpleAttribute<O, Comparable>)attribute;
-        NavigableIndex<?, O> navigableIndexOnAttribute = null;
+        SortedKeyStatisticsIndex<?, O> keyStatisticsIndex = null;
         for (Index<O> index : this.getIndexesOnAttribute(simpleAttribute)) {
-            if (index instanceof NavigableIndex) {
-                navigableIndexOnAttribute = (NavigableIndex<?, O>)index;
+            if (index instanceof SortedKeyStatisticsIndex) {
+                keyStatisticsIndex = (SortedKeyStatisticsIndex<?, O>)index;
                 break;
             }
         }
-        if (navigableIndexOnAttribute == null) {
-            throw new IllegalStateException("Ordering strategy '" + queryOptions.get(OrderingStrategyOption.class) + "' requires a NavigableIndex on the attribute in orderBy clause '" + orderByOption + "'");
+        if (keyStatisticsIndex == null) {
+            throw new IllegalStateException("Ordering strategy '" + queryOptions.get(OrderingStrategyOption.class) + "' requires an implementation of SortedKeyStatisticsIndex, on the attribute in orderBy clause '" + orderByOption + "'");
         }
-        final NavigableIndex<? extends Comparable, O> navigableIndexRef = navigableIndexOnAttribute;
+        final SortedKeyStatisticsIndex<? extends Comparable, O> keyStatisticsIndexRef = keyStatisticsIndex;
 
         final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, simpleAttribute);
         final boolean descending = order.isDescending();
@@ -369,7 +368,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
                     Comparable previousKey = null;
                     boolean lastKeyProcessed = false;
 
-                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(navigableIndexRef, rangeBoundsFromQuery, descending);
+                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(keyStatisticsIndexRef, rangeBoundsFromQuery, descending, queryOptions);
                     // Ensure this CloseableIterator gets closed...
                     {resultSetResourcesToClose.add(keysInRange);}
 
@@ -421,19 +420,21 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
     }
 
-    static <A extends Comparable<A>, O> CloseableIterator<A> getKeysInRange(SortedKeyStatisticsIndex<A, O> index, RangeBounds<?> queryBounds, boolean descending) {
+    static <A extends Comparable<A>, O> CloseableIterator<A> getKeysInRange(SortedKeyStatisticsIndex<A, O> index, RangeBounds<?> queryBounds, boolean descending, QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         RangeBounds<A> typedBounds = (RangeBounds<A>) queryBounds;
         if (!descending) {
             return index.getDistinctKeys(
                     typedBounds.lowerBound, typedBounds.lowerInclusive,
-                    typedBounds.upperBound, typedBounds.upperInclusive
+                    typedBounds.upperBound, typedBounds.upperInclusive,
+                    queryOptions
             ).iterator();
         }
         else {
             return index.getDistinctKeysDescending(
                     typedBounds.lowerBound, typedBounds.lowerInclusive,
-                    typedBounds.upperBound, typedBounds.upperInclusive
+                    typedBounds.upperBound, typedBounds.upperInclusive,
+                    queryOptions
             ).iterator();
         }
     }

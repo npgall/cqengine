@@ -154,12 +154,12 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
     }
 
     @Override
-    public CloseableIterable<CompoundValueTuple<O>> getDistinctKeys() {
+    public CloseableIterable<CompoundValueTuple<O>> getDistinctKeys(QueryOptions queryOptions) {
         return super.getDistinctKeys();
     }
 
     @Override
-    public Integer getCountForKey(CompoundValueTuple<O> key) {
+    public Integer getCountForKey(CompoundValueTuple<O> key, QueryOptions queryOptions) {
         return super.getCountForKey(key);
     }
 

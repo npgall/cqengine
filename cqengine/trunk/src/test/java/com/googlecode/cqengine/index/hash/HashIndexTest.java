@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.util.Set;
 
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 import static com.googlecode.cqengine.testutil.TestUtil.setOf;
 
 /**
@@ -25,10 +26,10 @@ public class HashIndexTest {
 
         collection.addAll(CarFactory.createCollectionOfCars(20));
 
-        Set<String> distinctModels = setOf(MODEL_INDEX.getDistinctKeys());
+        Set<String> distinctModels = setOf(MODEL_INDEX.getDistinctKeys(noQueryOptions()));
         Assert.assertEquals(setOf("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus"), distinctModels);
         for (String model : distinctModels) {
-            Assert.assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model));
+            Assert.assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model, noQueryOptions()));
         }
     }
 }
