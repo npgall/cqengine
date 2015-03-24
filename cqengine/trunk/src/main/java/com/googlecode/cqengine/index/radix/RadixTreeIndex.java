@@ -198,7 +198,8 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         final RadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
@@ -216,16 +217,18 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                     }
                 }
                 // Add the object to the StoredResultSet for this value...
-                valueSet.add(object);
+                modified |= valueSet.add(object);
             }
         }
+        return modified;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         final RadixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
@@ -234,12 +237,13 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 if (valueSet == null) {
                     continue;
                 }
-                valueSet.remove(object);
+                modified |= valueSet.remove(object);
                 if (valueSet.isEmpty()) {
                     tree.remove(attributeValue);
                 }
             }
         }
+        return modified;
     }
 
     /**
@@ -247,14 +251,14 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      */
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
-        notifyObjectsAdded(collection, queryOptions);
+        addAll(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
         this.tree = new ConcurrentRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
     }
 

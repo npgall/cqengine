@@ -13,6 +13,8 @@ import static com.googlecode.cqengine.index.offheap.TemporaryDatabase.TemporaryF
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -328,6 +330,32 @@ public class DBQueriesTest {
         }finally {
             DBUtils.closeQuietly(connection);
         }
+    }
+
+    @Test
+    public void testEnsureNotNegative_ValidCase() {
+        IllegalStateException unexpected = null;
+        try {
+            DBQueries.ensureNotNegative(0);
+            DBQueries.ensureNotNegative(1);
+        }
+        catch (IllegalStateException e) {
+            unexpected = e;
+        }
+        assertNull(unexpected);
+    }
+
+    @Test
+    public void testEnsureNotNegative_InvalidCase() {
+        IllegalStateException expected = null;
+        try {
+            DBQueries.ensureNotNegative(-1);
+        }
+        catch (IllegalStateException e) {
+            expected = e;
+        }
+        assertNotNull(expected);
+        assertEquals("Update returned error code: -1", expected.getMessage());
     }
 
     void createSchema(final ConnectionManager connectionManager){

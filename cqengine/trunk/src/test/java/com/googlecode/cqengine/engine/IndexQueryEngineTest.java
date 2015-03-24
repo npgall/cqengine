@@ -76,7 +76,7 @@ public class IndexQueryEngineTest {
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(createImmutableIndex());
-        queryEngine.notifyObjectsAdded(Collections.singleton(CarFactory.createCar(1)), QueryFactory.noQueryOptions());
+        queryEngine.addAll(Collections.singleton(CarFactory.createCar(1)), QueryFactory.noQueryOptions());
     }
 
     static HashIndex<Integer, Car> createImmutableIndex() {

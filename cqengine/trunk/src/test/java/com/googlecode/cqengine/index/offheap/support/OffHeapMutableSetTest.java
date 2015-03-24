@@ -11,16 +11,11 @@ import com.googlecode.cqengine.testutil.Car;
 import junit.extensions.TestSetup;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.junit.Ignore;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 
-@Ignore
 public class OffHeapMutableSetTest extends TestCase {
 
     static final Collection<TemporaryInMemoryDatabase> databasesToClose = new ArrayList<TemporaryInMemoryDatabase>();
@@ -29,7 +24,7 @@ public class OffHeapMutableSetTest extends TestCase {
     public static junit.framework.Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTest(SetTestSuiteBuilder.using(datasetGenerator())
-                .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE, CollectionFeature.RESTRICTS_ELEMENTS)
+                .withFeatures(CollectionSize.ANY, CollectionFeature.SUPPORTS_ADD, CollectionFeature.SUPPORTS_REMOVE, CollectionFeature.RESTRICTS_ELEMENTS)
                 .named("OffHeapMutableSetAPICompliance")
                 .createTestSuite());
 //        suite.addTestSuite(OffHeapMutableSetTest.class);

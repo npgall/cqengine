@@ -120,10 +120,11 @@ public class DBQueries {
         }
     }
 
-    public static <K,A> void bulkAdd(Iterable<Row<K, A>> rows, final String tableName, final Connection connection){
-        final String sql = String.format("INSERT OR REPLACE INTO cqtbl_%s values(?, ?);", tableName);
+    public static <K,A> int bulkAdd(Iterable<Row<K, A>> rows, final String tableName, final Connection connection){
+        final String sql = String.format("INSERT OR IGNORE INTO cqtbl_%s values(?, ?);", tableName);
         PreparedStatement statement = null;
         Boolean previousAutocommit = null;
+        int totalRowsModified = 0;
         try {
             previousAutocommit = DBUtils.setAutoCommit(connection, false);
             statement = connection.prepareStatement(sql);
@@ -133,9 +134,24 @@ public class DBQueries {
                 statement.setObject(2, row.getValue());
                 statement.addBatch();
             }
-            statement.executeBatch();
+            int[] rowsModified = statement.executeBatch();
+            for (int m : rowsModified) {
+                ensureNotNegative(m);
+                totalRowsModified += m;
+            }
             DBUtils.commit(connection);
-        }catch (Exception e){
+            return totalRowsModified;
+        }
+        catch (NullPointerException e) {
+            // Note: here we catch a and rethrow NullPointerException,
+            // to allow compatibility with Java Collections Framework,
+            // which requires NPE to be thrown for null arguments...
+            boolean rolledBack = DBUtils.rollback(connection);
+            NullPointerException npe = new NullPointerException("Unable to bulk add rows containing a null object to the index table: "+ tableName + ". Rolled back: " + rolledBack);
+            npe.initCause(e);
+            throw npe;
+        }
+        catch (Exception e){
             boolean rolledBack = DBUtils.rollback(connection);
             throw new IllegalStateException("Unable to bulk add rows to the index table: "+ tableName + ". Rolled back: " + rolledBack, e);
         }finally {
@@ -145,10 +161,11 @@ public class DBQueries {
         }
     }
 
-    public static <K> void bulkRemove(Iterable<K> objectKeys, final String tableName, final Connection connection){
+    public static <K> int bulkRemove(Iterable<K> objectKeys, final String tableName, final Connection connection){
         final String sql = String.format("DELETE FROM cqtbl_%s WHERE objectKey = ?;", tableName);
         PreparedStatement statement = null;
         Boolean previousAutocommit = null;
+        int totalRowsModified = 0;
         try{
             previousAutocommit = DBUtils.setAutoCommit(connection, false);
             statement = connection.prepareStatement(sql);
@@ -156,9 +173,24 @@ public class DBQueries {
                 statement.setObject(1, objectKey);
                 statement.addBatch();
             }
-            statement.executeBatch();
+            int[] rowsModified = statement.executeBatch();
+            for (int m : rowsModified) {
+                ensureNotNegative(m);
+                totalRowsModified += m;
+            }
             DBUtils.commit(connection);
-        }catch (Exception e){
+            return totalRowsModified;
+        }
+        catch (NullPointerException e) {
+            // Note: here we catch a and rethrow NullPointerException,
+            // to allow compatibility with Java Collections Framework,
+            // which requires NPE to be thrown for null arguments...
+            boolean rolledBack = DBUtils.rollback(connection);
+            NullPointerException npe = new NullPointerException("Unable to bulk remove rows containing a null object from the index table: "+ tableName + ". Rolled back: " + rolledBack);
+            npe.initCause(e);
+            throw npe;
+        }
+        catch (Exception e){
             boolean rolledBack = DBUtils.rollback(connection);
             throw new IllegalStateException("Unable to remove rows from the index table: " + tableName + ". Rolled back: " + rolledBack, e);
         }finally{
@@ -337,4 +369,7 @@ public class DBQueries {
         }
     }
 
+    static void ensureNotNegative(int value) {
+        if (value < 0) throw new IllegalStateException("Update returned error code: " + value);
+    }
 }
