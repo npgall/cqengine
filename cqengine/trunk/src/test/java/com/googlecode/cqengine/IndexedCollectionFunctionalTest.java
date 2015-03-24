@@ -4,11 +4,11 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.offheap.OffHeapIdentityIndex;
-import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.support.sqlite.OffHeapIdentityIndex;
+import com.googlecode.cqengine.index.support.sqlite.OffHeapIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -32,8 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.index.offheap.TemporaryDatabase.TemporaryFileDatabase;
-import static com.googlecode.cqengine.index.offheap.TemporaryDatabase.TemporaryInMemoryDatabase;
+import static com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryFileDatabase;
+import static com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
 import static java.util.Arrays.asList;
@@ -53,7 +53,7 @@ public class IndexedCollectionFunctionalTest {
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow tests *during development only!*...
-    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "false"));
+    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "true"));
 
     // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
     static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();

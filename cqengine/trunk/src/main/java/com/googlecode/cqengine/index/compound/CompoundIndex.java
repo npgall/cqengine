@@ -16,13 +16,13 @@
 package com.googlecode.cqengine.index.compound;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.common.AbstractMapBasedAttributeIndex;
-import com.googlecode.cqengine.index.common.Factory;
-import com.googlecode.cqengine.index.common.KeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
+import com.googlecode.cqengine.index.support.Factory;
+import com.googlecode.cqengine.index.support.KeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.common.CloseableIterable;
+import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;

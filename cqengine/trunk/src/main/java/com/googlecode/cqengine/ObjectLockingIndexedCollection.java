@@ -15,8 +15,8 @@
  */
 package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
-import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.query.QueryFactory;
 
 import java.util.Collection;
@@ -61,7 +61,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
     /**
      * Creates a new {@link ObjectLockingIndexedCollection} with default settings.
      *
-     * Uses {@link com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory} to create the backing set,
+     * Uses {@link com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory} to create the backing set,
      * and sets concurrency level at a default of 64.
      */
     public ObjectLockingIndexedCollection() {

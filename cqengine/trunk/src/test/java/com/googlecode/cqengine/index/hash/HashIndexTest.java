@@ -2,7 +2,7 @@ package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.index.common.KeyStatisticsIndex;
+import com.googlecode.cqengine.index.support.KeyStatisticsIndex;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Assert;
