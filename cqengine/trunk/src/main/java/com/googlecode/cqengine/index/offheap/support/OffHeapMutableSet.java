@@ -1,6 +1,7 @@
 package com.googlecode.cqengine.index.offheap.support;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.common.CloseableIterator;
 import com.googlecode.cqengine.index.offheap.OffHeapIdentityIndex;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;

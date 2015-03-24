@@ -19,7 +19,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.common.Factory;
 import com.googlecode.cqengine.index.common.SortedKeyStatisticsAttributeIndex;
-import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
+import com.googlecode.cqengine.index.common.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
