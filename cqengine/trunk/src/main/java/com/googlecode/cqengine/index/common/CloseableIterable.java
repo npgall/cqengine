@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.offheap.support;
+package com.googlecode.cqengine.index.common;
 
 /**
  * @author niall.gallagher

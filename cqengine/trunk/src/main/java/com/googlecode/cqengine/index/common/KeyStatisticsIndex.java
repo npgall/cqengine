@@ -1,7 +1,6 @@
 package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**

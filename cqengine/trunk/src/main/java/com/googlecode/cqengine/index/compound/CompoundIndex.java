@@ -22,7 +22,7 @@ import com.googlecode.cqengine.index.common.KeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
+import com.googlecode.cqengine.index.common.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;

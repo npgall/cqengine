@@ -16,8 +16,6 @@
 package com.googlecode.cqengine.index.common;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.offheap.support.CloseableIterable;
-import com.googlecode.cqengine.index.offheap.support.CloseableIterator;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;

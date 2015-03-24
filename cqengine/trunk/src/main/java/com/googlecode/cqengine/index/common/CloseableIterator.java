@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.offheap.support;
+package com.googlecode.cqengine.index.common;
 
 import java.io.Closeable;
 import java.util.Iterator;
