@@ -160,8 +160,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                 final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection);
                 resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
 
-                return new LazyIterator<O>()
-                {
+                return new LazyIterator<O>() {
                     @Override
                     protected O computeNext() {
                         try {
@@ -220,11 +219,11 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
     }
 
     @Override
-    public void notifyObjectsAdded(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean addAll(final Collection<O> objects, final QueryOptions queryOptions) {
 
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
-            return;
+            return false;
         }
         createTableIndexIfNeeded(connectionManager);
 
@@ -232,7 +231,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         try {
             connection = connectionManager.getConnection(this);
             Iterable<Row<K, A>> rows = rowIterable(objects, objectToIdAttribute, getAttribute(), queryOptions);
-            DBQueries.bulkAdd(rows, tableName, connection);
+            int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
+            return rowsModified > 0;
         }finally {
             DBUtils.closeQuietly(connection);
         }
@@ -299,10 +299,10 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
 
 
     @Override
-    public void notifyObjectsRemoved(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean removeAll(final Collection<O> objects, final QueryOptions queryOptions) {
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
-            return;
+            return false;
         }
         createTableIndexIfNeeded(connectionManager);
 
@@ -311,7 +311,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
             connection = connectionManager.getConnection(this);
             Iterable<K> objectKeys = objectKeyIterable(objects, objectToIdAttribute, queryOptions);
 
-            DBQueries.bulkRemove(objectKeys, tableName, connection);
+            int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
+            return rowsModified > 0;
         }finally {
             DBUtils.closeQuietly(connection);
         }
@@ -354,7 +355,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
     }
 
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
 
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
@@ -373,9 +374,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
 
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
-        if (!collection.isEmpty()) {
-            notifyObjectsAdded(collection, queryOptions);
-        }
+        addAll(collection, queryOptions);
     }
 
     /**

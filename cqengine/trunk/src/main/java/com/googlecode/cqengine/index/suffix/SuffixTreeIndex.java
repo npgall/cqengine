@@ -240,7 +240,8 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         final SuffixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
@@ -258,16 +259,18 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                     }
                 }
                 // Add the object to the StoredResultSet for this value...
-                valueSet.add(object);
+                modified |= valueSet.add(object);
             }
         }
+        return modified;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         final SuffixTree<StoredResultSet<O>> tree = this.tree;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
@@ -276,12 +279,13 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 if (valueSet == null) {
                     continue;
                 }
-                valueSet.remove(object);
+                modified |= valueSet.remove(object);
                 if (valueSet.isEmpty()) {
                     tree.remove(attributeValue);
                 }
             }
         }
+        return modified;
     }
 
     /**
@@ -289,14 +293,14 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      */
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
-        notifyObjectsAdded(collection, queryOptions);
+        addAll(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
         this.tree = new ConcurrentSuffixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
     }
 

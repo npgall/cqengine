@@ -121,8 +121,9 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
         // No need to take any action
+        return false;
     }
 
     /**
@@ -131,8 +132,9 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
         // No need to take any action
+        return false;
     }
 
     /**
@@ -152,7 +154,7 @@ public class FallbackIndex<O> implements Index<O> {
      * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
         collection.clear();
     }
 }

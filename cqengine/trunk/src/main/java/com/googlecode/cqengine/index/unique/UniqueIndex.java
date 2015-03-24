@@ -160,7 +160,8 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         ConcurrentMap<A, O> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
@@ -175,22 +176,27 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
                                 "Problematic attribute value: '" + attributeValue + "', " +
                                 "problematic duplicate object: " + object);
                 }
+                modified = true;
+
             }
         }
+        return modified;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         ConcurrentMap<A, O> indexMap = this.indexMap;
         for (O object : objects) {
             Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
-                indexMap.remove(attributeValue);
+                modified |= (indexMap.remove(attributeValue) != null);
             }
         }
+        return modified;
     }
 
     /**
@@ -198,14 +204,14 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      */
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
-        notifyObjectsAdded(collection, queryOptions);
+        addAll(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
         this.indexMap.clear();
     }
 

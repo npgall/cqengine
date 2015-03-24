@@ -33,15 +33,16 @@ public interface ModificationListener<O> {
      * @param objects The objects being added
      * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions);
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that the specified objects are being removed from the collection, and so it can take action
      * and update its internal data structures.
-     *  @param objects The objects being removed
+     *
+     * @param objects The objects being removed
      * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions);
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that all objects have been removed from the collection, and so it can take action
@@ -49,7 +50,7 @@ public interface ModificationListener<O> {
      *
      * @param queryOptions Optional parameters for the update
      */
-    public void notifyObjectsCleared(QueryOptions queryOptions);
+    public void clear(QueryOptions queryOptions);
 
     /**
      * Notifies the listener that the given collection has just been created.

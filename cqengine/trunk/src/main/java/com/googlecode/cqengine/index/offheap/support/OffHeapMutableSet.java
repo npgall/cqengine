@@ -13,7 +13,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 /**
  * @author Niall Gallagher
  */
-public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
+public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O> implements Set<O> {
 
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final Class<O> objectType;
@@ -25,6 +25,7 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
         this.retrievalCost = retrievalCost;
         this.objectType = primaryKeyAttribute.getObjectType();
         this.offHeapIdentityIndex = OffHeapIdentityIndex.onAttribute(primaryKeyAttribute, connectionManager);
+        this.offHeapIdentityIndex.init(Collections.<O>emptySet(), noQueryOptions());
     }
 
     @Override
@@ -71,16 +72,14 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
 
     @Override
     public boolean add(O object) {
-        offHeapIdentityIndex.notifyObjectsAdded(Collections.singleton(object), noQueryOptions());
-        return true;
+        return offHeapIdentityIndex.addAll(Collections.singleton(object), noQueryOptions());
     }
 
     @Override
     public boolean remove(Object o) {
         @SuppressWarnings("unchecked")
         O object = (O) o;
-        offHeapIdentityIndex.notifyObjectsRemoved(Collections.singleton(object), noQueryOptions());
-        return true;
+        return offHeapIdentityIndex.removeAll(Collections.singleton(object), noQueryOptions());
     }
 
     @Override
@@ -97,8 +96,7 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
     public boolean addAll(Collection<? extends O> c) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        offHeapIdentityIndex.notifyObjectsAdded(objects, noQueryOptions());
-        return true;
+        return offHeapIdentityIndex.addAll(objects, noQueryOptions());
     }
 
     @Override
@@ -116,30 +114,18 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> implements Set<O> {
         finally {
             allObjects.close();
         }
-        offHeapIdentityIndex.notifyObjectsRemoved(objectsToRemove, noQueryOptions());
-        return true;
+        return offHeapIdentityIndex.removeAll(objectsToRemove, noQueryOptions());
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        offHeapIdentityIndex.notifyObjectsRemoved(objects, noQueryOptions());
-        return true;
+        return offHeapIdentityIndex.removeAll(objects, noQueryOptions());
     }
 
     @Override
     public void clear() {
-        offHeapIdentityIndex.notifyObjectsCleared(noQueryOptions());
-    }
-
-    @Override
-    public Object[] toArray() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        throw new UnsupportedOperationException();
+        offHeapIdentityIndex.clear(noQueryOptions());
     }
 }

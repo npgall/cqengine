@@ -66,18 +66,18 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
     }
 
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
-        offHeapIndex.notifyObjectsAdded(objects, queryOptions);
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+        return offHeapIndex.addAll(objects, queryOptions);
     }
 
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
-        offHeapIndex.notifyObjectsRemoved(objects, queryOptions);
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+        return offHeapIndex.removeAll(objects, queryOptions);
     }
 
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
-        offHeapIndex.notifyObjectsCleared(queryOptions);
+    public void clear(QueryOptions queryOptions) {
+        offHeapIndex.clear(queryOptions);
     }
 
     @Override
@@ -108,6 +108,9 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
 
         @Override
         public byte[] getValue(O object, QueryOptions queryOptions) {
+            if (object == null) {
+                throw new NullPointerException("Object was null");
+            }
             try {
                 Kryo kryo = kryoCache.get();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

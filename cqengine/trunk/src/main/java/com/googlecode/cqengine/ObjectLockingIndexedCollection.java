@@ -152,7 +152,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.notifyObjectsRemoved(Collections.singleton(currentObject), QueryFactory.noQueryOptions());
+                    indexEngine.removeAll(Collections.singleton(currentObject), QueryFactory.noQueryOptions());
                 }
                 finally {
                     lock.unlock();

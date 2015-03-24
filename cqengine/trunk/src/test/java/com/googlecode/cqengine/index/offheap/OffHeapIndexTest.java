@@ -123,6 +123,7 @@ public class OffHeapIndexTest {
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeBatch()).thenReturn(new int[] {1});
 
         // The objects to add
         Set<Car> removedObjects = new HashSet<Car>(2);
@@ -137,7 +138,7 @@ public class OffHeapIndexTest {
                 connectionManager
         );
 
-        carFeaturesOffHeapIndex.notifyObjectsRemoved(removedObjects, new QueryOptions());
+        carFeaturesOffHeapIndex.removeAll(removedObjects, new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -165,21 +166,21 @@ public class OffHeapIndexTest {
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
-        when(connection1.prepareStatement("INSERT OR REPLACE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
-
+        when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
+        when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
         // The objects to add
         Set<Car> addedObjects = new HashSet<Car>(2);
         addedObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
         addedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
-        // Create the index and cal the notifyObjectsAdded
+        // Create the index and cal the addAll
         OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
                 connectionManager
         );
-        carFeaturesOffHeapIndex.notifyObjectsAdded(addedObjects, new QueryOptions());
+        carFeaturesOffHeapIndex.addAll(addedObjects, new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -220,7 +221,7 @@ public class OffHeapIndexTest {
                 connectionManager
         );
 
-        carFeaturesOffHeapIndex.notifyObjectsCleared(new QueryOptions());
+        carFeaturesOffHeapIndex.clear(new QueryOptions());
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -258,10 +259,11 @@ public class OffHeapIndexTest {
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
-        when(connection1.prepareStatement("INSERT OR REPLACE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
+        when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
         when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
+        when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
 
         // The objects to add
         Set<Car> initWithObjects = new HashSet<Car>(2);
@@ -621,7 +623,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
 
         List<String> expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
         List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(noQueryOptions()));
@@ -642,7 +644,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
 
         List<String> expected = Arrays.asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord");
         List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending(noQueryOptions()));
@@ -663,7 +665,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
@@ -693,7 +695,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
@@ -715,7 +717,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList();
@@ -745,7 +747,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius");
@@ -767,7 +769,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Focus", "Fusion", "Hilux");
@@ -789,7 +791,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Civic", "Focus", "Fusion", "Hilux", "Insight");
@@ -811,7 +813,7 @@ public class OffHeapIndexTest {
                 },
                 connectionManager
         );
-        offHeapIndex.notifyObjectsAdded(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
         List<String> expected, actual;
 
         expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");

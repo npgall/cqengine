@@ -101,31 +101,35 @@ public class StandingQueryIndex<O> implements Index<O> {
     @Override
     public void init(Set<O> collection, QueryOptions queryOptions) {
         storedResultSet.clear();
-        notifyObjectsAdded(collection, queryOptions);
+        addAll(collection, queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         for (O object : objects) {
             if (standingQuery.matches(object, queryOptions)) {
-                storedResultSet.add(object);
+                modified |= storedResultSet.add(object);
             }
         }
+        return modified;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+        boolean modified = false;
         for (O object : objects) {
             if (standingQuery.matches(object, queryOptions)) {
-                storedResultSet.remove(object);
+                modified |= storedResultSet.remove(object);
             }
         }
+        return modified;
     }
 
     /**
@@ -133,7 +137,7 @@ public class StandingQueryIndex<O> implements Index<O> {
      * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(QueryOptions queryOptions) {
+    public void clear(QueryOptions queryOptions) {
         storedResultSet.clear();
     }
 

@@ -803,30 +803,34 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsAdded(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean addAll(final Collection<O> objects, final QueryOptions queryOptions) {
         ensureMutable();
+        final FlagHolder modified = new FlagHolder();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsAdded(objects, queryOptions);
+                modified.value |= index.addAll(objects, queryOptions);
                 return true;
             }
         });
+        return modified.value;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void notifyObjectsRemoved(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean removeAll(final Collection<O> objects, final QueryOptions queryOptions) {
         ensureMutable();
+        final FlagHolder modified = new FlagHolder();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsRemoved(objects, queryOptions);
+                modified.value |= index.removeAll(objects, queryOptions);
                 return true;
             }
         });
+        return modified.value;
     }
 
     /**
@@ -834,12 +838,12 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      * @param queryOptions
      */
     @Override
-    public void notifyObjectsCleared(final QueryOptions queryOptions) {
+    public void clear(final QueryOptions queryOptions) {
         ensureMutable();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.notifyObjectsCleared(queryOptions);
+                index.clear(queryOptions);
                 return true;
             }
         });
@@ -909,6 +913,10 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
         }
         // Perform the operation on the fallback index...
         return indexOperation.perform(fallbackIndex);
+    }
+
+    static class FlagHolder {
+        boolean value = false;
     }
 
     static String getClassNameNullSafe(Object object) {
