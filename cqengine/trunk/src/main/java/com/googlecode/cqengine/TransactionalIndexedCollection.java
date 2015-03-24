@@ -1,7 +1,7 @@
 package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
-import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.ArgumentValidationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;

@@ -33,7 +33,7 @@ import static com.googlecode.cqengine.testutil.TestUtil.setOf;
 import static java.util.Arrays.asList;
 
 /**
- * Unit tests for {@link ConcurrentIndexedCollection}. Note that tests for common behavior (such as query processing)
+ * Unit tests for {@link ConcurrentIndexedCollection}. Note that tests for support behavior (such as query processing)
  * which applies to all implementations of {@link IndexedCollection} can be found in
  * {@link com.googlecode.cqengine.IndexedCollectionFunctionalTest}.
  * <p/>

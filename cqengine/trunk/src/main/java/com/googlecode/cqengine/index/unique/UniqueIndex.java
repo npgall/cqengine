@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.common.AbstractAttributeIndex;
-import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
+import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;

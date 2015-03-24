@@ -4,7 +4,7 @@ import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
-import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -23,7 +23,7 @@ import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 import static java.util.Arrays.asList;
 
 /**
- * Unit tests for {@link TransactionalIndexedCollection}. Note that tests for common behavior (such as query processing)
+ * Unit tests for {@link TransactionalIndexedCollection}. Note that tests for support behavior (such as query processing)
  * which applies to all implementations of {@link IndexedCollection} can be found in
  * {@link com.googlecode.cqengine.IndexedCollectionFunctionalTest}.
  * <p/>

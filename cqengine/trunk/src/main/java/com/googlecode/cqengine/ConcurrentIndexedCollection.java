@@ -18,8 +18,8 @@ package com.googlecode.cqengine;
 import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.engine.IndexQueryEngine;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory;
-import com.googlecode.cqengine.index.common.Factory;
+import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -62,7 +62,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings.
      *
-     * Uses {@link com.googlecode.cqengine.index.common.DefaultConcurrentSetFactory} to create the backing set.
+     * Uses {@link com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory} to create the backing set.
      */
     public ConcurrentIndexedCollection() {
         this(new DefaultConcurrentSetFactory<O>());
