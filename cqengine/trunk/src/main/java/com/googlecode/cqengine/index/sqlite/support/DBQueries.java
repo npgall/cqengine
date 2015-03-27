@@ -1,6 +1,7 @@
-package com.googlecode.cqengine.index.support.sqlite.support;
+package com.googlecode.cqengine.index.sqlite.support;
 
 import com.googlecode.concurrenttrees.common.CharSequences;
+import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.simple.*;
 
@@ -13,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Database (SQLite) query executor used by the {@link com.googlecode.cqengine.index.support.sqlite.OffHeapIndex}.
+ * Database (SQLite) query executor used by the {@link SQLiteIndex}.
  *
  * @author Silvano Riz
  */

@@ -1,7 +1,7 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
-import com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
-import com.googlecode.cqengine.index.support.sqlite.support.DBUtils;
+import com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
+import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

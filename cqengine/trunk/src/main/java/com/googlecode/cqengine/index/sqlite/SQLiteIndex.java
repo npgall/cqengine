@@ -1,11 +1,14 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.support.*;
-import com.googlecode.cqengine.index.support.sqlite.support.DBQueries;
-import com.googlecode.cqengine.index.support.sqlite.support.DBUtils;
+import com.googlecode.cqengine.index.sqlite.support.DBQueries;
+import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
@@ -18,16 +21,33 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static com.googlecode.cqengine.index.support.sqlite.support.DBQueries.Row;
+import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
-
 /**
+ * An index backed by a table in a SQLite database.
  * <p>
- *      {@link com.googlecode.cqengine.index.support.AbstractAttributeIndex} storing the index off-heap in a database
- *      (by default a SQLite database).
+ * This index is highly configurable, and forms the basis for other simpler indexes: {@link SQLiteIdentityIndex},
+ * {@link OffHeapIndex} and {@link DiskIndex}.
  * </p>
- *      The database schema is:
+ * <p>
+ * Specifically, this index allows details of the database to which data should be persisted, to be supplied by the
+ * application on-the-fly in request-scope via {@link QueryOptions}, as an alternative to configuring a
+ * particular database statically.
+ * </p>
+ * <p>
+ * This is useful in applications where CQEngine does not create/destroy or
+ * manage the life cycle of the database itself, and so where the application requires tight control over how
+ * the database is accessed.
+ * </p>
+ * <p>
+ *     <i>In applications where CQEngine manages the SQLite database, users should probably not use this
+ *     index directly, but should use one of the simpler indexes mentioned above instead.</i>
+ * </p>
+ * <h1>
+ *     Index implementation
+ * </h1>
+ *      This index is persisted in a SQLite table with the following schema:
  * <pre>
  * CREATE TABLE ${table_name} (
  *      objectKey ${objectKey_type},
@@ -40,83 +60,50 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  * Where:<br>
  * <ul>
  * <li>
- *     <i>${table_name}</i> is the name of the table.
- *     The name of the Attribute (on which the index will be built) is used to name the table. Anyway, the "tbl_" string
+ *     <i>table_name</i> is the name of the table.
+ *     The name of the attribute (on which the index will be built) is used to name the table. A "cqtbl_" string
  *     will be prefixed and all the non alpha-numeric chars will be stripped out.
  * </li>
  * <li>
- *     <i>${objectKey_type}</i> is the type of the object key defined at construction time
- *     and converted to the correspondent database type.
+ *     <i>objectKey</i> stores the value from the {@code primaryKeyAttribute} for each object stored
+ *     (generic type {@code K}).
+ *     If the primary key is configured as {@code Car.CAR_ID} then this column will hold the carId.
+ *     The type of the primary key attribute will be converted to the corresponding database type.
  * </li>
  * <li>
- *     <i>${value_type}</i> is the type of the indexed value, i.e. the value's type of the Attribute on which the index is built
- *     converted to the correspondent database type.
+ *     <i>value</i> is the type of the indexed value (generic type {@code A}).
+ *     If the index is built on an attribute {@code Car.MODEL}, then this will hold the car model string.
+ *     The type of the attribute on which the index is built will be converted to the corresponding database
+ *     type.
+ * </li>
+ * <li>
+ *     Note that this index supports {@link MultiValueAttribute}, which means there may be more than one value for each
+ *     objecyKey.
  * </li>
  * </ul>
  * @author Silvano Riz
  */
-public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
+public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
 
     final String tableName;
-    final SimpleAttribute<O, K> objectToIdAttribute;
-    final SimpleAttribute<K, O> idToObjectAttribute;
+    final SimpleAttribute<O, K> primaryKeyAttribute;
+    final SimpleAttribute<K, O> foreignKeyAttribute;
     final ConnectionManager connectionManager;
-
-    // ---------- Static factory methods to create HashIndexes ----------
-
-    /**
-     * Creates a new {@link OffHeapIndex} where the {@link ConnectionManager} will always be supplied via {@link QueryOptions}
-     * by the caller.
-     *
-     * @param attribute The {@link Attribute} on which the index will be built.
-     * @param objectKeyAttribute The {@link SimpleAttribute} used to retrieve the object key.
-     * @param idToObjectAttribute The {@link SimpleAttribute} to map a query result into the domain object.
-     * @param <A> The type of the attribute.
-     * @param <O> The type of the object containing the attributes.
-     * @param <K> The type of the object key.
-     * @return a new instance of the {@link OffHeapIndex}
-     */
-    public static <A extends Comparable<A>, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
-                                                           final SimpleAttribute<O, K> objectKeyAttribute,
-                                                           final SimpleAttribute<K, O> idToObjectAttribute) {
-
-        return new OffHeapIndex<A,O, K>(attribute, objectKeyAttribute, idToObjectAttribute, null);
-    }
-
-    /**
-     * Creates a new {@link OffHeapIndex} where the {@link ConnectionManager} is set at construction time.
-     *
-     * @param attribute The {@link Attribute} on which the index will be built.
-     * @param objectKeyAttribute The {@link SimpleAttribute} used to retrieve the object key.
-     * @param idToObjectAttribute The {@link SimpleAttribute} to map a query result into the domain object.
-     * @param connectionManager The {@link ConnectionManager}
-     * @param <A> The type of the attribute.
-     * @param <O> The type of the object containing the attributes.
-     * @param <K> The type of the object key.
-     * @return a new instance of a standalone {@link OffHeapIndex}
-     */
-    public static <A extends Comparable<A>, O, K> OffHeapIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
-                                                           final SimpleAttribute<O, K> objectKeyAttribute,
-                                                           final SimpleAttribute<K, O> idToObjectAttribute,
-                                                           final ConnectionManager connectionManager) {
-
-        return new OffHeapIndex<A, O, K>(attribute, objectKeyAttribute, idToObjectAttribute, connectionManager);
-    }
 
     /**
      * Package-private constructor. The index should be created via the static factory methods instead.
      *
      * @param attribute The {@link Attribute} on which the index will be built.
-     * @param objectToIdAttribute The {@link SimpleAttribute} with which the index will retrieve the object key.
-     * @param idToObjectAttribute The {@link SimpleAttribute} to map a query result into the domain object.
+     * @param primaryKeyAttribute The {@link SimpleAttribute} with which the index will retrieve the object key.
+     * @param foreignKeyAttribute The {@link SimpleAttribute} to map a query result into the domain object.
      * @param connectionManager The {@link ConnectionManager} or null if it will be provided via QueryOptions.
      */
-    OffHeapIndex(final Attribute<O, A> attribute,
-                 final SimpleAttribute<O, K> objectToIdAttribute,
-                 final SimpleAttribute<K, O> idToObjectAttribute,
-                 final ConnectionManager connectionManager) {
+    public SQLiteIndex(final Attribute<O, A> attribute,
+                final SimpleAttribute<O, K> primaryKeyAttribute,
+                final SimpleAttribute<K, O> foreignKeyAttribute,
+                final ConnectionManager connectionManager) {
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
@@ -128,8 +115,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         }});
 
         this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9\\s]", "");
-        this.objectToIdAttribute = objectToIdAttribute;
-        this.idToObjectAttribute = idToObjectAttribute;
+        this.primaryKeyAttribute = primaryKeyAttribute;
+        this.foreignKeyAttribute = foreignKeyAttribute;
         this.connectionManager = connectionManager;
 
     }
@@ -152,7 +139,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
             @Override
             public Iterator<O> iterator() {
 
-                final Connection searchConnection = connectionManager.getConnection(OffHeapIndex.this);
+                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
                 resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
                 final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection);
@@ -166,8 +153,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                                 close();
                                 return endOfData();
                             }
-                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, objectToIdAttribute.getAttributeType());
-                            return idToObjectAttribute.getValue(objectKey, queryOptions);
+                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
+                            return foreignKeyAttribute.getValue(objectKey, queryOptions);
                         }catch (Exception e){
                             endOfData();
                             close();
@@ -189,8 +176,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
 
             @Override
             public boolean contains(O object) {
-                final K objectKey = objectToIdAttribute.getValue(object, queryOptions);
-                final Connection connection = connectionManager.getConnection(OffHeapIndex.this);
+                final K objectKey = primaryKeyAttribute.getValue(object, queryOptions);
+                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
                 try{
                     return DBQueries.contains(objectKey, query, tableName, connection);
                 }finally {
@@ -200,7 +187,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
 
             @Override
             public int size() {
-                final Connection connection = connectionManager.getConnection(OffHeapIndex.this);
+                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
                 try {
                     return DBQueries.count(query, tableName, connection);
                 } finally {
@@ -228,7 +215,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
-            Iterable<Row<K, A>> rows = rowIterable(objects, objectToIdAttribute, getAttribute(), queryOptions);
+            Iterable<Row<K, A>> rows = rowIterable(objects, primaryKeyAttribute, getAttribute(), queryOptions);
             int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
             return rowsModified > 0;
         }finally {
@@ -241,13 +228,13 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
      * respective value.
      *
      * @param objects {@link Iterable} of domain objects.
-     * @param objectToIdAttribute {@link SimpleAttribute} used to retrieve the object id.
+     * @param primaryKeyAttribute {@link SimpleAttribute} used to retrieve the object id.
      * @param indexAttribute {@link Attribute} used to retrieve the value(s).
      * @param queryOptions The {@link QueryOptions}.
      * @return {@link Iterable} of {@link Row}s.
      */
     static <O, K, A> Iterable<Row< K, A>> rowIterable(final Iterable<O> objects,
-                                                      final SimpleAttribute<O, K> objectToIdAttribute,
+                                                      final SimpleAttribute<O, K> primaryKeyAttribute,
                                                       final Attribute<O, A> indexAttribute,
                                                       final QueryOptions queryOptions){
         return new Iterable<Row<K, A>>() {
@@ -274,7 +261,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                         if (valuesIterator == null || !valuesIterator.hasNext()){
                             if (objectIterator.hasNext()){
                                 O next = objectIterator.next();
-                                currentObjectKey = objectToIdAttribute.getValue(next, queryOptions);
+                                currentObjectKey = primaryKeyAttribute.getValue(next, queryOptions);
                                 valuesIterator = indexAttribute.getValues(next, queryOptions).iterator();
                             }else{
                                 return false;
@@ -307,7 +294,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
-            Iterable<K> objectKeys = objectKeyIterable(objects, objectToIdAttribute, queryOptions);
+            Iterable<K> objectKeys = objectKeyIterable(objects, primaryKeyAttribute, queryOptions);
 
             int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
             return rowsModified > 0;
@@ -320,12 +307,12 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
      * Utility method that transforms an {@link Iterable} of domain objects into an {@link Iterable} over the objects ids.
      *
      * @param objects {@link Iterable} of domain objects.
-     * @param objectToIdAttribute {@link SimpleAttribute} used to retrieve the object id.
+     * @param primaryKeyAttribute {@link SimpleAttribute} used to retrieve the object id.
      * @param queryOptions The {@link QueryOptions}.
      * @return {@link Iterable} over the objects ids.
      */
     static <O, K> Iterable<K> objectKeyIterable(final Iterable<O> objects,
-                                                final SimpleAttribute<O, K> objectToIdAttribute,
+                                                final SimpleAttribute<O, K> primaryKeyAttribute,
                                                 final QueryOptions queryOptions){
         return new Iterable<K>() {
 
@@ -343,7 +330,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
                     @Override
                     public K next() {
                         O next = iterator.next();
-                        return objectToIdAttribute.getValue(next, queryOptions);
+                        return primaryKeyAttribute.getValue(next, queryOptions);
                     }
                 };
             }
@@ -384,7 +371,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
-            DBQueries.createIndexTable(tableName, objectToIdAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
+            DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
         } finally {
             DBUtils.closeQuietly(connection);
         }
@@ -430,7 +417,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
         return getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, true, queryOptions);
     }
 
-    public CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
+    CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
         final Query<O> query;
         if (lowerBound != null && upperBound != null) {
             query = between(attribute, lowerBound, lowerInclusive, upperBound, upperInclusive);
@@ -453,7 +440,7 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
             @Override
             public CloseableIterator<A> iterator() {
                 final ConnectionManager connectionManager = getConnectionManager(queryOptions);
-                final Connection searchConnection = connectionManager.getConnection(OffHeapIndex.this);
+                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
 
                 resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
@@ -490,6 +477,45 @@ public class OffHeapIndex<A extends Comparable<A>, O, K> extends AbstractAttribu
     @Override
     public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return retrieve(equal(attribute, key), queryOptions).size();
+    }
+
+    // ---------- Static factory methods to create SQLiteIndex ----------
+
+    /**
+     * Creates a new {@link SQLiteIndex} where the {@link ConnectionManager} will always be supplied via {@link QueryOptions}
+     * by the caller.
+     *
+     * @param attribute The {@link Attribute} on which the index will be built.
+     * @param objectKeyAttribute The {@link SimpleAttribute} used to retrieve the object key.
+     * @param foreignKeyAttribute The {@link SimpleAttribute} to map a query result into the domain object.
+     * @param <A> The type of the attribute.
+     * @param <O> The type of the object containing the attributes.
+     * @param <K> The type of the object key.
+     * @return a new instance of the {@link SQLiteIndex}
+     */
+    public static <A extends Comparable<A>, O, K> SQLiteIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+                                                                                   final SimpleAttribute<O, K> objectKeyAttribute,
+                                                                                   final SimpleAttribute<K, O> foreignKeyAttribute) {
+        return new SQLiteIndex<A,O, K>(attribute, objectKeyAttribute, foreignKeyAttribute, null);
+    }
+
+    /**
+     * Creates a new {@link SQLiteIndex} where the {@link ConnectionManager} is set at construction time.
+     *
+     * @param attribute The {@link Attribute} on which the index will be built.
+     * @param objectKeyAttribute The {@link SimpleAttribute} used to retrieve the object key.
+     * @param foreignKeyAttribute The {@link SimpleAttribute} to map a query result into the domain object.
+     * @param connectionManager The {@link ConnectionManager}
+     * @param <A> The type of the attribute.
+     * @param <O> The type of the object containing the attributes.
+     * @param <K> The type of the object key.
+     * @return a new instance of a standalone {@link SQLiteIndex}
+     */
+    public static <A extends Comparable<A>, O, K> SQLiteIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
+                                                                                   final SimpleAttribute<O, K> objectKeyAttribute,
+                                                                                   final SimpleAttribute<K, O> foreignKeyAttribute,
+                                                                                   final ConnectionManager connectionManager) {
+        return new SQLiteIndex<A, O, K>(attribute, objectKeyAttribute, foreignKeyAttribute, connectionManager);
     }
 }
 

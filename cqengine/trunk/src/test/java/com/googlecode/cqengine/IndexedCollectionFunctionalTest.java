@@ -4,11 +4,13 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.support.sqlite.OffHeapIdentityIndex;
-import com.googlecode.cqengine.index.support.sqlite.OffHeapIndex;
+import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
+import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -16,6 +18,7 @@ import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
+import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -24,6 +27,8 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+import com.googlecode.cqengine.testutil.DiskConcurrentIndexedCollection;
+import com.googlecode.cqengine.testutil.OffHeapConcurrentIndexedCollection;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -32,8 +37,8 @@ import org.junit.runner.RunWith;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryFileDatabase;
-import static com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
+import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
+import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
 import static java.util.Arrays.asList;
@@ -53,7 +58,7 @@ public class IndexedCollectionFunctionalTest {
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow tests *during development only!*...
-    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "true"));
+    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "false"));
 
     // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
     static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
@@ -70,8 +75,8 @@ public class IndexedCollectionFunctionalTest {
                     name = "typical queries";
                     dataSet = REGULAR_DATASET;
                     collectionImplementations = SKIP_SLOW_TESTS
-                            ? classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class)
-                            : classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                            ? classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class)
+                            : classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class);
                     queriesToEvaluate = asList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.CAR_ID, 500);
@@ -456,54 +461,102 @@ public class IndexedCollectionFunctionalTest {
                                         }
                                     }, Car.MANUFACTURER, Car.MODEL)
                             ),
-                            indexCombination(OffHeapIndex.onAttribute(
+                            indexCombination(SQLiteIndex.onAttribute(
                                             Car.MANUFACTURER,
                                             Car.CAR_ID,
-                                            new SimpleAttribute<Integer, Car>() {
-                                                @Override
-                                                public Car getValue(final Integer carId, final QueryOptions queryOptions) {
-                                                    return CarFactory.createCar(carId);
-                                                }
-                                            },
+                                            createForeignKeyAttribute(),
                                             temporaryInMemoryDatabase.getConnectionManager(true)
                                     )
 
                             ),
-                            indexCombination(OffHeapIndex.onAttribute(
+                            indexCombination(SQLiteIndex.onAttribute(
                                             Car.FEATURES,
                                             Car.CAR_ID,
-                                            new SimpleAttribute<Integer, Car>() {
-                                                @Override
-                                                public Car getValue(final Integer carId, final QueryOptions queryOptions) {
-                                                    return CarFactory.createCar(carId);
-                                                }
-                                            },
+                                            createForeignKeyAttribute(),
                                             temporaryInMemoryDatabase.getConnectionManager(true)
                                     )
                             ),
-                            indexCombination(OffHeapIndex.onAttribute(
+                            indexCombination(SQLiteIndex.onAttribute(
                                             Car.MANUFACTURER,
                                             Car.CAR_ID,
-                                            new SimpleAttribute<Integer, Car>() {
-                                                @Override
-                                                public Car getValue(final Integer carId, final QueryOptions queryOptions) {
-                                                    return CarFactory.createCar(carId);
-                                                }
-                                            },
+                                            createForeignKeyAttribute(),
                                             temporaryFileDatabase.getConnectionManager(true)
                                     )
                             ),
-                            indexCombination(OffHeapIdentityIndex.onAttribute(
+                            indexCombination(SQLiteIdentityIndex.onAttribute(
                                             Car.CAR_ID,
                                             temporaryFileDatabase.getConnectionManager(true)
                                     )
 
                             ),
-                            indexCombination(OffHeapIdentityIndex.onAttribute(
+                            indexCombination(SQLiteIdentityIndex.onAttribute(
                                             Car.CAR_ID,
                                             temporaryInMemoryDatabase.getConnectionManager(true)
                                     )
+                            ),
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            Car.MANUFACTURER,
+                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+                                            createForeignKeyAttribute()
+                                    )
                             )
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "off-heap collection";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(OffHeapConcurrentIndexedCollection.class);
+                    queriesToEvaluate = asList(
+                            new QueryToEvaluate() {{
+                                query = in(Car.CAR_ID, 3, 4, 5);
+                                expectedResults = new ExpectedResults() {{
+                                    size = 3;
+                                    carIdsAnyOrder = asSet(3, 4, 5);
+                                    indexUsed = true; // An index should be used, because OffHeapPersistence creates an index on primary key
+                                    mergeCost = 3;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            noIndexes()
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "off-heap index";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(OffHeapConcurrentIndexedCollection.class);
+                    queriesToEvaluate = asList(
+                            new QueryToEvaluate() {{
+                                query = equal(Car.MANUFACTURER, "Ford");
+                                expectedResults = new ExpectedResults() {{
+                                    size = 3;
+                                    carIdsAnyOrder = asSet(0, 1, 2);
+                                    indexUsed = true;
+                                    mergeCost = 3;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(OffHeapIndex.onAttribute(Car.MANUFACTURER))
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "disk index";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(DiskConcurrentIndexedCollection.class);
+                    queriesToEvaluate = asList(
+                            new QueryToEvaluate() {{
+                                query = equal(Car.MANUFACTURER, "Ford");
+                                expectedResults = new ExpectedResults() {{
+                                    size = 3;
+                                    carIdsAnyOrder = asSet(0, 1, 2);
+                                    indexUsed = true;
+                                    mergeCost = 3;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(DiskIndex.onAttribute(Car.MANUFACTURER))
                     );
                 }},
                 new MacroScenario() {{
@@ -545,15 +598,10 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(OffHeapIndex.onAttribute(
+                            indexCombination(SQLiteIndex.onAttribute(
                                             Car.MANUFACTURER,
                                             Car.CAR_ID,
-                                            new SimpleAttribute<Integer, Car>() {
-                                                @Override
-                                                public Car getValue(final Integer carId, final QueryOptions queryOptions) {
-                                                    return CarFactory.createCar(carId);
-                                                }
-                                            },
+                                            createForeignKeyAttribute(),
                                             temporaryInMemoryDatabase.getConnectionManager(true)
                                     )
                             )
@@ -894,7 +942,7 @@ public class IndexedCollectionFunctionalTest {
                                     carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3);
                                 }};
                             }},
-                            new QueryToEvaluate() {{
+                            new QueryToEvaluate() {{ // TODO: this fails to close a database connection
                                 query = and(greaterThanOrEqualTo(Car.CAR_ID, 3), lessThanOrEqualTo(Car.CAR_ID, 6));
                                 queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
                                 expectedResults = new ExpectedResults() {{
@@ -929,7 +977,13 @@ public class IndexedCollectionFunctionalTest {
                     );
                     indexCombinations = indexCombinations(
                             indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
-                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID))
+                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID))//,
+//                            indexCombination(OffHeapIndex.onAttribute( // TODO reenable this combination
+//                                            Car.CAR_ID,
+//                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+//                                            createForeignKeyAttribute()
+//                                    )
+//                            )
                     );
                 }},
                 new MacroScenario() {{
@@ -955,7 +1009,13 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(RadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER))
+                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            Car.MANUFACTURER,
+                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+                                            createForeignKeyAttribute()
+                                    )
+                            )
                     );
                 }},
                 new MacroScenario() {{
@@ -977,10 +1037,25 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(RadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER))
+                            indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            Car.MANUFACTURER,
+                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+                                            createForeignKeyAttribute()
+                                    )
+                            )
                     );
                 }}
         );
+    }
+
+    private static SimpleAttribute<Integer, Car> createForeignKeyAttribute() {
+        return new SimpleAttribute<Integer, Car>() {
+            @Override
+            public Car getValue(final Integer carId, final QueryOptions queryOptions) {
+                return CarFactory.createCar(carId);
+            }
+        };
     }
 
 

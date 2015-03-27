@@ -1,9 +1,10 @@
-package com.googlecode.cqengine.index.support.sqlite.support;
+package com.googlecode.cqengine.persistence.support.sqlite;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.support.CloseableIterator;
-import com.googlecode.cqengine.index.support.sqlite.ConnectionManager;
-import com.googlecode.cqengine.index.support.sqlite.OffHeapIdentityIndex;
+import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.PersistentSet;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
@@ -15,24 +16,33 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 /**
  * @author Niall Gallagher
  */
-public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O> implements Set<O> {
+public class SQLitePersistentSet<O, A extends Comparable<A>> extends AbstractSet<O> implements PersistentSet<O, A> {
 
+    final Persistence<O, A> persistence;
+    final SQLiteIdentityIndex<A, O> backingIndex;
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final Class<O> objectType;
-    final OffHeapIdentityIndex<A, O> offHeapIdentityIndex;
-    final int retrievalCost;
 
-    public OffHeapMutableSet(final SimpleAttribute<O, A> primaryKeyAttribute, ConnectionManager connectionManager, int retrievalCost) {
-        this.primaryKeyAttribute = primaryKeyAttribute;
-        this.retrievalCost = retrievalCost;
-        this.objectType = primaryKeyAttribute.getObjectType();
-        this.offHeapIdentityIndex = OffHeapIdentityIndex.onAttribute(primaryKeyAttribute, connectionManager);
-        this.offHeapIdentityIndex.init(Collections.<O>emptySet(), noQueryOptions());
+    public SQLitePersistentSet(final Persistence<O, A> persistence) {
+        this.persistence = persistence;
+        this.objectType = persistence.getPrimaryKeyAttribute().getObjectType();
+        this.primaryKeyAttribute = persistence.getPrimaryKeyAttribute();
+        this.backingIndex = SQLiteIdentityIndex.onAttribute(persistence.getPrimaryKeyAttribute(), persistence);
+        this.backingIndex.init(Collections.<O>emptySet(), noQueryOptions());
+    }
+
+    @Override
+    public Persistence<O, A> getPersistence() {
+        return persistence;
+    }
+
+    public SQLiteIdentityIndex<A, O> getBackingIndex() {
+        return backingIndex;
     }
 
     @Override
     public int size() {
-        return offHeapIdentityIndex.retrieve(all(objectType), noQueryOptions()).size();
+        return backingIndex.retrieve(all(objectType), noQueryOptions()).size();
     }
 
     @Override
@@ -40,12 +50,12 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O
         @SuppressWarnings("unchecked")
         O object = (O) o;
         A objectId = primaryKeyAttribute.getValue(object, noQueryOptions());
-        return offHeapIdentityIndex.retrieve(equal(primaryKeyAttribute, objectId), noQueryOptions()).size() > 0;
+        return backingIndex.retrieve(equal(primaryKeyAttribute, objectId), noQueryOptions()).size() > 0;
     }
 
     @Override
     public CloseableIterator<O> iterator() {
-        final ResultSet<O> rs = offHeapIdentityIndex.retrieve(all(objectType), noQueryOptions());
+        final ResultSet<O> rs = backingIndex.retrieve(all(objectType), noQueryOptions());
         final Iterator<O> i = rs.iterator();
         class CloseableIteratorImpl extends UnmodifiableIterator<O> implements CloseableIterator<O> {
 
@@ -74,14 +84,14 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O
 
     @Override
     public boolean add(O object) {
-        return offHeapIdentityIndex.addAll(Collections.singleton(object), noQueryOptions());
+        return backingIndex.addAll(Collections.singleton(object), noQueryOptions());
     }
 
     @Override
     public boolean remove(Object o) {
         @SuppressWarnings("unchecked")
         O object = (O) o;
-        return offHeapIdentityIndex.removeAll(Collections.singleton(object), noQueryOptions());
+        return backingIndex.removeAll(Collections.singleton(object), noQueryOptions());
     }
 
     @Override
@@ -98,14 +108,14 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O
     public boolean addAll(Collection<? extends O> c) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        return offHeapIdentityIndex.addAll(objects, noQueryOptions());
+        return backingIndex.addAll(objects, noQueryOptions());
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
         // Note: this could be optimized...
         Collection<O> objectsToRemove = new ArrayList<O>();
-        ResultSet<O> allObjects = offHeapIdentityIndex.retrieve(all(objectType), noQueryOptions());
+        ResultSet<O> allObjects = backingIndex.retrieve(all(objectType), noQueryOptions());
         try {
             for (O object : allObjects) {
                 if (!c.contains(object)) {
@@ -116,18 +126,18 @@ public class OffHeapMutableSet<O, A extends Comparable<A>> extends AbstractSet<O
         finally {
             allObjects.close();
         }
-        return offHeapIdentityIndex.removeAll(objectsToRemove, noQueryOptions());
+        return backingIndex.removeAll(objectsToRemove, noQueryOptions());
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        return offHeapIdentityIndex.removeAll(objects, noQueryOptions());
+        return backingIndex.removeAll(objects, noQueryOptions());
     }
 
     @Override
     public void clear() {
-        offHeapIdentityIndex.clear(noQueryOptions());
+        backingIndex.clear(noQueryOptions());
     }
 }

@@ -1,7 +1,7 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
+import com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Assert;
@@ -10,14 +10,14 @@ import org.junit.Test;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
-public class OffHeapIdentityIndexTest {
+public class SQLiteIdentityIndexTest {
 
     @Rule
     public TemporaryInMemoryDatabase temporaryDatabase = new TemporaryInMemoryDatabase();
 
     @Test
     public void testSerialization() {
-        OffHeapIdentityIndex<Integer, Car> index = new OffHeapIdentityIndex<Integer, Car>(
+        SQLiteIdentityIndex<Integer, Car> index = new SQLiteIdentityIndex<Integer, Car>(
                 Car.CAR_ID,
                 temporaryDatabase.getConnectionManager(true)
         );

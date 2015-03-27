@@ -1,6 +1,6 @@
-package com.googlecode.cqengine.index.support.sqlite.support;
+package com.googlecode.cqengine.index.sqlite.support;
 
-import com.googlecode.cqengine.index.support.sqlite.ConnectionManager;
+import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
@@ -10,7 +10,7 @@ import org.junit.Test;
 import java.sql.*;
 import java.util.*;
 
-import static com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryFileDatabase;
+import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
 import static org.junit.Assert.assertEquals;
