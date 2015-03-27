@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.support.sqlite.support;
+package com.googlecode.cqengine.index.sqlite.support;
 
 import org.junit.Assert;
 import org.junit.Test;

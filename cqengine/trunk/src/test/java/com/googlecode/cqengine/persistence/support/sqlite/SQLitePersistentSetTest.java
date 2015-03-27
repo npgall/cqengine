@@ -1,14 +1,12 @@
-package com.googlecode.cqengine.index.support.sqlite.support;
+package com.googlecode.cqengine.persistence.support.sqlite;
 
 import com.google.common.collect.testing.SampleElements;
 import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
-import com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase;
-import com.googlecode.cqengine.index.support.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
+import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.testutil.Car;
-import junit.extensions.TestSetup;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
@@ -16,26 +14,16 @@ import java.util.*;
 
 import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 
-public class OffHeapMutableSetTest extends TestCase {
-
-    static final Collection<TemporaryInMemoryDatabase> databasesToClose = new ArrayList<TemporaryInMemoryDatabase>();
-
+public class SQLitePersistentSetTest extends TestCase {
 
     public static junit.framework.Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTest(SetTestSuiteBuilder.using(datasetGenerator())
                 .withFeatures(CollectionSize.ANY, CollectionFeature.SUPPORTS_ADD, CollectionFeature.SUPPORTS_REMOVE, CollectionFeature.RESTRICTS_ELEMENTS)
-                .named("OffHeapMutableSetAPICompliance")
+                .named("SQLitePersistentSetCompliance")
                 .createTestSuite());
-//        suite.addTestSuite(OffHeapMutableSetTest.class);
-        return new TestSetup(suite) {
-            @Override
-            protected void tearDown() throws Exception {
-                for (TemporaryInMemoryDatabase database : databasesToClose) {
-                    database.after();
-                }
-            }
-        };
+//        suite.addTestSuite(SQLitePersistentSetTest.class);
+        return suite;
     }
 
     private static TestSetGenerator<Car> datasetGenerator() {
@@ -47,10 +35,7 @@ public class OffHeapMutableSetTest extends TestCase {
 
             @Override
             public Set<Car> create(Object... elements) {
-                TemporaryInMemoryDatabase database = new TemporaryDatabase.TemporaryInMemoryDatabase();
-                database.before();
-                databasesToClose.add(database);
-                Set<Car> offHeapMutableSet = new OffHeapMutableSet<Car, Integer>(Car.CAR_ID, database.getConnectionManager(true), 0);
+                Set<Car> offHeapMutableSet = new SQLitePersistentSet<Car, Integer>(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
                 for (Object o : elements) {
                     offHeapMutableSet.add((Car)o);
                 }

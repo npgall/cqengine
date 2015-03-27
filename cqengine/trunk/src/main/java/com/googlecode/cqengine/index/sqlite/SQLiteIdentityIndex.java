@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -18,23 +18,27 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+import static com.googlecode.cqengine.query.QueryFactory.equal;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+
 /**
  * An index which allows objects to be persisted directly in the index in serialized form, and to be accessed using a
- * primary key attribute.
+ * primary key attribute (as obtained from a foreign key held elsewhere).
  * <p/>
- * This index actually wraps an {@link OffHeapIndex}, but configures the value that it stores for each primary key, to
+ * This index actually wraps an {@link SQLiteIndex}, but configures the value that it stores for each primary key, to
  * be the actual serialized bytes of the object which has that key.
  *
  * @author niall.gallagher
  */
-public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements AttributeIndex<A, O>, ResourceIndex {
+public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, ResourceIndex {
 
-    final OffHeapIndex<A, O, byte[]> offHeapIndex;
+    final SQLiteIndex<A, O, byte[]> offHeapIndex;
     final Class<O> objectType;
     final SimpleAttribute<O, A> primaryKeyAttribute;
+    final SimpleAttribute<A, O> foreignKeyAttribute;
 
-    public OffHeapIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute, ConnectionManager connectionManager) {
-        this.offHeapIndex = OffHeapIndex.onAttribute(
+    public SQLiteIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute, ConnectionManager connectionManager) {
+        this.offHeapIndex = SQLiteIndex.onAttribute(
                 primaryKeyAttribute,
                 new SerializingAttribute(primaryKeyAttribute.getObjectType(), byte[].class),
                 new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType()),
@@ -42,8 +46,16 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
         );
         this.objectType = primaryKeyAttribute.getObjectType();
         this.primaryKeyAttribute = primaryKeyAttribute;
+        this.foreignKeyAttribute = new ForeignKeyAttribute();
     }
 
+    public SimpleAttribute<A, O> getForeignKeyAttribute() {
+        return foreignKeyAttribute;
+    }
+
+    /**
+     * Returns the attribute which given an object can read its primary key.
+     */
     @Override
     public Attribute<O, A> getAttribute() {
         return offHeapIndex.getAttribute();
@@ -146,16 +158,32 @@ public class OffHeapIdentityIndex<A extends Comparable<A>, O> implements Attribu
     }
 
     /**
-     * Creates a new {@link OffHeapIdentityIndex} for the given primary key attribute and connection manager.
+     * An attribute which given a primary key (or a foreign key to it) can read the corresponding
+     * object from this index.
+     */
+    class ForeignKeyAttribute extends SimpleAttribute<A, O> {
+
+        public ForeignKeyAttribute() {
+            super(primaryKeyAttribute.getAttributeType(), objectType, ForeignKeyAttribute.class.getSimpleName() + "_" + primaryKeyAttribute.getAttributeName());
+        }
+
+        @Override
+        public O getValue(A foreignKey, QueryOptions queryOptions) {
+            return SQLiteIdentityIndex.this.retrieve(equal(primaryKeyAttribute, foreignKey), noQueryOptions()).uniqueResult();
+        }
+    }
+
+    /**
+     * Creates a new {@link SQLiteIdentityIndex} for the given primary key attribute and connection manager.
      *
      * @param primaryKeyAttribute The {@link SimpleAttribute} representing a primary key on which the index will be built.
      * @param connectionManager The {@link ConnectionManager}
      * @param <A> The type of the attribute.
      * @param <O> The type of the object containing the attributes.
-     * @return a new instance of a standalone {@link OffHeapIdentityIndex}
+     * @return a new instance of a standalone {@link SQLiteIdentityIndex}
      */
-    public static <A extends Comparable<A>, O> OffHeapIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute,
+    public static <A extends Comparable<A>, O> SQLiteIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute,
                                                            final ConnectionManager connectionManager) {
-        return new OffHeapIdentityIndex<A, O>(primaryKeyAttribute, connectionManager);
+        return new SQLiteIdentityIndex<A, O>(primaryKeyAttribute, connectionManager);
     }
 }

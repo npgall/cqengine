@@ -30,5 +30,5 @@ public interface AttributeIndex<A, O> extends Index<O> {
      *
      * @return The attribute indexed by this index
      */
-    public Attribute<O, A> getAttribute();
+    Attribute<O, A> getAttribute();
 }

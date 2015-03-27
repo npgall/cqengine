@@ -30,6 +30,7 @@ import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableSet;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.persistence.support.PersistentSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.logical.And;
@@ -91,6 +92,12 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public void init(final Set<O> collection, final QueryOptions queryOptions) {
         this.collection = collection;
+        if (collection instanceof PersistentSet) {
+            // If the collection is backed by a PersistentSet, add the backing index of the PersistentSet
+            // so it can also be used as a regular index to accelerate queries...
+            PersistentSet<O, ? extends Comparable<?>> persistentSet = (PersistentSet<O, ? extends Comparable<?>>)collection;
+            addIndex(persistentSet.getBackingIndex());
+        }
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {

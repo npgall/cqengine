@@ -1,8 +1,8 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.google.common.collect.Lists;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.support.sqlite.support.DBQueries;
+import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -24,11 +24,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link OffHeapIndex}
+ * Unit tests for {@link SQLiteIndex}
  *
  * @author Silvano Riz
  */
-public class OffHeapIndexTest {
+public class SQLiteIndexTest {
 
     private static final String TABLE_NAME = "cqtbl_features";
     private static final String INDEX_NAME = "cqidx_features_value";
@@ -53,7 +53,7 @@ public class OffHeapIndexTest {
     @Test
     public void testNewStandalone() throws Exception {
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = SQLiteIndex.onAttribute(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -66,7 +66,7 @@ public class OffHeapIndexTest {
     @Test
     public void testNewNonStandalone() throws Exception {
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = SQLiteIndex.onAttribute(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT
@@ -80,7 +80,7 @@ public class OffHeapIndexTest {
 
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -97,7 +97,7 @@ public class OffHeapIndexTest {
         QueryOptions queryOptions = mock(QueryOptions.class);
         when(queryOptions.get(ConnectionManager.class)).thenReturn(connectionManager);
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -118,8 +118,8 @@ public class OffHeapIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {1});
@@ -130,7 +130,7 @@ public class OffHeapIndexTest {
         removedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
         @SuppressWarnings({"unchecked", "unused"})
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -162,8 +162,8 @@ public class OffHeapIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
@@ -173,7 +173,7 @@ public class OffHeapIndexTest {
         addedObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
         // Create the index and cal the addAll
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -207,13 +207,13 @@ public class OffHeapIndexTest {
         Statement statement1 = mock(Statement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.createStatement()).thenReturn(statement1);
 
         @SuppressWarnings({"unchecked", "unused"})
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -237,7 +237,7 @@ public class OffHeapIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -245,7 +245,7 @@ public class OffHeapIndexTest {
         );
 
         carFeaturesOffHeapIndex.init(Collections.<Car>emptySet(), new QueryOptions());
-        verify(connectionManager, times(0)).getConnection(any(OffHeapIndex.class));
+        verify(connectionManager, times(0)).getConnection(any(SQLiteIndex.class));
     }
 
     @Test
@@ -259,8 +259,8 @@ public class OffHeapIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection).thenReturn(connection1);
-        when(connectionManager.isApplyUpdateForIndexEnabled(any(OffHeapIndex.class))).thenReturn(true);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
 
@@ -269,7 +269,7 @@ public class OffHeapIndexTest {
         initWithObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
         initWithObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
 
-        OffHeapIndex<String, Car, Integer> carFeaturesOffHeapIndex = new OffHeapIndex<String, Car, Integer>(
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -305,14 +305,14 @@ public class OffHeapIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt(1)).thenReturn(3);
 
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -336,7 +336,7 @@ public class OffHeapIndexTest {
         ConnectionManager connectionManager = mock(ConnectionManager.class);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -344,7 +344,7 @@ public class OffHeapIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
-        assertEquals(OffHeapIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
+        assertEquals(SQLiteIndex.INDEX_RETRIEVAL_COST, carsWithAbs.getRetrievalCost());
 
     }
 
@@ -358,7 +358,7 @@ public class OffHeapIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -366,7 +366,7 @@ public class OffHeapIndexTest {
         when(resultSet.getInt(1)).thenReturn(3);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -395,7 +395,7 @@ public class OffHeapIndexTest {
         java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
         when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
         when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
@@ -406,7 +406,7 @@ public class OffHeapIndexTest {
         when(resultSetDoNotContain.getInt(1)).thenReturn(0);
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 ID_TO_OBJECT,
@@ -440,7 +440,7 @@ public class OffHeapIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -450,7 +450,7 @@ public class OffHeapIndexTest {
 
         // Iterator
         try {
-            ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+            ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                     Car.FEATURES,
                     OBJECT_TO_ID,
                     idToObject,
@@ -485,7 +485,7 @@ public class OffHeapIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -495,7 +495,7 @@ public class OffHeapIndexTest {
         when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 idToObject,
@@ -535,7 +535,7 @@ public class OffHeapIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(OffHeapIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
         when(connection.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -545,7 +545,7 @@ public class OffHeapIndexTest {
         when(idToObject.getValue(3, queryOptions)).thenReturn(data.get(2));
 
         // Iterator
-        ResultSet<Car> carsWithAbs = new OffHeapIndex<String, Car, Integer>(
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
                 idToObject,
@@ -569,7 +569,7 @@ public class OffHeapIndexTest {
     @Test
     public void testRowIterable(){
 
-        Iterable<DBQueries.Row<Integer, String>> rows = OffHeapIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
+        Iterable<DBQueries.Row<Integer, String>> rows = SQLiteIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
         Assert.assertNotNull(rows);
 
         Iterator<DBQueries.Row<Integer, String>> rowsIterator = rows.iterator();
@@ -590,7 +590,7 @@ public class OffHeapIndexTest {
     @Test
     public void testObjectKeyIterable(){
 
-        Iterable<Integer> objectKeys = OffHeapIndex.objectKeyIterable(data, Car.CAR_ID, null);
+        Iterable<Integer> objectKeys = SQLiteIndex.objectKeyIterable(data, Car.CAR_ID, null);
         Assert.assertNotNull(objectKeys);
 
         Iterator<Integer> objectKeysIterator = objectKeys.iterator();
@@ -611,7 +611,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_AllAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -632,7 +632,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_AllDescending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -653,7 +653,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_GreaterThanExclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -683,7 +683,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_GreaterThanInclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -705,7 +705,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_LessThanExclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -735,7 +735,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_LessThanInclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -757,7 +757,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_BetweenExclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -779,7 +779,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_BetweenInclusiveAscending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {
@@ -801,7 +801,7 @@ public class OffHeapIndexTest {
     @Test
     public void testGetDistinctKeys_BetweenInclusiveDescending(){
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
-        OffHeapIndex<String, Car, Integer> offHeapIndex = OffHeapIndex.onAttribute(
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
                 Car.MODEL,
                 Car.CAR_ID,
                 new SimpleAttribute<Integer, Car>() {

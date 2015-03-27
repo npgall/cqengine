@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
 

@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.support.sqlite;
+package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
 import org.junit.Assert;
@@ -146,44 +146,6 @@ public class TemporaryDatabase {
                 public Connection getConnection(Index<?> index) {
                     try {
                         return dataSource.getConnection();
-                    } catch (Exception e) {
-                        throw new IllegalStateException("Unable to create connection to: " + url);
-                    }
-                }
-
-                @Override
-                public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
-                    return applyUpdateForIndexEnabled;
-                }
-            };
-        }
-
-        /**
-         * Returns the {@link ConnectionManager} for the tmp database.
-         *
-         * @return The {@link ConnectionManager} for the tmp database.
-         */
-        public ConnectionManager getSingleConnectionManager(final boolean applyUpdateForIndexEnabled) {
-            return new ConnectionManager() {
-
-                Connection singleConnection;
-
-                @Override
-                public Connection getConnection(Index<?> index) {
-                    try {
-                        if (singleConnection != null)
-                            return singleConnection;
-
-                        synchronized (this) {
-                            if (singleConnection != null)
-                                return singleConnection;
-                            else {
-                                singleConnection = createConnectionProxy(dataSource.getConnection());
-                                singleConnections.add(singleConnection);
-                            }
-                            return singleConnection;
-
-                        }
                     } catch (Exception e) {
                         throw new IllegalStateException("Unable to create connection to: " + url);
                     }
