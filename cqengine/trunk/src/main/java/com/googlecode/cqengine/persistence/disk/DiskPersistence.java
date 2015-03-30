@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.util.Set;
 
 /**
+ * Specifies that a collection or indexes should be persisted to a particular file on disk.
+ *
  * @author niall.gallagher
  */
 public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
@@ -84,6 +86,14 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
         return new SQLitePersistentSet<O, A>(this);
     }
 
+    /**
+     * Creates a {@link DiskPersistence} object which persists to a temp file on disk. The exact temp file used can
+     * be determined by calling the {@link #getFile()} method.
+     *
+     * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
+     * @return A {@link DiskPersistence} object which persists to a temp file on disk
+     * @see #onPrimaryKeyInFile(SimpleAttribute, File)
+     */
     public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
         File tempFile;
         try {
@@ -95,6 +105,13 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
         return new DiskPersistence<O, A>(primaryKeyAttribute, tempFile);
     }
 
+    /**
+     * Creates a {@link DiskPersistence} object which persists to a given file on disk.
+     *
+     * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
+     * @param file The file on disk to which data should be persisted
+     * @return A {@link DiskPersistence} object which persists to the given file on disk
+     */
     public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFile(SimpleAttribute<O, A> primaryKeyAttribute, File file) {
         return new DiskPersistence<O, A>(primaryKeyAttribute, file);
     }

@@ -114,7 +114,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      */
     @Override
     public void addIndex(Index<O> index) {
-        addIndex(index, QueryFactory.noQueryOptions());
+        addIndex(index, noQueryOptions());
     }
 
     /**
@@ -278,7 +278,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
      */
     @Override
     public ResultSet<O> retrieve(Query<O> query) {
-        return retrieveRecursive(query, QueryFactory.noQueryOptions());
+        return retrieve(query, noQueryOptions());
     }
 
     /**

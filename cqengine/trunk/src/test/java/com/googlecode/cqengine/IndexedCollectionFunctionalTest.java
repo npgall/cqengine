@@ -942,7 +942,7 @@ public class IndexedCollectionFunctionalTest {
                                     carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3);
                                 }};
                             }},
-                            new QueryToEvaluate() {{ // TODO: this fails to close a database connection
+                            new QueryToEvaluate() {{
                                 query = and(greaterThanOrEqualTo(Car.CAR_ID, 3), lessThanOrEqualTo(Car.CAR_ID, 6));
                                 queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
                                 expectedResults = new ExpectedResults() {{
@@ -977,13 +977,13 @@ public class IndexedCollectionFunctionalTest {
                     );
                     indexCombinations = indexCombinations(
                             indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
-                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID))//,
-//                            indexCombination(OffHeapIndex.onAttribute( // TODO reenable this combination
-//                                            Car.CAR_ID,
-//                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-//                                            createForeignKeyAttribute()
-//                                    )
-//                            )
+                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID)),
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            Car.CAR_ID,
+                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+                                            createForeignKeyAttribute()
+                                    )
+                            )
                     );
                 }},
                 new MacroScenario() {{

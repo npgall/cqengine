@@ -71,8 +71,8 @@ public class ReflectiveAttributeTest {
         EqualsVerifier.forClass(ReflectiveAttribute.class)
                 .withRedefinedSuperclass()
                 .withPrefabValues(Field.class, Foo.class.getDeclaredField("foo"), Bar.class.getDeclaredField("bar"))
-                .withCachedHashCode("cachedHashCode", "calcHashCode")
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
                 .verify();
     }
 

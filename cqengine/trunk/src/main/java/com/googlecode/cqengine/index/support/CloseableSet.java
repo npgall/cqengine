@@ -2,9 +2,7 @@ package com.googlecode.cqengine.index.support;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Utility class to facilitate the addition of ResultSet's resources in the QueryOptions' CloseableQueryResources.
@@ -21,14 +19,10 @@ public class CloseableSet implements Closeable {
 
     @Override
     public void close() throws IOException {
-        for (Closeable closeable : closeables) {
-            try {
-                closeable.close();
-            }
-            catch (Exception e) {
-                // ignore.
-            }
+        for (Iterator<Closeable> iterator = closeables.iterator(); iterator.hasNext(); ) {
+            Closeable closeable = iterator.next();
+            CloseableQueryResources.closeQuietly(closeable);
+            iterator.remove();
         }
-        closeables.clear();
     }
 }

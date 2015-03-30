@@ -51,10 +51,10 @@ public class QueriesEqualsAndHashCodeTest {
      */
     @Test
     @UseDataProvider(value = "getQueryClassesForAutomatedValidation")
-    public void testQueryClass(Class queryClass) {
+    public void testQueryClass(Class<? extends Query> queryClass) {
         EqualsVerifier.forClass(queryClass)
-                .withCachedHashCode("cachedHashCode", "calcHashCode")
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
                 .verify();
     }
 
