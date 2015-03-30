@@ -45,23 +45,14 @@ public class CloseableQueryResources {
     }
 
     /**
-     * Close and release
-     *
-     * @param closeable the resource to close and release.
-     */
-    public void closeAndRemove(Closeable closeable) {
-        closeQuietly(closeable);
-        closeableQueryResources.remove(closeable);
-    }
-
-    /**
      * Close and release all the resources.
      */
     public void closeAll() {
-        for (Closeable closeable : closeableQueryResources) {
+        for (Iterator<Closeable> iterator = closeableQueryResources.iterator(); iterator.hasNext(); ) {
+            Closeable closeable = iterator.next();
             closeQuietly(closeable);
+            iterator.remove();
         }
-        closeableQueryResources.clear();
     }
 
     public static void closeQuietly(Closeable closeable) {

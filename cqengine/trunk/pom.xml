@@ -242,39 +242,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- ******************************************************************* -->
-        <!-- The source for EqualsVerifier is included temporarily in /test/src,
-             patched to support cached hash codes...                             -->
-
-        <!--<dependency>-->
-            <!--<groupId>nl.jqno.equalsverifier</groupId>-->
-            <!--<artifactId>equalsverifier</artifactId>-->
-            <!--<version>1.6.1-SNAPSHOT</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
-
-        <!-- Dependencies of EqualsVerifier, included temporarily... -->
-
         <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
-            <version>2.1</version>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
+            <version>1.7.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>3.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>5.0.3</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- ******************************************************************* -->
 
     </dependencies>
     <profiles>

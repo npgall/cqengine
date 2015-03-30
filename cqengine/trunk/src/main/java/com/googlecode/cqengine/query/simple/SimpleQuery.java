@@ -34,7 +34,7 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
     protected final Attribute<O, A> attribute;
     protected final SimpleAttribute<O, A> simpleAttribute;
     // Lazy calculate and cache hash code...
-    protected transient int cachedHashCode = 0;
+    private transient int cachedHashCode = 0;
 
     /**
      * Creates a new {@link SimpleQuery} initialized to make assertions on values of the specified attribute

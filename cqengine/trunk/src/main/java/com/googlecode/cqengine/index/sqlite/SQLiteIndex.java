@@ -197,7 +197,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
             @Override
             public void close() {
-                closeableQueryResources.closeAndRemove(resultSetResourcesToClose);
+                CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
             }
         };
 
@@ -467,7 +467,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                     @Override
                     public void close() {
-                        closeableQueryResources.closeAndRemove(resultSetResourcesToClose);
+                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
                     }
                 };
             }

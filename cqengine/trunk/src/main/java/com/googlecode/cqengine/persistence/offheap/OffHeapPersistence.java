@@ -1,5 +1,6 @@
 package com.googlecode.cqengine.persistence.offheap;
 
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
@@ -15,6 +16,34 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Specifies that a collection or indexes should be persisted in native memory, within the JVM process but outside the
+ * Java heap.
+ * <p/>
+ * Each instance of this object specifies persistence to a different area of memory. So for example, to have an
+ * {@link com.googlecode.cqengine.IndexedCollection} and multiple indexes all persist to the same area of memory,
+ * configure them all to persist via the same instance of this object.
+ * <p/>
+ * <b>Garbage collection</b><br/>
+ * The memory allocated off-heap will be freed automatically when this object is garbage collected. So using off-heap
+ * memory does not require any special handling per-se. This object will be garbage collected when any
+ * {@link com.googlecode.cqengine.IndexedCollection} or indexes using this object for persistence (which hold a
+ * reference to this object internally) are garbage collected, and the application also releases any direct reference to
+ * this object which it might be holding.
+ * <p/>
+ * <b>Garbage collection - implementation details</b><br/>
+ * Internally this persistence strategy will open a connection to an in-memory SQLite database, and it will hold open
+ * a connection to that database until either this object is garbage collected, or the {@link  #close()} method is
+ * called explicitly. (The {@link  #finalize()} method of this object calls {@link #close()} automatically.)
+ * <p/>
+ * This object provides additional connections to the database on-demand; which the {@link IndexedCollection}
+ * and indexes will request on-the-fly as necessary whenever the collection or indexes need to be read or updated.
+ * SQLite automatically frees the memory used by an in-memory database when the last connection to the
+ * database is closed. So by holding open a connection, this object keeps the in-memory database alive between requests.
+ * <p/>
+ * In terms of memory usage, the application can treat this as a very large object. The memory will be freed when this
+ * object is garbage collected, but the application can also free memory sooner by calling {@link #close()}, but
+ * this is optional.
+ *
  * @author niall.gallagher
  */
 public class OffHeapPersistence<O, A extends Comparable<A>> implements Persistence<O, A>, Closeable {
@@ -110,6 +139,13 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
         return new SQLitePersistentSet<O, A>(this);
     }
 
+    /**
+     * Creates an {@link OffHeapPersistence} object which persists to native memory, within the JVM process but outside
+     * the Java heap.
+     *
+     * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
+     * @return An {@link OffHeapPersistence} object which persists to native memory
+     */
     public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
         return new OffHeapPersistence<O, A>(primaryKeyAttribute);
     }
