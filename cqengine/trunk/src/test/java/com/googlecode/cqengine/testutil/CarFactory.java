@@ -15,7 +15,10 @@
  */
 package com.googlecode.cqengine.testutil;
 
+import com.googlecode.concurrenttrees.common.LazyIterator;
+
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Arrays.asList;
 
@@ -30,6 +33,22 @@ public class CarFactory {
             cars.add(createCar(carId));
         }
         return cars;
+    }
+
+    public static Iterable<Car> createIterableOfCars(final int numCars) {
+        final AtomicInteger count = new AtomicInteger();;
+        return new Iterable<Car>() {
+            @Override
+            public Iterator<Car> iterator() {
+                return new LazyIterator<Car>() {
+                    @Override
+                    protected Car computeNext() {
+                        int carId = count.getAndIncrement();
+                        return carId < numCars ? createCar(carId) : endOfData();
+                    }
+                };
+            }
+        };
     }
 
     public static Car createCar(int carId) {

@@ -186,7 +186,6 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
 
 
     /**
-     * {@inheritDoc}
      * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
      * {@link java.util.Collections#newSetFromMap(java.util.Map)}
      */

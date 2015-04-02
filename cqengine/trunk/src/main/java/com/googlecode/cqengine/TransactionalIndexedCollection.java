@@ -38,7 +38,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * {@code objectToRemove.equals(objectToAdd)} should return {@code false}. That is, the sets of objects to be removed
  * and added must be <i>disjoint</i>. You can achieve that by adding a hidden version field in your object as follows:
  * <pre>
- * {@code
+ * <code>
  *
  * public class Car {
  *
@@ -53,12 +53,12 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  *         this.name = name;
  *     }
  *
- *     @Override
+ *     {@literal @Override}
  *     public int hashCode() {
  *         return carId;
  *     }
  *
- *     @Override
+ *     {@literal @Override}
  *     public boolean equals(Object o) {
  *         if (this == o) return true;
  *         if (o == null || getClass() != o.getClass()) return false;
@@ -68,7 +68,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  *         return true;
  *     }
  * }
- * }
+ * </code>
  * </pre>
  * <b>Argument validation</b><br/>
  * By default this class will <b>validate</b> that objects to be replaced adhere to the requirement above, which adds

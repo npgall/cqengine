@@ -15,4 +15,14 @@ import java.util.Set;
 public interface Persistence<O, A extends Comparable<A>> extends ConnectionManager, Factory<Set<O>> {
 
     SimpleAttribute<O, A> getPrimaryKeyAttribute();
+
+    /**
+     * @return The number of bytes used to persist the collection and/or indexes
+     */
+    long getBytesUsed();
+
+    /**
+     * Compacts the underlying persistence, which returns unused memory or disk space to the operating system.
+     */
+    void compact();
 }

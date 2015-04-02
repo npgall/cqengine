@@ -228,7 +228,6 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
 
 
     /**
-     * {@inheritDoc}
      * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
      * {@link java.util.Collections#newSetFromMap(java.util.Map)}
      */
