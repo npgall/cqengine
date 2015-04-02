@@ -121,6 +121,40 @@ public class DBQueries {
         }
     }
 
+    public static void compactDatabase(final Connection connection){
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("VACUUM;");
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to compact database", e);
+        }finally{
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static long getDatabaseSize(final Connection connection){
+        long pageCount = readPragmaLong(connection, "PRAGMA page_count;");
+        long pageSize = readPragmaLong(connection, "PRAGMA page_size;");
+        return pageCount * pageSize;
+    }
+
+    static long readPragmaLong(final Connection connection, String query) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            java.sql.ResultSet resultSet = statement.executeQuery(query);
+            if (!resultSet.next()){
+                throw new IllegalStateException("Unable to read long from pragma query. The ResultSet returned no row. Query: " + query);
+            }
+            return resultSet.getLong(1);
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to read long from pragma query", e);
+        }finally{
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
     public static <K,A> int bulkAdd(Iterable<Row<K, A>> rows, final String tableName, final Connection connection){
         final String sql = String.format("INSERT OR IGNORE INTO cqtbl_%s values(?, ?);", tableName);
         PreparedStatement statement = null;

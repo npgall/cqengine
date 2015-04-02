@@ -352,6 +352,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         try {
             connection = connectionManager.getConnection(this);
             DBQueries.clearIndexTable(tableName, connection);
+            DBQueries.compactDatabase(connection);
         }finally {
             DBUtils.closeQuietly(connection);
         }

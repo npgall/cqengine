@@ -186,7 +186,6 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
 
 
     /**
-     * {@inheritDoc}
      * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via
      * {@link java.util.Collections#newSetFromMap(java.util.Map)}
      */

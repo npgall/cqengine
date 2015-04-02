@@ -3,6 +3,7 @@ package com.googlecode.cqengine.persistence.offheap;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLitePersistentSet;
@@ -99,6 +100,30 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
     @Override
     public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
         return true;
+    }
+
+    @Override
+    public long getBytesUsed() {
+        Connection connection = null;
+        try {
+            connection = getConnection(null);
+            return DBQueries.getDatabaseSize(connection);
+        }
+        finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
+    @Override
+    public void compact() {
+        Connection connection = null;
+        try {
+            connection = getConnection(null);
+            DBQueries.compactDatabase(connection);
+        }
+        finally {
+            DBUtils.closeQuietly(connection);
+        }
     }
 
     @Override
