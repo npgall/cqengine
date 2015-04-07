@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.connective;
 
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.common.CostCachingResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.common.QueryCostComparators;
@@ -39,7 +40,7 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         // Sort the supplied result sets in ascending order of merge cost...
         List<ResultSet<O>> sortedResultSets = new ArrayList<ResultSet<O>>();
         for (ResultSet<O> resultSet : resultSets){
-            sortedResultSets.add(resultSet);
+            sortedResultSets.add(new CostCachingResultSet<O>(resultSet, queryOptions));
         }
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
         this.resultSets = sortedResultSets;
