@@ -43,10 +43,12 @@ public class QueryCostComparators {
 
         @Override
         public int compare(ResultSet o1, ResultSet o2) {
-            if (o1.getRetrievalCost() < o2.getRetrievalCost()) {
+            final int o1RetrievalCost = o1.getRetrievalCost();
+            final int o2RetrievalCost = o2.getRetrievalCost();
+            if (o1RetrievalCost < o2RetrievalCost) {
                 return -1;
             }
-            else if (o1.getRetrievalCost() > o2.getRetrievalCost()) {
+            else if (o1RetrievalCost > o2RetrievalCost) {
                 return +1;
             }
             else {
@@ -59,10 +61,12 @@ public class QueryCostComparators {
 
         @Override
         public int compare(ResultSet o1, ResultSet o2) {
-            if (o1.getMergeCost() < o2.getMergeCost()) {
+            final int o1MergeCost = o1.getMergeCost();
+            final int o2MergeCost = o2.getMergeCost();
+            if (o1MergeCost < o2MergeCost) {
                 return -1;
             }
-            else if (o1.getMergeCost() > o2.getMergeCost()) {
+            else if (o1MergeCost > o2MergeCost) {
                 return +1;
             }
             else {
