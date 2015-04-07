@@ -16,7 +16,7 @@
 package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngineInternal;
-import com.googlecode.cqengine.engine.IndexQueryEngine;
+import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.support.Factory;
@@ -29,7 +29,7 @@ import java.util.*;
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
- * An implementation of {@link java.util.Set} which additionally wraps {@link QueryEngineInternal}, thus providing
+ * An implementation of {@link java.util.Set} and {@link com.googlecode.cqengine.engine.QueryEngine}, thus providing
  * {@link #retrieve(com.googlecode.cqengine.query.Query)} methods for performing queries on the collection to retrieve
  * matching objects, and {@link #addIndex(com.googlecode.cqengine.index.Index)} methods allowing indexes to be
  * added to the collection to improve query performance.
@@ -76,7 +76,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     public ConcurrentIndexedCollection(Factory<Set<O>> backingSetFactory) {
         this.collection = backingSetFactory.create();
-        QueryEngineInternal<O> queryEngine = new IndexQueryEngine<O>();
+        QueryEngineInternal<O> queryEngine = new CollectionQueryEngine<O>();
         queryEngine.init(collection, noQueryOptions());
         this.indexEngine = queryEngine;
     }

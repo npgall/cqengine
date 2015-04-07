@@ -32,7 +32,6 @@ import com.googlecode.cqengine.index.support.CloseableSet;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.persistence.support.PersistentSet;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
@@ -68,7 +67,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  *
  * @author Niall Gallagher
  */
-public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
+public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     private volatile Set<O> collection = Collections.emptySet();
 
@@ -86,7 +85,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
     // the outer ResultSet.close() method to close resources added to QueryOptions...
     private volatile boolean useCloseableResultSet = false;
 
-    public IndexQueryEngine() {
+    public CollectionQueryEngine() {
     }
 
     @Override
@@ -875,7 +874,7 @@ public class IndexQueryEngine<O> implements QueryEngineInternal<O> {
 
     /**
      * A closure/callback object invoked for each index in turn by method
-     * {@link IndexQueryEngine#forEachIndexDo(IndexOperation)}.
+     * {@link CollectionQueryEngine#forEachIndexDo(IndexOperation)}.
      */
     interface IndexOperation<O> {
         /**
