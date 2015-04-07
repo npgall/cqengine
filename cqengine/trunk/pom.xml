@@ -313,6 +313,7 @@
                             <excludes>
                                 <exclude>src/test/resources/**</exclude>
                             </excludes>
+                            <strictCheck>true</strictCheck>
                         </configuration>
                         <executions>
                             <execution>
