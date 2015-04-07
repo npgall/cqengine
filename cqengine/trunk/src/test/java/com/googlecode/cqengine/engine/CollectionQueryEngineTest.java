@@ -1,3 +1,18 @@
+/**
+ * Copyright 2012 Niall Gallagher
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.googlecode.cqengine.engine;
 
 import com.googlecode.cqengine.index.compound.CompoundIndex;
@@ -13,11 +28,11 @@ import org.junit.Test;
 
 import java.util.Collections;
 
-public class IndexQueryEngineTest {
+public class CollectionQueryEngineTest {
 
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation1() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(null);
@@ -25,7 +40,7 @@ public class IndexQueryEngineTest {
 
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation2() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.retrieveRecursive(new Query<Car>() {
@@ -38,13 +53,13 @@ public class IndexQueryEngineTest {
 
     @Test
     public void testGetClassName() throws Exception {
-        Assert.assertEquals(IndexQueryEngineTest.class.getName(), IndexQueryEngine.getClassNameNullSafe(this));
-        Assert.assertNull(IndexQueryEngine.getClassNameNullSafe(null));
+        Assert.assertEquals(CollectionQueryEngineTest.class.getName(), CollectionQueryEngine.getClassNameNullSafe(this));
+        Assert.assertNull(CollectionQueryEngine.getClassNameNullSafe(null));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateStandingQueryIndex() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)));
@@ -53,7 +68,7 @@ public class IndexQueryEngineTest {
 
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateCompoundIndex() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL));
@@ -62,7 +77,7 @@ public class IndexQueryEngineTest {
 
     @Test
     public void testIsMutable() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         Assert.assertTrue(queryEngine.isMutable());
@@ -72,7 +87,7 @@ public class IndexQueryEngineTest {
 
     @Test(expected = IllegalStateException.class)
     public void testEnsureMutable() throws Exception {
-        IndexQueryEngine<Car> queryEngine = new IndexQueryEngine<Car>();
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
 
         queryEngine.addIndex(createImmutableIndex());

@@ -24,7 +24,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import java.util.Set;
 
 /**
- * A Java collection which can maintain indexes on the data contained in in, allowing objects matching complex queries
+ * A Java collection which can maintain indexes on the objects it contains, allowing objects matching complex queries
  * to be retrieved with very low latency.
  * <p/>
  * The {@link #retrieve(com.googlecode.cqengine.query.Query)} methods accept a {@link com.googlecode.cqengine.query.Query}
