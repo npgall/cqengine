@@ -50,7 +50,7 @@ public class GenerateAttributeByteCode {
 }}}
 
 = !AttributeSourceGenerator =
-CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html AttributeSourceGenerator], which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class.
+CQEngine also provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html AttributeSourceGenerator], which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class.
 
 The source code for attributes can either be generated for the purpose of copy & pasting into the target  class, or attributes can be generated into a separate companion class.
 
