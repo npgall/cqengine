@@ -20,7 +20,7 @@ import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 /**
  * Demonstrates how to auto-generate source code for a complete class containing CQEngine attributes which access fields
  * in a given target class.
- * 
+ *
  * @author Niall Gallagher
  */
 public class GenerateSeparateAttributesClass {
