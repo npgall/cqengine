@@ -1,7 +1,11 @@
 #summary How to generate CQEngine attributes automatically
 #labels Featured
 
-= !AttributesGenerator =
+CQEngine provides two methods for generating attributes automatically: source code, or bytecode.
+
+<wiki:toc max_depth="2" />
+
+= !AttributeSourceGenerator =
 CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html AttributeSourceGenerator] utility, which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class. Thus it is not necessary to write attributes by hand.
 
 <wiki:toc max_depth="3" />
