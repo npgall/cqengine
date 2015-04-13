@@ -1,7 +1,7 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
-===Version 2.0.0 - 2015-04-14===
+===Version 2.0.0 - 2015-04-07===
  * Support for read-committed transaction isolation using multi-version concurrency control (MVCC) (see `TransactionalIndexedCollection`)
  * New ordering algorithm which can take advantage of indexes (see `orderingStrategy(INDEX)`)
  * `IndexedCollection` can now be located in off-heap memory, or persisted on disk (see `OffHeapPersistence` and `DiskPersistence`)
