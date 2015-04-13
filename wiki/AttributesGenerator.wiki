@@ -2,7 +2,7 @@
 #labels Featured
 
 = !AttributesGenerator =
-CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributesGenerator.html AttributesGenerator] utility, which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class. Thus it is not necessary to write attributes by hand.
+CQEngine provides an [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html AttributeSourceGenerator] utility, which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class. Thus it is not necessary to write attributes by hand.
 
 <wiki:toc max_depth="3" />
 
@@ -32,11 +32,11 @@ public class Car {
 Usage:
 {{{
 package com.googlecode.cqengine.examples.codegen;
-import com.googlecode.cqengine.codegen.AttributesGenerator;
+import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
 public class GenerateAttributesForCopyPaste {
     public static void main(String[] args) {
-        System.out.println(AttributesGenerator.generateAttributesForPastingIntoTargetClass(Car.class));
+        System.out.println(AttributeSourceGenerator.generateAttributesForPastingIntoTargetClass(Car.class));
     }
 }
 }}}
@@ -46,7 +46,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
      * CQEngine attribute for accessing field {@code Car.carId}.
      */
     public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("CAR_ID") {
-        public Integer getValue(Car car) { return car.carId; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
     /**
@@ -55,7 +55,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
     // Note: For best performance:
     // - if this field cannot be null, replace this SimpleNullableAttribute with a SimpleAttribute
     public static final Attribute<Car, String> MANUFACTURER = new SimpleNullableAttribute<Car, String>("MANUFACTURER") {
-        public String getValue(Car car) { return car.manufacturer; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.manufacturer; }
     };
 
     /**
@@ -64,7 +64,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
     // Note: For best performance:
     // - if this field cannot be null, replace this SimpleNullableAttribute with a SimpleAttribute
     public static final Attribute<Car, String> MODEL = new SimpleNullableAttribute<Car, String>("MODEL") {
-        public String getValue(Car car) { return car.model; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.model; }
     };
 
     /**
@@ -74,7 +74,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
     // - if this field cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, Double> PRICES = new MultiValueNullableAttribute<Car, Double>("PRICES", false) {
-        public List<Double> getNullableValues(final Car car) {
+        public Iterable<Double> getNullableValues(final Car car, QueryOptions queryOptions) {
             return new AbstractList<Double>() {
                 public Double get(int i) { return car.prices[i]; }
                 public int size() { return car.prices.length; }
@@ -90,7 +90,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
     // - if the array cannot contain null elements AND the field itself cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, String> EXTRAS = new MultiValueNullableAttribute<Car, String>("EXTRAS", true) {
-        public List<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }
+        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return Arrays.asList(car.extras); }
     };
 
     /**
@@ -101,18 +101,19 @@ Outputs source code for attributes, which can be copy & pasted directly into the
     // - if the list cannot contain null elements AND the field itself cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>("FEATURES", true) {
-        public List<String> getNullableValues(Car car) { return car.features; }
+        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return car.features; }
     };
 }}}
 == Option 2: Generate a companion class ==
 Usage:
 {{{
 package com.googlecode.cqengine.examples.codegen;
-import com.googlecode.cqengine.codegen.AttributesGenerator;
+import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
 public class GenerateSeparateAttributesClass {
+
     public static void main(String[] args) {
-        System.out.println(AttributesGenerator.generateSeparateAttributesClass(Car.class, Car.class.getPackage()));
+        System.out.println(AttributeSourceGenerator.generateSeparateAttributesClass(Car.class, Car.class.getPackage()));
     }
 }
 }}}
@@ -121,13 +122,14 @@ Outputs source code for a companion class containing the generated attributes:
 package com.googlecode.cqengine.examples.codegen;
 
 import com.googlecode.cqengine.attribute.*;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import java.util.*;
 import com.googlecode.cqengine.examples.codegen.Car;
 
 /**
  * CQEngine attributes for accessing fields in class {@code com.googlecode.cqengine.examples.codegen.Car}.
  * <p/>.
- * Auto-generated by CQEngine's {@code AttributesGenerator}.
+ * Auto-generated by CQEngine's {@code AttributeSourceGenerator}.
  */
 public class CQCar {
 
@@ -135,7 +137,7 @@ public class CQCar {
      * CQEngine attribute for accessing field {@code Car.carId}.
      */
     public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("CAR_ID") {
-        public Integer getValue(Car car) { return car.carId; }
+        public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
     /**
@@ -144,7 +146,7 @@ public class CQCar {
     // Note: For best performance:
     // - if this field cannot be null, replace this SimpleNullableAttribute with a SimpleAttribute
     public static final Attribute<Car, String> MANUFACTURER = new SimpleNullableAttribute<Car, String>("MANUFACTURER") {
-        public String getValue(Car car) { return car.manufacturer; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.manufacturer; }
     };
 
     /**
@@ -153,7 +155,7 @@ public class CQCar {
     // Note: For best performance:
     // - if this field cannot be null, replace this SimpleNullableAttribute with a SimpleAttribute
     public static final Attribute<Car, String> MODEL = new SimpleNullableAttribute<Car, String>("MODEL") {
-        public String getValue(Car car) { return car.model; }
+        public String getValue(Car car, QueryOptions queryOptions) { return car.model; }
     };
 
     /**
@@ -163,7 +165,7 @@ public class CQCar {
     // - if this field cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, Double> PRICES = new MultiValueNullableAttribute<Car, Double>("PRICES", false) {
-        public List<Double> getNullableValues(final Car car) {
+        public Iterable<Double> getNullableValues(final Car car, QueryOptions queryOptions) {
             return new AbstractList<Double>() {
                 public Double get(int i) { return car.prices[i]; }
                 public int size() { return car.prices.length; }
@@ -179,7 +181,7 @@ public class CQCar {
     // - if the array cannot contain null elements AND the field itself cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, String> EXTRAS = new MultiValueNullableAttribute<Car, String>("EXTRAS", true) {
-        public List<String> getNullableValues(Car car) { return Arrays.asList(car.extras); }
+        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return Arrays.asList(car.extras); }
     };
 
     /**
@@ -190,7 +192,7 @@ public class CQCar {
     // - if the list cannot contain null elements AND the field itself cannot be null, replace this
     //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())
     public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>("FEATURES", true) {
-        public List<String> getNullableValues(Car car) { return car.features; }
+        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return car.features; }
     };
 }
 }}}
