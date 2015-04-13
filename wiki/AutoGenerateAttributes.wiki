@@ -1,7 +1,7 @@
 #summary How to generate CQEngine attributes automatically
 #labels Featured
 
-CQEngine provides two methods for generating attributes automatically: source code, or bytecode.
+CQEngine provides two methods for generating attributes automatically: *source code*, or *bytecode*.
 
 <wiki:toc max_depth="2" />
 
