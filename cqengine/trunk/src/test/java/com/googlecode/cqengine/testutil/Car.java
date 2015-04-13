@@ -55,13 +55,13 @@ public class Car {
     };
 
     public enum Color {RED, GREEN, BLUE, BLACK, WHITE}
-    private final int carId;
-    private final String manufacturer;
-    private final String model;
-    private final Color color;
-    private final int doors;
-    private final double price;
-    private final List<String> features;
+    final int carId;
+    final String manufacturer;
+    final String model;
+    final Color color;
+    final int doors;
+    final double price;
+    final List<String> features;
 
     public Car(int carId, String manufacturer, String model, Color color, int doors, double price, List<String> features) {
         this.carId = carId;
