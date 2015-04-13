@@ -20,7 +20,7 @@ This is the default.
 
 Example usage:
 {{{
-    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
+    DeduplicationOption deduplication = deduplicate(DeduplicationStrategy.DUPLICATES_ALLOWED);
     ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
@@ -54,7 +54,7 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
 
 Example usage:
 {{{
-    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
+    DeduplicationOption deduplication = deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION);
     ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
@@ -74,7 +74,7 @@ Despite the typical interpretation, this does not materialize all objects up-fro
 
 Example usage:
 {{{
-    QueryOption<Car> deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
+    DeduplicationOption deduplication = deduplicate(DeduplicationStrategy.MATERIALIZE);
     ResultSet<Car> results = cars.retrieve(query, queryOptions(deduplication));
 }}}
 
