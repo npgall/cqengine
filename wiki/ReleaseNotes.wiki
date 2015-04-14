@@ -4,7 +4,7 @@
 ===Version 2.0.0 - 2015-04-07===
  * New `TransactionalIndexedCollection` supports read-committed transaction isolation using Multi-Version Concurrency Control (MVCC)
  * New ordering algorithm which can take advantage of indexes (see `orderingStrategy(INDEX)`)
- * New support to generate attributes automatically as bytecode
+ * New support to generate attributes automatically as bytecode (see `AttributeBytecodeGenerator`)
  * `IndexedCollection` can now be located in off-heap memory, or persisted on disk (see `OffHeapPersistence` and `DiskPersistence`)
  * New indexes can be located in off-heap memory, or persisted on disk (see `OffHeapIndex` and `DiskIndex`)
  * Tested with an !IndexedCollections of 100 million objects
