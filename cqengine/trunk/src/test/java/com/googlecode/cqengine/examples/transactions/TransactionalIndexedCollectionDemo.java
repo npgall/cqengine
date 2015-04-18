@@ -2,17 +2,16 @@ package com.googlecode.cqengine.examples.transactions;
 
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.TransactionalIndexedCollection;
-import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
-
-import java.util.Arrays;
 
 import static com.googlecode.cqengine.query.QueryFactory.all;
 import static java.util.Arrays.asList;
 
 /**
+ * Example usage for {@link com.googlecode.cqengine.TransactionalIndexedCollection}.
+ *
  * @author Niall Gallagher
  */
 public class TransactionalIndexedCollectionDemo {
