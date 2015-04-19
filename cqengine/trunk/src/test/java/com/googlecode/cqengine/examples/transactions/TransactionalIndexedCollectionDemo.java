@@ -41,14 +41,14 @@ public class TransactionalIndexedCollectionDemo {
         // ===== Examples of querying the collection using MVCC transactions... =====
 
         // Retrieve with READ_COMMITTED transaction isolation...
-        ResultSet<Car> resultSet = cars.retrieve(equal(Car.MANUFACTURER, "Ford"));
+        ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"));
         try {
-            for (Car car : resultSet) {
+            for (Car car : results) {
                 System.out.println(car); // prints car 1 ("Ford Fusion")
             }
         }
         finally {
-            resultSet.close(); // ..close the ResultSet when finished reading!
+            results.close(); // ..close the ResultSet when finished reading!
         }
     }
 }
