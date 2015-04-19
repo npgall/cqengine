@@ -44,7 +44,9 @@ finally {
 }
 }}}
 
-*_This page is out of date and needs to be updated as of CQEngine 2.0_*
+== Atomically replacing the same object ==
+
+Note that if you would like to replace an existing object with a new version of what is effectively the _same object_, then you will need to add a hidden version field to your object as discussed in the [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html JavaDoc].
 
 = Transaction Isolation without MVCC =
 
