@@ -24,7 +24,6 @@ import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
@@ -99,8 +98,7 @@ public class IndexedCollectionFunctionalTest {
                                     size = 1;
                                     carIdsAnyOrder = asSet(500);
                                 }};
-                            }}
-                            ,
+                            }},
                             new QueryToEvaluate() {{
                                 query = between(Car.CAR_ID, 500, 500);
                                 expectedResults = new ExpectedResults() {{
@@ -496,17 +494,6 @@ public class IndexedCollectionFunctionalTest {
                                             Car.CAR_ID,
                                             createForeignKeyAttribute(),
                                             temporaryFileDatabase.getConnectionManager(true)
-                                    )
-                            ),
-                            indexCombination(SQLiteIdentityIndex.onAttribute(
-                                            Car.CAR_ID,
-                                            temporaryFileDatabase.getConnectionManager(true)
-                                    )
-
-                            ),
-                            indexCombination(SQLiteIdentityIndex.onAttribute(
-                                            Car.CAR_ID,
-                                            temporaryInMemoryDatabase.getConnectionManager(true)
                                     )
                             ),
                             indexCombination(OffHeapIndex.onAttribute(
@@ -1339,7 +1326,7 @@ public class IndexedCollectionFunctionalTest {
     }
 
     static String getIndexDescription(Index index) {
-        String description = index.getClass().getSimpleName();
+        String description = index.getClass().getName();
         if (index instanceof CompoundIndex) {
             description += ".onAttribute(<CompoundAttribute>)";
         }

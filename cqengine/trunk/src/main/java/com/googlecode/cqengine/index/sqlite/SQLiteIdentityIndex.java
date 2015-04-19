@@ -20,8 +20,9 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.AttributeIndex;
+import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.index.support.ResourceIndex;
+import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -45,7 +46,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  *
  * @author niall.gallagher
  */
-public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, ResourceIndex {
+public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
     final SQLiteIndex<A, O, byte[]> offHeapIndex;
     final Class<O> objectType;
@@ -125,6 +126,50 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
             return kryo;
         }
     };
+
+    @Override
+    public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
+        return offHeapIndex.getDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public Integer getCountForKey(A key, QueryOptions queryOptions) {
+        return offHeapIndex.getCountForKey(key, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return offHeapIndex.getDistinctKeys(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending(QueryOptions queryOptions) {
+        return offHeapIndex.getDistinctKeysDescending(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return offHeapIndex.getDistinctKeysDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SQLiteIdentityIndex that = (SQLiteIdentityIndex) o;
+
+        if (!primaryKeyAttribute.equals(that.primaryKeyAttribute)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getClass().hashCode();
+        result = 31 * result + primaryKeyAttribute.hashCode();
+        return result;
+    }
 
     class SerializingAttribute extends SimpleAttribute<O, byte[]> {
 

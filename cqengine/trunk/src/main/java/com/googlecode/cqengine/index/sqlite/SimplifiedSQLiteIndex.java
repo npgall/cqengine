@@ -152,4 +152,23 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return backingIndex().getCountForKey(key, queryOptions);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SimplifiedSQLiteIndex that = (SimplifiedSQLiteIndex) o;
+
+        if (!attribute.equals(that.attribute)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getClass().hashCode();
+        result = 31 * result + attribute.hashCode();
+        return result;
+    }
 }

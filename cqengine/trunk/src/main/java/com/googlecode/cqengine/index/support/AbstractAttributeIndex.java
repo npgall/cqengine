@@ -66,4 +66,23 @@ public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, 
     public boolean supportsQuery(Query<O> query) {
         return supportedQueries.contains(query.getClass());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractAttributeIndex that = (AbstractAttributeIndex) o;
+
+        if (!attribute.equals(that.attribute)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getClass().hashCode();
+        result = 31 * result + attribute.hashCode();
+        return result;
+    }
 }
