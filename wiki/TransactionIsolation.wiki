@@ -2,7 +2,7 @@
 #labels Featured
 
 = READ_COMMITTED transaction isolation with MVCC =
-As of CQEngine 2.0, [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html TransactionalIndexedCollection] is included which implements Multi-Version Concurrency Control (MVCC), supporting READ_COMMITTED transaction isolation out of the box.
+As of CQEngine 2.0, [http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html TransactionalIndexedCollection] is included which implements [http://en.wikipedia.org/wiki/Multiversion_concurrency_control Multi-Version Concurrency Control] (MVCC), supporting [http://en.wikipedia.org/wiki/Isolation_%28database_systems%29 READ_COMMITTED transaction isolation] out of the box.
 
 A transaction is composed of a set of objects to be added to the collection, and a set of objects to be removed from the collection. Either one of those sets can be empty, so this supports bulk atomic addition and atomic removal of objects from the collection. But if both sets are non-empty then it allows bulk atomic replacement of objects in the collection.
 
