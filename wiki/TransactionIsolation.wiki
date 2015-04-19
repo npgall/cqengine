@@ -11,10 +11,10 @@ Reading threads are guaranteed to see a consistent version of the collection whe
 Example usage (source code [https://code.google.com/p/cqengine/source/browse/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/transactions/TransactionalIndexedCollectionDemo.java here]):
 {{{
 // Create example Car objects...
-Car car1 = CarFactory.createCar(1);
-Car car2 = CarFactory.createCar(2);
-Car car3 = CarFactory.createCar(3);
-Car car4 = CarFactory.createCar(4);
+Car car1 = CarFactory.createCar(1); // "Ford Fusion"
+Car car2 = CarFactory.createCar(2); // "Ford Taurus"
+Car car3 = CarFactory.createCar(3); // "Honda Civic"
+Car car4 = CarFactory.createCar(4); // "Honda Accord"
 
 // We will store the cars in TransactionalIndexedCollection, which provides MVCC support...
 IndexedCollection<Car> cars = new TransactionalIndexedCollection<Car>(Car.class);
@@ -32,15 +32,15 @@ cars.update(asList(car2), asList(car3, car4));
 
 // ===== Examples of querying the collection using MVCC transactions... =====
 
-// Read all cars with READ_COMMITTED transaction isolation...
-ResultSet<Car> allCars = cars.retrieve(all(Car.class));
+// Retrieve with READ_COMMITTED transaction isolation...
+ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"));
 try {
-    for (Car car : allCars) {
-        System.out.println(car); // prints cars 1, 3 & 4
+    for (Car car : results) {
+        System.out.println(car); // prints car 1 ("Ford Fusion")
     }
 }
 finally {
-    allCars.close(); // ..close the ResultSet when finished reading!
+    results.close(); // ..close the ResultSet when finished reading!
 }
 }}}
 
