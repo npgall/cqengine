@@ -17,6 +17,7 @@ package com.googlecode.cqengine.engine;
 
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -92,6 +93,24 @@ public class CollectionQueryEngineTest {
 
         queryEngine.addIndex(createImmutableIndex());
         queryEngine.addAll(Collections.singleton(CarFactory.createCar(1)), QueryFactory.noQueryOptions());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testAddDuplicateIndex() throws Exception {
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
+    }
+
+    @Test
+    public void testAddNonDuplicateIndex() throws Exception {
+        CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
+        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
+        queryEngine.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
     }
 
     static HashIndex<Integer, Car> createImmutableIndex() {

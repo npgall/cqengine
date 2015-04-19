@@ -20,6 +20,8 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
+import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
 import com.googlecode.cqengine.index.support.CloseableQueryResources;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.index.support.ResourceIndex;
@@ -158,7 +160,18 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             indexesOnThisAttribute = Collections.newSetFromMap(new ConcurrentHashMap<Index<O>, Boolean>());
             attributeIndexes.put(attribute, indexesOnThisAttribute);
         }
-        indexesOnThisAttribute.add(attributeIndex);
+        if (attributeIndex instanceof SimplifiedSQLiteIndex) {
+            // Ensure there is not already an identity index added for this attribute...
+            for (Index<O> existingIndex : indexesOnThisAttribute) {
+                if (existingIndex instanceof IdentityAttributeIndex) {
+                    throw new IllegalStateException("An identity index for persistence has already been added, and no additional non-heap indexes are allowed, on attribute: " + attribute);
+                }
+            }
+        }
+        // Add the index...
+        if (!indexesOnThisAttribute.add(attributeIndex)) {
+            throw new IllegalStateException("An equivalent index has already been added for attribute: " + attribute);
+        };
         attributeIndex.init(collection, queryOptions);
     }
 
@@ -382,10 +395,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     protected ResultSet<O> computeNext() {
                         Comparable currentKey = null;
                         if (!keysInRange.hasNext()) {
-                            if (lastKeyProcessed) {
+                            if (previousKey == null || lastKeyProcessed) {
+                                // Either there were no keys in the range, or we have finished processing them all...
                                 CloseableQueryResources.closeQuietly(keysInRange);
                                 return endOfData();
                             }
+                            // There are no more keys, but we do one final loop to process the last bucket...
                             lastKeyProcessed = true;
                         }
                         else {
