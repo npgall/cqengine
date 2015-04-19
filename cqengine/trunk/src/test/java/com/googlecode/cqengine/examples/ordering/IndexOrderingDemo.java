@@ -37,8 +37,8 @@ public class IndexOrderingDemo {
 
         ResultSet<Car> results = cars.retrieve(
                 between(Car.CAR_ID, 40, 50),
-                queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX)
-        ));
+                queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX))
+        );
         for (Car car : results) {
             System.out.println(car); // prints cars 50 -> 40, using the index for ordering
         }
