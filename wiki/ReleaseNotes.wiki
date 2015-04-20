@@ -8,8 +8,7 @@
  * `IndexedCollection` can now be located in off-heap memory, or persisted on disk (see `OffHeapPersistence` and `DiskPersistence`)
  * New indexes can be located in off-heap memory, or persisted on disk (see `OffHeapIndex` and `DiskIndex`)
  * Tested with an !IndexedCollections of 100 million objects
- * *CQEngine 2.0 contains some API changes since 1.3.2 - see the updated examples for details*
- * *Note: documentation on the new features is still being prepared*
+ * *CQEngine 2.0 contains some API changes since 1.3.2 - see the updated examples on the site for details*
  * Deployed to Maven central
 
 
