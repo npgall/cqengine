@@ -1,6 +1,11 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 2.0.1 - 2015-04-20===
+ * Fixed exception when using index ordering strategy, when a range of values in the query is not in the collection.
+ * Added validation to prevent duplicate indexes getting added.
+ * Deployed to Maven central
+
 ===Version 2.0.0 - 2015-04-07===
  * New `TransactionalIndexedCollection` supports read-committed transaction isolation using Multi-Version Concurrency Control (MVCC)
  * New ordering algorithm which can take advantage of indexes (see `orderingStrategy(INDEX)`)
@@ -10,7 +15,6 @@
  * Tested with an !IndexedCollections of 100 million objects
  * *CQEngine 2.0 contains some API changes since 1.3.2 - see the updated examples on the site for details*
  * Deployed to Maven central
-
 
 ===Version 1.3.2 - 2015-01-14===
  * Bugfix to `NavigableIndex`'s handling of range queries where the range values are exclusive and a quantizer is configured
