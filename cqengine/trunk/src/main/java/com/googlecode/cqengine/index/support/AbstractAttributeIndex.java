@@ -33,7 +33,7 @@ import java.util.*;
  */
 public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, O> {
 
-    private final Set<Class<? extends Query>> supportedQueries;
+    protected final Set<Class<? extends Query>> supportedQueries;
 
     protected final Attribute<O, A> attribute;
 
