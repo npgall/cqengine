@@ -305,10 +305,15 @@ public class DBQueries {
 
         }else if (queryClass == StringStartsWith.class){
             final StringStartsWith<O, ? extends CharSequence> stringStartsWith =(StringStartsWith<O, ? extends CharSequence>) query;
-            stringBuilder.append("WHERE value LIKE ?").append(suffix);
-            final String prefix = CharSequences.toString(stringStartsWith.getValue());
+            stringBuilder.append("WHERE value >= ? AND value < ?").append(suffix);
+            final String lowerBoundInclusive = CharSequences.toString(stringStartsWith.getValue());
+            final int len = lowerBoundInclusive.length();
+            final String allButLast = lowerBoundInclusive.substring(0, len - 1);
+            final String upperBoundExclusive = allButLast + Character.toChars(lowerBoundInclusive.charAt(len - 1) + 1)[0];
+
             statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, prefix + '%');
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lowerBoundInclusive);
+            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, upperBoundExclusive);
 
         }else if (queryClass == GreaterThan.class){
             final GreaterThan<O, ? extends Comparable<A>> greaterThan = (GreaterThan<O, ? extends Comparable<A>>)query;
