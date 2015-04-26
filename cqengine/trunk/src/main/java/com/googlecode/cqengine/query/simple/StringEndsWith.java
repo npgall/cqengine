@@ -96,8 +96,8 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
 
     @Override
     public String toString() {
-        return "endsWith(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                ", " + value +
+        return "endsWith(" + asLiteral(super.getAttributeName()) +
+                ", " + asLiteral(value) +
                 ")";
     }
 }

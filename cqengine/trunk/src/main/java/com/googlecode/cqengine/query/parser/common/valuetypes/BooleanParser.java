@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class BooleanParser extends AttributeValueParser<Boolean> {
+public class BooleanParser extends ValueParser<Boolean> {
 
     public BooleanParser() {
         super(Boolean.class);
     }
 
     @Override
-    public Boolean parseToAttributeType(String stringValue) {
+    public Boolean parse(String stringValue) {
         return Boolean.valueOf(stringValue);
     }
 }

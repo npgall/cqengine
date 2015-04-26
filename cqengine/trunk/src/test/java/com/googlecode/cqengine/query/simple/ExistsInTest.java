@@ -33,7 +33,7 @@ public class ExistsInTest {
         IndexedCollection<Garage> garages = new ConcurrentIndexedCollection<Garage>();
 
         Query<Car> existsIn = existsIn(garages, Car.NAME, Garage.BRANDS_SERVICED);
-        Assert.assertEquals("existsIn(IndexedCollection<Garage>, Car.name, Garage.brandsServiced)", existsIn.toString());
+        Assert.assertEquals("existsIn(IndexedCollection<Garage>, \"name\", \"brandsServiced\")", existsIn.toString());
     }
 
     @Test
@@ -42,6 +42,6 @@ public class ExistsInTest {
         IndexedCollection<Garage> garages = new ConcurrentIndexedCollection<Garage>();
 
         Query<Car> existsIn = existsIn(garages, Car.NAME, Garage.BRANDS_SERVICED, equal(Garage.LOCATION, "Dublin"));
-        Assert.assertEquals("existsIn(IndexedCollection<Garage>, Car.name, Garage.brandsServiced, equal(Garage.location, Dublin))", existsIn.toString());
+        Assert.assertEquals("existsIn(IndexedCollection<Garage>, \"name\", \"brandsServiced\", equal(\"location\", \"Dublin\"))", existsIn.toString());
     }
 }

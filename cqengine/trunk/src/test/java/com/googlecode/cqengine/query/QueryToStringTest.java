@@ -39,9 +39,9 @@ public class QueryToStringTest {
         );
         Assert.assertEquals(
                 "and(" +
-                    "equal(Car.manufacturer, Toyota), " +
-                    "equal(Car.color, BLUE), " +
-                    "equal(Car.doors, 3)" +
+                    "equal(\"manufacturer\", \"Toyota\"), " +
+                    "equal(\"color\", BLUE), " +
+                    "equal(\"doors\", 3)" +
                 ")",
                 query.toString()
         );
@@ -62,13 +62,13 @@ public class QueryToStringTest {
         Assert.assertEquals(
                 "and(" +
                     "or(" +
-                        "equal(Car.doors, 2), " +
-                        "equal(Car.doors, 4)" +
+                        "equal(\"doors\", 2), " +
+                        "equal(\"doors\", 4)" +
                     "), " +
                     "existsIn(IndexedCollection<Garage>, " +
-                        "Car.manufacturer, " +
-                        "Garage.brandsServiced, " +
-                        "equal(Garage.location, Dublin)" +
+                        "\"manufacturer\", " +
+                        "\"brandsServiced\", " +
+                        "equal(\"location\", \"Dublin\")" +
                     ")" +
                 ")",
                 query.toString()

@@ -48,13 +48,13 @@ public class GreaterThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     @Override
     public String toString() {
         if (valueInclusive) {
-            return "greaterThanOrEqualTo(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                    ", " + value +
+            return "greaterThanOrEqualTo(" + asLiteral(super.getAttributeName()) +
+                    ", " + asLiteral(value) +
                     ")";
         }
         else {
-            return "greaterThan(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                    ", " + value +
+            return "greaterThan(" + asLiteral(super.getAttributeName()) +
+                    ", " + asLiteral(value) +
                     ")";
         }
     }

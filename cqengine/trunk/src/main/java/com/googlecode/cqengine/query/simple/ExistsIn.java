@@ -86,15 +86,15 @@ final IndexedCollection<F> foreignCollection;
         if (foreignRestrictions == null) {
             return "existsIn(" +
                 "IndexedCollection<" + foreignKeyAttribute.getObjectType().getSimpleName() + ">" +
-                ", " + localKeyAttribute.getObjectType().getSimpleName() + "." + localKeyAttribute.getAttributeName() +
-                ", " + foreignKeyAttribute.getObjectType().getSimpleName() + "." + foreignKeyAttribute.getAttributeName() +
+                ", " + asLiteral(localKeyAttribute.getAttributeName()) +
+                ", " + asLiteral(foreignKeyAttribute.getAttributeName()) +
                 ")";
         }
         else {
             return "existsIn(" +
                 "IndexedCollection<" + foreignKeyAttribute.getObjectType().getSimpleName() + ">" +
-                ", " + localKeyAttribute.getObjectType().getSimpleName() + "." + localKeyAttribute.getAttributeName() +
-                ", " + foreignKeyAttribute.getObjectType().getSimpleName() + "." + foreignKeyAttribute.getAttributeName() +
+                ", " + asLiteral(localKeyAttribute.getAttributeName()) +
+                ", " + asLiteral(foreignKeyAttribute.getAttributeName()) +
                 ", " + foreignRestrictions +
                 ")";
         }

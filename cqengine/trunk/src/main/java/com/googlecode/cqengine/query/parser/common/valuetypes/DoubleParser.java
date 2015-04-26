@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class DoubleParser extends AttributeValueParser<Double> {
+public class DoubleParser extends ValueParser<Double> {
 
     public DoubleParser() {
         super(Double.class);
     }
 
     @Override
-    public Double parseToAttributeType(String stringValue) {
+    public Double parse(String stringValue) {
         return Double.valueOf(stringValue);
     }
 }

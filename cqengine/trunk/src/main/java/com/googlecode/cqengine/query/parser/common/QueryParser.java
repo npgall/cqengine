@@ -36,28 +36,33 @@ public abstract class QueryParser<O> {
 
     protected final Class<O> objectType;
     protected final Map<String, Attribute<O, ?>> attributes = new HashMap<String, Attribute<O, ?>>();
-    protected final Map<Class<?>, AttributeValueParser<?>> valueParsers = new HashMap<Class<?>, AttributeValueParser<?>>();
+    protected final Map<Class<?>, ValueParser<?>> valueParsers = new HashMap<Class<?>, ValueParser<?>>();
 
     public QueryParser(Class<O> objectType) {
-        registerAttributeValueParser(new BooleanParser());
-        registerAttributeValueParser(new ByteParser());
-        registerAttributeValueParser(new CharacterParser());
-        registerAttributeValueParser(new ShortParser());
-        registerAttributeValueParser(new IntegerParser());
-        registerAttributeValueParser(new LongParser());
-        registerAttributeValueParser(new FloatParser());
-        registerAttributeValueParser(new DoubleParser());
-        registerAttributeValueParser(new BigIntegerParser());
-        registerAttributeValueParser(new BigDecimalParser());
+        registerValueParser(new BooleanParser());
+        registerValueParser(new ByteParser());
+        registerValueParser(new CharacterParser());
+        registerValueParser(new ShortParser());
+        registerValueParser(new IntegerParser());
+        registerValueParser(new LongParser());
+        registerValueParser(new FloatParser());
+        registerValueParser(new DoubleParser());
+        registerValueParser(new BigIntegerParser());
+        registerValueParser(new BigDecimalParser());
+        registerValueParser(new StringParser());
         this.objectType = objectType;
     }
 
-    public <A> void registerAttribute(Attribute<O, A> attribute, AttributeValueParser<A> attributeValueParser) {
+    public <A> void registerAttribute(Attribute<O, A> attribute) {
         attributes.put(attribute.getAttributeName(), attribute);
     }
 
-    public <A> void registerAttributeValueParser(AttributeValueParser<A> attributeValueParser) {
-        valueParsers.put(attributeValueParser.getAttributeType(), attributeValueParser);
+    public <A> void registerValueParser(ValueParser<A> valueParser) {
+        valueParsers.put(valueParser.getValueType(), valueParser);
+    }
+
+    public Class<O> getObjectType() {
+        return objectType;
     }
 
     public Attribute<O, ?> getRegisteredAttribute(String name) {
@@ -68,9 +73,12 @@ public abstract class QueryParser<O> {
         return attribute;
     }
 
-    public <A> AttributeValueParser<A> getAttributeValueParser(Class<A> attributeType) {
+    public <A> ValueParser<A> getValueParser(Class<A> attributeType) {
         @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-        AttributeValueParser<A> parser = (AttributeValueParser<A>) valueParsers.get(attributeType);
+        ValueParser<A> parser = (ValueParser<A>) valueParsers.get(attributeType);
+        if (parser == null) {
+            throw new IllegalStateException("No value parser has been registered to parse type: " + attributeType.getName());
+        }
         return parser;
     }
 

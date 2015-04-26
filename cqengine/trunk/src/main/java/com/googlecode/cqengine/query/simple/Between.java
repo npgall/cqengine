@@ -60,16 +60,16 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
     @Override
     public String toString() {
         if (lowerInclusive && upperInclusive) {
-            return "between(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                    ", " + lowerValue +
-                    ", " + upperValue +
+            return "between(" + asLiteral(super.getAttributeName()) +
+                    ", " + asLiteral(lowerValue) +
+                    ", " + asLiteral(upperValue) +
                     ")";
         }
         else {
-            return "between(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                    ", " + lowerValue +
+            return "between(" + asLiteral(super.getAttributeName()) +
+                    ", " + asLiteral(lowerValue) +
                     ", " + lowerInclusive +
-                    ", " + upperValue +
+                    ", " + asLiteral(upperValue) +
                     ", " + upperInclusive +
                     ")";
         }

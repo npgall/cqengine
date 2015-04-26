@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class FloatParser extends AttributeValueParser<Float> {
+public class FloatParser extends ValueParser<Float> {
 
     public FloatParser() {
         super(Float.class);
     }
 
     @Override
-    public Float parseToAttributeType(String stringValue) {
+    public Float parse(String stringValue) {
         return Float.valueOf(stringValue);
     }
 }
