@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class CharacterParser extends AttributeValueParser<Character> {
+public class CharacterParser extends ValueParser<Character> {
 
     public CharacterParser() {
         super(Character.class);
     }
 
     @Override
-    public Character parseToAttributeType(String stringValue) {
+    public Character parse(String stringValue) {
         if (stringValue.length() != 1) {
             throw new IllegalArgumentException();
         }

@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class IntegerParser extends AttributeValueParser<Integer> {
+public class IntegerParser extends ValueParser<Integer> {
 
     public IntegerParser() {
         super(Integer.class);
     }
 
     @Override
-    public Integer parseToAttributeType(String stringValue) {
+    public Integer parse(String stringValue) {
         return Integer.valueOf(stringValue);
     }
 }

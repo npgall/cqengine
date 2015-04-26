@@ -104,8 +104,8 @@ public class StringContains<O, A extends CharSequence> extends SimpleQuery<O, A>
 
     @Override
     public String toString() {
-        return "contains(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                ", " + value +
+        return "contains(" + asLiteral(super.getAttributeName()) +
+                ", " + asLiteral(value) +
                 ")";
     }
 }

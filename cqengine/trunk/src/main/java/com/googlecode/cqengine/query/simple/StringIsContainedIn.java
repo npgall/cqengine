@@ -85,8 +85,8 @@ public class StringIsContainedIn<O, A extends CharSequence> extends SimpleQuery<
 
     @Override
     public String toString() {
-        return "isContainedIn(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                ", " + value +
+        return "isContainedIn(" + asLiteral(super.getAttributeName()) +
+                ", " + asLiteral(value) +
                 ")";
     }
 }

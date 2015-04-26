@@ -83,7 +83,7 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
 
     @Override
     public String toString() {
-        return "matchesRegex(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                ", " + regexPattern + ")";
+        return "matchesRegex(" + asLiteral(super.getAttributeName()) +
+                ", " + asLiteral(regexPattern.pattern()) + ")";
     }
 }

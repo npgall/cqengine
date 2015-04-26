@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.query.parser.cqnative.support;
+package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.common.QueryParser;
-
-import java.util.List;
-
-import static com.googlecode.cqengine.query.QueryFactory.*;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class OrParser<O> implements QueryTypeParser<O> {
+public class StringParser extends ValueParser<String> {
 
-    @Override
-    public String getQueryType() {
-        return "or";
+    public StringParser() {
+        super(String.class);
     }
 
     @Override
-    public <A> Query<O> parse(QueryParser<O> queryParser, List<String> arguments) {
-        return or(queryParser.parse(arguments));
+    public String parse(String stringValue) {
+        return stripQuotes(stringValue);
+    }
+
+    public static String stripQuotes(String stringValue) {
+        int length = stringValue.length();
+        if (length >= 2 && stringValue.charAt(0) == '\"' && stringValue.charAt(length - 1) == '\"') {
+            return stringValue.substring(1, length - 1);
+        }
+        return stringValue;
     }
 }

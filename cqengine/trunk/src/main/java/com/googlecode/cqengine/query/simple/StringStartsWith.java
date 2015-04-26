@@ -94,8 +94,8 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
 
     @Override
     public String toString() {
-        return "startsWith(" + super.getAttribute().getObjectType().getSimpleName() + "." + super.getAttributeName() +
-                ", " + value +
+        return "startsWith(" + asLiteral(super.getAttributeName()) +
+                ", " + asLiteral(value) +
                 ")";
     }
 }

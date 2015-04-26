@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class LongParser extends AttributeValueParser<Long> {
+public class LongParser extends ValueParser<Long> {
 
     public LongParser() {
         super(Long.class);
     }
 
     @Override
-    public Long parseToAttributeType(String stringValue) {
+    public Long parse(String stringValue) {
         return Long.valueOf(stringValue);
     }
 }

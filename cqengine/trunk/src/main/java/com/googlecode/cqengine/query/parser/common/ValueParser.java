@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.query.parser.cqnative.support;
-
-import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.common.QueryParser;
-
-import java.util.List;
-
-import static com.googlecode.cqengine.query.QueryFactory.and;
+package com.googlecode.cqengine.query.parser.common;
 
 /**
  * @author Niall Gallagher
  */
-public class AndParser<O> implements QueryTypeParser<O> {
+public abstract class ValueParser<A> {
 
-    @Override
-    public String getQueryType() {
-        return "and";
+    protected final Class<A> valueType;
+
+    public ValueParser(Class<A> valueType) {
+        this.valueType = valueType;
     }
 
-    @Override
-    public <A> Query<O> parse(QueryParser<O> queryParser, List<String> arguments) {
-        return and(queryParser.parse(arguments));
+    public Class<A> getValueType() {
+        return valueType;
     }
+
+    public abstract A parse(String stringValue);
 }

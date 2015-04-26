@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class ByteParser extends AttributeValueParser<Byte> {
+public class ByteParser extends ValueParser<Byte> {
 
     public ByteParser() {
         super(Byte.class);
     }
 
     @Override
-    public Byte parseToAttributeType(String stringValue) {
+    public Byte parse(String stringValue) {
         return Byte.valueOf(stringValue);
     }
 }

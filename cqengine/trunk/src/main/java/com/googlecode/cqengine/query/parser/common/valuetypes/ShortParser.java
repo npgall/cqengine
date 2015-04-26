@@ -15,19 +15,19 @@
  */
 package com.googlecode.cqengine.query.parser.common.valuetypes;
 
-import com.googlecode.cqengine.query.parser.common.AttributeValueParser;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
 
 /**
  * @author Niall Gallagher
  */
-public class ShortParser extends AttributeValueParser<Short> {
+public class ShortParser extends ValueParser<Short> {
 
     public ShortParser() {
         super(Short.class);
     }
 
     @Override
-    public Short parseToAttributeType(String stringValue) {
+    public Short parse(String stringValue) {
         return Short.valueOf(stringValue);
     }
 }
