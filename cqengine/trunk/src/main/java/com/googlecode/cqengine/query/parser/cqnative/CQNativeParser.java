@@ -16,19 +16,14 @@
 package com.googlecode.cqengine.query.parser.cqnative;
 
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.antlr4.cqnative.NativeQueryLexer;
-import com.googlecode.cqengine.query.parser.antlr4.cqnative.NativeQueryParser;
+import com.googlecode.cqengine.query.parser.antlr4.cqnative.CQEngineNativeLexer;
+import com.googlecode.cqengine.query.parser.antlr4.cqnative.CQEngineNativeParser;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
+import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.cqnative.support.*;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A parser for CQEngine native queries represented as strings.
@@ -42,26 +37,53 @@ public class CQNativeParser<O> extends QueryParser<O> {
 
     }
 
+    static class ThrowingErrorListener extends BaseErrorListener {
+
+        static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
+
+       @Override
+       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+          throws ParseCancellationException {
+             throw new InvalidQueryException("Failed to parse query at line " + line + ":" + charPositionInLine + ": " + msg);
+          }
+    }
+
+
     @Override
     public Query<O> parse(String query) {
-        NativeQueryLexer lexer = new NativeQueryLexer(new ANTLRInputStream(query));
+        try {
+            if (query == null) {
+                throw new IllegalArgumentException("Query was null");
+            }
+            CQEngineNativeLexer lexer = new CQEngineNativeLexer(new ANTLRInputStream(query));
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
 
-        // Get a list of matched tokens
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
+            // Get a list of matched tokens
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        // Pass the tokens to the parser
-        NativeQueryParser parser = new NativeQueryParser(tokens);
-    parser.setErrorHandler(new BailErrorStrategy());
+            // Pass the tokens to the parser
+            CQEngineNativeParser parser = new CQEngineNativeParser(tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(ThrowingErrorListener.INSTANCE);
 
-        // Specify our entry point
-        NativeQueryParser.QueryContext queryContext = parser.query();
+            // Specify our entry point
+            CQEngineNativeParser.StartContext queryContext = parser.start();
 
 
-        // Walk it and attach our listener
-        ParseTreeWalker walker = new ParseTreeWalker();
-        NativeQueryAntlrListener<O> listener = new NativeQueryAntlrListener<O>(this);
-        walker.walk(listener, queryContext);
-        return listener.getParsedQuery();
+            // Walk it and attach our listener
+            ParseTreeWalker walker = new ParseTreeWalker();
+            NativeQueryAntlrListener<O> listener = new NativeQueryAntlrListener<O>(this);
+            walker.walk(listener, queryContext);
+            return listener.getParsedQuery();
+        }
+        catch (InvalidQueryException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new InvalidQueryException("Failed to parse query", e);
+        }
+
     }
 
 }
