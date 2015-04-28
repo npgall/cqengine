@@ -1,9 +1,13 @@
 #summary Release notes for official releases of the CQEngine library
 #labels Featured
 
+===Version 2.0.2 - 2015-04-28===
+ * Improved the performance of string `startsWith` queries with DiskIndex and OffHeapIndex
+ * Deployed to Maven central
+
 ===Version 2.0.1 - 2015-04-20===
- * Fixed exception when using index ordering strategy, when a range of values in the query is not in the collection.
- * Added validation to prevent duplicate indexes getting added.
+ * Fixed exception when using index ordering strategy, when a range of values in the query is not in the collection
+ * Added validation to prevent duplicate indexes getting added
  * Deployed to Maven central
 
 ===Version 2.0.0 - 2015-04-07===
