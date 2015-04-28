@@ -1,5 +1,7 @@
-grammar NativeQuery;
+grammar CQEngineNative;
 import Java;
+
+start : query EOF;
 
 query : logicalQuery | simpleQuery ;
 

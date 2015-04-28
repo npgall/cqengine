@@ -16,6 +16,9 @@
 package com.googlecode.cqengine.query.parser.cqnative;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
+import com.googlecode.cqengine.query.parser.common.ValueParser;
+import com.googlecode.cqengine.query.parser.common.valuetypes.StringParser;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,17 +30,18 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  */
 public class CQNativeParserTest {
 
-    @Test
-    public void testCQNativeParser() {
-        CQNativeParser<Car> parser = new CQNativeParser<Car>(Car.class);
-        parser.registerAttribute(Car.CAR_ID);
-        parser.registerAttribute(Car.MANUFACTURER);
-        parser.registerAttribute(Car.MODEL);
-        parser.registerAttribute(Car.COLOR);
-        parser.registerAttribute(Car.DOORS);
-        parser.registerAttribute(Car.PRICE);
-        parser.registerAttribute(Car.FEATURES);
+    final CQNativeParser<Car> parser = new CQNativeParser<Car>(Car.class){{
+        registerAttribute(Car.CAR_ID);
+        registerAttribute(Car.MANUFACTURER);
+        registerAttribute(Car.MODEL);
+        registerAttribute(Car.COLOR);
+        registerAttribute(Car.DOORS);
+        registerAttribute(Car.PRICE);
+        registerAttribute(Car.FEATURES);
+    }};
 
+    @Test
+    public void testValidQueries() {
         assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parser.parse("equal(\"manufacturer\", \"Ford\")"));
         assertQueriesEquals(lessThanOrEqualTo(Car.PRICE, 1000.0), parser.parse("lessThanOrEqualTo(\"price\", 1000.0)"));
         assertQueriesEquals(lessThan(Car.PRICE, 1000.0), parser.parse("lessThan(\"price\", 1000.0)"));
@@ -54,34 +58,77 @@ public class CQNativeParserTest {
         assertQueriesEquals(has(Car.FEATURES), parser.parse("has(\"features\")"));
         assertQueriesEquals(all(Car.class), parser.parse("all(Car.class)"));
         assertQueriesEquals(none(Car.class), parser.parse("none(Car.class)"));
+        assertQueriesEquals(and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("and(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
+        assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
+        assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("not(equal(\"manufacturer\", \"Ford\"))"));
 
 
-        // TODO: failing...
-//        parser.registerValueParser(new ValueParser<Car.Color>(Car.Color.class) {
-//            @Override
-//            public Car.Color parse(String stringValue) {
-//                return Car.Color.valueOf(StringParser.stripQuotes(stringValue.replaceFirst("Car.Color.", "")));
-//            }
-//        });
-//        Query<Car> query = and(
-//                        equal(Car.COLOR, Car.Color.BLUE),
-//                        equal(Car.COLOR, Car.Color.RED),
-//                        or(
-//                                equal(Car.COLOR, Car.Color.GREEN),
-//                                equal(Car.COLOR, Car.Color.BLACK)
-//                        )
-//        );
-//        String input =
-//                "and(" +
-//                        "equal(\"color\", \"BLUE\"), " +
-//                        "equal(\"color\", \"RED\"), " +
-//                        "or(" +
-//                            "equal(\"color\", \"GREEN\"), " +
-//                            "equal(\"color\", \"BLACK\")" +
-//                        ")" +
-//                "   )";
-//        Query<Car> parsed = parser.parse(input);
-//        System.out.println("Parsed: " + parsed);
+        parser.registerValueParser(new ValueParser<Car.Color>(Car.Color.class) {
+            @Override
+            public Car.Color parse(String stringValue) {
+                return Car.Color.valueOf(StringParser.stripQuotes(stringValue.replaceFirst("Car.Color.", "")));
+            }
+        });
+        assertQueriesEquals(
+                and(
+                    equal(Car.COLOR, Car.Color.BLUE),
+                    equal(Car.COLOR, Car.Color.RED),
+                    or(
+                        equal(Car.COLOR, Car.Color.GREEN),
+                        equal(Car.COLOR, Car.Color.BLACK)
+                    )
+                ),
+                parser.parse(
+                    "and(" +
+                        "equal(\"color\", \"Car.Color.BLUE\"), " +
+                        "equal(\"color\", \"Car.Color.RED\"), " +
+                        "or(" +
+                            "equal(\"color\", \"Car.Color.GREEN\"), " +
+                            "equal(\"color\", \"Car.Color.BLACK\")" +
+                        ")" +
+                    ")"
+                )
+        );
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_DuplicateQueries() {
+        parser.parse("all(Car.class)all(Car.class)");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_TrailingGibberish() {
+        parser.parse("all(Car.class)abc");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_LeadingGibberish() {
+        parser.parse("abc all(Car.class)");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_UnclosedQuery() {
+        parser.parse("all(Car.class");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_InvalidParameters1() {
+        parser.parse("equal(\"manufacturer\", x, \"Ford\")");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_InvalidParameters2() {
+        parser.parse("equal(\"manufacturer\", 1, \"Ford\")");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_InvalidParameterType() {
+        parser.parse("equal(\"doors\", \"foo\")");
+    }
+
+    @Test(expected = InvalidQueryException.class)
+    public void testInvalidQuery_NullQuery() {
+        parser.parse(null);
     }
 
     static void assertQueriesEquals(Query<Car> expected, Query<Car> actual) {

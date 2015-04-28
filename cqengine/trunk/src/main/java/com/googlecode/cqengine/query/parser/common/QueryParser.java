@@ -82,18 +82,5 @@ public abstract class QueryParser<O> {
         return parser;
     }
 
-    /**
-     * Utility to parse multiple queries. Delegates to {@link #parse(String)}.
-     * @param queries The string queries to parse
-     * @return A list of {@link Query} objects
-     */
-    public List<Query<O>> parse(List<String> queries) {
-        List<Query<O>> parsedQueries = new ArrayList<Query<O>>(queries.size());
-        for (String argument : queries) {
-            parsedQueries.add(parse(argument));
-        }
-        return parsedQueries;
-    }
-
     public abstract Query<O> parse(String query);
 }
