@@ -162,7 +162,7 @@ public class TemporaryDatabase {
                     try {
                         return dataSource.getConnection();
                     } catch (Exception e) {
-                        throw new IllegalStateException("Unable to create connection to: " + url);
+                        throw new IllegalStateException("Unable to create connection to: " + url, e);
                     }
                 }
 
@@ -218,7 +218,7 @@ public class TemporaryDatabase {
                     connection = createConnectionProxy(DriverManager.getConnection("jdbc:sqlite:"));
                 }
             } catch (Exception e) {
-                throw new IllegalStateException("Cannot create in-memory database connection");
+                throw new IllegalStateException("Cannot create in-memory database connection", e);
             }
         }
 
