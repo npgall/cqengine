@@ -2,7 +2,7 @@
 #labels Featured
 
 ===Version 2.0.2 - 2015-04-28===
- * Improved the performance of string `startsWith` queries with DiskIndex and OffHeapIndex
+ * Improved the performance of `DiskIndex` and `OffHeapIndex` when processing string `startsWith` queries
  * Deployed to Maven central
 
 ===Version 2.0.1 - 2015-04-20===
