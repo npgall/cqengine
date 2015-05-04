@@ -16,8 +16,8 @@ simpleQuery : equalQuery
             | lessThanQuery
             | greaterThanOrEqualToQuery
             | greaterThanQuery
-            | betweenQuery1
-            | betweenQuery2
+            | verboseBetweenQuery
+            | betweenQuery
             | inQuery
             | startsWithQuery
             | endsWithQuery
@@ -34,8 +34,8 @@ lessThanOrEqualToQuery : 'lessThanOrEqualTo' LPAREN attributeName ',' queryParam
 lessThanQuery : 'lessThan' LPAREN attributeName ',' queryParameter RPAREN ;
 greaterThanOrEqualToQuery : 'greaterThanOrEqualTo' LPAREN attributeName ',' queryParameter RPAREN ;
 greaterThanQuery : 'greaterThan' LPAREN attributeName ',' queryParameter RPAREN ;
-betweenQuery1 : 'between' LPAREN attributeName ',' queryParameter ',' BooleanLiteral ',' queryParameter ',' BooleanLiteral RPAREN ;
-betweenQuery2 : 'between' LPAREN attributeName ',' queryParameter ',' queryParameter RPAREN ;
+verboseBetweenQuery : 'between' LPAREN attributeName ',' queryParameter ',' BooleanLiteral ',' queryParameter ',' BooleanLiteral RPAREN ;
+betweenQuery : 'between' LPAREN attributeName ',' queryParameter ',' queryParameter RPAREN ;
 inQuery : 'in' LPAREN attributeName ',' queryParameter (',' queryParameter)* RPAREN ;
 startsWithQuery : 'startsWith' LPAREN attributeName ',' stringQueryParameter RPAREN ;
 endsWithQuery : 'endsWith' LPAREN attributeName ',' stringQueryParameter RPAREN ;

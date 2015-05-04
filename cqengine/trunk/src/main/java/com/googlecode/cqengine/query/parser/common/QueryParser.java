@@ -18,10 +18,9 @@ package com.googlecode.cqengine.query.parser.common;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.valuetypes.*;
+import com.googlecode.cqengine.query.parser.cqnative.support.StringParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,7 +48,6 @@ public abstract class QueryParser<O> {
         registerValueParser(new DoubleParser());
         registerValueParser(new BigIntegerParser());
         registerValueParser(new BigDecimalParser());
-        registerValueParser(new StringParser());
         this.objectType = objectType;
     }
 
