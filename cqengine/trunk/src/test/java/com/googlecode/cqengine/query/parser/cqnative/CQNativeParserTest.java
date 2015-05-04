@@ -18,7 +18,7 @@ package com.googlecode.cqengine.query.parser.cqnative;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.ValueParser;
-import com.googlecode.cqengine.query.parser.common.valuetypes.StringParser;
+import com.googlecode.cqengine.query.parser.cqnative.support.StringParser;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,7 +62,6 @@ public class CQNativeParserTest {
         assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("not(equal(\"manufacturer\", \"Ford\"))"));
 
-
         parser.registerValueParser(new ValueParser<Car.Color>(Car.Color.class) {
             @Override
             public Car.Color parse(String stringValue) {
@@ -70,22 +69,30 @@ public class CQNativeParserTest {
             }
         });
         assertQueriesEquals(
-                and(
-                    equal(Car.COLOR, Car.Color.BLUE),
-                    equal(Car.COLOR, Car.Color.RED),
-                    or(
-                        equal(Car.COLOR, Car.Color.GREEN),
-                        equal(Car.COLOR, Car.Color.BLACK)
-                    )
+                or(
+                        and( // Cars less than 5K which have at least 4 doors
+                                lessThan(Car.PRICE, 5000.0),
+                                greaterThanOrEqualTo(Car.DOORS, 4)
+                        ),
+                        and( // OR cars less than 8K which have at least 4 doors and are a hybrid, but are not blue or green
+                                lessThan(Car.PRICE, 8000.0),
+                                greaterThanOrEqualTo(Car.DOORS, 4),
+                                equal(Car.FEATURES, "hybrid"),
+                                not(in(Car.COLOR, Car.Color.BLUE, Car.Color.GREEN))
+                        )
                 ),
                 parser.parse(
-                    "and(" +
-                        "equal(\"color\", \"Car.Color.BLUE\"), " +
-                        "equal(\"color\", \"Car.Color.RED\"), " +
-                        "or(" +
-                            "equal(\"color\", \"Car.Color.GREEN\"), " +
-                            "equal(\"color\", \"Car.Color.BLACK\")" +
-                        ")" +
+                    "or(" +
+                            "and(" +
+                                "lessThan(\"price\", 5000.0), " +
+                                "greaterThanOrEqualTo(\"doors\", 4)" +
+                            "), " +
+                            "and(" +
+                                "lessThan(\"price\", 8000.0), " +
+                                "greaterThanOrEqualTo(\"doors\", 4), " +
+                                "equal(\"features\", \"hybrid\"), " +
+                                "not(in(\"color\", \"Car.Color.BLUE\", \"Car.Color.GREEN\"))" +
+                            ")" +
                     ")"
                 )
         );
