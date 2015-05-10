@@ -330,8 +330,12 @@
                             <header>src/etc/header.txt</header>
                             <excludes>
                                 <exclude>src/test/resources/**</exclude>
+                                <exclude>src/main/antlr4/imports/**</exclude>
                             </excludes>
                             <strictCheck>true</strictCheck>
+                            <mapping>
+                                <g4>JAVADOC_STYLE</g4>
+                            </mapping>
                         </configuration>
                         <executions>
                             <execution>
