@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.closeable;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
@@ -30,8 +31,8 @@ public abstract class CloseableFilteringResultSet<O> extends FilteringResultSet<
 
     boolean closed = false;
 
-    public CloseableFilteringResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
-        super(wrappedResultSet, queryOptions);
+    public CloseableFilteringResultSet(ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
+        super(wrappedResultSet, query, queryOptions);
     }
 
     @Override

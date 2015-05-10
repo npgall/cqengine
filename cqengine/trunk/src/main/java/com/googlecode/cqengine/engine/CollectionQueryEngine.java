@@ -318,17 +318,17 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
                 // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
                 Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
-                resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator);
+                resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator, query);
             } else if (DeduplicationOption.isMaterialize(queryOptions)) {
                 // A DeduplicationOption was specified, wrap the results in an MaterializingResultSet,
                 // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
-                resultSet = new MaterializingResultSet<O>(resultSet);
+                resultSet = new MaterializingResultSet<O>(resultSet, query);
             }
         }
 
         // Return the results...
         if (useCloseableResultSet) {
-            return new CloseableResultSet<O>(resultSet, queryOptions) {
+            return new CloseableResultSet<O>(resultSet, query, queryOptions) {
                 @Override
                 public void close() {
                     super.close();
@@ -415,14 +415,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         // We must also sort results within each bucket, in case the index is quantized,
                         // or in case there are additional sort orders after the first one...
                         Comparator<O> comparator = new AttributeOrdersComparator<O>(attributeOrders, queryOptions);
-                        resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator);
+                        resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, query);
 
                         previousKey = currentKey;
                         return resultsForThisKey;
                     }
                 };
             }
-        });
+        }, query);
     }
 
     static <O> Query<O> getRangeRestriction(boolean descending, SimpleAttribute<O, Comparable> attribute, Comparable currentKey, Comparable previousKey) {
@@ -594,7 +594,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         }
                     };
                 }
-            }, queryOptions);
+            }, query, queryOptions);
         }
         else if (query instanceof Or) {
             final Or<O> or = (Or<O>) query;
@@ -645,10 +645,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             };
             // *** Deduplication can be required for unions... ***
             if (DeduplicationOption.isLogicalElimination(queryOptionsForOrUnion)) {
-                return new ResultSetUnion<O>(resultSetsToUnion, queryOptions);
+                return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
             }
             else {
-                return new ResultSetUnionAll<O>(resultSetsToUnion);
+                return new ResultSetUnionAll<O>(resultSetsToUnion, query);
             }
         }
         else if (query instanceof Not) {
@@ -657,7 +657,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
-            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, queryOptions);
+            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, query, queryOptions);
         }
         else {
             throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));
@@ -754,7 +754,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // cost), and which will test each of these objects on-the-fly to determine if it matches the other more
         // expensive items of query...
         final ResultSet<O> lowestCostResultSetRef = lowestMergeCostResultSet;
-        return new FilteringResultSet<O>(lowestCostResultSetRef, queryOptions) {
+        @SuppressWarnings("unchecked")
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : and(queriesTyped);
+
+        return new FilteringResultSet<O>(lowestCostResultSetRef, query, queryOptions) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
                 for (SimpleQuery<O, A> query : moreExpensiveQueries) {
@@ -811,12 +815,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 };
             }
         };
+        @SuppressWarnings("unchecked")
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : or(queriesTyped);
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
-            return new ResultSetUnion<O>(resultSetsToUnion, queryOptions);
+            return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
         }
         else {
-            return new ResultSetUnionAll<O>(resultSetsToUnion);
+            return new ResultSetUnionAll<O>(resultSetsToUnion, query);
         }
     }
 

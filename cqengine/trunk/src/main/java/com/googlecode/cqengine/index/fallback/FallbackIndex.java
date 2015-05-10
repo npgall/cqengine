@@ -112,6 +112,10 @@ public class FallbackIndex<O> implements Index<O> {
             public void close() {
                 // No op.
             }
+            @Override
+            public Query<O> getQuery() {
+                return query;
+            }
         };
     }
 

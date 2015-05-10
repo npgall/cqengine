@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.common;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
@@ -33,8 +34,8 @@ public class CostCachingResultSet<O> extends WrappedResultSet<O> {
     volatile int cachedMergeCost = -1;
     volatile int cachedRetrievalCost = -1;
 
-    public CostCachingResultSet(ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
-        super(wrappedResultSet, queryOptions);
+    public CostCachingResultSet(ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
+        super(wrappedResultSet, query, queryOptions);
     }
 
     @Override

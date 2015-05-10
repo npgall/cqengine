@@ -21,6 +21,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
@@ -53,9 +54,10 @@ public class Wildcard {
     }
 
     public static ResultSet<String> retrieveWildcardMatches(IndexedCollection<String> collection, final String prefix, final String suffix) {
-        ResultSet<String> candidates = collection.retrieve(and(startsWith(SELF, prefix), endsWith(SELF, suffix)));
+        Query<String> query = and(startsWith(SELF, prefix), endsWith(SELF, suffix));
+        ResultSet<String> candidates = collection.retrieve(query);
 
-        return new FilteringResultSet<String>(candidates, noQueryOptions()) {
+        return new FilteringResultSet<String>(candidates, query, noQueryOptions()) {
             @Override
             public boolean isValid(String candidate, QueryOptions queryOptions) {
                 return candidate.length() >= prefix.length() + suffix.length();

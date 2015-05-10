@@ -80,7 +80,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     }
 
     @Override
-    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final SuffixTree<StoredResultSet<O>> tree = this.tree;        
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
@@ -115,6 +115,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 public void close() {
                     // No op.
                 }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
+                }
             };
         }
         else if (queryClass.equals(StringEndsWith.class)) {
@@ -123,19 +127,19 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 @Override
                 public Iterator<O> iterator() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.contains(object);
                 }
                 @Override
                 public int size() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.size();
                 }
                 @Override
@@ -145,12 +149,16 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 @Override
                 public int getMergeCost() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.getMergeCost();
                 }
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }
@@ -160,19 +168,19 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 @Override
                 public Iterator<O> iterator() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.contains(object);
                 }
                 @Override
                 public int size() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.size();
                 }
                 @Override
@@ -182,12 +190,16 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 @Override
                 public int getMergeCost() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, queryOptions);
+                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.getMergeCost();
                 }
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }
@@ -204,12 +216,13 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      * {@link ResultSetUnionAll}, because the same object could not exist in more than one {@link StoredResultSet}.
      *
      * @param results Provides the result sets to union
+     * @param query The query for which the union is being constructed
      * @param queryOptions Specifies whether or not logical deduplication is required
      * @return A union view over the given result sets
      */
-    ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, QueryOptions queryOptions) {
+    ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, Query<O> query, QueryOptions queryOptions) {
         if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
-            return new ResultSetUnion<O>(results, queryOptions) {
+            return new ResultSetUnion<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
@@ -217,7 +230,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
             };
         }
         else {
-            return new ResultSetUnionAll<O>(results) {
+            return new ResultSetUnionAll<O>(results, query) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;

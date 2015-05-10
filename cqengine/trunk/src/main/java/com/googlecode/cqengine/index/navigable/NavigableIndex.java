@@ -99,7 +99,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         final boolean indexIsQuantized = isIndexQuantized();
         // Process Equal queries in the same was as HashIndex...
@@ -134,6 +134,10 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }
@@ -195,7 +199,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         // We can avoid deduplication if the index is built on a SimpleAttribute however,
         // because the same object could not exist in more than one StoredResultSet...
         if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
-            return new ResultSetUnion<O>(results, queryOptions) {
+            return new ResultSetUnion<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
@@ -203,7 +207,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             };
         }
         else {
-            return new ResultSetUnionAll<O>(results) {
+            return new ResultSetUnionAll<O>(results, query) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;

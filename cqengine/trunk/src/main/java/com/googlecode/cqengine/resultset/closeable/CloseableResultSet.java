@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.closeable;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
@@ -27,11 +28,13 @@ import java.util.Iterator;
 public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
 
     final ResultSet<O> wrapped;
+    final Query<O> query;
     final QueryOptions queryOptions;
     boolean closed = false;
 
-    protected CloseableResultSet(ResultSet<O> wrapped, QueryOptions queryOptions) {
+    protected CloseableResultSet(ResultSet<O> wrapped, Query<O> query, QueryOptions queryOptions) {
         this.wrapped = wrapped;
+        this.query = query;
         this.queryOptions = queryOptions;
     }
 
@@ -93,5 +96,10 @@ public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
     public void close() {
         wrapped.close();
         closed = true;
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }
