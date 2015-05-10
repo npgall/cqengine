@@ -275,8 +275,9 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     public boolean retainAll(final Collection<?> c) {
         // Prepare to lazily read all objects from the collection *without using MVCC* (..READ_UNCOMMITTED),
         // and lazily filter it to return only the subsetToRemove objects which are not in the given collection...
+        Query<O> query = all(objectType);
         FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>(
-                retrieve(all(objectType), queryOptions(isolationLevel(READ_UNCOMMITTED))), noQueryOptions()) {
+                retrieve(query, queryOptions(isolationLevel(READ_UNCOMMITTED))), query, noQueryOptions()) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
                 return !c.contains(object);
@@ -301,7 +302,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         if (isIsolationLevel(queryOptions, READ_UNCOMMITTED)) {
             // Allow the query to read directly from the collection with no filtering overhead...
-            return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
+            return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), query, queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {
                     return true;
@@ -325,7 +326,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         //   (as configured by writing threads for this version of the collection).
         // - When the ResultSet.close() method is called, we decrement the readers count
         //   to record that this thread is no longer reading this version.
-        return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), queryOptions) {
+        return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), query, queryOptions) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
                 return !iterableContains(thisVersion.objectsToExclude, object);

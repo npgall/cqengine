@@ -111,7 +111,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(CompoundQuery.class)) {
             final CompoundQuery<O> compoundQuery = (CompoundQuery<O>) query;
@@ -145,6 +145,10 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }

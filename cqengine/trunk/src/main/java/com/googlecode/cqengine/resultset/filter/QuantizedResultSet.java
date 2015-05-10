@@ -28,15 +28,20 @@ import com.googlecode.cqengine.resultset.ResultSet;
  */
 public class QuantizedResultSet<O> extends FilteringResultSet<O> {
 
-    private final Query<O> query;
+    final Query<O> query;
 
     public QuantizedResultSet(ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
-        super(wrappedResultSet, queryOptions);
+        super(wrappedResultSet, query, queryOptions);
         this.query = query;
     }
 
     @Override
     public boolean isValid(O object, QueryOptions queryOptions) {
         return query.matches(object, queryOptions);
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }

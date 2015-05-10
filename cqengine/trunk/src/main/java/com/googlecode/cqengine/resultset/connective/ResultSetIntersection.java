@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.common.CostCachingResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
@@ -31,16 +32,18 @@ import java.util.*;
  */
 public class ResultSetIntersection<O> extends ResultSet<O> {
 
+    final Query<O> query;
     // ResultSets sorted in ascending order of merge cost...
     final List<ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
 
-    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, QueryOptions queryOptions) {
+    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
+        this.query = query;
         this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
         List<ResultSet<O>> sortedResultSets = new ArrayList<ResultSet<O>>();
         for (ResultSet<O> resultSet : resultSets){
-            sortedResultSets.add(new CostCachingResultSet<O>(resultSet, queryOptions));
+            sortedResultSets.add(new CostCachingResultSet<O>(resultSet, query, queryOptions));
         }
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
         this.resultSets = sortedResultSets;
@@ -130,5 +133,10 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         for (ResultSet<O> resultSet : this.resultSets) {
             resultSet.close();
         }
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }

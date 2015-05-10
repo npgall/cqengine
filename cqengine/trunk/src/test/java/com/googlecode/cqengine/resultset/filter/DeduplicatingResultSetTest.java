@@ -38,7 +38,7 @@ public class DeduplicatingResultSetTest {
         DeduplicatingResultSet<Car, String> deduplicatingResultSet = new DeduplicatingResultSet<Car, String>(
                 Car.MANUFACTURER,
                 new StoredSetBasedResultSet<Car>(new LinkedHashSet<Car>(cars)),
-                QueryFactory.noQueryOptions()
+                QueryFactory.all(Car.class), QueryFactory.noQueryOptions()
         );
         List<Integer> carIdsReturned = new ArrayList<Integer>();
         IndexedCollectionFunctionalTest.extractCarIds(deduplicatingResultSet, carIdsReturned);

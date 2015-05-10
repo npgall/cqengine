@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -33,11 +34,13 @@ public class ResultSetDifference<O> extends ResultSet<O> {
 
     final ResultSet<O> firstResultSet;
     final ResultSet<O> secondResultSet;
+    final Query<O> query;
     final QueryOptions queryOptions;
 
-    public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, QueryOptions queryOptions) {
+    public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, Query<O> query, QueryOptions queryOptions) {
         this.firstResultSet = firstResultSet;
         this.secondResultSet = secondResultSet;
+        this.query = query;
         this.queryOptions = queryOptions;
     }
 
@@ -91,5 +94,10 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     public void close() {
         firstResultSet.close();
         secondResultSet.close();
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }

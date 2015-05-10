@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.filter;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -40,11 +41,13 @@ public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
 
     final ResultSet<O> wrappedResultSet;
     final Attribute<O, A> uniqueAttribute;
+    final Query<O> query;
     final QueryOptions queryOptions;
 
-    public DeduplicatingResultSet(Attribute<O, A> uniqueAttribute, ResultSet<O> wrappedResultSet, QueryOptions queryOptions) {
+    public DeduplicatingResultSet(Attribute<O, A> uniqueAttribute, ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
         this.uniqueAttribute = uniqueAttribute;
         this.wrappedResultSet = wrappedResultSet;
+        this.query = query;
         this.queryOptions = queryOptions;
     }
 
@@ -77,5 +80,10 @@ public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
     @Override
     public void close() {
         wrappedResultSet.close();
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }

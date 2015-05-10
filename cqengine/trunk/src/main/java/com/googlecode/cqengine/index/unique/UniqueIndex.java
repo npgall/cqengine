@@ -107,7 +107,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
 	}
 	
 	@Override
-	public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
+	public ResultSet<O> retrieve(final Query<O> query, QueryOptions queryOptions) {
 		Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) 
         {
@@ -150,6 +150,10 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }

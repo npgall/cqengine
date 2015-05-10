@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.connective;
 
+import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 
@@ -29,11 +30,13 @@ import java.util.*;
  */
 public class ResultSetUnionAll<O> extends ResultSet<O> {
 
+    final Query<O> query;
     // ResultSets (not in any particular order)...
     private final Iterable<? extends ResultSet<O>> resultSets;
 
-    public ResultSetUnionAll(Iterable<? extends ResultSet<O>> resultSets) {
+    public ResultSetUnionAll(Iterable<? extends ResultSet<O>> resultSets, Query<O> query) {
         this.resultSets = resultSets;
+        this.query = query;
     }
 
     @Override
@@ -114,5 +117,10 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
         for (ResultSet<O> resultSet : this.resultSets) {
             resultSet.close();
         }
+    }
+
+    @Override
+    public Query<O> getQuery() {
+        return query;
     }
 }

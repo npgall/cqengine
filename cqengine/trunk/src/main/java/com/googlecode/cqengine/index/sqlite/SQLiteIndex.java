@@ -214,6 +214,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             public void close() {
                 CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
             }
+
+            @Override
+            public Query<O> getQuery() {
+                return query;
+            }
         };
 
     }

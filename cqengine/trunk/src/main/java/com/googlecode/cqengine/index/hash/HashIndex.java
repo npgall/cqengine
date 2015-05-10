@@ -84,7 +84,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
      * {@inheritDoc}
      */
     @Override
-    public ResultSet<O> retrieve(Query<O> query, final QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
             final Equal<O, A> equal = (Equal<O, A>) query;
@@ -117,6 +117,10 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                 @Override
                 public void close() {
                     // No op.
+                }
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
             };
         }
