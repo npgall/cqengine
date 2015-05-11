@@ -139,6 +139,10 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         // Process LessThan, GreaterThan and Between queries as follows...
@@ -207,7 +211,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             };
         }
         else {
-            return new ResultSetUnionAll<O>(results, query) {
+            return new ResultSetUnionAll<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;

@@ -24,6 +24,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
+@SuppressWarnings("deprecation")
 public class GeneratedAttributeSupportTest {
 
     @Test

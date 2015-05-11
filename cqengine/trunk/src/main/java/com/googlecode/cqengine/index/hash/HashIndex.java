@@ -122,6 +122,10 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else {

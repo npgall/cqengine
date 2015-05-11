@@ -318,11 +318,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
                 // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
                 Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
-                resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator, query);
+                resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator, query, queryOptions);
             } else if (DeduplicationOption.isMaterialize(queryOptions)) {
                 // A DeduplicationOption was specified, wrap the results in an MaterializingResultSet,
                 // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
-                resultSet = new MaterializingResultSet<O>(resultSet, query);
+                resultSet = new MaterializingResultSet<O>(resultSet, query, queryOptions);
             }
         }
 
@@ -415,14 +415,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         // We must also sort results within each bucket, in case the index is quantized,
                         // or in case there are additional sort orders after the first one...
                         Comparator<O> comparator = new AttributeOrdersComparator<O>(attributeOrders, queryOptions);
-                        resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, query);
+                        resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, query, queryOptions);
 
                         previousKey = currentKey;
                         return resultsForThisKey;
                     }
                 };
             }
-        }, query);
+        }, query, queryOptions);
     }
 
     static <O> Query<O> getRangeRestriction(boolean descending, SimpleAttribute<O, Comparable> attribute, Comparable currentKey, Comparable previousKey) {
@@ -648,7 +648,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
             }
             else {
-                return new ResultSetUnionAll<O>(resultSetsToUnion, query);
+                return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
             }
         }
         else if (query instanceof Not) {
@@ -823,7 +823,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
         }
         else {
-            return new ResultSetUnionAll<O>(resultSetsToUnion, query);
+            return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
         }
     }
 

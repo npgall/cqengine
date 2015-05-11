@@ -86,4 +86,9 @@ public class DeduplicatingResultSet<O, A> extends ResultSet<O> {
     public Query<O> getQuery() {
         return query;
     }
+
+    @Override
+    public QueryOptions getQueryOptions() {
+        return queryOptions;
+    }
 }

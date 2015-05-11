@@ -219,8 +219,12 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             public Query<O> getQuery() {
                 return query;
             }
-        };
 
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+        };
     }
 
     @Override

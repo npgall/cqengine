@@ -37,7 +37,7 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
     final Query<O> query;
     // ResultSets (not in any particular order)...
-    private final Iterable<?extends ResultSet<O>> resultSets;
+    final Iterable<?extends ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
 
     public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
@@ -157,5 +157,10 @@ public class ResultSetUnion<O> extends ResultSet<O> {
     @Override
     public Query<O> getQuery() {
         return query;
+    }
+
+    @Override
+    public QueryOptions getQueryOptions() {
+        return queryOptions;
     }
 }

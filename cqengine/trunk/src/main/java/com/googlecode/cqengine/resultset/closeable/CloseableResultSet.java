@@ -102,4 +102,9 @@ public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
     public Query<O> getQuery() {
         return query;
     }
+
+    @Override
+    public QueryOptions getQueryOptions() {
+        return queryOptions;
+    }
 }
