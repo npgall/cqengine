@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.stored;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -113,6 +114,11 @@ public class StoredSetBasedResultSet<O> extends StoredResultSet<O> {
 
     @Override
     public Query<O> getQuery() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public QueryOptions getQueryOptions() {
         throw new UnsupportedOperationException();
     }
 }

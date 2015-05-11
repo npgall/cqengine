@@ -100,4 +100,9 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     public Query<O> getQuery() {
         return query;
     }
+
+    @Override
+    public QueryOptions getQueryOptions() {
+        return queryOptions;
+    }
 }

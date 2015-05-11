@@ -150,6 +150,10 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else {

@@ -119,6 +119,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else if (queryClass.equals(StringEndsWith.class)) {
@@ -159,6 +163,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 @Override
                 public Query<O> getQuery() {
                     return query;
+                }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
                 }
             };
         }
@@ -201,6 +209,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else {
@@ -230,7 +242,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
             };
         }
         else {
-            return new ResultSetUnionAll<O>(results, query) {
+            return new ResultSetUnionAll<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;

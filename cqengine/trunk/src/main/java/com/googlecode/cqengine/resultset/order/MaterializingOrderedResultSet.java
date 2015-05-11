@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset.order;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
@@ -40,11 +41,13 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
     final ResultSet<O> wrappedResultSet;
     final Comparator<O> comparator;
     final Query<O> query;
+    final QueryOptions queryOptions;
 
-    public MaterializingOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator, Query<O> query) {
+    public MaterializingOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator, Query<O> query, QueryOptions queryOptions) {
         this.wrappedResultSet = wrappedResultSet;
         this.comparator = comparator;
         this.query = query;
+        this.queryOptions = queryOptions;
     }
 
     /**
@@ -122,5 +125,10 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
     @Override
     public Query<O> getQuery() {
         return query;
+    }
+
+    @Override
+    public QueryOptions getQueryOptions() {
+        return queryOptions;
     }
 }

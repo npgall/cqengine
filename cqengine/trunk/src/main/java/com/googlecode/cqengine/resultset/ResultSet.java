@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.resultset;
 
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.common.NoSuchObjectException;
 import com.googlecode.cqengine.resultset.common.NonUniqueObjectException;
 
@@ -49,6 +50,12 @@ public abstract class ResultSet<O> implements Iterable<O> {
      * @return The query for which this ResultSet provides results.
      */
     public abstract Query<O> getQuery();
+
+    /**
+     * Returns the query options associated with the query.
+     * @return The query options associated with the query.
+     */
+    public abstract QueryOptions getQueryOptions();
 
     /**
      * Returns the first object returned by the iterator of this {@link ResultSet}, and throws an exception if

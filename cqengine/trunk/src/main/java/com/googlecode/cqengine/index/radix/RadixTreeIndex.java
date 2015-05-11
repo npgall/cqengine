@@ -114,6 +114,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else if (queryClass.equals(StringStartsWith.class)) {
@@ -155,6 +159,10 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 public Query<O> getQuery() {
                     return query;
                 }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
             };
         }
         else {
@@ -184,7 +192,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
             };
         }
         else {
-            return new ResultSetUnionAll<O>(results, query) {
+            return new ResultSetUnionAll<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
                     return INDEX_RETRIEVAL_COST;
