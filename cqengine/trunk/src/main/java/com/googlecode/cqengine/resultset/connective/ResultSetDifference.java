@@ -49,7 +49,7 @@ public class ResultSetDifference<O> extends ResultSet<O> {
         return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
-                return !secondResultSet.contains(object);
+                return !secondResultSet.matches(object);
             }
         };
     }

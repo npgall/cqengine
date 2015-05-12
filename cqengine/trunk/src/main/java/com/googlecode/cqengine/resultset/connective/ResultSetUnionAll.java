@@ -61,11 +61,7 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
      */
     @Override
     public boolean contains(O object) {
-        return anyResultSetContains(this.resultSets, object);
-    }
-
-    static <O> boolean anyResultSetContains(Iterable<? extends ResultSet<O>> resultSets, O object) {
-        for (ResultSet<O> resultSet : resultSets) {
+        for (ResultSet<O> resultSet : this.resultSets) {
             if (resultSet.contains(object)) {
                 return true;
             }
