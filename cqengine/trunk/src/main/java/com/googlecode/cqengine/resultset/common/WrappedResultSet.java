@@ -49,6 +49,11 @@ public class WrappedResultSet<O> extends ResultSet<O> {
     }
 
     @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
+    @Override
     public int size() {
         return wrappedResultSet.size();
     }

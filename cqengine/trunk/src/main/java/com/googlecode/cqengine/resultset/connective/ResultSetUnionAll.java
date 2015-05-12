@@ -73,6 +73,11 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
         return false;
     }
 
+    @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
     /**
      * Returns the sum of the sizes of the the underlying {@code ResultSet}s.
      * @return the sum of the sizes of the the underlying {@code ResultSet}s

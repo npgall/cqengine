@@ -99,6 +99,10 @@ public class FallbackIndex<O> implements Index<O> {
                 return IteratorUtil.countElements(this);
             }
             @Override
+            public boolean matches(O object) {
+                return query.matches(object, queryOptions);
+            }
+            @Override
             public int getRetrievalCost() {
                 return INDEX_RETRIEVAL_COST;
             }

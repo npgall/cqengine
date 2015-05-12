@@ -201,6 +201,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             @Override
+            public boolean matches(O object) {
+                return query.matches(object, queryOptions);
+            }
+
+            @Override
             public int size() {
                 final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
                 try {

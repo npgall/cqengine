@@ -136,6 +136,10 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
                 	return (object != null && obj != null && object.equals(obj));
                 }
                 @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+                @Override
                 public int size() {
                 	return obj == null ? 0 : 1;
                 }

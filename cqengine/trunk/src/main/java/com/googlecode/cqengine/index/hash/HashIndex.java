@@ -100,6 +100,10 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                     return rs != null && filterForQuantization(rs, equal, queryOptions).contains(object);
                 }
                 @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+                @Override
                 public int size() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
                     return rs == null ? 0 : filterForQuantization(rs, equal, queryOptions).size();

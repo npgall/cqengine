@@ -58,6 +58,16 @@ public class StoredSetBasedResultSet<O> extends StoredResultSet<O> {
         return backingSet.contains(o);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * This implementation delegates to {@link #contains(Object)}.
+     */
+    @Override
+    public boolean matches(O object) {
+        return contains(object);
+    }
+
     @Override
     public Iterator<O> iterator() {
         return backingSet.iterator();

@@ -97,6 +97,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                     return rs != null && rs.contains(object);
                 }
                 @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+                @Override
                 public int size() {
                     ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
                     return rs == null ? 0 : rs.size();
@@ -139,6 +143,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysEndingWith(stringEndsWith.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.contains(object);
+                }
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
                 }
                 @Override
                 public int size() {
@@ -184,6 +192,10 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysContaining(stringContains.getValue());
                     ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
                     return rs.contains(object);
+                }
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
                 }
                 @Override
                 public int size() {

@@ -79,6 +79,11 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
         return wrappedResultSet.contains(object);
     }
 
+    @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
     /**
      * Returns the retrieval cost of the wrapped {@link ResultSet}.
      * @return The retrieval cost of the wrapped {@link ResultSet}
