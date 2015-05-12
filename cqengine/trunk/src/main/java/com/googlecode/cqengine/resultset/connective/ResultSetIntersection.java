@@ -62,7 +62,12 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {
-                return allResultSetsContain(moreExpensiveResultSets, object);
+                for (ResultSet<O> resultSet : moreExpensiveResultSets) {
+                    if (!resultSet.matches(object)) {
+                        return false;
+                    }
+                }
+                return true;
             }
         };
     }
@@ -75,14 +80,10 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
      */
     @Override
     public boolean contains(O object) {
-        return allResultSetsContain(this.resultSets, object);
-    }
-
-    static <O> boolean allResultSetsContain(Collection<ResultSet<O>> resultSets, O object) {
-        if (resultSets.isEmpty()) {
+        if (this.resultSets.isEmpty()) {
             return false;
         }
-        for (ResultSet<O> resultSet : resultSets) {
+        for (ResultSet<O> resultSet : this.resultSets) {
             if (!resultSet.contains(object)) {
                 return false;
             }

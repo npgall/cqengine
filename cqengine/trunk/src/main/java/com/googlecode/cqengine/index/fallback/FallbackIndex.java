@@ -43,6 +43,7 @@ import java.util.*;
 public class FallbackIndex<O> implements Index<O> {
 
     private static final int INDEX_RETRIEVAL_COST = Integer.MAX_VALUE;
+    private static final int INDEX_MERGE_COST = Integer.MAX_VALUE;
 
     private Set<O> collection = Collections.emptySet();
 
@@ -108,9 +109,7 @@ public class FallbackIndex<O> implements Index<O> {
             }
             @Override
             public int getMergeCost() {
-                // Merge cost is often greater than size because the entire collection must be scanned regardless of
-                // the size of the filtered result set...
-                return collection.size();
+                return INDEX_MERGE_COST;
             }
             @Override
             public void close() {
