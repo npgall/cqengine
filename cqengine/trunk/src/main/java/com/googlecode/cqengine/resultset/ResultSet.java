@@ -37,13 +37,35 @@ public abstract class ResultSet<O> implements Iterable<O> {
     /**
      * Returns true if this {@link ResultSet} contains the given object, false if it does not.
      * <p/>
-     * Note that the cost of calling this method depends on the query for which it was constructed, but will be
-     * significantly cheaper than iterating all results to check if an object is contained.
-     * 
+     * Note that the cost of calling this method will most likely be cheaper than iterating all results to check if an
+     * object is contained. If indexes are available to support the query, this method will query indexes to check if
+     * the object is contained, instead of actually retrieving any data.
+     * <p/>
+     * See also the {@link #matches(Object)} method, which provides a similar function but often with better performance
+     * than this method.
+     *
      * @param object The object to check for containment in this {@link ResultSet}
      * @return True if this {@link ResultSet} contains the given object, false if it does not
      */
     public abstract boolean contains(O object);
+
+    /**
+     * Similar to the {@link #contains(Object)} method, but checks for logical containment in the ResultSet as opposed
+     * to physical containment in the ResultSet. Determines if the given object would be contained in the ResultSet,
+     * by testing if the given object matches the query for which this ResultSet was generated, instead of actually
+     * checking if the object is contained in appropriate indexes.
+     * <p/>
+     * This method will typically make the determination by evaluating the query on the given object on-the-fly without
+     * accessing indexes, however in some cases this method might delegate to the {@link #contains(Object)}
+     * method to make the determination.
+     * <p/>
+     * This method will perform better than {@link #contains(Object)} in cases where querying indexes is more expensive
+     * than querying attributes, which is usually the case.
+     *
+     * @param object The object to check for logical containment in this {@link ResultSet}
+     * @return True if this {@link ResultSet} logically contains the given object, false if it does not
+     */
+    public abstract boolean matches(O object);
 
     /**
      * Returns the query for which this ResultSet provides results.

@@ -57,6 +57,11 @@ public abstract class FilteringResultSet<O> extends ResultSet<O> {
         return IteratorUtil.iterableContains(this, object);
     }
 
+    @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
     public abstract boolean isValid(O object, QueryOptions queryOptions);
 
     @Override

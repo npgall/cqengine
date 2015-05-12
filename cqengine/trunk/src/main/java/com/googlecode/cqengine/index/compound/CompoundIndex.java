@@ -128,6 +128,10 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
                     return rs != null && filterForQuantization(rs, compoundQuery, queryOptions).contains(object);
                 }
                 @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+                @Override
                 public int size() {
                     ResultSet<O> rs = indexMap.get(getQuantizedValue(valueTuple));
                     return rs == null ? 0 : filterForQuantization(rs, compoundQuery, queryOptions).size();

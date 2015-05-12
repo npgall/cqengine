@@ -51,6 +51,12 @@ public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
     }
 
     @Override
+    public boolean matches(O object) {
+        ensureNotClosed();
+        return query.matches(object, queryOptions);
+    }
+
+    @Override
     public int size() {
         ensureNotClosed();
         return wrapped.size();

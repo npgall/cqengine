@@ -91,6 +91,11 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
     }
 
     @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
+    @Override
     public int size() {
         return IteratorUtil.countElements(this);
     }

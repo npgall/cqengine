@@ -109,6 +109,11 @@ public class ResultSetUnion<O> extends ResultSet<O> {
         return false;
     }
 
+    @Override
+    public boolean matches(O object) {
+        return query.matches(object, queryOptions);
+    }
+
     /**
      * Returns the number of distinct objects in the the underlying {@code ResultSet}s, with duplicates eliminated.
      * @return the number of distinct objects in the the underlying {@code ResultSet}s, with duplicates eliminated
