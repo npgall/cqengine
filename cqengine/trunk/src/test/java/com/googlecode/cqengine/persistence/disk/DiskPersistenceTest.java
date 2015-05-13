@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.persistence.offheap;
+package com.googlecode.cqengine.persistence.disk;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
@@ -26,24 +26,27 @@ import org.junit.Test;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
+import java.io.File;
+
 /**
  * @author niall.gallagher
  */
-public class OffHeapPersistenceTest {
+public class DiskPersistenceTest {
 
     @Test
     public void testGetBytesUsed() {
-        OffHeapPersistence<Car, Integer> persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+        DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
         @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
         cars.addAll(CarFactory.createCollectionOfCars(50));
         long bytesUsed = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used should be greater than zero: " + bytesUsed, bytesUsed > 0);
+        Assert.assertTrue("Failed to delete temp file:" + persistence.getFile(), persistence.getFile().delete());
     }
 
     @Test
     public void testCompact() {
-        OffHeapPersistence<Car, Integer> persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+        DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
         @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
         cars.addAll(CarFactory.createCollectionOfCars(50));
@@ -55,6 +58,7 @@ public class OffHeapPersistenceTest {
         persistence.compact(); // Truncates size of the database, but not to zero as the tables which were created remain (although empty)
         long bytesUsedAfterCompaction = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used after compaction (" + bytesUsedAfterCompaction + ") should be less than when fully populated (" + bytesUsedWhenFullyPopulated + ")", bytesUsedAfterCompaction < bytesUsedWhenFullyPopulated);
+        Assert.assertTrue("Failed to delete temp file:" + persistence.getFile(), persistence.getFile().delete());
     }
 
     @Test
@@ -63,7 +67,7 @@ public class OffHeapPersistenceTest {
         ds1.setUrl("foo");
         SQLiteDataSource ds2 = new SQLiteDataSource(new SQLiteConfig());
         ds2.setUrl("bar");
-        EqualsVerifier.forClass(OffHeapPersistence.class)
+        EqualsVerifier.forClass(DiskPersistence.class)
                 .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
                 .withPrefabValues(SQLiteDataSource.class, ds1, ds2)
                 .verify();

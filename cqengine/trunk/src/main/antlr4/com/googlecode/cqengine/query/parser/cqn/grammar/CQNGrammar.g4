@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-grammar CQEngineNative;
+grammar CQNGrammar;
 import Java;
 
 start : query EOF;

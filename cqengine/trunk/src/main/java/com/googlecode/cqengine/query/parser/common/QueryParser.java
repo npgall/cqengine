@@ -18,7 +18,11 @@ package com.googlecode.cqengine.query.parser.common;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.valuetypes.*;
-import com.googlecode.cqengine.query.parser.cqnative.support.StringParser;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +40,14 @@ public abstract class QueryParser<O> {
     protected final Class<O> objectType;
     protected final Map<String, Attribute<O, ?>> attributes = new HashMap<String, Attribute<O, ?>>();
     protected final Map<Class<?>, ValueParser<?>> valueParsers = new HashMap<Class<?>, ValueParser<?>>();
+
+    protected static final BaseErrorListener SYNTAX_ERROR_LISTENER = new BaseErrorListener() {
+        @Override
+        public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+                throws ParseCancellationException {
+            throw new InvalidQueryException("Failed to parse query at line " + line + ":" + charPositionInLine + ": " + msg);
+        }
+    };
 
     public QueryParser(Class<O> objectType) {
         registerValueParser(new BooleanParser());
@@ -63,22 +75,37 @@ public abstract class QueryParser<O> {
         return objectType;
     }
 
-    public Attribute<O, ?> getRegisteredAttribute(String name) {
-        Attribute<O, ?> attribute = attributes.get(name);
+    public <A> Attribute<O, A> getAttribute(ParseTree attributeNameContext, Class<A> expectedSuperType) {
+        String attributeName = parseValue(String.class, attributeNameContext.getText());
+        Attribute<O, ?> attribute = attributes.get(attributeName);
         if (attribute == null) {
-            throw new IllegalStateException("No such attribute has been registered with the parser: " + name);
+            throw new IllegalStateException("No such attribute has been registered with the parser: " + attributeName);
         }
-        return attribute;
+        if (!expectedSuperType.isAssignableFrom(attribute.getAttributeType())) {
+            throw new IllegalStateException("Non-" + expectedSuperType.getSimpleName() + " attribute used in a query which requires a " + expectedSuperType.getSimpleName() + " attribute: " + attribute.getAttributeName());
+        }
+        @SuppressWarnings("unchecked")
+        Attribute<O, A> result = (Attribute<O, A>) attribute;
+        return result;
     }
 
-    public <A> ValueParser<A> getValueParser(Class<A> attributeType) {
-        @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-        ValueParser<A> parser = (ValueParser<A>) valueParsers.get(attributeType);
-        if (parser == null) {
-            throw new IllegalStateException("No value parser has been registered to parse type: " + attributeType.getName());
-        }
-        return parser;
+    public <A> A parseValue(Attribute<O, A> attribute, ParseTree parameterContext) {
+        return parseValue(attribute.getAttributeType(), parameterContext.getText());
     }
+
+    public <A> A parseValue(Class<A> valueType, ParseTree parameterContext) {
+        return parseValue(valueType, parameterContext.getText());
+    }
+
+    public <A> A parseValue(Class<A> valueType, String text) {
+        @SuppressWarnings("unchecked")
+        ValueParser<A> valueParser = (ValueParser<A>) valueParsers.get(valueType);
+        if (valueParser == null) {
+            throw new IllegalStateException("No value parser has been registered to parse type: " + valueType.getName());
+        }
+        return valueParser.validatedParse(text);
+    }
+
 
     public abstract Query<O> parse(String query);
 }

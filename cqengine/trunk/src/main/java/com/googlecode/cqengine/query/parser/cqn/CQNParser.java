@@ -13,41 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.query.parser.cqnative;
+package com.googlecode.cqengine.query.parser.cqn;
 
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.antlr4.cqnative.CQEngineNativeLexer;
-import com.googlecode.cqengine.query.parser.antlr4.cqnative.CQEngineNativeParser;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
-import com.googlecode.cqengine.query.parser.cqnative.support.*;
+import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarLexer;
+import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarParser;
+import com.googlecode.cqengine.query.parser.cqn.support.*;
+import com.googlecode.cqengine.query.parser.cqn.support.StringParser;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 /**
- * A parser for CQEngine native queries represented as strings.
+ * A parser for CQN queries - CQEngine-Native syntax.
  *
  * @author Niall Gallagher
  */
-public class CQNativeParser<O> extends QueryParser<O> {
+public class CQNParser<O> extends QueryParser<O> {
 
-    public CQNativeParser(Class<O> objectType) {
+    public CQNParser(Class<O> objectType) {
         super(objectType);
         super.registerValueParser(new StringParser());
     }
-
-    static class ThrowingErrorListener extends BaseErrorListener {
-
-        static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
-
-       @Override
-       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
-          throws ParseCancellationException {
-             throw new InvalidQueryException("Failed to parse query at line " + line + ":" + charPositionInLine + ": " + msg);
-          }
-    }
-
 
     @Override
     public Query<O> parse(String query) {
@@ -55,25 +43,20 @@ public class CQNativeParser<O> extends QueryParser<O> {
             if (query == null) {
                 throw new IllegalArgumentException("Query was null");
             }
-            CQEngineNativeLexer lexer = new CQEngineNativeLexer(new ANTLRInputStream(query));
+            CQNGrammarLexer lexer = new CQNGrammarLexer(new ANTLRInputStream(query));
             lexer.removeErrorListeners();
-            lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
+            lexer.addErrorListener(SYNTAX_ERROR_LISTENER);
 
-            // Get a list of matched tokens
             CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-            // Pass the tokens to the parser
-            CQEngineNativeParser parser = new CQEngineNativeParser(tokens);
+            CQNGrammarParser parser = new CQNGrammarParser(tokens);
             parser.removeErrorListeners();
-            parser.addErrorListener(ThrowingErrorListener.INSTANCE);
+            parser.addErrorListener(SYNTAX_ERROR_LISTENER);
 
-            // Specify our entry point
-            CQEngineNativeParser.StartContext queryContext = parser.start();
+            CQNGrammarParser.StartContext queryContext = parser.start();
 
-
-            // Walk it and attach our listener
             ParseTreeWalker walker = new ParseTreeWalker();
-            NativeQueryAntlrListener<O> listener = new NativeQueryAntlrListener<O>(this);
+            CQNAntlrListener<O> listener = new CQNAntlrListener<O>(this);
             walker.walk(listener, queryContext);
             return listener.getParsedQuery();
         }
@@ -83,7 +66,6 @@ public class CQNativeParser<O> extends QueryParser<O> {
         catch (Exception e) {
             throw new InvalidQueryException("Failed to parse query", e);
         }
-
     }
 
 }

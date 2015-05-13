@@ -16,14 +16,13 @@
 package com.googlecode.cqengine.query.parser.sql;
 
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.parser.antlr4.cqsql.CQEngineSQLLexer;
-import com.googlecode.cqengine.query.parser.antlr4.cqsql.CQEngineSQLParser;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
-import com.googlecode.cqengine.query.parser.sql.support.SQLQueryAntlrListener;
+import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarLexer;
+import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarParser;
+import com.googlecode.cqengine.query.parser.sql.support.SQLAntlrListener;
 import com.googlecode.cqengine.query.parser.sql.support.StringParser;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 /**
@@ -39,43 +38,26 @@ public class SQLParser<O> extends QueryParser<O> {
 
     }
 
-    static class ThrowingErrorListener extends BaseErrorListener {
-
-        static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
-
-       @Override
-       public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
-          throws ParseCancellationException {
-             throw new InvalidQueryException("Failed to parse query at line " + line + ":" + charPositionInLine + ": " + msg);
-          }
-    }
-
-
     @Override
     public Query<O> parse(String query) {
         try {
             if (query == null) {
                 throw new IllegalArgumentException("Query was null");
             }
-            CQEngineSQLLexer lexer = new CQEngineSQLLexer(new ANTLRInputStream(query));
+            SQLGrammarLexer lexer = new SQLGrammarLexer(new ANTLRInputStream(query));
             lexer.removeErrorListeners();
-            lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
+            lexer.addErrorListener(SYNTAX_ERROR_LISTENER);
 
-            // Get a list of matched tokens
             CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-            // Pass the tokens to the parser
-            CQEngineSQLParser parser = new CQEngineSQLParser(tokens);
+            SQLGrammarParser parser = new SQLGrammarParser(tokens);
             parser.removeErrorListeners();
-            parser.addErrorListener(ThrowingErrorListener.INSTANCE);
+            parser.addErrorListener(SYNTAX_ERROR_LISTENER);
 
-            // Specify our entry point
-            CQEngineSQLParser.StartContext queryContext = parser.start();
+            SQLGrammarParser.StartContext queryContext = parser.start();
 
-
-            // Walk it and attach our listener
             ParseTreeWalker walker = new ParseTreeWalker();
-            SQLQueryAntlrListener<O> listener = new SQLQueryAntlrListener<O>(this);
+            SQLAntlrListener<O> listener = new SQLAntlrListener<O>(this);
             walker.walk(listener, queryContext);
             return listener.getParsedQuery();
         }
@@ -85,7 +67,6 @@ public class SQLParser<O> extends QueryParser<O> {
         catch (Exception e) {
             throw new InvalidQueryException("Failed to parse query", e);
         }
-
     }
 
 }

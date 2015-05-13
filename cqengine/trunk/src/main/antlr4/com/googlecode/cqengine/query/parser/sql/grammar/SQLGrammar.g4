@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-grammar CQEngineSQL;
+grammar SQLGrammar;
 import SQLite;
 
 start : K_SELECT STAR K_FROM indexedCollection whereClause? EOF ;

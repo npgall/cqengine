@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.query.parser.cqnative;
+package com.googlecode.cqengine.query.parser.cqn;
 
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.ValueParser;
-import com.googlecode.cqengine.query.parser.cqnative.support.StringParser;
+import com.googlecode.cqengine.query.parser.cqn.support.StringParser;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,9 +28,9 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 /**
  * @author Niall Gallagher
  */
-public class CQNativeParserTest {
+public class CQNParserTest {
 
-    final CQNativeParser<Car> parser = new CQNativeParser<Car>(Car.class){{
+    final CQNParser<Car> parser = new CQNParser<Car>(Car.class){{
         registerAttribute(Car.CAR_ID);
         registerAttribute(Car.MANUFACTURER);
         registerAttribute(Car.MODEL);

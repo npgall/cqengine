@@ -72,7 +72,7 @@ public class IndexedCollectionFunctionalTest {
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow tests *during development only!*...
-    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip_slow_tests", "false"));
+    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "false"));
 
     // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
     static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
@@ -572,7 +572,7 @@ public class IndexedCollectionFunctionalTest {
                                     size = 3;
                                     carIdsAnyOrder = asSet(0, 1, 2);
                                     indexUsed = false;
-                                    mergeCost = 10;
+                                    mergeCost = Integer.MAX_VALUE;
                                 }};
                             }}
                     );
