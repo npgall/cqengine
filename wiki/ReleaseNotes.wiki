@@ -2,7 +2,7 @@
 #labels Featured
 
 ===Version 2.0.3 - 2015-05-16===
- * Updated xerial SQLite driver used by DiskIndex and OffHeapIndex to 3.8.10.1, improves hot redeploy support in webapps
+ * Updated xerial SQLite driver used by `DiskIndex` and `OffHeapIndex` to 3.8.10.1, improves hot redeploy support in webapps
  * Deployed to Maven central
 
 ===Version 2.0.2 - 2015-04-28===
