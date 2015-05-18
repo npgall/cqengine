@@ -157,7 +157,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
                 resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
-                final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection);
+                final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection); // eliminates duplicates
                 resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
 
                 return new LazyIterator<O>() {
@@ -186,7 +186,12 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
             @Override
             public int getMergeCost() {
-                return size();
+                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                try {
+                    return DBQueries.count(query, tableName, connection); // no need to eliminate duplicates
+                } finally {
+                    DBUtils.closeQuietly(connection);
+                }
             }
 
             @Override
@@ -209,7 +214,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             public int size() {
                 final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
                 try {
-                    return DBQueries.count(query, tableName, connection);
+                    return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
                 } finally {
                     DBUtils.closeQuietly(connection);
                 }
