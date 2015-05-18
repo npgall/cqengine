@@ -354,9 +354,31 @@ public class DBQueries {
         return statement;
     }
 
-    public static <O> int count(final Query<O> query, final String tableName, final Connection connection){
+    public static <O> int count(final Query<O> query, final String tableName, final Connection connection) {
 
         final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
+        PreparedStatement statement = null;
+        try {
+            statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
+            java.sql.ResultSet resultSet = statement.executeQuery();
+
+            if (!resultSet.next()) {
+                throw new IllegalStateException("Unable to execute count. The ResultSet returned no row. Query: " + query);
+            }
+
+            return resultSet.getInt(1);
+        }
+        catch (Exception e) {
+            throw new IllegalStateException("Unable to execute count. Query: " + query, e);
+        }
+        finally {
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static <O> int countDistinct(final Query<O> query, final String tableName, final Connection connection){
+
+        final String selectSql = String.format("SELECT COUNT(DISTINCT objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
@@ -376,7 +398,7 @@ public class DBQueries {
     }
 
     public static <O> java.sql.ResultSet search(final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s",tableName);
+        final String selectSql = String.format("SELECT DISTINCT objectKey, value FROM cqtbl_%s",tableName);
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
