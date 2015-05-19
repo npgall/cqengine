@@ -19,34 +19,108 @@ import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.codegen.support.GeneratedAttributeSupport;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import javassist.*;
+import javassist.Modifier;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.SignatureAttribute;
+
+import java.lang.reflect.*;
+import java.util.*;
+
+import static java.lang.reflect.Modifier.*;
 
 /**
  * Generates Attributes by synthesizing bytecode, avoiding the need to write attributes by hand.
  * The synthesized attributes should perform as well at runtime as hand-written ones in most cases.
- * <p/>
- * Note this class uses the <i>javassist</i> library to generate bytecode, which is an <i>optional</i> dependency in
- * CQEngine's pom.xml. If you wish to use this class, ensure that you <b>re-declare the dependency on javassist</b>
- * again in your application's pom.xml.
  * <p/>
  * Generated attributes are loaded into the ClassLoader of the given POJO classes.
  */
 public class AttributeBytecodeGenerator {
 
     /**
+     * Auto-generates and instantiates a set of attributes which read values from the fields in the given POJO class.
+     * <p>
+     * Attributes will be generated for all non-private fields declared directly in the POJO class, and for inherited
+     * fields as well, as long as the access modifiers on inherited fields in their superclass(es) allow those fields to
+     * be accessed from the package of the POJO class. So if the POJO class is in the same package as a superclass,
+     * then attributes will be generated for package-private, protected, and public fields in the superclass. If the
+     * POJO class is in a different package from the superclass, then attributes will be generated for protected and
+     * public fields in the superclass.
+     *
+     * @param pojoClass The POJO class containing fields for which attributes are to be created
+     * @return A set of attributes which read values from the fields in the given POJO class
+     */
+    @SuppressWarnings("unchecked")
+    public static <O> NavigableSet<? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass) {
+        final NavigableSet<Attribute<O, ?>> attributes = new TreeSet<Attribute<O, ?>>(new Comparator<Attribute<O, ?>>() {
+            @Override
+            public int compare(Attribute<O, ?> o1, Attribute<O, ?> o2) {
+                return o1.getAttributeName().compareTo(o2.getAttributeName());
+            }
+        });
+        Class currentClass = pojoClass;
+        while (currentClass != null && currentClass != Object.class) {
+            for (Field field : Arrays.asList(currentClass.getDeclaredFields())) {
+                try {
+                    int modifiers = field.getModifiers();
+                    Class<? extends Attribute<O, ?>> attributeClass;
+                    if (!isStatic(modifiers) && !isPrivate(modifiers)) {
+                        // If the field is declared in a superclass in a different package,
+                        // only generate an attribute for it, if the field is actually accessible from the subclass,
+                        // that is it is declared public or protected...
+                        if (!field.getDeclaringClass().getPackage().getName().equals(pojoClass.getPackage().getName())
+                                && !(isProtected(modifiers) || isPublic(modifiers))) {
+                            continue;
+                        }
+                        Class<?> fieldType = field.getType();
+                        if (fieldType.isPrimitive()) {
+                            Class<?> wrapperType = getWrapperForPrimitive(fieldType);
+                            attributeClass = generateSimpleAttributeForField(pojoClass, wrapperType, field.getName(), field.getName());
+                        } else if (Iterable.class.isAssignableFrom(fieldType)) {
+                            ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+                            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                            if (actualTypeArguments.length != 1) {
+                                throw new UnsupportedOperationException();
+                            }
+                            Class<?> genericType = (Class<?>) actualTypeArguments[0];
+                            attributeClass = generateMultiValueNullableAttributeForField(pojoClass, genericType, field.getName(), true, field.getName());
+                        } else if (fieldType.isArray()) {
+                            Class<?> componentType = fieldType.getComponentType();
+                            if (componentType.isPrimitive()) {
+                                Class<?> wrapperType = getWrapperForPrimitive(componentType);
+                                attributeClass = generateMultiValueNullableAttributeForField(pojoClass, wrapperType, field.getName(), false, field.getName());
+                            }
+                            else {
+                                attributeClass = generateMultiValueNullableAttributeForField(pojoClass, componentType, field.getName(), true, field.getName());
+                            }
+                        } else {
+                            attributeClass = generateSimpleNullableAttributeForField(pojoClass, fieldType, field.getName(), field.getName());
+                        }
+                        Attribute<O, ?> attribute = attributeClass.newInstance();
+                        attributes.add(attribute);
+                    }
+                } catch (Throwable e) {
+                    throw new IllegalStateException("Failed to create attribute for field: " + field.toGenericString(), e);
+                }
+
+            }
+            currentClass = currentClass.getSuperclass();
+        }
+        return attributes;
+    }
+
+    /**
      * Generates a {@link SimpleAttribute} which reads a non-null value from the given field in a POJO.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the type of the field. However reading primitive values
      * is also supported. In that case, the attribute will box the primitive value to its wrapper type automatically,
      * and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the field
+     * @param pojoClass          The class containing the field
      * @param attributeValueType The type of value returned by the attribute
-     * @param fieldName The name of the field
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param fieldName          The name of the field
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
@@ -57,17 +131,17 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link SimpleAttribute} which reads a non-null value from the given getter method in a POJO.
      * The getter method should not take any arguments.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the return type of the getter. However reading from
      * getters which return primitive values is also supported. In that case, the attribute will box the primitive value
      * to its wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
@@ -78,18 +152,18 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link SimpleAttribute} which reads a non-null value from the given <i>parameterized</i> getter
      * method in a POJO. The getter method should take a single string argument.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the return type of the getter. However reading from
      * getters which return primitive values is also supported. In that case, the attribute will box the primitive value
      * to its wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param getterParameter The string argument to supply to the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param getterParameter    The string argument to supply to the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
@@ -99,17 +173,17 @@ public class AttributeBytecodeGenerator {
 
     /**
      * Generates a {@link SimpleNullableAttribute} which reads a possibly-null value from the given field in a POJO.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the type of the field. However reading primitive values
      * is also supported. In that case, the attribute will box the primitive value to its wrapper type automatically,
      * and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the field
+     * @param pojoClass          The class containing the field
      * @param attributeValueType The type of value returned by the attribute
-     * @param fieldName The name of the field
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param fieldName          The name of the field
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
@@ -120,17 +194,17 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link SimpleNullableAttribute} which reads a possibly-null value from the given getter method in a
      * POJO. The getter method should not take any arguments.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the return type of the getter. However reading from
      * getters which return primitive values is also supported. In that case, the attribute will box the primitive value
      * to its wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
@@ -141,18 +215,18 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link SimpleNullableAttribute} which reads a possibly-null value from the given <i>parameterized</i>
      * getter method in a POJO. The getter method should take a single string argument.
-     * <p/>
+     * <p>
      * The type of value returned by the attribute should match the return type of the getter. However reading from
      * getters which return primitive values is also supported. In that case, the attribute will box the primitive value
      * to its wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param getterParameter The string argument to supply to the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param getterParameter    The string argument to supply to the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
@@ -162,18 +236,18 @@ public class AttributeBytecodeGenerator {
 
     /**
      * Generates a {@link MultiValueAttribute} which reads non-null values from the given field in a POJO.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values stored in the field. The field may
      * be a List or an array, of objects of the same type as the attribute. However reading from primitive arrays is
      * also supported. In that case, the attribute will box the primitive values to their wrapper type automatically,
      * and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the field
+     * @param pojoClass          The class containing the field
      * @param attributeValueType The type of values returned by the attribute
-     * @param fieldName The name of the field
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of values returned by the attribute
+     * @param fieldName          The name of the field
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of values returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
@@ -184,18 +258,18 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link MultiValueAttribute} which reads non-null values from the given getter method in a POJO.
      * The getter method should not take any arguments.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values returned by the getter. The getter
      * may return a List or an array, of objects of the same type as the attribute. However reading from getters which
      * return primitive arrays is also supported. In that case, the attribute will box the primitive values to their
      * wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
@@ -206,19 +280,19 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link MultiValueAttribute} which reads non-null values from the given <i>parameterized</i> getter
      * method in a POJO. The getter method should take a single string argument.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values returned by the getter. The getter
      * may return a List or an array, of objects of the same type as the attribute. However reading from getters which
      * return primitive arrays is also supported. In that case, the attribute will box the primitive values to their
      * wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param getterParameter The string argument to supply to the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param getterParameter    The string argument to supply to the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
@@ -228,18 +302,18 @@ public class AttributeBytecodeGenerator {
 
     /**
      * Generates a {@link MultiValueAttribute} which reads possibly-null values from the given field in a POJO.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values stored in the field. The field may
      * be a List or an array, of objects of the same type as the attribute. However reading from primitive arrays is
      * also supported. In that case, the attribute will box the primitive values to their wrapper type automatically,
      * and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the field
+     * @param pojoClass          The class containing the field
      * @param attributeValueType The type of values returned by the attribute
-     * @param fieldName The name of the field
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of values returned by the attribute
+     * @param fieldName          The name of the field
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of values returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, boolean componentValuesNullable, String attributeName) {
@@ -250,18 +324,18 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link MultiValueAttribute} which reads possibly-null values from the given getter method in a POJO.
      * The getter method should not take any arguments.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values returned by the getter. The getter
      * may return a List or an array, of objects of the same type as the attribute. However reading from getters which
      * return primitive arrays is also supported. In that case, the attribute will box the primitive values to their
      * wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, boolean componentValuesNullable, String attributeName) {
@@ -272,19 +346,19 @@ public class AttributeBytecodeGenerator {
     /**
      * Generates a {@link MultiValueAttribute} which reads possibly-null values from the given <i>parameterized</i>
      * getter method in a POJO. The getter method should take a single string argument.
-     * <p/>
+     * <p>
      * The type of values returned by the attribute should match the type of values returned by the getter. The getter
      * may return a List or an array, of objects of the same type as the attribute. However reading from getters which
      * return primitive arrays is also supported. In that case, the attribute will box the primitive values to their
      * wrapper type automatically, and so the type of the attribute itself should be the wrapper type.
      *
-     * @param pojoClass The class containing the getter method
+     * @param pojoClass          The class containing the getter method
      * @param attributeValueType The type of value returned by the attribute
-     * @param getterMethodName The name of the getter method
-     * @param getterParameter The string argument to supply to the getter method
-     * @param attributeName The name to give to the attribute
-     * @param <O> Type of the POJO object
-     * @param <A> The type of value returned by the attribute
+     * @param getterMethodName   The name of the getter method
+     * @param getterParameter    The string argument to supply to the getter method
+     * @param attributeName      The name to give to the attribute
+     * @param <O>                Type of the POJO object
+     * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, boolean componentValuesNullable, String attributeName) {
@@ -294,6 +368,7 @@ public class AttributeBytecodeGenerator {
 
     /**
      * Helper method for generating SimpleAttribute AND SimpleNullableAttribute.
+     *
      * @param target Snippet of code which reads the value, such as: <code>object.fieldName</code>, <code>object.getFoo()</code>, or <code>object.getFoo("bar")</code>
      */
     private static <O, A, C extends Attribute<O, A>, R extends Class<? extends C>> R generateSimpleAttribute(Class<C> attributeSuperClass, Class<O> pojoClass, Class<A> attributeValueType, String attributeName, String target) {
@@ -306,7 +381,7 @@ public class AttributeBytecodeGenerator {
 
             SignatureAttribute.ClassType genericTypeOfAttribute = new SignatureAttribute.ClassType(
                     attributeSuperClass.getName(),
-                    new SignatureAttribute.TypeArgument[] {
+                    new SignatureAttribute.TypeArgument[]{
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(pojoClass.getName())),
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(attributeValueType.getName()))
                     }
@@ -339,14 +414,14 @@ public class AttributeBytecodeGenerator {
             R result = (R) attributeClass.toClass(pojoClass.getClassLoader(), pojoClass.getProtectionDomain());
             attributeClass.detach();
             return result;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
 
     /**
      * Helper method for generating MultiValueAttribute.
+     *
      * @param target Snippet of code which reads the value, such as: <code>object.fieldName</code>, <code>object.getFoo()</code>, or <code>object.getFoo("bar")</code>
      */
     private static <O, A, C extends MultiValueAttribute<O, A>, R extends Class<? extends C>> R generateMultiValueAttribute(Class<C> attributeSuperClass, Class<O> pojoClass, Class<A> attributeValueType, String attributeName, String target) {
@@ -359,7 +434,7 @@ public class AttributeBytecodeGenerator {
 
             SignatureAttribute.ClassType genericTypeOfAttribute = new SignatureAttribute.ClassType(
                     attributeSuperClass.getName(),
-                    new SignatureAttribute.TypeArgument[] {
+                    new SignatureAttribute.TypeArgument[]{
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(pojoClass.getName())),
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(attributeValueType.getName()))
                     }
@@ -381,10 +456,10 @@ public class AttributeBytecodeGenerator {
 
             getterMethod.setGenericSignature(new SignatureAttribute.MethodSignature(
                     new SignatureAttribute.TypeParameter[0],
-                    new SignatureAttribute.Type[] { new SignatureAttribute.ClassType(pojoClass.getName())},
+                    new SignatureAttribute.Type[]{new SignatureAttribute.ClassType(pojoClass.getName())},
                     new SignatureAttribute.ClassType(
                             java.lang.Iterable.class.getName(),
-                            new SignatureAttribute.TypeArgument[] {
+                            new SignatureAttribute.TypeArgument[]{
                                     new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(attributeValueType.getName()))
                             }
                     ),
@@ -404,14 +479,14 @@ public class AttributeBytecodeGenerator {
             R result = (R) attributeClass.toClass(pojoClass.getClassLoader(), pojoClass.getProtectionDomain());
             attributeClass.detach();
             return result;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
 
     /**
      * Helper method for generating MultiValueNullableAttribute.
+     *
      * @param target Snippet of code which reads the value, such as: <code>object.fieldName</code>, <code>object.getFoo()</code>, or <code>object.getFoo("bar")</code>
      */
     private static <O, A, C extends MultiValueNullableAttribute<O, A>, R extends Class<? extends C>> R generateMultiValueNullableAttribute(Class<C> attributeSuperClass, Class<O> pojoClass, Class<A> attributeValueType, String attributeName, boolean componentValuesNullable, String target) {
@@ -424,7 +499,7 @@ public class AttributeBytecodeGenerator {
 
             SignatureAttribute.ClassType genericTypeOfAttribute = new SignatureAttribute.ClassType(
                     attributeSuperClass.getName(),
-                    new SignatureAttribute.TypeArgument[] {
+                    new SignatureAttribute.TypeArgument[]{
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(pojoClass.getName())),
                             new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(attributeValueType.getName()))
                     }
@@ -446,10 +521,10 @@ public class AttributeBytecodeGenerator {
 
             getterMethod.setGenericSignature(new SignatureAttribute.MethodSignature(
                     new SignatureAttribute.TypeParameter[0],
-                    new SignatureAttribute.Type[] { new SignatureAttribute.ClassType(pojoClass.getName())},
+                    new SignatureAttribute.Type[]{new SignatureAttribute.ClassType(pojoClass.getName())},
                     new SignatureAttribute.ClassType(
                             java.lang.Iterable.class.getName(),
-                            new SignatureAttribute.TypeArgument[] {
+                            new SignatureAttribute.TypeArgument[]{
                                     new SignatureAttribute.TypeArgument(new SignatureAttribute.ClassType(attributeValueType.getName()))
                             }
                     ),
@@ -469,8 +544,7 @@ public class AttributeBytecodeGenerator {
             R result = (R) attributeClass.toClass(pojoClass.getClassLoader(), pojoClass.getProtectionDomain());
             attributeClass.detach();
             return result;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
@@ -486,14 +560,12 @@ public class AttributeBytecodeGenerator {
                 try {
                     pojoClass.getDeclaredField(fieldName);
                     return;
-                }
-                catch (NoSuchFieldException e) {
+                } catch (NoSuchFieldException e) {
                     pojoClass = pojoClass.getSuperclass();
                 }
             }
             throw new NoSuchFieldException(fieldName);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
@@ -504,14 +576,12 @@ public class AttributeBytecodeGenerator {
                 try {
                     pojoClass.getDeclaredMethod(getterMethodName);
                     return;
-                }
-                catch (NoSuchMethodException e) {
+                } catch (NoSuchMethodException e) {
                     pojoClass = pojoClass.getSuperclass();
                 }
             }
             throw new NoSuchMethodException(getterMethodName);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
@@ -525,14 +595,12 @@ public class AttributeBytecodeGenerator {
                 try {
                     pojoClass.getDeclaredMethod(parameterizedGetterMethodName, String.class);
                     return;
-                }
-                catch (NoSuchMethodException e) {
+                } catch (NoSuchMethodException e) {
                     pojoClass = pojoClass.getSuperclass();
                 }
             }
             throw new NoSuchMethodException(parameterizedGetterMethodName + "(String)");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(getExceptionMessage(pojoClass, attributeValueType, attributeName), e);
         }
     }
@@ -540,4 +608,25 @@ public class AttributeBytecodeGenerator {
     static String getExceptionMessage(Class<?> pojoClass, Class<?> attributeValueType, String attributeName) {
         return "Failed to generate attribute for class " + getClassName(pojoClass) + ", type " + getClassName(attributeValueType) + ", name '" + attributeName + "'";
     }
+
+    static Class<?> getWrapperForPrimitive(Class<?> primitiveType) {
+
+        Class<?> wrapperType = PRIMITIVES_TO_WRAPPERS.get(primitiveType);
+        if (wrapperType == null) {
+            throw new IllegalStateException("No wrapper type for primitive type: " + primitiveType);
+        }
+        return wrapperType;
+    }
+
+    static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = new LinkedHashMap<Class<?>, Class<?>>() {{
+        put(boolean.class, Boolean.class);
+        put(byte.class, Byte.class);
+        put(char.class, Character.class);
+        put(double.class, Double.class);
+        put(float.class, Float.class);
+        put(int.class, Integer.class);
+        put(long.class, Long.class);
+        put(short.class, Short.class);
+        put(void.class, Void.class);
+    }};
 }
