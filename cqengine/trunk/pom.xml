@@ -114,24 +114,20 @@
                             <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>javassist</pattern>
-                            <shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.xerial</pattern>
-                            <shadedPattern>com.googlecode.cqengine.lib.org.xerial</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.sqlite</pattern>
-                            <shadedPattern>com.googlecode.cqengine.lib.org.sqlite</shadedPattern>
-                        </relocation>
-                        <relocation>
                             <pattern>com.esotericsoftware</pattern>
                             <shadedPattern>com.googlecode.cqengine.lib.com.esotericsoftware</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.objenesis</pattern>
-                            <shadedPattern>com.googlecode.cqengine.lib.org.objenesis</shadedPattern>
+                            <pattern>org</pattern>
+                            <shadedPattern>com.googlecode.cqengine.lib.org</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>de</pattern>
+                            <shadedPattern>com.googlecode.cqengine.lib.de</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>javassist</pattern>
+                            <shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
                         </relocation>
                     </relocations>
                     <transformers>
@@ -231,6 +227,19 @@
         	<groupId>org.antlr</groupId>
         	<artifactId>antlr4-runtime</artifactId>
         	<version>4.5</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                        The antlr4-runtime jar version 4.5 contains the classes from this dependency internally
+                        AND it erroneously references them as a dependency as well.
+                        We exclude the dependency to avoid duplicate classes on the classpath.
+                        If we update our dependency on antlr4-runtime in future, we need to confirm if
+                        the duplication issue has been fixed by then, or this exclusion is still required.
+                     -->
+                    <groupId>org.abego.treelayout</groupId>
+                    <artifactId>org.abego.treelayout.core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Test-scope dependencies... -->
