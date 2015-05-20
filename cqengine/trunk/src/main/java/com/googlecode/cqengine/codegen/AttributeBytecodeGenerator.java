@@ -47,16 +47,12 @@ public class AttributeBytecodeGenerator {
      * public fields in the superclass.
      *
      * @param pojoClass The POJO class containing fields for which attributes are to be created
-     * @return A set of attributes which read values from the fields in the given POJO class
+     * @return A map of field/attribute names to Attribute objects which read values from the fields in the given POJO
+     * class
      */
     @SuppressWarnings("unchecked")
-    public static <O> NavigableSet<? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass) {
-        final NavigableSet<Attribute<O, ?>> attributes = new TreeSet<Attribute<O, ?>>(new Comparator<Attribute<O, ?>>() {
-            @Override
-            public int compare(Attribute<O, ?> o1, Attribute<O, ?> o2) {
-                return o1.getAttributeName().compareTo(o2.getAttributeName());
-            }
-        });
+    public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass) {
+        final Map<String, Attribute<O, ?>> attributes = new TreeMap<String, Attribute<O, ?>>();
         Class currentClass = pojoClass;
         while (currentClass != null && currentClass != Object.class) {
             for (Field field : Arrays.asList(currentClass.getDeclaredFields())) {
@@ -96,7 +92,7 @@ public class AttributeBytecodeGenerator {
                             attributeClass = generateSimpleNullableAttributeForField(pojoClass, fieldType, field.getName(), field.getName());
                         }
                         Attribute<O, ?> attribute = attributeClass.newInstance();
-                        attributes.add(attribute);
+                        attributes.put(attribute.getAttributeName(), attribute);
                     }
                 } catch (Throwable e) {
                     throw new IllegalStateException("Failed to create attribute for field: " + field.toGenericString(), e);

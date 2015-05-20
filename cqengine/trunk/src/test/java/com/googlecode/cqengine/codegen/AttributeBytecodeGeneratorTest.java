@@ -67,27 +67,24 @@ public class AttributeBytecodeGeneratorTest {
         SuperCar car1 = new SuperCar(0, "Ford Focus", "Blue", Arrays.asList("sunroof", "radio"), 5000, new double[] {1536.5, 1782.9}, new Float[] {56700.9F, 83321.0F});
         SuperCar car2 = new SuperCar(1, "Ford Fusion", "Red", Arrays.asList("coupe", "cd player"), 6000, new double[] {12746.2, 2973.1}, new Float[] {43424.4F, 61232.7F});
 
-        Map<String, Attribute<SuperCar, ?>> attributesByName = new TreeMap<String, Attribute<SuperCar, ?>>();
-        for (Attribute<SuperCar, ?> attribute : AttributeBytecodeGenerator.createAttributes(SuperCar.class)) {
-            attributesByName.put(attribute.getAttributeName(), attribute);
-        }
-        assertFalse(attributesByName.containsKey("horsepower")); // horsepower is not accessible from the subclass
+        Map<String, ? extends Attribute<SuperCar, ?>> attributes = AttributeBytecodeGenerator.createAttributes(SuperCar.class);
+        assertFalse(attributes.containsKey("horsepower")); // horsepower is not accessible from the subclass
         // 2 fields in SuperCar, plus 0 fields inherited from SportsCar, plus 4 inherited from Car...
-        assertEquals(6, attributesByName.size());
+        assertEquals(6, attributes.size());
         // Validate attributes reading fields from car1...
-        validateAttribute(((Attribute<SuperCar, Integer>)attributesByName.get("carId")), SuperCar.class, Integer.class, "carId", car1, Collections.singletonList(0));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("name")), SuperCar.class, String.class, "name", car1, Collections.singletonList("Ford Focus"));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("description")), SuperCar.class, String.class, "description", car1, Collections.singletonList("Blue"));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("features")), SuperCar.class, String.class, "features", car1, Arrays.asList("sunroof", "radio"));
-        validateAttribute(((Attribute<SuperCar, Double>)attributesByName.get("tyrePressures")), SuperCar.class, Double.class, "tyrePressures", car1, Arrays.asList(1536.5, 1782.9));
-        validateAttribute(((Attribute<SuperCar, Float>)attributesByName.get("wheelSpeeds")), SuperCar.class, Float.class, "wheelSpeeds", car1, Arrays.asList(56700.9F, 83321.0F));
+        validateAttribute(((Attribute<SuperCar, Integer>)attributes.get("carId")), SuperCar.class, Integer.class, "carId", car1, Collections.singletonList(0));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("name")), SuperCar.class, String.class, "name", car1, Collections.singletonList("Ford Focus"));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("description")), SuperCar.class, String.class, "description", car1, Collections.singletonList("Blue"));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("features")), SuperCar.class, String.class, "features", car1, Arrays.asList("sunroof", "radio"));
+        validateAttribute(((Attribute<SuperCar, Double>)attributes.get("tyrePressures")), SuperCar.class, Double.class, "tyrePressures", car1, Arrays.asList(1536.5, 1782.9));
+        validateAttribute(((Attribute<SuperCar, Float>)attributes.get("wheelSpeeds")), SuperCar.class, Float.class, "wheelSpeeds", car1, Arrays.asList(56700.9F, 83321.0F));
         // Validate attributes reading fields from car2...
-        validateAttribute(((Attribute<SuperCar, Integer>)attributesByName.get("carId")), SuperCar.class, Integer.class, "carId", car2, Collections.singletonList(1));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("name")), SuperCar.class, String.class, "name", car2, Collections.singletonList("Ford Fusion"));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("description")), SuperCar.class, String.class, "description", car2, Collections.singletonList("Red"));
-        validateAttribute(((Attribute<SuperCar, String>)attributesByName.get("features")), SuperCar.class, String.class, "features", car2, Arrays.asList("coupe", "cd player"));
-        validateAttribute(((Attribute<SuperCar, Double>)attributesByName.get("tyrePressures")), SuperCar.class, Double.class, "tyrePressures", car2, Arrays.asList(12746.2, 2973.1));
-        validateAttribute(((Attribute<SuperCar, Float>)attributesByName.get("wheelSpeeds")), SuperCar.class, Float.class, "wheelSpeeds", car2, Arrays.asList(43424.4F, 61232.7F));
+        validateAttribute(((Attribute<SuperCar, Integer>)attributes.get("carId")), SuperCar.class, Integer.class, "carId", car2, Collections.singletonList(1));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("name")), SuperCar.class, String.class, "name", car2, Collections.singletonList("Ford Fusion"));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("description")), SuperCar.class, String.class, "description", car2, Collections.singletonList("Red"));
+        validateAttribute(((Attribute<SuperCar, String>)attributes.get("features")), SuperCar.class, String.class, "features", car2, Arrays.asList("coupe", "cd player"));
+        validateAttribute(((Attribute<SuperCar, Double>)attributes.get("tyrePressures")), SuperCar.class, Double.class, "tyrePressures", car2, Arrays.asList(12746.2, 2973.1));
+        validateAttribute(((Attribute<SuperCar, Float>)attributes.get("wheelSpeeds")), SuperCar.class, Float.class, "wheelSpeeds", car2, Arrays.asList(43424.4F, 61232.7F));
     }
 
     @Test

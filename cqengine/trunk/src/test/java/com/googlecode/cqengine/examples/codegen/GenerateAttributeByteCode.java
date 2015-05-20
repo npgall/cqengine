@@ -17,11 +17,15 @@ package com.googlecode.cqengine.examples.codegen;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.codegen.AttributeBytecodeGenerator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+
+import java.util.Map;
+
 import static com.googlecode.cqengine.query.QueryFactory.equal;
 
 /**
@@ -32,10 +36,11 @@ import static com.googlecode.cqengine.query.QueryFactory.equal;
  */
 public class GenerateAttributeByteCode {
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
         // Generate an attribute from bytecode to read the Car.model field...
-        Class<? extends SimpleAttribute<Car, String>> carModelAttributeClass = AttributeBytecodeGenerator.generateSimpleAttributeForField(Car.class, String.class, "model", "model");
-        SimpleAttribute<Car, String> MODEL = carModelAttributeClass.newInstance();
+        Map<String, ? extends Attribute<Car, ?>> attributes = AttributeBytecodeGenerator.createAttributes(Car.class);
+        Attribute<Car, String> MODEL = (Attribute<Car, String>) attributes.get("model");
 
         // Create a collection of 10 Car objects (Ford Focus, Honda Civic etc.)...
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();

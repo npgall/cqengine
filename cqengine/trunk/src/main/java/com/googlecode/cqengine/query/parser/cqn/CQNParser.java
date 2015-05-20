@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.query.parser.cqn;
 
+import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
@@ -25,8 +26,13 @@ import com.googlecode.cqengine.query.parser.cqn.support.StringParser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import java.util.Map;
+
 /**
  * A parser for CQN queries - CQEngine-Native syntax.
+ * <p/>
+ * CQN syntax is based on how CQEngine queries look in native Java code, and the format returned by
+ * {@link Query#toString()}.
  *
  * @author Niall Gallagher
  */
@@ -68,4 +74,24 @@ public class CQNParser<O> extends QueryParser<O> {
         }
     }
 
+    /**
+     * Creates a new CQNParser for the given POJO class.
+     * @param pojoClass The type of object stored in the collection
+     * @return a new CQNParser for the given POJO class
+     */
+    public static <O> CQNParser<O> forPojo(Class<O> pojoClass) {
+        return new CQNParser<O>(pojoClass);
+    }
+
+    /**
+     * Creates a new CQNParser for the given POJO class, and registers the given attributes with it.
+     * @param pojoClass The type of object stored in the collection
+     * @param attributes The attributes to register with the parser
+     * @return a new CQNParser for the given POJO class
+     */
+    public static <O> CQNParser<O> forPojoWithAttributes(Class<O> pojoClass, Map<String, ? extends Attribute<O, ?>> attributes) {
+        CQNParser<O> parser = forPojo(pojoClass);
+        parser.registerAttributes(attributes);
+        return parser;
+    }
 }
