@@ -67,6 +67,16 @@ public abstract class QueryParser<O> {
         attributes.put(attribute.getAttributeName(), attribute);
     }
 
+    public void registerAttributes(Map<String, ? extends Attribute<O, ?>> attributes) {
+        registerAttributes(attributes.values());
+    }
+
+    public void registerAttributes(Iterable<? extends Attribute<O, ?>> attributes) {
+        for (Attribute<O, ?> attribute : attributes) {
+            registerAttribute(attribute);
+        }
+    }
+
     public <A> void registerValueParser(ValueParser<A> valueParser) {
         valueParsers.put(valueParser.getValueType(), valueParser);
     }

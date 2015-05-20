@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.query.parser.sql;
 
+import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
@@ -24,6 +25,8 @@ import com.googlecode.cqengine.query.parser.sql.support.SQLAntlrListener;
 import com.googlecode.cqengine.query.parser.sql.support.StringParser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
+import java.util.Map;
 
 /**
  * A parser for SQL queries.
@@ -35,7 +38,6 @@ public class SQLParser<O> extends QueryParser<O> {
     public SQLParser(Class<O> objectType) {
         super(objectType);
         super.registerValueParser(new StringParser());
-
     }
 
     @Override
@@ -69,4 +71,24 @@ public class SQLParser<O> extends QueryParser<O> {
         }
     }
 
+    /**
+     * Creates a new SQLParser for the given POJO class.
+     * @param pojoClass The type of object stored in the collection
+     * @return a new SQLParser for the given POJO class
+     */
+    public static <O> SQLParser<O> forPojo(Class<O> pojoClass) {
+        return new SQLParser<O>(pojoClass);
+    }
+
+    /**
+     * Creates a new SQLParser for the given POJO class, and registers the given attributes with it.
+     * @param pojoClass The type of object stored in the collection
+     * @param attributes The attributes to register with the parser
+     * @return a new SQLParser for the given POJO class
+     */
+    public static <O> SQLParser<O> forPojoWithAttributes(Class<O> pojoClass, Map<String, ? extends Attribute<O, ?>> attributes) {
+        SQLParser<O> parser = forPojo(pojoClass);
+        parser.registerAttributes(attributes);
+        return parser;
+    }
 }
