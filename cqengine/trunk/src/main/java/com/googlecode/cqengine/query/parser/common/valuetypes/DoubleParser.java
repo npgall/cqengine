@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class DoubleParser extends ValueParser<Double> {
 
-    public DoubleParser() {
-        super(Double.class);
-    }
-
     @Override
-    public Double parse(String stringValue) {
+    public Double parse(Class<? extends Double> valueType, String stringValue) {
         return Double.valueOf(stringValue);
     }
 }

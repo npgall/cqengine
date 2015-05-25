@@ -24,12 +24,8 @@ import java.math.BigInteger;
  */
 public class BigIntegerParser extends ValueParser<BigInteger> {
 
-    public BigIntegerParser() {
-        super(BigInteger.class);
-    }
-
     @Override
-    public BigInteger parse(String stringValue) {
+    public BigInteger parse(Class<? extends BigInteger> valueType, String stringValue) {
         return new BigInteger(stringValue);
     }
 }

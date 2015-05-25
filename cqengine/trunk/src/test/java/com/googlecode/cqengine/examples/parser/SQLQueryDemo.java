@@ -24,10 +24,13 @@ public class SQLQueryDemo {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.addAll(CarFactory.createCollectionOfCars(10));
 
-        Query<Car> query = parser.parse("SELECT * FROM Car WHERE (manufacturer = 'Ford' AND price > 5000.0)");
+        Query<Car> query = parser.parse("SELECT * FROM Car WHERE (" +
+                                        "(manufacturer = 'Ford' OR manufacturer = 'Honda') " +
+                                        "AND price <= 5000.0 " +
+                                        "AND color NOT IN ('GREEN', 'WHITE'))");
 
         for (Car car : cars.retrieve(query)) {
-            System.out.println(car); // Prints: Ford Taurus
+            System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
         }
     }
 }

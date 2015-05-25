@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class StringParser extends ValueParser<String> {
 
-    public StringParser() {
-        super(String.class);
-    }
-
     @Override
-    public String parse(String stringValue) {
+    public String parse(Class<? extends String> valueType, String stringValue) {
         return stripQuotes(stringValue);
     }
 

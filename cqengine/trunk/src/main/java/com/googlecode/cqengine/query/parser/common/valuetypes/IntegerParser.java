@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class IntegerParser extends ValueParser<Integer> {
 
-    public IntegerParser() {
-        super(Integer.class);
-    }
-
     @Override
-    public Integer parse(String stringValue) {
+    public Integer parse(Class<? extends Integer> valueType, String stringValue) {
         return Integer.valueOf(stringValue);
     }
 }

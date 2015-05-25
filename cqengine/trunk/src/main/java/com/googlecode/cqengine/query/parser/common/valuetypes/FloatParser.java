@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class FloatParser extends ValueParser<Float> {
 
-    public FloatParser() {
-        super(Float.class);
-    }
-
     @Override
-    public Float parse(String stringValue) {
+    public Float parse(Class<? extends Float> valueType, String stringValue) {
         return Float.valueOf(stringValue);
     }
 }

@@ -21,6 +21,7 @@ import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarLexer;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarParser;
+import com.googlecode.cqengine.query.parser.sql.support.FallbackValueParser;
 import com.googlecode.cqengine.query.parser.sql.support.SQLAntlrListener;
 import com.googlecode.cqengine.query.parser.sql.support.StringParser;
 import org.antlr.v4.runtime.*;
@@ -37,7 +38,9 @@ public class SQLParser<O> extends QueryParser<O> {
 
     public SQLParser(Class<O> objectType) {
         super(objectType);
-        super.registerValueParser(new StringParser());
+        StringParser stringParser = new StringParser();
+        super.registerValueParser(String.class, stringParser);
+        super.registerFallbackValueParser(new FallbackValueParser(stringParser));
     }
 
     @Override

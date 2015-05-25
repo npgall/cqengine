@@ -62,12 +62,6 @@ public class CQNParserTest {
         assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("not(equal(\"manufacturer\", \"Ford\"))"));
 
-        parser.registerValueParser(new ValueParser<Car.Color>(Car.Color.class) {
-            @Override
-            public Car.Color parse(String stringValue) {
-                return Car.Color.valueOf(StringParser.stripQuotes(stringValue.replaceFirst("Car.Color.", "")));
-            }
-        });
         assertQueriesEquals(
                 or(
                         and( // Cars less than 5K which have at least 4 doors
@@ -91,7 +85,7 @@ public class CQNParserTest {
                                 "lessThan(\"price\", 8000.0), " +
                                 "greaterThanOrEqualTo(\"doors\", 4), " +
                                 "equal(\"features\", \"hybrid\"), " +
-                                "not(in(\"color\", \"Car.Color.BLUE\", \"Car.Color.GREEN\"))" +
+                                "not(in(\"color\", BLUE, GREEN))" +
                             ")" +
                     ")"
                 )
