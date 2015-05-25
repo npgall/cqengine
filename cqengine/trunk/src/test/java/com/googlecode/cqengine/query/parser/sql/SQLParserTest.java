@@ -59,12 +59,6 @@ public class SQLParserTest {
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("SELECT * FROM cars WHERE 'manufacturer' <> 'Ford'"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("SELECT * FROM cars WHERE NOT ('manufacturer' = 'Ford')"));
 
-        parser.registerValueParser(new ValueParser<Car.Color>(Car.Color.class) {
-            @Override
-            public Car.Color parse(String stringValue) {
-                return Car.Color.valueOf(StringParser.stripQuotes(stringValue));
-            }
-        });
         assertQueriesEquals(
                 or(
                         and( // Cars less than 5K which have at least 4 doors

@@ -20,24 +20,14 @@ package com.googlecode.cqengine.query.parser.common;
  */
 public abstract class ValueParser<A> {
 
-    protected final Class<A> valueType;
-
-    public ValueParser(Class<A> valueType) {
-        this.valueType = valueType;
-    }
-
-    public Class<A> getValueType() {
-        return valueType;
-    }
-
-    public A validatedParse(String stringValue) {
+    public A validatedParse(Class<A> valueType, String stringValue) {
         try {
-            return parse(stringValue);
+            return parse(valueType, stringValue);
         }
         catch (Exception e) {
-            throw new InvalidQueryException("Failed to parse as type " + this.getValueType().getSimpleName() + ": " + stringValue);
+            throw new InvalidQueryException("Failed to parse as type " + valueType.getSimpleName() + ": " + stringValue);
         }
     }
 
-    protected abstract A parse(String stringValue);
+    protected abstract A parse(Class<? extends A> valueType, String stringValue);
 }

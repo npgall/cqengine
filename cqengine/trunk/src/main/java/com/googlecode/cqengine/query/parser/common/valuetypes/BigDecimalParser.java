@@ -24,12 +24,8 @@ import java.math.BigDecimal;
  */
 public class BigDecimalParser extends ValueParser<BigDecimal> {
 
-    public BigDecimalParser() {
-        super(BigDecimal.class);
-    }
-
     @Override
-    public BigDecimal parse(String stringValue) {
+    public BigDecimal parse(Class<? extends BigDecimal> valueType, String stringValue) {
         return new BigDecimal(stringValue);
     }
 }

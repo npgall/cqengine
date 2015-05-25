@@ -36,7 +36,7 @@ public class CarFactory {
     }
 
     public static Iterable<Car> createIterableOfCars(final int numCars) {
-        final AtomicInteger count = new AtomicInteger();;
+        final AtomicInteger count = new AtomicInteger();
         return new Iterable<Car>() {
             @Override
             public Iterator<Car> iterator() {

@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class BooleanParser extends ValueParser<Boolean> {
 
-    public BooleanParser() {
-        super(Boolean.class);
-    }
-
     @Override
-    public Boolean parse(String stringValue) {
+    public Boolean parse(Class<? extends Boolean> valueType, String stringValue) {
         return Boolean.valueOf(stringValue);
     }
 }

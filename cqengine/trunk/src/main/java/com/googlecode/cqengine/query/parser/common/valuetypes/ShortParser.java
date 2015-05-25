@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class ShortParser extends ValueParser<Short> {
 
-    public ShortParser() {
-        super(Short.class);
-    }
-
     @Override
-    public Short parse(String stringValue) {
+    public Short parse(Class<? extends Short> valueType, String stringValue) {
         return Short.valueOf(stringValue);
     }
 }

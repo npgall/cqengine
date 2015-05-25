@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class ByteParser extends ValueParser<Byte> {
 
-    public ByteParser() {
-        super(Byte.class);
-    }
-
     @Override
-    public Byte parse(String stringValue) {
+    public Byte parse(Class<? extends Byte> valueType, String stringValue) {
         return Byte.valueOf(stringValue);
     }
 }

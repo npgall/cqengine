@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class CharacterParser extends ValueParser<Character> {
 
-    public CharacterParser() {
-        super(Character.class);
-    }
-
     @Override
-    public Character parse(String stringValue) {
+    public Character parse(Class<? extends Character> valueType, String stringValue) {
         if (stringValue.length() != 1) {
             throw new IllegalArgumentException();
         }

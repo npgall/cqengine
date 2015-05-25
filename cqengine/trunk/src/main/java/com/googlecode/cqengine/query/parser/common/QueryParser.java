@@ -24,6 +24,8 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +42,7 @@ public abstract class QueryParser<O> {
     protected final Class<O> objectType;
     protected final Map<String, Attribute<O, ?>> attributes = new HashMap<String, Attribute<O, ?>>();
     protected final Map<Class<?>, ValueParser<?>> valueParsers = new HashMap<Class<?>, ValueParser<?>>();
+    protected volatile ValueParser<Object> fallbackValueParser = null;
 
     protected static final BaseErrorListener SYNTAX_ERROR_LISTENER = new BaseErrorListener() {
         @Override
@@ -50,16 +53,16 @@ public abstract class QueryParser<O> {
     };
 
     public QueryParser(Class<O> objectType) {
-        registerValueParser(new BooleanParser());
-        registerValueParser(new ByteParser());
-        registerValueParser(new CharacterParser());
-        registerValueParser(new ShortParser());
-        registerValueParser(new IntegerParser());
-        registerValueParser(new LongParser());
-        registerValueParser(new FloatParser());
-        registerValueParser(new DoubleParser());
-        registerValueParser(new BigIntegerParser());
-        registerValueParser(new BigDecimalParser());
+        registerValueParser(Boolean.class, new BooleanParser());
+        registerValueParser(Byte.class, new ByteParser());
+        registerValueParser(Character.class, new CharacterParser());
+        registerValueParser(Short.class, new ShortParser());
+        registerValueParser(Integer.class, new IntegerParser());
+        registerValueParser(Long.class, new LongParser());
+        registerValueParser(Float.class, new FloatParser());
+        registerValueParser(Double.class, new DoubleParser());
+        registerValueParser(BigInteger.class, new BigIntegerParser());
+        registerValueParser(BigDecimal.class, new BigDecimalParser());
         this.objectType = objectType;
     }
 
@@ -77,8 +80,12 @@ public abstract class QueryParser<O> {
         }
     }
 
-    public <A> void registerValueParser(ValueParser<A> valueParser) {
-        valueParsers.put(valueParser.getValueType(), valueParser);
+    public <A> void registerValueParser(Class<A> valueType, ValueParser<A> valueParser) {
+        valueParsers.put(valueType, valueParser);
+    }
+
+    public void registerFallbackValueParser(ValueParser<Object> fallbackValueParser) {
+        this.fallbackValueParser = fallbackValueParser;
     }
 
     public Class<O> getObjectType() {
@@ -110,12 +117,18 @@ public abstract class QueryParser<O> {
     public <A> A parseValue(Class<A> valueType, String text) {
         @SuppressWarnings("unchecked")
         ValueParser<A> valueParser = (ValueParser<A>) valueParsers.get(valueType);
-        if (valueParser == null) {
-            throw new IllegalStateException("No value parser has been registered to parse type: " + valueType.getName());
+        if (valueParser != null) {
+            return valueParser.validatedParse(valueType, text);
+        } else {
+            ValueParser<Object> fallbackValueParser = this.fallbackValueParser;
+            if (fallbackValueParser != null) {
+                return valueType.cast(fallbackValueParser.parse(valueType, text));
+            }
+            else {
+                throw new IllegalStateException("No value parser has been registered to parse type: " + valueType.getName());
+            }
         }
-        return valueParser.validatedParse(text);
     }
-
 
     public abstract Query<O> parse(String query);
 }

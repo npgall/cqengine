@@ -22,12 +22,8 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class LongParser extends ValueParser<Long> {
 
-    public LongParser() {
-        super(Long.class);
-    }
-
     @Override
-    public Long parse(String stringValue) {
+    public Long parse(Class<? extends Long> valueType, String stringValue) {
         return Long.valueOf(stringValue);
     }
 }

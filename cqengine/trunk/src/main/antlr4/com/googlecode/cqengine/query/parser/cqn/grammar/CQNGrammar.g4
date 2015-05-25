@@ -63,5 +63,5 @@ noneQuery : 'none' LPAREN objectType '.class' RPAREN ;
 
 objectType : Identifier ;
 attributeName : StringLiteral ;
-queryParameter : literal ;
+queryParameter : literal | Identifier;
 stringQueryParameter : StringLiteral ;

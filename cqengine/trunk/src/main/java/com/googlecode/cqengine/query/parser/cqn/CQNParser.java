@@ -40,7 +40,9 @@ public class CQNParser<O> extends QueryParser<O> {
 
     public CQNParser(Class<O> objectType) {
         super(objectType);
-        super.registerValueParser(new StringParser());
+        StringParser stringParser = new StringParser();
+        super.registerValueParser(String.class, stringParser);
+        super.registerFallbackValueParser(new FallbackValueParser(stringParser));
     }
 
     @Override

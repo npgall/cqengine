@@ -23,10 +23,14 @@ public class CQNQueryDemo {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.addAll(CarFactory.createCollectionOfCars(10));
 
-        Query<Car> query = parser.parse("and(equal(\"manufacturer\", \"Ford\"), greaterThan(\"price\", 5000.0))");
+        Query<Car> query = parser.parse("and(" +
+                                            "or(equal(\"manufacturer\", \"Ford\"), equal(\"manufacturer\", \"Honda\")), " +
+                                            "lessThanOrEqualTo(\"price\", 5000.0), " +
+                                            "not(in(\"color\", GREEN, WHITE))" +
+                                        ")");
 
         for (Car car : cars.retrieve(query)) {
-            System.out.println(car); // Prints: Ford Taurus
+            System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
         }
     }
 }
