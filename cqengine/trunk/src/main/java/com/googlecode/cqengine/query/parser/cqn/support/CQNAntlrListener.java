@@ -18,6 +18,8 @@ package com.googlecode.cqengine.query.parser.cqn.support;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.OrderByOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarBaseListener;
 import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarParser;
@@ -217,6 +219,17 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
         Collection<Query<O>> rootQuery = childQueries.get(null);
         validateExpectedNumberOfChildQueries(1, rootQuery.size());
         return rootQuery.iterator().next();
+    }
+
+    /**
+     * Can be called when parsing has finished, to retrieve the {@link QueryOptions}, which may include an
+     * {@link OrderByOption} if found in the string query.
+     *
+     * @return The parsed {@link QueryOptions}
+     */
+    public QueryOptions getQueryOptions() {
+        // CQN queries don't currently (yet?) have a syntax to specify ordering...
+        return QueryFactory.noQueryOptions();
     }
 
     protected Class[] getAndOrNotContextClasses() {

@@ -16,10 +16,11 @@
 grammar SQLGrammar;
 import SQLite;
 
-start : K_SELECT STAR K_FROM indexedCollection whereClause? EOF ;
+start : K_SELECT STAR K_FROM indexedCollection whereClause? orderByClause? EOF ;
 
-indexedCollection : IDENTIFIER ;
-whereClause : ( K_WHERE query ) ;
+indexedCollection : IDENTIFIER | STRING_LITERAL ;
+whereClause : K_WHERE query ;
+orderByClause : K_ORDER K_BY attributeOrder ( ',' attributeOrder )* ;
 
 query : logicalQuery | simpleQuery ;
 
@@ -74,3 +75,5 @@ STRING_LITERAL_WITH_TRAILING_PERCENT : '\'' ( ~[%'] | '\'\'' )* '%\'' ;
 STRING_LITERAL_WITH_LEADING_PERCENT : '\'%' ( ~[%'] | '\'\'' )* '\'' ;
 STRING_LITERAL_WITH_LEADING_AND_TRAILING_PERCENT : '\'%' ( ~[%'] | '\'\'' )* '%\'' ;
 
+attributeOrder : attributeName direction? ;
+direction : K_ASC | K_DESC ;

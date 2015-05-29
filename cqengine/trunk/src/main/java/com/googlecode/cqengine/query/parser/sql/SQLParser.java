@@ -16,8 +16,8 @@
 package com.googlecode.cqengine.query.parser.sql;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
+import com.googlecode.cqengine.query.parser.common.ParseResult;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarLexer;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarParser;
@@ -44,7 +44,7 @@ public class SQLParser<O> extends QueryParser<O> {
     }
 
     @Override
-    public Query<O> parse(String query) {
+    public ParseResult<O> parse(String query) {
         try {
             if (query == null) {
                 throw new IllegalArgumentException("Query was null");
@@ -64,7 +64,7 @@ public class SQLParser<O> extends QueryParser<O> {
             ParseTreeWalker walker = new ParseTreeWalker();
             SQLAntlrListener<O> listener = new SQLAntlrListener<O>(this);
             walker.walk(listener, queryContext);
-            return listener.getParsedQuery();
+            return new ParseResult<O>(listener.getParsedQuery(), listener.getQueryOptions());
         }
         catch (InvalidQueryException e) {
             throw e;
