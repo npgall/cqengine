@@ -2,8 +2,8 @@ package com.googlecode.cqengine.examples.parser;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.codegen.AttributeBytecodeGenerator;
-import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.cqn.CQNParser;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 
@@ -23,13 +23,14 @@ public class CQNQueryDemo {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.addAll(CarFactory.createCollectionOfCars(10));
 
-        Query<Car> query = parser.parse("and(" +
+        ResultSet<Car> results = parser.retrieve(cars,
+                                        "and(" +
                                             "or(equal(\"manufacturer\", \"Ford\"), equal(\"manufacturer\", \"Honda\")), " +
                                             "lessThanOrEqualTo(\"price\", 5000.0), " +
                                             "not(in(\"color\", GREEN, WHITE))" +
                                         ")");
 
-        for (Car car : cars.retrieve(query)) {
+        for (Car car : results) {
             System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
         }
     }

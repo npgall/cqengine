@@ -1347,7 +1347,7 @@ public class IndexedCollectionFunctionalTest {
         return output;
     }
 
-    static Set<Integer> asSet(Integer... integers) {
+    public static Set<Integer> asSet(Integer... integers) {
         return new HashSet<Integer>(asList(integers));
     }
 

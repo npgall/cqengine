@@ -15,15 +15,23 @@
  */
 package com.googlecode.cqengine.query.parser.cqn;
 
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
-import com.googlecode.cqengine.query.parser.common.ValueParser;
-import com.googlecode.cqengine.query.parser.cqn.support.StringParser;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
+import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+import static com.googlecode.cqengine.IndexedCollectionFunctionalTest.asSet;
+import static com.googlecode.cqengine.IndexedCollectionFunctionalTest.extractCarIds;
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static java.util.Arrays.asList;
 
 /**
  * @author Niall Gallagher
@@ -42,25 +50,25 @@ public class CQNParserTest {
 
     @Test
     public void testValidQueries() {
-        assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parser.parse("equal(\"manufacturer\", \"Ford\")"));
-        assertQueriesEquals(lessThanOrEqualTo(Car.PRICE, 1000.0), parser.parse("lessThanOrEqualTo(\"price\", 1000.0)"));
-        assertQueriesEquals(lessThan(Car.PRICE, 1000.0), parser.parse("lessThan(\"price\", 1000.0)"));
-        assertQueriesEquals(greaterThanOrEqualTo(Car.PRICE, 1000.0), parser.parse("greaterThanOrEqualTo(\"price\", 1000.0)"));
-        assertQueriesEquals(greaterThan(Car.PRICE, 1000.0), parser.parse("greaterThan(\"price\", 1000.0)"));
-        assertQueriesEquals(between(Car.PRICE, 1000.0, 2000.0), parser.parse("between(\"price\", 1000.0, 2000.0)"));
-        assertQueriesEquals(between(Car.PRICE, 1000.0, false, 2000.0, true), parser.parse("between(\"price\", 1000.0, false, 2000.0, true)"));
-        assertQueriesEquals(in(Car.MANUFACTURER, "Ford", "Honda"), parser.parse("in(\"manufacturer\", \"Ford\", \"Honda\")"));
-        assertQueriesEquals(startsWith(Car.MODEL, "Fo"), parser.parse("startsWith(\"model\", \"Fo\")"));
-        assertQueriesEquals(endsWith(Car.MODEL, "rd"), parser.parse("endsWith(\"model\", \"rd\")"));
-        assertQueriesEquals(contains(Car.MODEL, "or"), parser.parse("contains(\"model\", \"or\")"));
-        assertQueriesEquals(isContainedIn(Car.MODEL, "a b c"), parser.parse("isContainedIn(\"model\", \"a b c\")"));
-        assertQueriesEquals(matchesRegex(Car.MODEL, "Fo.*"), parser.parse("matchesRegex(\"model\", \"Fo.*\")"));
-        assertQueriesEquals(has(Car.FEATURES), parser.parse("has(\"features\")"));
-        assertQueriesEquals(all(Car.class), parser.parse("all(Car.class)"));
-        assertQueriesEquals(none(Car.class), parser.parse("none(Car.class)"));
-        assertQueriesEquals(and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("and(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
-        assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.parse("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
-        assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.parse("not(equal(\"manufacturer\", \"Ford\"))"));
+        assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parser.query("equal(\"manufacturer\", \"Ford\")"));
+        assertQueriesEquals(lessThanOrEqualTo(Car.PRICE, 1000.0), parser.query("lessThanOrEqualTo(\"price\", 1000.0)"));
+        assertQueriesEquals(lessThan(Car.PRICE, 1000.0), parser.query("lessThan(\"price\", 1000.0)"));
+        assertQueriesEquals(greaterThanOrEqualTo(Car.PRICE, 1000.0), parser.query("greaterThanOrEqualTo(\"price\", 1000.0)"));
+        assertQueriesEquals(greaterThan(Car.PRICE, 1000.0), parser.query("greaterThan(\"price\", 1000.0)"));
+        assertQueriesEquals(between(Car.PRICE, 1000.0, 2000.0), parser.query("between(\"price\", 1000.0, 2000.0)"));
+        assertQueriesEquals(between(Car.PRICE, 1000.0, false, 2000.0, true), parser.query("between(\"price\", 1000.0, false, 2000.0, true)"));
+        assertQueriesEquals(in(Car.MANUFACTURER, "Ford", "Honda"), parser.query("in(\"manufacturer\", \"Ford\", \"Honda\")"));
+        assertQueriesEquals(startsWith(Car.MODEL, "Fo"), parser.query("startsWith(\"model\", \"Fo\")"));
+        assertQueriesEquals(endsWith(Car.MODEL, "rd"), parser.query("endsWith(\"model\", \"rd\")"));
+        assertQueriesEquals(contains(Car.MODEL, "or"), parser.query("contains(\"model\", \"or\")"));
+        assertQueriesEquals(isContainedIn(Car.MODEL, "a b c"), parser.query("isContainedIn(\"model\", \"a b c\")"));
+        assertQueriesEquals(matchesRegex(Car.MODEL, "Fo.*"), parser.query("matchesRegex(\"model\", \"Fo.*\")"));
+        assertQueriesEquals(has(Car.FEATURES), parser.query("has(\"features\")"));
+        assertQueriesEquals(all(Car.class), parser.query("all(Car.class)"));
+        assertQueriesEquals(none(Car.class), parser.query("none(Car.class)"));
+        assertQueriesEquals(and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("and(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
+        assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
+        assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("not(equal(\"manufacturer\", \"Ford\"))"));
 
         assertQueriesEquals(
                 or(
@@ -75,65 +83,76 @@ public class CQNParserTest {
                                 not(in(Car.COLOR, Car.Color.BLUE, Car.Color.GREEN))
                         )
                 ),
-                parser.parse(
-                    "or(" +
-                            "and(" +
+                parser.query(
+                        "or(" +
+                                "and(" +
                                 "lessThan(\"price\", 5000.0), " +
                                 "greaterThanOrEqualTo(\"doors\", 4)" +
-                            "), " +
-                            "and(" +
+                                "), " +
+                                "and(" +
                                 "lessThan(\"price\", 8000.0), " +
                                 "greaterThanOrEqualTo(\"doors\", 4), " +
                                 "equal(\"features\", \"hybrid\"), " +
                                 "not(in(\"color\", BLUE, GREEN))" +
-                            ")" +
-                    ")"
+                                ")" +
+                                ")"
                 )
         );
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_DuplicateQueries() {
-        parser.parse("all(Car.class)all(Car.class)");
+        parser.query("all(Car.class)all(Car.class)");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_TrailingGibberish() {
-        parser.parse("all(Car.class)abc");
+        parser.query("all(Car.class)abc");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_LeadingGibberish() {
-        parser.parse("abc all(Car.class)");
+        parser.query("abc all(Car.class)");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_UnclosedQuery() {
-        parser.parse("all(Car.class");
+        parser.query("all(Car.class");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_InvalidParameters1() {
-        parser.parse("equal(\"manufacturer\", x, \"Ford\")");
+        parser.query("equal(\"manufacturer\", x, \"Ford\")");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_InvalidParameters2() {
-        parser.parse("equal(\"manufacturer\", 1, \"Ford\")");
+        parser.query("equal(\"manufacturer\", 1, \"Ford\")");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_InvalidParameterType() {
-        parser.parse("equal(\"doors\", \"foo\")");
+        parser.query("equal(\"doors\", \"foo\")");
     }
 
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_NullQuery() {
-        parser.parse(null);
+        parser.query(null);
     }
 
     static void assertQueriesEquals(Query<Car> expected, Query<Car> actual) {
         Assert.assertEquals(expected, actual);
         Assert.assertEquals(expected.toString(), actual.toString());
+    }
+
+    @Test
+    public void testRetrieve() {
+        // CQN syntax does not yet support ordering, so here we just test parsing a query without ordering...
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
+        cars.addAll(CarFactory.createCollectionOfCars(10));
+
+        ResultSet<Car> results = parser.retrieve(cars, "and(equal(\"manufacturer\", \"Honda\"), not(equal(\"color\", \"WHITE\")))");
+        Assert.assertEquals(2, results.size());
+        Assert.assertEquals(asSet(5, 4), extractCarIds(results, new HashSet<Integer>()));
     }
 }

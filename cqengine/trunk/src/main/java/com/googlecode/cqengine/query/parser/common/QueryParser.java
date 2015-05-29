@@ -15,9 +15,12 @@
  */
 package com.googlecode.cqengine.query.parser.common;
 
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.parser.common.valuetypes.*;
+import com.googlecode.cqengine.resultset.ResultSet;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -130,5 +133,40 @@ public abstract class QueryParser<O> {
         }
     }
 
-    public abstract Query<O> parse(String query);
+    /**
+     * Parses the given query and its query options, encapsulating both in the object returned.
+     * @param query The query to parse
+     * @return An object encapsulating the parsed query and its query options
+     */
+    public abstract ParseResult<O> parse(String query);
+
+    /**
+     * Shortcut for parsing the given query and its query options, and then retrieving objects matching the
+     * query from the given collection, using the parsed query options.
+     * @param query The query to parse
+     * @return The results of querying the collection with the parsed query and its query options
+     */
+    public ResultSet<O> retrieve(IndexedCollection<O> collection, String query) {
+        ParseResult<O> parseResult = parse(query);
+        return collection.retrieve(parseResult.getQuery(), parseResult.getQueryOptions());
+    }
+
+
+    /**
+     * Shortcut for calling {@code parse(query).getQuery()}.
+     * @param query The query to parse
+     * @return The parsed query on its own, without any query options
+     */
+    public Query<O> query(String query) {
+        return parse(query).getQuery();
+    }
+
+    /**
+     * Shortcut for calling {@code parse(query).getQueryOptions()}.
+     * @param query The query to parse
+     * @return The query options, without the actual query
+     */
+    public QueryOptions queryOptions(String query) {
+        return parse(query).getQueryOptions();
+    }
 }

@@ -3,8 +3,8 @@ package com.googlecode.cqengine.examples.parser;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.codegen.AttributeBytecodeGenerator;
-import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.sql.SQLParser;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 
@@ -24,13 +24,14 @@ public class SQLQueryDemo {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.addAll(CarFactory.createCollectionOfCars(10));
 
-        Query<Car> query = parser.parse("SELECT * FROM Car WHERE (" +
+        ResultSet<Car> results = parser.retrieve(cars, "SELECT * FROM cars WHERE (" +
                                         "(manufacturer = 'Ford' OR manufacturer = 'Honda') " +
                                         "AND price <= 5000.0 " +
-                                        "AND color NOT IN ('GREEN', 'WHITE'))");
+                                        "AND color NOT IN ('GREEN', 'WHITE')) " +
+                                        "ORDER BY manufacturer DESC, price ASC");
 
-        for (Car car : cars.retrieve(query)) {
-            System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
+        for (Car car : results) {
+            System.out.println(car); // Prints: Honda Accord, Ford Fusion, Ford Focus
         }
     }
 }

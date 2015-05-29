@@ -18,6 +18,9 @@ package com.googlecode.cqengine.query.parser.sql.support;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.AttributeOrder;
+import com.googlecode.cqengine.query.option.OrderByOption;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarBaseListener;
 import com.googlecode.cqengine.query.parser.sql.grammar.SQLGrammarParser;
@@ -41,6 +44,8 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     protected final QueryParser<O> queryParser;
     // A map of parent context, to parsed child queries belonging to that context...
     protected final Map<ParserRuleContext, Collection<Query<O>>> childQueries = new HashMap<ParserRuleContext, Collection<Query<O>>>();
+    // The parsed orderBy clause, if found...
+    protected OrderByOption<O> orderByOption = null;
     protected int numQueriesEncountered = 0;
     protected int numQueriesParsed = 0;
 
@@ -192,6 +197,17 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
         validateAllQueriesParsed(numQueriesEncountered, numQueriesParsed);
     }
 
+    @Override
+    public void exitOrderByClause(SQLGrammarParser.OrderByClauseContext ctx) {
+        List<AttributeOrder<O>> attributeOrders = new ArrayList<AttributeOrder<O>>();
+        for (SQLGrammarParser.AttributeOrderContext orderContext : ctx.attributeOrder()) {
+            Attribute<O, Comparable> attribute = queryParser.getAttribute(orderContext.attributeName(), Comparable.class);
+            boolean descending = orderContext.direction() != null && orderContext.direction().K_DESC() != null;
+            attributeOrders.add(new AttributeOrder<O>(attribute, descending));
+        }
+        this.orderByOption = QueryFactory.orderBy(attributeOrders);
+    }
+
     // ======== Utility methods... ========
 
     /**
@@ -220,6 +236,17 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
         }
         validateExpectedNumberOfChildQueries(1, rootQuery.size());
         return rootQuery.iterator().next();
+    }
+
+    /**
+     * Can be called when parsing has finished, to retrieve the {@link QueryOptions}, which may include an
+     * {@link OrderByOption} if found in the string query.
+     *
+     * @return The parsed {@link QueryOptions}
+     */
+    public QueryOptions getQueryOptions() {
+        OrderByOption<O> orderByOption = this.orderByOption;
+        return orderByOption != null ? QueryFactory.queryOptions(orderByOption) : QueryFactory.noQueryOptions();
     }
 
     protected Class[] getAndOrNotContextClasses() {
