@@ -171,7 +171,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // Add the index...
         if (!indexesOnThisAttribute.add(attributeIndex)) {
             throw new IllegalStateException("An equivalent index has already been added for attribute: " + attribute);
-        };
+        }
         attributeIndex.init(collection, queryOptions);
     }
 
@@ -246,7 +246,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return The entire collection wrapped as a {@link ResultSet}, with retrieval cost {@link Integer#MAX_VALUE}
      */
     ResultSet<O> getEntireCollectionAsResultSet() {
-        return new StoredSetBasedResultSet<O>(this.collection, Integer.MAX_VALUE);
+        return new StoredSetBasedResultSet<O>(this.collection, Integer.MAX_VALUE) {
+            // Override getMergeCost() to avoid calling size(),
+            // which may be expensive for custom implementations of lazy backing sets...
+            @Override
+            public int getMergeCost() {
+                return Integer.MAX_VALUE;
+            }
+        };
     }
 
     /**
