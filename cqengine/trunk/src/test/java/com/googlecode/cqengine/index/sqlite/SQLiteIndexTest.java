@@ -296,7 +296,7 @@ public class SQLiteIndexTest {
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
-        verify(statement, times(1)).close();
+        verify(statement, times(2)).close();
         verify(connection, times(1)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);

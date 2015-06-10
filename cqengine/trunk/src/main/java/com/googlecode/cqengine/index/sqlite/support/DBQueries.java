@@ -90,19 +90,44 @@ public class DBQueries {
                 objectKeySQLiteType,
                 objectValueSQLiteType);
 
-        final String sqlCreateIndex = String.format(
-                "CREATE INDEX IF NOT EXISTS cqidx_%s_value ON cqtbl_%s (value);",
-                tableName,
-                tableName);
-
         Statement statement = null;
 
         try {
             statement = connection.createStatement();
             statement.executeUpdate(sqlCreateTable);
-            statement.executeUpdate(sqlCreateIndex);
         }catch (SQLException e){
             throw new IllegalStateException("Unable to create index table: " + tableName, e);
+        }finally {
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static void createIndexOnTable(final String tableName, final Connection connection){
+        final String sqlCreateIndex = String.format(
+                "CREATE INDEX IF NOT EXISTS cqidx_%s_value ON cqtbl_%s (value);",
+                tableName,
+                tableName);
+        Statement statement = null;
+
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate(sqlCreateIndex);
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to add index on table: " + tableName, e);
+        }finally {
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static void dropIndexOnTable(final String tableName, final Connection connection){
+        final String sqlDropIndex = String.format("DROP INDEX IF EXISTS cqidx_%s_value;",tableName);
+        Statement statement = null;
+
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate(sqlDropIndex);
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to drop index on table: " + tableName, e);
         }finally {
             DBUtils.closeQuietly(statement);
         }

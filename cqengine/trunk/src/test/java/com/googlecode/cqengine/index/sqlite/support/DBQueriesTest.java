@@ -61,8 +61,59 @@ public class DBQueriesTest {
             DBQueries.createIndexTable(NAME, Integer.class, String.class, connection);
 
             assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
-            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", false, connectionManager);
             verify(statement, times(1)).close();
+        }finally {
+            DBUtils.closeQuietly(connection);
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    @Test
+    public void testCreateIndexOnTable() throws SQLException {
+
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            connection = spy(connectionManager.getConnection(null));
+            statement = spy(connection.createStatement());
+            when(connection.createStatement()).thenReturn(statement);
+
+            DBQueries.createIndexTable(NAME, Integer.class, String.class, connection);
+            DBQueries.createIndexOnTable(NAME, connection);
+
+            assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
+            verify(statement, times(2)).close();
+        }finally {
+            DBUtils.closeQuietly(connection);
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    @Test
+    public void testDropIndexOnTable() throws SQLException {
+
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            connection = spy(connectionManager.getConnection(null));
+            statement = spy(connection.createStatement());
+            when(connection.createStatement()).thenReturn(statement);
+
+            DBQueries.createIndexTable(NAME, Integer.class, String.class, connection);
+            DBQueries.createIndexOnTable(NAME, connection);
+
+            assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", true, connectionManager);
+
+            DBQueries.dropIndexOnTable(NAME, connection);
+            assertObjectExistenceInSQLIteMasterTable(TABLE_NAME, "table", true, connectionManager);
+            assertObjectExistenceInSQLIteMasterTable(INDEX_NAME, "index", false, connectionManager);
+
+            verify(statement, times(3)).close();
         }finally {
             DBUtils.closeQuietly(connection);
             DBUtils.closeQuietly(statement);
