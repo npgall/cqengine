@@ -566,6 +566,42 @@ public class QueryFactory {
         return new QueryOptions();
     }
 
+    /**
+     * Creates a {@link FlagsEnabled} object which may be added to query options.
+     * This object encapsulates arbitrary "flag" objects which are said to be "enabled".
+     * <p/>
+     * Some components such as indexes allow their default behaviour to be overridden by
+     * setting flags in this way.
+     *
+     * @param flags Arbitrary objects which represent flags which may be interpreted by indexes etc.
+     * @return A populated {@link FlagsEnabled} object which may be added to query options.
+     */
+    public static FlagsEnabled setFlagsEnabled(Object... flags) {
+        FlagsEnabled result = new FlagsEnabled();
+        for (Object flag: flags) {
+            result.add(flag);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a {@link FlagsDisabled} object which may be added to query options.
+     * This object encapsulates arbitrary "flag" objects which are said to be "disabled".
+     * <p/>
+     * Some components such as indexes allow their default behaviour to be overridden by
+     * setting flags in this way.
+     *
+     * @param flags Arbitrary objects which represent flags which may be interpreted by indexes etc.
+     * @return A populated {@link FlagsDisabled} object which may be added to query options.
+     */
+    public static FlagsDisabled setFlagsDisabled(Object... flags) {
+        FlagsDisabled result = new FlagsDisabled();
+        for (Object flag: flags) {
+            result.add(flag);
+        }
+        return result;
+    }
+
     // ***************************************************************************************************************
     // The following methods are just overloaded vararg variants of existing methods above.
     // These methods are unnecessary as of Java 7, and are provided only for backward compatibility with Java 6 and

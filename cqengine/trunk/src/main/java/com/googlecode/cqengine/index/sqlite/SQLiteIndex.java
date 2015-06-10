@@ -21,10 +21,12 @@ import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -237,6 +239,12 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         };
     }
 
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * Note objects can be imported into this index rapidly via this method,
+     * by setting flag {@link SQLiteIndexFlags#BULK_IMPORT}. See documentation on that flag for details and caveats.
+     */
     @Override
     public boolean addAll(final Collection<O> objects, final QueryOptions queryOptions) {
 
@@ -246,11 +254,27 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         }
         createTableIndexIfNeeded(connectionManager);
 
+        if (objects.isEmpty()) {
+            return false;
+        }
+
+        final boolean isBulkImport = FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+
         Connection connection = null;
         try {
             connection = connectionManager.getConnection(this);
+
+            if (isBulkImport) {
+                // Drop the SQLite index temporarily...
+                DBQueries.dropIndexOnTable(tableName, connection);
+            }
             Iterable<Row<K, A>> rows = rowIterable(objects, primaryKeyAttribute, getAttribute(), queryOptions);
             int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
+
+            if (isBulkImport) {
+                // Recreate the SQLite index...
+                DBQueries.createIndexOnTable(tableName, connection);
+            }
             return rowsModified > 0;
         }finally {
             DBUtils.closeQuietly(connection);
@@ -407,6 +431,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         try {
             connection = connectionManager.getConnection(this);
             DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
+            DBQueries.createIndexOnTable(tableName, connection);
         } finally {
             DBUtils.closeQuietly(connection);
         }
