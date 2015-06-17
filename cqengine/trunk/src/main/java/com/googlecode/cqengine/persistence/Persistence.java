@@ -40,4 +40,18 @@ public interface Persistence<O, A extends Comparable<A>> extends ConnectionManag
      * Compacts the underlying persistence, which returns unused memory or disk space to the operating system.
      */
     void compact();
+
+    /**
+     * Expands the underlying persistence by the given number of bytes in a single operation. This will usually result
+     * in the persistence being expanded into an additional contiguous chunk of memory or region on disk.
+     * <p/>
+     * After this method returns, the operating system will report that the memory or disk space used for persistence
+     * has increased by this amount, but internally the space will simply be reserved for future use. The reserved space
+     * will be used to store objects added to the collection subsequently, without needing to request more memory from
+     * the OS ad-hoc.
+     * <p/>
+     * This can reduce fragmentation of the persistence file on some OS filesystems, especially if used prior to bulk
+     * imports when the persistence is on a non-SSD disk.
+     */
+    void expand(long numBytes);
 }

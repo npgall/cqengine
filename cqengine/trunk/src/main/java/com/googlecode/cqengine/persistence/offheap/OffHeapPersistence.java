@@ -142,6 +142,18 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
     }
 
     @Override
+    public void expand(long numBytes) {
+        Connection connection = null;
+        try {
+            connection = getConnection(null);
+            DBQueries.expandDatabase(connection, numBytes);
+        }
+        finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
+    @Override
     protected void finalize() throws Throwable {
         super.finalize();
         close();

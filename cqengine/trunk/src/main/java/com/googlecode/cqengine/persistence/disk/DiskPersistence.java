@@ -96,6 +96,18 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
     }
 
     @Override
+    public void expand(long numBytes) {
+        Connection connection = null;
+        try {
+            connection = getConnection(null);
+            DBQueries.expandDatabase(connection, numBytes);
+        }
+        finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
