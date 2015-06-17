@@ -58,6 +58,24 @@ public class OffHeapPersistenceTest {
     }
 
     @Test
+    public void testExpand() {
+        final long bytesToExpand = 102400;  // Expand by 100KB;
+        OffHeapPersistence<Car, Integer> persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
+        cars.addAll(CarFactory.createCollectionOfCars(50));
+        persistence.compact();
+        long initialBytesUsed = persistence.getBytesUsed();
+        Assert.assertTrue("Initial bytes used should be greater than zero: " + initialBytesUsed, initialBytesUsed > 0);
+        persistence.expand(bytesToExpand);
+        long bytesUsedAfterExpanding = persistence.getBytesUsed();
+        Assert.assertTrue("Bytes used after expanding (" + bytesUsedAfterExpanding + ") should have been increased by at least bytes to expand (" + bytesToExpand + ") above initial bytes used (" + initialBytesUsed + ")", bytesUsedAfterExpanding >= (initialBytesUsed + bytesToExpand));
+        persistence.compact();
+        long bytesUsedAfterCompaction = persistence.getBytesUsed();
+        Assert.assertTrue("Bytes used after compaction (" + bytesUsedAfterCompaction + ") should be equal to initial bytes used (" + initialBytesUsed + ")", bytesUsedAfterCompaction == initialBytesUsed);
+    }
+
+    @Test
     public void testEqualsAndHashCode() {
         SQLiteDataSource ds1 = new SQLiteDataSource(new SQLiteConfig());
         ds1.setUrl("foo");

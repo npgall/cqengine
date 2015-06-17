@@ -173,6 +173,21 @@ public class DBQueries {
         }
     }
 
+    public static void expandDatabase(final Connection connection, long numBytes) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("CREATE TABLE IF NOT EXISTS cq_expansion (val);");
+            statement.execute("INSERT INTO cq_expansion VALUES (zeroblob(" + numBytes + "));");
+            statement.execute("DROP TABLE cq_expansion;");
+
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to expand database by bytes: " + numBytes, e);
+        }finally{
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
     public static long getDatabaseSize(final Connection connection){
         long pageCount = readPragmaLong(connection, "PRAGMA page_count;");
         long pageSize = readPragmaLong(connection, "PRAGMA page_size;");
