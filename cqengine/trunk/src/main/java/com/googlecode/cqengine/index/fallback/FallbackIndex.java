@@ -18,6 +18,8 @@ package com.googlecode.cqengine.index.fallback;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.simple.All;
+import com.googlecode.cqengine.query.simple.None;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -82,12 +84,20 @@ public class FallbackIndex<O> implements Index<O> {
         return new ResultSet<O>() {
             @Override
             public Iterator<O> iterator() {
-                return new FilteringIterator<O>(collection.iterator(), queryOptions) {
-                    @Override
-                    public boolean isValid(O object, QueryOptions queryOptions) {
-                        return query.matches(object, queryOptions);
-                    }
-                };
+                if (query instanceof All) {
+                    return IteratorUtil.wrapAsUnmodifiable(collection.iterator());
+                }
+                else if (query instanceof None) {
+                    return Collections.<O>emptyList().iterator();
+                }
+                else {
+                    return new FilteringIterator<O>(collection.iterator(), queryOptions) {
+                        @Override
+                        public boolean isValid(O object, QueryOptions queryOptions) {
+                            return query.matches(object, queryOptions);
+                        }
+                    };
+                }
             }
             @Override
             public boolean contains(O object) {

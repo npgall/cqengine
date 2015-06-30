@@ -60,4 +60,21 @@ public class IteratorUtil {
             }
         };
     }
+
+    /**
+     * Wraps the given Iterator as an {@link UnmodifiableIterator}.
+     */
+    public static <T> UnmodifiableIterator<T> wrapAsUnmodifiable(final Iterator<T> iterator) {
+        return new UnmodifiableIterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return iterator.next();
+            }
+        };
+    }
 }

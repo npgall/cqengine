@@ -322,7 +322,7 @@ public class DBQueries {
         final Class queryClass = query.getClass();
         PreparedStatement statement;
 
-        if (queryClass == All.class){
+        if (queryClass == Has.class){
             stringBuilder.append(suffix);
             statement = connection.prepareStatement(stringBuilder.toString());
 
