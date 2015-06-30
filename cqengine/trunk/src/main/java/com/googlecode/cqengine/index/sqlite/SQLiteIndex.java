@@ -128,7 +128,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             add(GreaterThan.class);
             add(Between.class);
             add(StringStartsWith.class);
-            add(All.class);
+            add(Has.class);
         }});
 
         this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9\\s]", "");
@@ -489,7 +489,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             query = upperInclusive ? lessThanOrEqualTo(attribute, upperBound) : lessThan(attribute, upperBound);
         }
         else {
-            query = all(attribute.getObjectType());
+            query = has(attribute);
         }
 
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);

@@ -57,7 +57,7 @@ public class SQLitePersistentSet<O, A extends Comparable<A>> extends AbstractSet
 
     @Override
     public int size() {
-        return backingIndex.retrieve(all(objectType), noQueryOptions()).size();
+        return backingIndex.retrieve(has(primaryKeyAttribute), noQueryOptions()).size();
     }
 
     @Override
@@ -70,7 +70,7 @@ public class SQLitePersistentSet<O, A extends Comparable<A>> extends AbstractSet
 
     @Override
     public CloseableIterator<O> iterator() {
-        final ResultSet<O> rs = backingIndex.retrieve(all(objectType), noQueryOptions());
+        final ResultSet<O> rs = backingIndex.retrieve(has(primaryKeyAttribute), noQueryOptions());
         final Iterator<O> i = rs.iterator();
         class CloseableIteratorImpl extends UnmodifiableIterator<O> implements CloseableIterator<O> {
 
@@ -130,7 +130,7 @@ public class SQLitePersistentSet<O, A extends Comparable<A>> extends AbstractSet
     public boolean retainAll(Collection<?> c) {
         // Note: this could be optimized...
         Collection<O> objectsToRemove = new ArrayList<O>();
-        ResultSet<O> allObjects = backingIndex.retrieve(all(objectType), noQueryOptions());
+        ResultSet<O> allObjects = backingIndex.retrieve(has(primaryKeyAttribute), noQueryOptions());
         try {
             for (O object : allObjects) {
                 if (!c.contains(object)) {

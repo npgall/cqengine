@@ -25,6 +25,7 @@ import org.junit.Test;
 import java.sql.*;
 import java.util.*;
 
+import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
@@ -355,14 +356,12 @@ public class DBQueriesTest {
     }
 
     @Test
-    public void testSearch_All() throws SQLException {
+    public void testSearch_Has() throws SQLException {
         Connection connection = null;
         ResultSet resultSet = null;
         try {
             ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
-
-            All<Car> all = (All<Car>)all(Car.class);
 
             List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
             expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
@@ -371,7 +370,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            resultSet = DBQueries.search(all, NAME, connection);
+            resultSet = DBQueries.search(has(self(Car.class)), NAME, connection);
             assertResultSet(resultSet, expectedRows);
 
         }finally {
