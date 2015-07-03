@@ -18,7 +18,7 @@ package com.googlecode.cqengine.query.option;
 import org.junit.Test;
 
 import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
-import static com.googlecode.cqengine.query.QueryFactory.setFlagsEnabled;
+import static com.googlecode.cqengine.query.QueryFactory.enableFlags;
 import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
 import static org.junit.Assert.*;
 
@@ -29,7 +29,7 @@ public class FlagsEnabledTest {
 
     @Test
     public void testFlagsEnabled() {
-        QueryOptions queryOptions = queryOptions(setFlagsEnabled("a", "b"));
+        QueryOptions queryOptions = queryOptions(enableFlags("a", "b"));
         assertTrue(isFlagEnabled(queryOptions, "a"));
         assertTrue(isFlagEnabled(queryOptions, "b"));
         assertFalse(isFlagEnabled(queryOptions, "c"));

@@ -80,6 +80,11 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     }
 
     @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
+    @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final SuffixTree<StoredResultSet<O>> tree = this.tree;        
         Class<?> queryClass = query.getClass();

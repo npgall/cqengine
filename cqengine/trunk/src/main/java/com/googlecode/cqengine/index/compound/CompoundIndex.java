@@ -262,7 +262,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
             }
 
             @Override
-            public boolean isIndexQuantized() {
+            public boolean isQuantized() {
                 return true;
             }
         };

@@ -76,6 +76,11 @@ public class FallbackIndex<O> implements Index<O> {
         return true;
     }
 
+    @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */

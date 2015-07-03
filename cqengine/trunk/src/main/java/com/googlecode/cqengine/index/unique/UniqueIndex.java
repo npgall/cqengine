@@ -105,7 +105,12 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
 	public boolean isMutable() {
 		return true;
 	}
-	
+
+    @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
 	@Override
 	public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
 		Class<?> queryClass = query.getClass();

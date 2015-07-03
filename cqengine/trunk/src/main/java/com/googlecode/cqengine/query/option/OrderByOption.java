@@ -30,6 +30,9 @@ public class OrderByOption<O> {
     private final List<AttributeOrder<O>> attributeOrders;
 
     public OrderByOption(List<AttributeOrder<O>> attributeOrders) {
+        if (attributeOrders.isEmpty()) {
+            throw new IllegalArgumentException("The list of attribute orders cannot be empty");
+        }
         this.attributeOrders = attributeOrders;
     }
 

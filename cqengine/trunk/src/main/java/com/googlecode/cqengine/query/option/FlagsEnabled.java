@@ -24,7 +24,7 @@ import java.util.Set;
  * A wrapper around object keys ("flags") which are said to be enabled.
  * <p/>
  * Example usage using {@link QueryFactory}:<br/>
- * <code>QueryOptions queryOptions = queryOptions(setFlagsEnabled("flag1", "flag2"))</code>
+ * <code>QueryOptions queryOptions = queryOptions(enableFlags("flag1", "flag2"))</code>
  *
  * @author niall.gallagher
  */

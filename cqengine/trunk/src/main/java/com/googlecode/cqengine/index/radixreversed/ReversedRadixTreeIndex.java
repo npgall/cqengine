@@ -75,6 +75,11 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
     }
 
     @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
+    @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final ReversedRadixTree<StoredResultSet<O>> tree = this.tree;
         Class<?> queryClass = query.getClass();

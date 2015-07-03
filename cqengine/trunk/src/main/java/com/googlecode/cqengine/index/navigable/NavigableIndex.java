@@ -101,7 +101,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
-        final boolean indexIsQuantized = isIndexQuantized();
+        final boolean indexIsQuantized = isQuantized();
         // Process Equal queries in the same was as HashIndex...
         if (queryClass.equals(Equal.class)) {
             final Equal<O, A> equal = (Equal<O, A>) query;
@@ -472,7 +472,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             }
 
             @Override
-            public boolean isIndexQuantized() {
+            public boolean isQuantized() {
                 return true;
             }
         };

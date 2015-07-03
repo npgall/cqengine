@@ -83,6 +83,12 @@ public class StandingQueryIndex<O> implements Index<O> {
         return standingQuery.equals(query);
     }
 
+
+    @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */
