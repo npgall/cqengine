@@ -20,12 +20,15 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.simple.FilterQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -336,7 +339,7 @@ public class SQLiteIndexTest {
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
 
-        Assert.assertNotNull(carsWithAbs);
+        assertNotNull(carsWithAbs);
         int size = carsWithAbs.size();
 
         assertEquals(3, size);
@@ -389,7 +392,7 @@ public class SQLiteIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
-        Assert.assertNotNull(carsWithAbs);
+        assertNotNull(carsWithAbs);
         int size = carsWithAbs.getMergeCost();
 
         assertEquals(3, size);
@@ -429,7 +432,7 @@ public class SQLiteIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), new QueryOptions());
 
-        Assert.assertNotNull(carsWithAbs);
+        assertNotNull(carsWithAbs);
         boolean resultContains = carsWithAbs.contains(data.get(0));
         assertTrue(resultContains);
         verify(connectionContains, times(1)).close();
@@ -473,9 +476,9 @@ public class SQLiteIndexTest {
 
                     .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
 
-            Assert.assertNotNull(carsWithAbs);
+            assertNotNull(carsWithAbs);
             Iterator<Car> carsWithAbsIterator = carsWithAbs.iterator();
-            Assert.assertNotNull(carsWithAbsIterator.next());
+            assertNotNull(carsWithAbsIterator.next());
             carsWithAbsIterator.next();// Should throw exception!
 
         }finally {
@@ -519,13 +522,13 @@ public class SQLiteIndexTest {
                 .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
 
 
-        Assert.assertNotNull(carsWithAbs);
+        assertNotNull(carsWithAbs);
         Iterator carsWithAbsIterator = carsWithAbs.iterator();
 
         assertTrue(carsWithAbsIterator.hasNext());
-        Assert.assertNotNull(carsWithAbsIterator.next());
+        assertNotNull(carsWithAbsIterator.next());
         assertTrue(carsWithAbsIterator.hasNext());
-        Assert.assertNotNull(carsWithAbsIterator.next());
+        assertNotNull(carsWithAbsIterator.next());
         assertFalse(carsWithAbsIterator.hasNext());
 
         // The end of the iteration should close the resources
@@ -568,10 +571,10 @@ public class SQLiteIndexTest {
 
                 .retrieve(equal(Car.FEATURES, "abs"), queryOptions);
 
-        Assert.assertNotNull(carsWithAbs);
+        assertNotNull(carsWithAbs);
         Iterator carsWithAbsIterator = carsWithAbs.iterator();
         assertTrue(carsWithAbsIterator.hasNext());
-        Assert.assertNotNull(carsWithAbsIterator.next());
+        assertNotNull(carsWithAbsIterator.next());
         // Do not continue with the iteration, but close
         carsWithAbs.close();
 
@@ -585,10 +588,10 @@ public class SQLiteIndexTest {
     public void testRowIterable(){
 
         Iterable<DBQueries.Row<Integer, String>> rows = SQLiteIndex.rowIterable(data, Car.CAR_ID, Car.FEATURES, null);
-        Assert.assertNotNull(rows);
+        assertNotNull(rows);
 
         Iterator<DBQueries.Row<Integer, String>> rowsIterator = rows.iterator();
-        Assert.assertNotNull(rowsIterator);
+        assertNotNull(rowsIterator);
         assertTrue(rowsIterator.hasNext());
         assertEquals(new DBQueries.Row<Integer, String>(1, "abs"), rowsIterator.next());
         assertTrue(rowsIterator.hasNext());
@@ -606,10 +609,10 @@ public class SQLiteIndexTest {
     public void testObjectKeyIterable(){
 
         Iterable<Integer> objectKeys = SQLiteIndex.objectKeyIterable(data, Car.CAR_ID, null);
-        Assert.assertNotNull(objectKeys);
+        assertNotNull(objectKeys);
 
         Iterator<Integer> objectKeysIterator = objectKeys.iterator();
-        Assert.assertNotNull(objectKeysIterator);
+        assertNotNull(objectKeysIterator);
         assertTrue(objectKeysIterator.hasNext());
         assertEquals(new Integer(1), objectKeysIterator.next());
         assertTrue(objectKeysIterator.hasNext());
@@ -833,6 +836,325 @@ public class SQLiteIndexTest {
         expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");
         actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending("Civic", true, "Insight", true, noQueryOptions()));
         assertEquals(expected, actual);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testNewResultSet_FilterQuery_Iterator_Exception_Close() throws Exception{
+
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(statement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getInt(1)).thenReturn(1).thenThrow(new SQLException("SQL exception"));
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+
+        // Iterator
+        try {
+            ResultSet<Car> cars = new SQLiteIndex<String, Car, Integer>(
+                    Car.FEATURES,
+                    OBJECT_TO_ID,
+                    idToObject,
+                    connectionManager)
+
+                    .retrieve(filterQuery, queryOptions);
+
+            assertNotNull(cars);
+            Iterator<Car> carsWithAbsIterator = cars.iterator();
+            assertNotNull(carsWithAbsIterator.next());
+            carsWithAbsIterator.next();// Should throw exception!
+
+        }finally {
+            verify(connection, times(1)).close();
+            verify(statement, times(1)).close();
+            verify(resultSet, times(1)).close();
+        }
+
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_Iterator_Close() throws Exception{
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(statement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getInt(1)).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(3).thenReturn(4).thenReturn(5);
+        when(resultSet.getString(2)).thenReturn("abs").thenReturn("gps").thenReturn("airbags").thenReturn("abs").thenReturn("").thenReturn("gps");
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+        when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
+        when(idToObject.getValue(5,queryOptions)).thenReturn(data.get(4));
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                idToObject,
+                connectionManager)
+
+                .retrieve(filterQuery, queryOptions);
+
+
+        assertNotNull(carsWithAbs);
+        Iterator carsWithAbsIterator = carsWithAbs.iterator();
+
+        assertTrue(carsWithAbsIterator.hasNext());
+        assertNotNull(carsWithAbsIterator.next());
+        assertTrue(carsWithAbsIterator.hasNext());
+        assertNotNull(carsWithAbsIterator.next());
+        assertTrue(carsWithAbsIterator.hasNext());
+        assertNotNull(carsWithAbsIterator.next());
+        assertTrue(carsWithAbsIterator.hasNext());
+        assertNotNull(carsWithAbsIterator.next());
+        assertFalse(carsWithAbsIterator.hasNext());
+
+        // The end of the iteration should close the resources
+        verify(connection, times(1)).close();
+        verify(statement, times(1)).close();
+        verify(resultSet, times(1)).close();
+
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_Close() throws Exception{
+
+        QueryOptions queryOptions = new QueryOptions();
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        @SuppressWarnings("unchecked")
+        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(statement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getInt(1)).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(3).thenReturn(4).thenReturn(5);
+        when(resultSet.getString(2)).thenReturn("abs").thenReturn("gps").thenReturn("airbags").thenReturn("abs").thenReturn("").thenReturn("gps");
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+        when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
+        when(idToObject.getValue(5, queryOptions)).thenReturn(data.get(4));
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                idToObject,
+                connectionManager)
+
+                .retrieve(filterQuery, queryOptions);
+
+        assertNotNull(carsWithAbs);
+        Iterator carsWithAbsIterator = carsWithAbs.iterator();
+        assertTrue(carsWithAbsIterator.hasNext());
+        assertNotNull(carsWithAbsIterator.next());
+        // Do not continue with the iteration, but close
+        carsWithAbs.close();
+
+        verify(connection, times(1)).close();
+        verify(statement, times(1)).close();
+        verify(resultSet, times(1)).close();
+
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_GetMergeCost() throws Exception{
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        // Behaviour
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " ;")).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(preparedStatement);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt(1)).thenReturn(3);
+
+        // Iterator
+        ResultSet<Car> cars = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(filterQuery, new QueryOptions());
+
+        assertNotNull(cars);
+        int mergeCost = cars.getMergeCost();
+
+        assertEquals(3, mergeCost);
+        verify(connection, times(1)).close();
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_GetRetrievalCost(){
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(filterQuery, new QueryOptions());
+
+        assertEquals(carsWithAbs.getRetrievalCost(), SQLiteIndex.INDEX_RETRIEVAL_COST_FILTERING);
+
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_Contains() throws Exception{
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connectionContains = mock(Connection.class);
+        Connection connectionDoNotContain = mock(Connection.class);
+        Connection connectionNoRows = mock(Connection.class);
+        PreparedStatement preparedStatementContains = mock(PreparedStatement.class);
+        PreparedStatement preparedStatementDoNotContains = mock(PreparedStatement.class);
+        PreparedStatement preparedStatementNoRows = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSetContains = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet resultSetNoRows = mock(java.sql.ResultSet.class);
+
+        // Behaviour
+        //SELECT objectKey, value FROM cqtbl_%s WHERE objectKey=?
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain).thenReturn(connectionNoRows);
+        when(connectionContains.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementContains);
+        when(connectionDoNotContain.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementDoNotContains);
+        when(connectionNoRows.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementNoRows);
+        when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
+        when(preparedStatementDoNotContains.executeQuery()).thenReturn(resultSetDoNotContain);
+        when(preparedStatementNoRows.executeQuery()).thenReturn(resultSetNoRows);
+
+        when(resultSetContains.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSetContains.getInt(1)).thenReturn(1).thenReturn(1);
+        when(resultSetContains.getString(2)).thenReturn("abs").thenReturn("gps");
+
+        when(resultSetDoNotContain.next()).thenReturn(true).thenReturn(false);
+        when(resultSetDoNotContain.getInt(1)).thenReturn(2);
+        when(resultSetDoNotContain.getString(2)).thenReturn("airbags");
+
+        when(resultSetNoRows.next()).thenReturn(false);
+
+        // Iterator
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(filterQuery, new QueryOptions());
+
+        assertNotNull(carsWithAbs);
+        boolean resultContains = carsWithAbs.contains(data.get(0));
+        assertTrue(resultContains);
+        verify(connectionContains, times(1)).close();
+
+        boolean resultDoNotContain = carsWithAbs.contains(data.get(1));
+        assertFalse(resultDoNotContain);
+        verify(connectionDoNotContain, times(1)).close();
+
+        boolean resultNoRows = carsWithAbs.contains(CarFactory.createCar(100));
+        assertFalse(resultNoRows);
+        verify(connectionNoRows, times(1)).close();
+
+    }
+
+    @Test
+    public void testNewResultSet_FilterQuery_Size() throws Exception{
+
+        // Mocks
+        FilterQuery<Car, String> filterQuery = mockFilterQuery();
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(PreparedStatement.class);
+        java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
+
+        // Behaviour//
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
+        when(resultSet.getStatement()).thenReturn(statement);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getInt(1)).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(3).thenReturn(4).thenReturn(5);
+        when(resultSet.getString(2)).thenReturn("abs").thenReturn("gps").thenReturn("airbags").thenReturn("abs").thenReturn("").thenReturn("gps");
+
+        ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                connectionManager)
+
+                .retrieve(filterQuery, new QueryOptions());
+
+
+        assertNotNull(carsWithAbs);
+        int size = carsWithAbs.size();
+
+        assertEquals(3, size);
+        verify(connection, times(1)).close();
+
+    }
+
+    static FilterQuery<Car, String> mockFilterQuery(){
+        @SuppressWarnings("unchecked")
+        FilterQuery<Car, String> filterQuery = (FilterQuery<Car, String>)mock(FilterQuery.class);
+        when(filterQuery.matchesValue(Mockito.anyString(), any(QueryOptions.class))).thenAnswer(new Answer<Boolean>() {
+            @Override
+            public Boolean answer(InvocationOnMock invocationOnMock) throws Throwable {
+                Object[] args = invocationOnMock.getArguments();
+                if (args != null && args.length == 2 && args[0] instanceof String) {
+                    String value = (String) args[0];
+                    return "abs".equals(value) || "gps".equals(value);
+                }
+                throw new IllegalStateException("matchesValue invocation not expected. Args " + Arrays.toString(args));
+            }
+        });
+        return filterQuery;
     }
 
 }

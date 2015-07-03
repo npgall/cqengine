@@ -15,8 +15,12 @@
  */
 package com.googlecode.cqengine.query.simple;
 
+import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SelfAttribute;
 import org.junit.Test;
 
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.startsWith;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -27,11 +31,13 @@ public class StringStartsWithTest {
 
     @Test
     public void testStringStartsWith() {
-        assertTrue(StringStartsWith.startsWithPrefix("THIS IS A TEST", "THIS"));
-        assertFalse(StringStartsWith.startsWithPrefix("THIS IS A TEST", "TEST"));
-        assertFalse(StringStartsWith.startsWithPrefix("THIS IS A TEST", "HIS"));
-        assertTrue(StringStartsWith.startsWithPrefix("THIS IS A TEST", ""));
-        assertTrue(StringStartsWith.startsWithPrefix("", ""));
-        assertFalse(StringStartsWith.startsWithPrefix("", "TEST"));
+
+        Attribute<String, String> stringIdentity = new SelfAttribute<String>(String.class, "identity");
+        assertTrue(startsWith(stringIdentity, "THIS").matches("THIS IS A TEST", noQueryOptions()));
+        assertFalse(startsWith(stringIdentity, "TEST").matches("THIS IS A TEST", noQueryOptions()));
+        assertFalse(startsWith(stringIdentity, "HIS").matches("THIS IS A TEST", noQueryOptions()));
+        assertTrue(startsWith(stringIdentity, "").matches("THIS IS A TEST", noQueryOptions()));
+        assertTrue(startsWith(stringIdentity, "").matches("", noQueryOptions()));
+        assertFalse(startsWith(stringIdentity, "TEST").matches("", noQueryOptions()));
     }
 }
