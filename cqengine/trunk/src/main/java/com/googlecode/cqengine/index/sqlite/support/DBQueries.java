@@ -24,7 +24,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -466,11 +465,40 @@ public class DBQueries {
 
     }
 
+    public static java.sql.ResultSet getAllIndexEntries(final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s ORDER BY objectKey;",tableName);
+        Statement statement = null;
+        try{
+            statement = connection.createStatement();
+            return statement.executeQuery(selectSql);
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to look up index entries.", e);
+        }
+        // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
+
+    }
+
+    public static <K> java.sql.ResultSet getIndexEntryByObjectKey(final K key , final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s WHERE objectKey = ?",tableName);
+        PreparedStatement statement = null;
+        try{
+            statement = connection.prepareStatement(selectSql);
+            DBUtils.setValueToPreparedStatement(1, statement, key);
+            return statement.executeQuery();
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to look up index entries.", e);
+        }
+        // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
+
+    }
+
     public static <K, O> boolean contains(final K objectKey, final Query<O> query, final String tableName, final Connection connection){
         final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
-            List<WhereClause> additionalWhereClauses = Arrays.asList(new WhereClause("AND objectKey = ?", objectKey));
+            List<WhereClause> additionalWhereClauses = Collections.singletonList(new WhereClause("AND objectKey = ?", objectKey));
             statement = createAndBindSelectPreparedStatement(selectSql, "", additionalWhereClauses, query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
 

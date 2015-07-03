@@ -29,9 +29,7 @@ import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -212,6 +210,52 @@ public class DBQueriesTest {
         }finally {
             DBUtils.closeQuietly(connection);
         }
+    }
+
+    @Test
+    public void testGetAllIndexEntries() throws SQLException {
+
+        Connection connection = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
+            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(1, "gps"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
+            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
+
+            connection = connectionManager.getConnection(null);
+            ResultSet resultSet = DBQueries.getAllIndexEntries( NAME, connection);
+            assertResultSet(resultSet, expectedRows);
+
+        }finally {
+            DBUtils.closeQuietly(connection);
+        }
+
+    }
+
+    @Test
+    public void testGetIndexEntryByObjectKey() throws SQLException {
+
+        Connection connection = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            connection = connectionManager.getConnection(null);
+            ResultSet resultSet = DBQueries.getIndexEntryByObjectKey(3, NAME, connection);
+
+            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
+            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
+
+            assertResultSet(resultSet, expectedRows);
+
+        }finally {
+            DBUtils.closeQuietly(connection);
+        }
+
     }
 
     @Test

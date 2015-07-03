@@ -46,29 +46,30 @@ public class StringStartsWith<O, A extends CharSequence> extends SimpleQuery<O, 
 
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        CharSequence attributeValue = attribute.getValue(object, queryOptions);
-        return startsWithPrefix(attributeValue, value);
+        A attributeValue = attribute.getValue(object, queryOptions);
+        return matchesValue(attributeValue, queryOptions);
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
-            if (startsWithPrefix(attributeValue, value)) {
+            if (matchesValue(attributeValue, queryOptions)) {
                 return true;
             }
         }
         return false;
     }
 
-    static boolean startsWithPrefix(CharSequence document, CharSequence prefix) {
+    @SuppressWarnings("unused")
+    public boolean matchesValue(A aValue, QueryOptions queryOptions) {
         int charsMatched = 0;
-        for (int i = 0, length = Math.min(document.length(), prefix.length()); i < length; i++) {
-            if (document.charAt(i) != prefix.charAt(i)) {
+        for (int i = 0, length = Math.min(aValue.length(), value.length()); i < length; i++) {
+            if (aValue.charAt(i) != value.charAt(i)) {
                 break;
             }
             charsMatched++;
         }
-        return charsMatched == prefix.length();
+        return charsMatched == value.length();
     }
 
 

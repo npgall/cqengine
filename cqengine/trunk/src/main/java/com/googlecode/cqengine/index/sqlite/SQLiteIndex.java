@@ -21,22 +21,20 @@ import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
-import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
-import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
+import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
 import java.sql.Connection;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
 import static com.googlecode.cqengine.query.QueryFactory.*;
@@ -103,6 +101,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
+    static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
 
     final String tableName;
     final SimpleAttribute<O, K> primaryKeyAttribute;
@@ -139,6 +138,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     }
 
     @Override
+    public boolean supportsQuery(Query<O> query) {
+        return query instanceof FilterQuery || super.supportsQuery(query);
+    }
+
+    @Override
     public boolean isMutable() {
         return true;
     }
@@ -151,92 +155,245 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
         closeableQueryResources.add(resultSetResourcesToClose);
 
-        return new ResultSet<O>(){
+        if (query instanceof FilterQuery){
+            final FilterQuery<O, A> filterQuery =  (FilterQuery<O, A>)query;
+            return new ResultSet<O>() {
+                @Override
+                public Iterator<O> iterator() {
+                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                    resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
 
-            @Override
-            public Iterator<O> iterator() {
+                    final java.sql.ResultSet searchResultSet = DBQueries.getAllIndexEntries(tableName, searchConnection);
+                    resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
 
-                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
-                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
+                    return new LazyIterator<O>() {
+                        @Override
+                        protected O computeNext() {
+                            try {
+                                while (true) {
 
-                final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection); // eliminates duplicates
-                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+                                    if (!searchResultSet.next()) {
+                                        close();
+                                        return endOfData();
+                                    }
 
-                return new LazyIterator<O>() {
-                    @Override
-                    protected O computeNext() {
-                        try {
-                            if (!searchResultSet.next()) {
+                                    final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
+                                    final A objectValue = DBUtils.getValueFromResultSet(2, searchResultSet, attribute.getAttributeType());
+                                    if (filterQuery.matchesValue(objectValue, queryOptions)) {
+                                        return foreignKeyAttribute.getValue(objectKey, queryOptions);
+                                    }
+                                }
+
+                            } catch (Exception e) {
+                                endOfData();
                                 close();
-                                return endOfData();
+                                throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
                             }
-                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
-                            return foreignKeyAttribute.getValue(objectKey, queryOptions);
-                        }catch (Exception e){
-                            endOfData();
-                            close();
-                            throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
                         }
+                    };
+
+                }
+
+                @Override
+                public boolean contains(O object) {
+
+                    Connection connection = null;
+                    java.sql.ResultSet searchResultSet = null;
+                    try {
+                        connection = connectionManager.getConnection(SQLiteIndex.this);
+                        searchResultSet = DBQueries.getIndexEntryByObjectKey(primaryKeyAttribute.getValue(object, queryOptions), tableName, connection);
+
+                        return lazyMatchingValuesIterable(searchResultSet).iterator().hasNext();
+
+                    }finally {
+                        DBUtils.closeQuietly(searchResultSet);
+                        DBUtils.closeQuietly(connection);
                     }
-                };
-            }
 
-            @Override
-            public int getRetrievalCost() {
-                return INDEX_RETRIEVAL_COST;
-            }
-
-            @Override
-            public int getMergeCost() {
-                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
-                try {
-                    return DBQueries.count(query, tableName, connection); // no need to eliminate duplicates
-                } finally {
-                    DBUtils.closeQuietly(connection);
                 }
-            }
 
-            @Override
-            public boolean contains(O object) {
-                final K objectKey = primaryKeyAttribute.getValue(object, queryOptions);
-                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
-                try{
-                    return DBQueries.contains(objectKey, query, tableName, connection);
-                }finally {
-                    DBUtils.closeQuietly(connection);
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
                 }
-            }
 
-            @Override
-            public boolean matches(O object) {
-                return query.matches(object, queryOptions);
-            }
-
-            @Override
-            public int size() {
-                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
-                try {
-                    return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
-                } finally {
-                    DBUtils.closeQuietly(connection);
+                @Override
+                public Query<O> getQuery() {
+                    return query;
                 }
-            }
 
-            @Override
-            public void close() {
-                CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
-            }
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
 
-            @Override
-            public Query<O> getQuery() {
-                return query;
-            }
+                @Override
+                public int getRetrievalCost() {
+                    return INDEX_RETRIEVAL_COST_FILTERING;// choose between indexes
+                }
 
-            @Override
-            public QueryOptions getQueryOptions() {
-                return queryOptions;
-            }
-        };
+                @Override
+                public int getMergeCost() {
+                    //choose between branches.
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    try {
+                        return DBQueries.count(has(primaryKeyAttribute), tableName, connection); // no need to eliminate duplicates
+                    } finally {
+                        DBUtils.closeQuietly(connection);
+                    }
+                }
+
+                @Override
+                public int size() {
+                    Connection connection = null;
+                    java.sql.ResultSet searchResultSet = null;
+                    try {
+                        connection = connectionManager.getConnection(SQLiteIndex.this);
+                        searchResultSet = DBQueries.getAllIndexEntries(tableName, connection);
+
+                        final Iterable<K> iterator = lazyMatchingValuesIterable(searchResultSet);
+                        return IteratorUtil.countElements(iterator);
+                    }finally {
+                        DBUtils.closeQuietly(searchResultSet);
+                        DBUtils.closeQuietly(connection);
+                    }
+                }
+
+                @Override
+                public void close() {
+                    CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                }
+
+                // Method to retrieve all the distinct keys for the matching values from the index. Used in count and contains
+                Iterable<K> lazyMatchingValuesIterable(final java.sql.ResultSet searchResultSet) {
+                    return new Iterable<K>() {
+                        @Override
+                        public Iterator<K> iterator() {
+                            return new LazyIterator<K>() {
+
+                                K currentKey = null;
+
+                                @Override
+                                protected K computeNext() {
+                                    try {
+                                        while (true) {
+
+                                            if (!searchResultSet.next()) {
+                                                close();
+                                                return endOfData();
+                                            }
+
+                                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
+                                            if (currentKey == null || !currentKey.equals(objectKey)) {
+                                                final A objectValue = DBUtils.getValueFromResultSet(2, searchResultSet, attribute.getAttributeType());
+                                                if (filterQuery.matchesValue(objectValue, queryOptions)) {
+                                                    currentKey = objectKey;
+                                                    return objectKey;
+                                                }
+                                            }
+                                        }
+
+                                    } catch (Exception e) {
+                                        endOfData();
+                                        close();
+                                        throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
+                                    }
+                                }
+                            };
+                        }
+                    };
+                }
+
+            };
+        }else {
+
+            return new ResultSet<O>() {
+
+                @Override
+                public Iterator<O> iterator() {
+
+                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                    resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
+
+                    final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection); // eliminates duplicates
+                    resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+
+                    return new LazyIterator<O>() {
+                        @Override
+                        protected O computeNext() {
+                            try {
+                                if (!searchResultSet.next()) {
+                                    close();
+                                    return endOfData();
+                                }
+                                final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
+                                return foreignKeyAttribute.getValue(objectKey, queryOptions);
+                            } catch (Exception e) {
+                                endOfData();
+                                close();
+                                throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
+                            }
+                        }
+                    };
+                }
+
+                @Override
+                public int getRetrievalCost() {
+                    return INDEX_RETRIEVAL_COST;
+                }
+
+                @Override
+                public int getMergeCost() {
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    try {
+                        return DBQueries.count(query, tableName, connection); // no need to eliminate duplicates
+                    } finally {
+                        DBUtils.closeQuietly(connection);
+                    }
+                }
+
+                @Override
+                public boolean contains(O object) {
+                    final K objectKey = primaryKeyAttribute.getValue(object, queryOptions);
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    try {
+                        return DBQueries.contains(objectKey, query, tableName, connection);
+                    } finally {
+                        DBUtils.closeQuietly(connection);
+                    }
+                }
+
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+
+                @Override
+                public int size() {
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    try {
+                        return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
+                    } finally {
+                        DBUtils.closeQuietly(connection);
+                    }
+                }
+
+                @Override
+                public void close() {
+                    CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                }
+
+                @Override
+                public Query<O> getQuery() {
+                    return query;
+                }
+
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
+            };
+        }
     }
 
     /**

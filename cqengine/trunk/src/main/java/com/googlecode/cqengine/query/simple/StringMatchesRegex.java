@@ -49,20 +49,24 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
 
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        CharSequence attributeValue = attribute.getValue(object, queryOptions);
-        return regexPattern.matcher(attributeValue).matches();
+        A attributeValue = attribute.getValue(object, queryOptions);
+        return matchesValue(attributeValue, queryOptions);
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
-            if (regexPattern.matcher(attributeValue).matches()) {
+            if (matchesValue(attributeValue, queryOptions)) {
                 return true;
             }
         }
         return false;
     }
 
+    @SuppressWarnings("unused")
+    public boolean matchesValue(A aValue, QueryOptions queryOptions){
+        return regexPattern.matcher(aValue).matches();
+    }
 
     @Override
     public boolean equals(Object o) {

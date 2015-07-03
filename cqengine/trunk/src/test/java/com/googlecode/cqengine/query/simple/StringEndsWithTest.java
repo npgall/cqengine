@@ -15,8 +15,12 @@
  */
 package com.googlecode.cqengine.query.simple;
 
+import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SelfAttribute;
 import org.junit.Test;
 
+import static com.googlecode.cqengine.query.QueryFactory.endsWith;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -27,11 +31,13 @@ public class StringEndsWithTest {
 
     @Test
     public void testStringEndsWith() {
-        assertTrue(StringEndsWith.endsWithSuffix("THIS IS A TEST", "TEST"));
-        assertFalse(StringEndsWith.endsWithSuffix("THIS IS A TEST", "THIS"));
-        assertFalse(StringEndsWith.endsWithSuffix("THIS IS A TEST", "TES"));
-        assertTrue(StringEndsWith.endsWithSuffix("THIS IS A TEST", ""));
-        assertTrue(StringEndsWith.endsWithSuffix("", ""));
-        assertFalse(StringEndsWith.endsWithSuffix("", "TEST"));
+
+        Attribute<String, String> stringIdentity = new SelfAttribute<String>(String.class, "identity");
+        assertTrue(endsWith(stringIdentity, "TEST").matches("THIS IS A TEST", noQueryOptions()));
+        assertFalse(endsWith(stringIdentity, "THIS").matches("THIS IS A TEST", noQueryOptions()));
+        assertFalse(endsWith(stringIdentity, "TES").matches("THIS IS A TEST", noQueryOptions()));
+        assertTrue(endsWith(stringIdentity, "").matches("THIS IS A TEST", noQueryOptions()));
+        assertTrue(endsWith(stringIdentity, "").matches("", noQueryOptions()));
+        assertFalse(endsWith(stringIdentity, "TEST").matches("", noQueryOptions()));
     }
 }

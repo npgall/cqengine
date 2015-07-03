@@ -46,33 +46,33 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
 
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        CharSequence attributeValue = attribute.getValue(object, queryOptions);
-        return endsWithSuffix(attributeValue, value);
+        A attributeValue = attribute.getValue(object, queryOptions);
+        return matchesValue(attributeValue, queryOptions);
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
-            if (endsWithSuffix(attributeValue, value)) {
+            if (matchesValue(attributeValue, queryOptions)) {
                 return true;
             }
         }
         return false;
     }
 
-    static boolean endsWithSuffix(CharSequence document, CharSequence suffix) {
+    @SuppressWarnings("unused")
+    public boolean matchesValue(A aValue, QueryOptions queryOptions){
         int charsMatched = 0;
-        for (int i = document.length() - 1, j = suffix.length() - 1; i >= 0 && j >= 0; i--, j--) {
-            char documentChar = document.charAt(i);
-            char suffixChar = suffix.charAt(j);
+        for (int i = aValue.length() - 1, j = value.length() - 1; i >= 0 && j >= 0; i--, j--) {
+            char documentChar = aValue.charAt(i);
+            char suffixChar = value.charAt(j);
             if (documentChar != suffixChar) {
                 break;
             }
             charsMatched++;
         }
-        return charsMatched == suffix.length();
+        return charsMatched == value.length();
     }
-
 
     @Override
     public boolean equals(Object o) {
