@@ -37,6 +37,7 @@ import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
+import com.googlecode.cqengine.query.option.QueryLog;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -49,13 +50,15 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.*;
 
 import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
+import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 /**
@@ -848,9 +851,10 @@ public class IndexedCollectionFunctionalTest {
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
                     queriesToEvaluate = asList(
+                            // Force use of the index ordering strategy (set selectivity threshold = 1.0)...
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
                                     carIdsInOrder = asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -858,7 +862,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = between(Car.CAR_ID, 4, 6);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 3;
                                     carIdsInOrder = asList(4, 5, 6);
@@ -866,7 +870,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = lessThan(Car.CAR_ID, 6);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 6;
                                     carIdsInOrder = asList(0, 1, 2, 3, 4, 5);
@@ -874,7 +878,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = lessThanOrEqualTo(Car.CAR_ID, 6);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 7;
                                     carIdsInOrder = asList(0, 1, 2, 3, 4, 5, 6);
@@ -882,7 +886,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = greaterThan(Car.CAR_ID, 3);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 6;
                                     carIdsInOrder = asList(4, 5, 6, 7, 8, 9);
@@ -890,7 +894,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = greaterThanOrEqualTo(Car.CAR_ID, 3);
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 7;
                                     carIdsInOrder = asList(3, 4, 5, 6, 7, 8, 9);
@@ -898,7 +902,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
                                     carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
@@ -906,7 +910,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = between(Car.CAR_ID, 4, 6);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 3;
                                     carIdsInOrder = asList(6, 5, 4);
@@ -914,7 +918,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = lessThan(Car.CAR_ID, 6);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 6;
                                     carIdsInOrder = asList(5, 4 ,3 ,2 ,1, 0);
@@ -922,7 +926,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = lessThanOrEqualTo(Car.CAR_ID, 6);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 7;
                                     carIdsInOrder = asList(6, 5, 4 ,3 ,2 ,1, 0);
@@ -930,7 +934,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = greaterThan(Car.CAR_ID, 3);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 6;
                                     carIdsInOrder = asList(9, 8, 7, 6, 5, 4);
@@ -938,7 +942,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = greaterThanOrEqualTo(Car.CAR_ID, 3);
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 7;
                                     carIdsInOrder = asList(9, 8, 7, 6, 5, 4, 3);
@@ -946,7 +950,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = and(greaterThanOrEqualTo(Car.CAR_ID, 3), lessThanOrEqualTo(Car.CAR_ID, 6));
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 4;
                                     carIdsInOrder = asList(6, 5, 4, 3);
@@ -954,7 +958,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = or(greaterThanOrEqualTo(Car.CAR_ID, 7), none(Car.class));
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 3;
                                     carIdsInOrder = asList(9, 8, 7);
@@ -962,7 +966,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = and(or(greaterThanOrEqualTo(Car.CAR_ID, 7), none(Car.class)), or(all(Car.class), none(Car.class)));
-                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 3;
                                     carIdsInOrder = asList(9, 8, 7);
@@ -970,7 +974,7 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = and(equal(Car.CAR_ID, 8), all(Car.class));
-                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), orderingStrategy(INDEX));
+                                queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 1;
                                     carIdsInOrder = asList(8);
@@ -988,6 +992,49 @@ public class IndexedCollectionFunctionalTest {
                             )
                     );
                 }},
+                new MacroScenario() {{
+                        name = "index ordering strategy selection";
+                        dataSet = SMALL_DATASET;
+                        collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                        queriesToEvaluate = asList(
+                                new QueryToEvaluate() {{
+                                    query = between(Car.CAR_ID, 4, 6); // querySelectivity = 1.0 - 3/10 = 0.7
+                                    queryOptions = queryOptions(orderBy(ascending(Car.MANUFACTURER), descending(Car.PRICE)),
+                                            applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 0.8))); // selectivityThreshold = 0.8 -> use index ordering
+                                    expectedResults = new ExpectedResults() {{
+                                        size = 3;
+                                        carIdsInOrder = asList(5, 4, 6);
+                                        containsQueryLogMessages = singletonList("orderingStrategy: index");
+                                    }};
+                                }},
+                                new QueryToEvaluate() {{
+                                    query = between(Car.CAR_ID, 4, 6); // querySelectivity = 1.0 - 3/10 = 0.7
+                                    queryOptions = queryOptions(orderBy(ascending(Car.MANUFACTURER), descending(Car.PRICE)),
+                                            applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 0.6))); // selectivityThreshold = 0.6 -> use materialize ordering
+                                    expectedResults = new ExpectedResults() {{
+                                        size = 3;
+                                        carIdsInOrder = asList(5, 4, 6);
+                                        containsQueryLogMessages = singletonList("orderingStrategy: materialize");
+                                    }};
+                                }},
+                                new QueryToEvaluate() {{
+                                    query = between(Car.CAR_ID, 4, 6); // querySelectivity = 1.0 - 3/10 = 0.7
+                                    queryOptions = queryOptions(orderBy(ascending(Car.MANUFACTURER), descending(Car.PRICE))); // selectivityThreshold = default of 0.5 -> use materialize ordering
+                                    expectedResults = new ExpectedResults() {{
+                                        size = 3;
+                                        carIdsInOrder = asList(5, 4, 6);
+                                        containsQueryLogMessages = singletonList("orderingStrategy: materialize");
+                                    }};
+                                }}
+                        );
+                        indexCombinations = indexCombinations(
+                                indexCombination(
+                                        NavigableIndex.onAttribute(Car.CAR_ID),
+                                        NavigableIndex.onAttribute(Car.MANUFACTURER),
+                                        NavigableIndex.onAttribute(Car.PRICE)
+                                )
+                        );
+                    }},
                 new MacroScenario() {{
                     name = "remove objects";
                     dataSet = REGULAR_DATASET;
@@ -1177,6 +1224,9 @@ public class IndexedCollectionFunctionalTest {
             throw new IllegalStateException("No expectedResults configured for query: " + query);
         }
         try {
+            if (expectedResults.containsQueryLogMessages != null) {
+                queryOptions.put(QueryLog.class, new QueryLog(new AppendableCollection()));
+            }
             ResultSet<Car> results = indexedCollection.retrieve(query, queryOptions);
             try {
                 if (expectedResults.size != null) {
@@ -1207,6 +1257,13 @@ public class IndexedCollectionFunctionalTest {
                         assertFalse("doesNotContainCarIds mismatch, results contain carId " + carId + " for query: " + query, results.contains(CarFactory.createCar(carId)));
                     }
                 }
+                if (expectedResults.containsQueryLogMessages != null) {
+                    QueryLog queryLog = queryOptions.get(QueryLog.class);
+                    AppendableCollection messages = (AppendableCollection)queryLog.getSink();
+                    for (String expectedMessage : expectedResults.containsQueryLogMessages) {
+                        assertTrue("QueryLog does not contain message '" + expectedMessage + "' for query: " + query, messages.contains(expectedMessage));
+                    }
+                }
             }
             finally {
                 results.close();
@@ -1228,6 +1285,7 @@ public class IndexedCollectionFunctionalTest {
         Integer retrievalCost;
         Integer mergeCost;
         Boolean indexUsed;
+        Collection<String> containsQueryLogMessages;
         List<Integer> carIdsInOrder;
         Set<Integer> carIdsAnyOrder;
         Set<Integer> containsCarIds;
@@ -1289,6 +1347,12 @@ public class IndexedCollectionFunctionalTest {
                 }
                 sb.append("doesNotContainCarIds=").append(doesNotContainCarIds);
             }
+            if (containsQueryLogMessages != null) {
+                if (!first) {
+                    sb.append(", ");
+                }
+                sb.append("containsQueryLogMessages=").append(containsQueryLogMessages);
+            }
             sb.append("]");
             return sb.toString();
         }
@@ -1334,7 +1398,7 @@ public class IndexedCollectionFunctionalTest {
             Attribute attribute = ((AttributeIndex) index).getAttribute();
             description += ".onAttribute(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
         }
-        if (index instanceof AbstractMapBasedAttributeIndex && ((AbstractMapBasedAttributeIndex) index).isIndexQuantized()) {
+        if (index instanceof AbstractMapBasedAttributeIndex && index.isQuantized()) {
             description += " (quantized)";
         }
         return description;
@@ -1357,5 +1421,24 @@ public class IndexedCollectionFunctionalTest {
             treeSet.add(i);
         }
         return treeSet;
+    }
+
+    static class AppendableCollection extends LinkedList<String> implements Appendable {
+
+        @Override
+        public Appendable append(CharSequence csq) throws IOException {
+            super.add(String.valueOf(csq));
+            return this;
+        }
+
+        @Override
+        public Appendable append(CharSequence csq, int start, int end) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Appendable append(char c) throws IOException {
+            throw new UnsupportedOperationException();
+        }
     }
 }

@@ -109,6 +109,11 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     }
 
     @Override
+    public boolean isQuantized() {
+        return backingIndex().isQuantized();
+    }
+
+    @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         return backingIndex().retrieve(query, queryOptions);
     }

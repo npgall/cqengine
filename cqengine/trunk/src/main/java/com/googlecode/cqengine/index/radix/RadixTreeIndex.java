@@ -75,6 +75,11 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
     }
 
     @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
+    @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final RadixTree<StoredResultSet<O>> tree = this.tree;        
         Class<?> queryClass = query.getClass();

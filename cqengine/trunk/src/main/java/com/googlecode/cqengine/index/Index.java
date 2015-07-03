@@ -44,6 +44,12 @@ public interface Index<O> extends ModificationListener<O> {
     public boolean supportsQuery(Query<O> query);
 
     /**
+     * Indicates if the index is quantized, using a {@link com.googlecode.cqengine.quantizer.Quantizer}.
+     * @return True if the index is quantized, false if not.
+     */
+    public boolean isQuantized();
+
+    /**
      * Returns a {@link ResultSet} which when iterated will return objects from the index matching the query
      * supplied.
      * <p/>

@@ -88,6 +88,11 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     }
 
     @Override
+    public boolean isQuantized() {
+        return offHeapIndex.isQuantized();
+    }
+
+    @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         return offHeapIndex.retrieve(query, queryOptions);
     }

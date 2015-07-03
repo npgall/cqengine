@@ -2,13 +2,11 @@ package com.googlecode.cqengine.persistence;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
-import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -20,7 +18,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import static com.googlecode.cqengine.query.QueryFactory.setFlagsEnabled;
+import static com.googlecode.cqengine.query.QueryFactory.enableFlags;
 
 /**
  * @author niall.gallagher
@@ -154,7 +152,7 @@ public class PersistenceIndexingBenchmark {
         for (Car next : CarFactory.createIterableOfCars(total)) {
             if (!batch.offer(next)) {
                 if (BULK_IMPORT_FLAG) {
-                    collection.update(Collections.<Car>emptySet(), batch, QueryFactory.queryOptions(setFlagsEnabled(SQLiteIndexFlags.BULK_IMPORT)));
+                    collection.update(Collections.<Car>emptySet(), batch, QueryFactory.queryOptions(enableFlags(SQLiteIndexFlags.BULK_IMPORT)));
                 }
                 else {
                     collection.update(Collections.<Car>emptySet(), batch);

@@ -23,7 +23,7 @@ import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.option.OrderingStrategy.INDEX;
+import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
 
 /**
  * @author Niall Gallagher
@@ -37,7 +37,7 @@ public class IndexOrderingDemo {
 
         ResultSet<Car> results = cars.retrieve(
                 between(Car.CAR_ID, 40, 50),
-                queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX))
+                queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)))
         );
         for (Car car : results) {
             System.out.println(car); // prints cars 50 -> 40, using the index for ordering

@@ -9,7 +9,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  * An {@link com.googlecode.cqengine.index.Index} can support {@link FilterQuery} and filter the already computed values removing
  * the overhead of recomputing the value.
  *
- * @author niall.gallagher
+ * @author Silvano Riz
  */
 public interface FilterQuery<O, A> extends Query<O>{
 

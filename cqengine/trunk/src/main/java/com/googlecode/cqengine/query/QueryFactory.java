@@ -485,17 +485,6 @@ public class QueryFactory {
     }
 
     /**
-     * Creates an {@link OrderingStrategyOption} query option, encapsulating a given {@link OrderingStrategy}, which
-     * when supplied to the query engine requests it to use the given strategy to order results.
-     *
-     * @param orderingStrategy The ordering strategy the query engine should use
-     * @return An {@link OrderingStrategyOption} query option
-     */
-    public static <O> OrderingStrategyOption orderingStrategy(OrderingStrategy orderingStrategy) {
-        return new OrderingStrategyOption(orderingStrategy);
-    }
-
-    /**
      * Creates a {@link DeduplicationOption} query option, encapsulating a given {@link DeduplicationStrategy}, which
      * when supplied to the query engine requests it to eliminate duplicates objects from the results returned using
      * the strategy indicated.
@@ -574,9 +563,9 @@ public class QueryFactory {
      * setting flags in this way.
      *
      * @param flags Arbitrary objects which represent flags which may be interpreted by indexes etc.
-     * @return A populated {@link FlagsEnabled} object which may be added to query options.
+     * @return A populated {@link FlagsEnabled} object which may be added to query options
      */
-    public static FlagsEnabled setFlagsEnabled(Object... flags) {
+    public static FlagsEnabled enableFlags(Object... flags) {
         FlagsEnabled result = new FlagsEnabled();
         for (Object flag: flags) {
             result.add(flag);
@@ -592,14 +581,37 @@ public class QueryFactory {
      * setting flags in this way.
      *
      * @param flags Arbitrary objects which represent flags which may be interpreted by indexes etc.
-     * @return A populated {@link FlagsDisabled} object which may be added to query options.
+     * @return A populated {@link FlagsDisabled} object which may be added to query options
      */
-    public static FlagsDisabled setFlagsDisabled(Object... flags) {
+    public static FlagsDisabled disableFlags(Object... flags) {
         FlagsDisabled result = new FlagsDisabled();
         for (Object flag: flags) {
             result.add(flag);
         }
         return result;
+    }
+
+    /**
+     * Creates a {@link Thresholds} object which may be added to query options.
+     * It encapsulates individual {@link Threshold} objects which are to override default values for thresholds which
+     * can be set to tune query performance.
+     *
+     * @param thresholds Encapsulates Double values relating to thresholds to be overridden
+     * @return A populated {@link Thresholds} object which may be added to query options
+     */
+    public static Thresholds applyThresholds(Threshold... thresholds) {
+        return new Thresholds(Arrays.asList(thresholds));
+    }
+
+    /**
+     * Creates a {@link Threshold} object which may be added to query options.
+     *
+     * @param key The key of the threshold value to set
+     * @param value The value to set for the threshold
+     * @return A populated {@link Threshold} object encapsulating the given arguments
+     */
+    public static Threshold threshold(Object key, Double value) {
+        return new Threshold(key, value);
     }
 
     // ***************************************************************************************************************

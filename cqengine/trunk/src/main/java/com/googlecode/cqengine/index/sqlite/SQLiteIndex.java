@@ -148,6 +148,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     }
 
     @Override
+    public boolean isQuantized() {
+        return false;
+    }
+
+    @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final ConnectionManager connectionManager = getConnectionManager(queryOptions);
 

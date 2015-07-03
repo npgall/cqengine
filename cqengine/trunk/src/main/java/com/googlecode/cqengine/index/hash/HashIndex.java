@@ -230,7 +230,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
             }
 
             @Override
-            public boolean isIndexQuantized() {
+            public boolean isQuantized() {
                 return true;
             }
         };
