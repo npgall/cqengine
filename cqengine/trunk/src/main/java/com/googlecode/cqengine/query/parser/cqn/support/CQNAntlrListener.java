@@ -18,6 +18,7 @@ package com.googlecode.cqengine.query.parser.cqn.support;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.AttributeOrder;
 import com.googlecode.cqengine.query.option.OrderByOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
@@ -28,6 +29,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.orderBy;
+import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
 import static com.googlecode.cqengine.query.parser.common.ParserUtils.*;
 
 /**
@@ -45,6 +49,8 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     protected final Map<ParserRuleContext, Collection<Query<O>>> childQueries = new HashMap<ParserRuleContext, Collection<Query<O>>>();
     protected int numQueriesEncountered = 0;
     protected int numQueriesParsed = 0;
+
+    protected final List<AttributeOrder<O>> attributeOrders = new LinkedList<AttributeOrder<O>>();
 
     public CQNAntlrListener(QueryParser<O> queryParser) {
         this.queryParser = queryParser;
@@ -195,6 +201,15 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
         validateAllQueriesParsed(numQueriesEncountered, numQueriesParsed);
     }
 
+    @Override
+    public void exitOrderByOption(CQNGrammarParser.OrderByOptionContext ctx) {
+        for (CQNGrammarParser.AttributeOrderContext attributeOrderContext : ctx.attributeOrder()) {
+            Attribute<O, Comparable> attribute = queryParser.getAttribute(attributeOrderContext.attributeName(), Comparable.class);
+            boolean descending = "descending".equals(attributeOrderContext.direction().getText());
+            attributeOrders.add(new AttributeOrder<O>(attribute, descending));
+        }
+    }
+
     // ======== Utility methods... ========
 
     /**
@@ -228,8 +243,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
      * @return The parsed {@link QueryOptions}
      */
     public QueryOptions getQueryOptions() {
-        // CQN queries don't currently (yet?) have a syntax to specify ordering...
-        return QueryFactory.noQueryOptions();
+        return attributeOrders.isEmpty() ? noQueryOptions() : queryOptions(orderBy(attributeOrders));
     }
 
     protected Class[] getAndOrNotContextClasses() {
