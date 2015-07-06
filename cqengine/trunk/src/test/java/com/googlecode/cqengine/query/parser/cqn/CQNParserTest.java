@@ -19,6 +19,7 @@ import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
+import com.googlecode.cqengine.query.parser.common.ParseResult;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -138,6 +139,27 @@ public class CQNParserTest {
     @Test(expected = InvalidQueryException.class)
     public void testInvalidQuery_NullQuery() {
         parser.query(null);
+    }
+
+    @Test
+    public void testOrderBy_NoOrdering() {
+        ParseResult<Car> parseResult = parser.parse("equal(\"manufacturer\", \"Ford\")");
+        assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parseResult.getQuery());
+        Assert.assertEquals(noQueryOptions(), parseResult.getQueryOptions());
+    }
+
+    @Test
+    public void testOrderBy_SimpleOrdering() {
+        ParseResult<Car> parseResult = parser.parse("equal(\"manufacturer\", \"Ford\"), queryOptions(orderBy(ascending(\"manufacturer\")))");
+        assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parseResult.getQuery());
+        Assert.assertEquals(queryOptions(orderBy(ascending(Car.MANUFACTURER))), parseResult.getQueryOptions());
+    }
+
+    @Test
+    public void testOrderBy_ComplexOrdering() {
+        ParseResult<Car> parseResult = parser.parse("equal(\"manufacturer\", \"Ford\"), queryOptions(orderBy(ascending(\"manufacturer\"), descending(\"carId\")))");
+        assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parseResult.getQuery());
+        Assert.assertEquals(queryOptions(orderBy(ascending(Car.MANUFACTURER), descending(Car.CAR_ID))), parseResult.getQueryOptions());
     }
 
     static void assertQueriesEquals(Query<Car> expected, Query<Car> actual) {

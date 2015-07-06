@@ -16,7 +16,7 @@
 grammar CQNGrammar;
 import Java;
 
-start : query EOF;
+start : query (',' queryOptions)? EOF;
 
 query : logicalQuery | simpleQuery ;
 
@@ -65,3 +65,9 @@ objectType : Identifier ;
 attributeName : StringLiteral ;
 queryParameter : literal | Identifier;
 stringQueryParameter : StringLiteral ;
+
+queryOptions: 'queryOptions' LPAREN queryOption (',' queryOption)* RPAREN ;
+queryOption: orderByOption ;
+orderByOption: 'orderBy' LPAREN attributeOrder (',' attributeOrder)* RPAREN ;
+attributeOrder : direction LPAREN attributeName RPAREN ;
+direction : 'ascending' | 'descending' ;
