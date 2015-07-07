@@ -454,14 +454,6 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = has(Car.FEATURES);
-                                expectedResults = new ExpectedResults() {{
-                                    size = 600;
-                                    containsCarIds = asSet(1, 2, 3, 4, 7, 9);
-                                    doesNotContainCarIds = asSet(0, 5, 6, 8);
-                                }};
-                            }},
-                            new QueryToEvaluate() {{
-                                query = has(Car.FEATURES);
                                 queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
                                 expectedResults = new ExpectedResults() {{
                                     size = 600;
@@ -476,6 +468,20 @@ public class IndexedCollectionFunctionalTest {
                                     size = 600;
                                     containsCarIds = asSet(1, 2, 3, 4, 7, 9);
                                     doesNotContainCarIds = asSet(0, 5, 6, 8);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = has(Car.MANUFACTURER);
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1000;
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = has(Car.MANUFACTURER);
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1000;
                                 }};
                             }}
                     );
