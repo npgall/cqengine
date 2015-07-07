@@ -228,7 +228,7 @@ public class DBQueriesTest {
 
             connection = connectionManager.getConnection(null);
             ResultSet resultSet = DBQueries.getAllIndexEntries( NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetOrderAgnostic(resultSet, expectedRows);
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -250,7 +250,7 @@ public class DBQueriesTest {
             List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetOrderAgnostic(resultSet, expectedRows);
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -288,13 +288,9 @@ public class DBQueriesTest {
 
             Equal<Car, String> equal = equal(Car.FEATURES, "abs");
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(equal, NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 3));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -312,13 +308,9 @@ public class DBQueriesTest {
 
             LessThan<Car, String> lessThan = lessThan(Car.FEATURES, "abz");
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(lessThan, NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 3));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -336,13 +328,9 @@ public class DBQueriesTest {
 
             GreaterThan<Car, String> greaterThan = greaterThan(Car.FEATURES, "abz");
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "gps"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(greaterThan, NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 2));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -360,14 +348,9 @@ public class DBQueriesTest {
 
             Between<Car, String> between = between(Car.FEATURES, "a", "b");
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(between, NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 2, 3));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -391,7 +374,7 @@ public class DBQueriesTest {
 
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(startsWith, NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 3));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -407,15 +390,9 @@ public class DBQueriesTest {
             ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
             initWithTestData(connectionManager);
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "gps"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(2, "airbags"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(has(self(Car.class)), NAME, connection);
-            assertResultSet(resultSet, expectedRows);
+            assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 2, 3));
 
         }finally {
             DBUtils.closeQuietly(connection);
@@ -539,7 +516,24 @@ public class DBQueriesTest {
         }
     }
 
-    public void assertResultSet(final ResultSet resultSet, final List<DBQueries.Row<Integer, String>> rows){
+    public void assertResultSetObjectKeysOrderAgnostic(final ResultSet resultSet, final List<Integer> objectKeys){
+        try {
+            List<Integer> actual = new ArrayList<Integer>(objectKeys.size());
+            while (resultSet.next()) {
+                actual.add(resultSet.getInt(1));
+            }
+
+            Collections.sort(actual);
+            Collections.sort(objectKeys);
+
+            Assert.assertEquals(objectKeys, actual);
+
+        }catch(Exception e){
+            throw new IllegalStateException("Unable to verify resultSet", e);
+        }
+    }
+
+    public void assertResultSetOrderAgnostic(final ResultSet resultSet, final List<DBQueries.Row<Integer, String>> rows){
 
         try {
             List<DBQueries.Row<Integer, String>> actual = new ArrayList<DBQueries.Row<Integer, String>>(rows.size());
@@ -576,7 +570,7 @@ public class DBQueriesTest {
             connection = connectionManager.getConnection(null);
             statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
-            assertResultSet(resultSet, rows);
+            assertResultSetOrderAgnostic(resultSet, rows);
 
         }catch(Exception e){
             throw new IllegalStateException("Unable to verify resultSet", e);
