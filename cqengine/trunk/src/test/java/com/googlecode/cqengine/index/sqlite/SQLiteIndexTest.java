@@ -459,7 +459,7 @@ public class SQLiteIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT DISTINCT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
@@ -504,7 +504,7 @@ public class SQLiteIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT DISTINCT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
@@ -554,7 +554,7 @@ public class SQLiteIndexTest {
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
-        when(connection.prepareStatement("SELECT DISTINCT objectKey, value FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);

@@ -456,7 +456,7 @@ public class DBQueries {
     }
 
     public static <O> java.sql.ResultSet search(final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT DISTINCT objectKey, value FROM cqtbl_%s",tableName); // FIXME: DISTINCT objectKey, value should be: DISTINCT objectKey
+        final String selectSql = String.format("SELECT DISTINCT objectKey FROM cqtbl_%s",tableName);
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
