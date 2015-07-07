@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -307,83 +308,101 @@ public class DBQueries {
         int bindingIndex = 1;
         StringBuilder stringBuilder = new StringBuilder(selectPrefix).append(' ');
         StringBuilder suffix = new StringBuilder();
-        if (additionalWhereClauses.size() == 0){
-            suffix.append(orderByClause);
-            suffix.append(';');
-        }else{
-            for (WhereClause additionalWhereClause : additionalWhereClauses){
-                suffix.append(' ').append(additionalWhereClause.whereClause);
-            }
-            suffix.append(orderByClause);
-            suffix.append(';');
-        }
-
         final Class queryClass = query.getClass();
         PreparedStatement statement;
 
         if (queryClass == Has.class){
-            stringBuilder.append(suffix);
-            statement = connection.prepareStatement(stringBuilder.toString());
-
-        }else if (queryClass == Equal.class){
-            final Equal<O, A> equal =(Equal<O, A>) query;
-            stringBuilder.append("WHERE value = ?").append(suffix);
-            statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, equal.getValue());
-
-        }else if (queryClass == LessThan.class){
-            final LessThan<O, ? extends Comparable<A>> lessThan =(LessThan<O, ? extends Comparable<A>>) query;
-            boolean isValueInclusive = lessThan.isValueInclusive();
-            if (isValueInclusive){
-                stringBuilder.append("WHERE value <= ?").append(suffix);
+            // Has is a special case, because there is no WHERE clause by default.
+            if (additionalWhereClauses.isEmpty()){
+                suffix.append(orderByClause);
+                suffix.append(';');
             }else{
-                stringBuilder.append("WHERE value < ?").append(suffix);
-            }
-            statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lessThan.getValue());
-
-        }else if (queryClass == StringStartsWith.class){
-            final StringStartsWith<O, ? extends CharSequence> stringStartsWith =(StringStartsWith<O, ? extends CharSequence>) query;
-            stringBuilder.append("WHERE value >= ? AND value < ?").append(suffix);
-            final String lowerBoundInclusive = CharSequences.toString(stringStartsWith.getValue());
-            final int len = lowerBoundInclusive.length();
-            final String allButLast = lowerBoundInclusive.substring(0, len - 1);
-            final String upperBoundExclusive = allButLast + Character.toChars(lowerBoundInclusive.charAt(len - 1) + 1)[0];
-
-            statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lowerBoundInclusive);
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, upperBoundExclusive);
-
-        }else if (queryClass == GreaterThan.class){
-            final GreaterThan<O, ? extends Comparable<A>> greaterThan = (GreaterThan<O, ? extends Comparable<A>>)query;
-            boolean isValueInclusive = greaterThan.isValueInclusive();
-            if (isValueInclusive){
-                stringBuilder.append("WHERE value >= ?").append(suffix);
-            }else{
-                stringBuilder.append("WHERE value > ?").append(suffix);
-            }
-            statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, greaterThan.getValue());
-
-        }else if (queryClass == Between.class){
-            final Between<O, ? extends Comparable<A>> between = (Between<O, ? extends Comparable<A>>)query;
-            if (between.isLowerInclusive()){
-                stringBuilder.append("WHERE value >= ?");
-            }else{
-                stringBuilder.append("WHERE value > ?");
-            }
-            if (between.isUpperInclusive()){
-                stringBuilder.append(" AND value <= ?");
-            }else{
-                stringBuilder.append(" AND value < ?");
+                stringBuilder.append("WHERE ");
+                for (Iterator<WhereClause> iterator = additionalWhereClauses.iterator(); iterator.hasNext(); ) {
+                    WhereClause additionalWhereClause = iterator.next();
+                    suffix.append(additionalWhereClause.whereClause);
+                    if (iterator.hasNext()) {
+                        suffix.append(" AND ");
+                    }
+                }
+                suffix.append(orderByClause);
+                suffix.append(';');
             }
             stringBuilder.append(suffix);
             statement = connection.prepareStatement(stringBuilder.toString());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getLowerValue());
-            DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getUpperValue());
 
-        }else{
-            throw new IllegalStateException("Query " + queryClass + " not supported.");
+        }else {
+            // Other queries have a WHERE clause by default.
+            if (additionalWhereClauses.isEmpty()){
+                suffix.append(orderByClause);
+                suffix.append(';');
+            }else{
+                for (WhereClause additionalWhereClause : additionalWhereClauses){
+                    suffix.append(" AND ").append(additionalWhereClause.whereClause);
+                }
+                suffix.append(orderByClause);
+                suffix.append(';');
+            }
+            if (queryClass == Equal.class) {
+                final Equal<O, A> equal = (Equal<O, A>) query;
+                stringBuilder.append("WHERE value = ?").append(suffix);
+                statement = connection.prepareStatement(stringBuilder.toString());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, equal.getValue());
+
+            } else if (queryClass == LessThan.class) {
+                final LessThan<O, ? extends Comparable<A>> lessThan = (LessThan<O, ? extends Comparable<A>>) query;
+                boolean isValueInclusive = lessThan.isValueInclusive();
+                if (isValueInclusive) {
+                    stringBuilder.append("WHERE value <= ?").append(suffix);
+                } else {
+                    stringBuilder.append("WHERE value < ?").append(suffix);
+                }
+                statement = connection.prepareStatement(stringBuilder.toString());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lessThan.getValue());
+
+            } else if (queryClass == StringStartsWith.class) {
+                final StringStartsWith<O, ? extends CharSequence> stringStartsWith = (StringStartsWith<O, ? extends CharSequence>) query;
+                stringBuilder.append("WHERE value >= ? AND value < ?").append(suffix);
+                final String lowerBoundInclusive = CharSequences.toString(stringStartsWith.getValue());
+                final int len = lowerBoundInclusive.length();
+                final String allButLast = lowerBoundInclusive.substring(0, len - 1);
+                final String upperBoundExclusive = allButLast + Character.toChars(lowerBoundInclusive.charAt(len - 1) + 1)[0];
+
+                statement = connection.prepareStatement(stringBuilder.toString());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, lowerBoundInclusive);
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, upperBoundExclusive);
+
+            } else if (queryClass == GreaterThan.class) {
+                final GreaterThan<O, ? extends Comparable<A>> greaterThan = (GreaterThan<O, ? extends Comparable<A>>) query;
+                boolean isValueInclusive = greaterThan.isValueInclusive();
+                if (isValueInclusive) {
+                    stringBuilder.append("WHERE value >= ?").append(suffix);
+                } else {
+                    stringBuilder.append("WHERE value > ?").append(suffix);
+                }
+                statement = connection.prepareStatement(stringBuilder.toString());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, greaterThan.getValue());
+
+            } else if (queryClass == Between.class) {
+                final Between<O, ? extends Comparable<A>> between = (Between<O, ? extends Comparable<A>>) query;
+                if (between.isLowerInclusive()) {
+                    stringBuilder.append("WHERE value >= ?");
+                } else {
+                    stringBuilder.append("WHERE value > ?");
+                }
+                if (between.isUpperInclusive()) {
+                    stringBuilder.append(" AND value <= ?");
+                } else {
+                    stringBuilder.append(" AND value < ?");
+                }
+                stringBuilder.append(suffix);
+                statement = connection.prepareStatement(stringBuilder.toString());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getLowerValue());
+                DBUtils.setValueToPreparedStatement(bindingIndex++, statement, between.getUpperValue());
+
+            } else {
+                throw new IllegalStateException("Query " + queryClass + " not supported.");
+            }
         }
 
         for (WhereClause additionalWhereClause : additionalWhereClauses){
@@ -437,7 +456,7 @@ public class DBQueries {
     }
 
     public static <O> java.sql.ResultSet search(final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT DISTINCT objectKey, value FROM cqtbl_%s",tableName);
+        final String selectSql = String.format("SELECT DISTINCT objectKey, value FROM cqtbl_%s",tableName); // FIXME: DISTINCT objectKey, value should be: DISTINCT objectKey
         PreparedStatement statement = null;
         try{
             statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
@@ -498,7 +517,7 @@ public class DBQueries {
         final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
-            List<WhereClause> additionalWhereClauses = Collections.singletonList(new WhereClause("AND objectKey = ?", objectKey));
+            List<WhereClause> additionalWhereClauses = Collections.singletonList(new WhereClause("objectKey = ?", objectKey));
             statement = createAndBindSelectPreparedStatement(selectSql, "", additionalWhereClauses, query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
 

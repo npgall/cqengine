@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.navigable;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.CloseableIterable;
@@ -81,6 +82,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 add(LessThan.class);
                 add(GreaterThan.class);
                 add(Between.class);
+                add(Has.class);
         }});
     }
 
@@ -149,6 +151,29 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 }
             };
         }
+        else if (queryClass.equals(Has.class)) {
+            // If a query option specifying logical deduplication is supplied return ResultSetUnion,
+            // otherwise return ResultSetUnionAll.
+            // We can avoid deduplication if the index is built on a SimpleAttribute however,
+            // because the same object could not exist in more than one StoredResultSet...
+            if (DeduplicationOption.isLogicalElimination(queryOptions)
+                    && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
+                return new ResultSetUnion<O>(indexMap.values(), query, queryOptions) {
+                    @Override
+                    public int getRetrievalCost() {
+                        return INDEX_RETRIEVAL_COST;
+                    }
+                };
+            }
+            else {
+                return new ResultSetUnionAll<O>(indexMap.values(), query, queryOptions) {
+                    @Override
+                    public int getRetrievalCost() {
+                        return INDEX_RETRIEVAL_COST;
+                    }
+                };
+            }
+        }
         // Process LessThan, GreaterThan and Between queries as follows...
         final IndexRangeLookupFunction<O> lookupFunction;
         if (queryClass.equals(LessThan.class)) {
@@ -206,7 +231,8 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         // otherwise return ResultSetUnionAll.
         // We can avoid deduplication if the index is built on a SimpleAttribute however,
         // because the same object could not exist in more than one StoredResultSet...
-        if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
+        if (DeduplicationOption.isLogicalElimination(queryOptions)
+                && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
             return new ResultSetUnion<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {

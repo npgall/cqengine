@@ -16,15 +16,21 @@
 package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.support.KeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
+import com.googlecode.cqengine.query.simple.Has;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
+import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
@@ -65,6 +71,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     protected HashIndex(Factory<ConcurrentMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
         super(indexMapFactory, valueSetFactory, attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
+            add(Has.class);
         }});
     }
 
@@ -131,6 +138,28 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
                     return queryOptions;
                 }
             };
+        }
+        else if (queryClass.equals(Has.class)) {
+            // If a query option specifying logical deduplication is supplied return ResultSetUnion,
+            // otherwise return ResultSetUnionAll.
+            // We can avoid deduplication if the index is built on a SimpleAttribute however,
+            // because the same object could not exist in more than one StoredResultSet...
+            if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
+                return new ResultSetUnion<O>(indexMap.values(), query, queryOptions) {
+                    @Override
+                    public int getRetrievalCost() {
+                        return INDEX_RETRIEVAL_COST;
+                    }
+                };
+            }
+            else {
+                return new ResultSetUnionAll<O>(indexMap.values(), query, queryOptions) {
+                    @Override
+                    public int getRetrievalCost() {
+                        return INDEX_RETRIEVAL_COST;
+                    }
+                };
+            }
         }
         else {
             throw new IllegalArgumentException("Unsupported query: " + query);

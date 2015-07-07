@@ -451,6 +451,32 @@ public class IndexedCollectionFunctionalTest {
                                 expectedResults = new ExpectedResults() {{
                                     size = 0;
                                 }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = has(Car.FEATURES);
+                                expectedResults = new ExpectedResults() {{
+                                    size = 600;
+                                    containsCarIds = asSet(1, 2, 3, 4, 7, 9);
+                                    doesNotContainCarIds = asSet(0, 5, 6, 8);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = has(Car.FEATURES);
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 600;
+                                    containsCarIds = asSet(1, 2, 3, 4, 7, 9);
+                                    doesNotContainCarIds = asSet(0, 5, 6, 8);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = has(Car.FEATURES);
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 600;
+                                    containsCarIds = asSet(1, 2, 3, 4, 7, 9);
+                                    doesNotContainCarIds = asSet(0, 5, 6, 8);
+                                }};
                             }}
                     );
                     indexCombinations = indexCombinations(
@@ -461,6 +487,7 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(NavigableIndex.onAttribute(Car.CAR_ID)),
                             indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(10), Car.CAR_ID)),
                             indexCombination(NavigableIndex.onAttribute(Car.FEATURES)),
+                            indexCombination(HashIndex.onAttribute(Car.FEATURES)),
                             indexCombination(RadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
@@ -1004,7 +1031,7 @@ public class IndexedCollectionFunctionalTest {
                                     expectedResults = new ExpectedResults() {{
                                         size = 3;
                                         carIdsInOrder = asList(5, 4, 6);
-                                        containsQueryLogMessages = singletonList("orderingStrategy: index");
+                                        containsQueryLogMessages = asList("querySelectivity: 0.7", "orderingStrategy: index");
                                     }};
                                 }},
                                 new QueryToEvaluate() {{
@@ -1014,7 +1041,7 @@ public class IndexedCollectionFunctionalTest {
                                     expectedResults = new ExpectedResults() {{
                                         size = 3;
                                         carIdsInOrder = asList(5, 4, 6);
-                                        containsQueryLogMessages = singletonList("orderingStrategy: materialize");
+                                        containsQueryLogMessages = asList("querySelectivity: 0.7", "orderingStrategy: materialize");
                                     }};
                                 }},
                                 new QueryToEvaluate() {{
@@ -1023,7 +1050,7 @@ public class IndexedCollectionFunctionalTest {
                                     expectedResults = new ExpectedResults() {{
                                         size = 3;
                                         carIdsInOrder = asList(5, 4, 6);
-                                        containsQueryLogMessages = singletonList("orderingStrategy: materialize");
+                                        containsQueryLogMessages = asList("querySelectivity: 0.7", "orderingStrategy: materialize");
                                     }};
                                 }}
                         );
@@ -1261,7 +1288,7 @@ public class IndexedCollectionFunctionalTest {
                     QueryLog queryLog = queryOptions.get(QueryLog.class);
                     AppendableCollection messages = (AppendableCollection)queryLog.getSink();
                     for (String expectedMessage : expectedResults.containsQueryLogMessages) {
-                        assertTrue("QueryLog does not contain message '" + expectedMessage + "' for query: " + query, messages.contains(expectedMessage));
+                        assertTrue("QueryLog does not contain message '" + expectedMessage + "' for query: " + query + ", messages contained: " + messages, messages.contains(expectedMessage));
                     }
                 }
             }
