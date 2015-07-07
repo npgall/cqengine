@@ -34,10 +34,7 @@ import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
-import com.googlecode.cqengine.query.simple.Between;
-import com.googlecode.cqengine.query.simple.GreaterThan;
-import com.googlecode.cqengine.query.simple.LessThan;
-import com.googlecode.cqengine.query.simple.SimpleQuery;
+import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
@@ -319,47 +316,69 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
             final List<AttributeOrder<O>> allSortOrders = orderByOption.getAttributeOrders();
             if (selectivityThreshold != 0.0) {
-                // Index ordering can be used. Determine if it is appropriate to use it for this query.
-                // Estimate the selectivity of the query...
-                final int queryCardinality = retrieveRecursive(query, queryOptions).getMergeCost(); // very rough but cheap estimate of cardinality
-                final int collectionCardinality = collection.size();
-                final double querySelectivity;
-                if (collectionCardinality == 0) {
-                    // Handle edge case where the collection is empty.
-                    querySelectivity = 1.0; // treat is as if the query has high selectivity (tend to use post-sorting).
-                }
-                else if (queryCardinality > collectionCardinality) {
-                    // Handle edge case where cardinality of the query is found to match more objects than are in the
-                    // collection, due to merge cost not being a 100% accurate measure of query cardinality.
-                    querySelectivity = 0.0; // treat is as if the query has low selectivity (tend to use index ordering).
-                }
-                else {
-                    querySelectivity = 1.0 - queryCardinality / (double)collectionCardinality;
+                // Index ordering can be used.
+                // Check if an index is actually available to support it...
+                AttributeOrder<O> firstOrder = allSortOrders.iterator().next();
+                @SuppressWarnings("unchecked")
+                final Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
+                for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
+                    if (index instanceof SortedKeyStatisticsAttributeIndex) {
+                        indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
+                        break;
+                    }
                 }
                 if (queryLog != null) {
-                    queryLog.log("queryCardinality: " + queryCardinality);
-                    queryLog.log("collectionCardinality: " + collectionCardinality);
-                    queryLog.log("querySelectivity: " + querySelectivity);
-                    queryLog.log("selectivityThreshold: " + selectivityThreshold);
+                    queryLog.log("indexForOrdering: " + (indexForOrdering == null ? null : indexForOrdering.getClass().getSimpleName()));
                 }
-
-                if (querySelectivity < selectivityThreshold) {
-                    // Index ordering would benefit this query.
-                    // Check if an index is actually available to support it.
-
-                    AttributeOrder<O> firstOrder = allSortOrders.iterator().next();
-                    @SuppressWarnings("unchecked")
-                    final Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
-                    for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
-                        if (index instanceof SortedKeyStatisticsAttributeIndex) {
-                            indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
-                            break;
+                // At this point we might have found an appropriate indexForOrdering, or it might still be null.
+                if (indexForOrdering != null) {
+                    // We found an appropriate index.
+                    // Determine if the selectivity of the query is below the selectivity threshold to use index ordering...
+                    final double querySelectivity;
+                    if (selectivityThreshold == 1.0) {
+                        // Index ordering has been requested explicitly.
+                        // Don't bother calculating query selectivity, assign low selectivity so we will use the index...
+                        querySelectivity = 0.0;
+                    }
+                    else if (!indexForOrdering.supportsQuery(has(firstAttribute))) {
+                        // Index ordering was not requested explicitly, and we cannot calculate the selectivity.
+                        // In this case even though we have an index which supports index ordering,
+                        // we don't have enough information to say that it would be beneficial.
+                        // Assign high selectivity so that the materialize strategy will be used instead...
+                        querySelectivity = 1.0;
+                    }
+                    else {
+                        // The index supports has() queries, which allows us to calculate selectivity.
+                        // Calculate query selectivity, based on the query cardinality and index cardinality...
+                        final int queryCardinality = retrieveRecursive(query, queryOptions).getMergeCost();
+                        final int indexCardinality = indexForOrdering.retrieve(has(firstAttribute), queryOptions).getMergeCost();
+                        if (queryLog != null) {
+                            queryLog.log("queryCardinality: " + queryCardinality);
+                            queryLog.log("indexCardinality: " + indexCardinality);
+                        }
+                        if (indexCardinality == 0) {
+                            // Handle edge case where the index is empty.
+                            querySelectivity = 1.0; // treat is as if the query has high selectivity (tend to use materialize).
+                        }
+                        else if (queryCardinality > indexCardinality) {
+                            // Handle edge case where query cardinality is greater than index cardinality.
+                            querySelectivity = 0.0; // treat is as if the query has low selectivity (tend to use index ordering).
+                        }
+                        else {
+                            querySelectivity = 1.0 - queryCardinality / (double)indexCardinality;
                         }
                     }
+
                     if (queryLog != null) {
-                        queryLog.log("indexForOrdering: " + (indexForOrdering == null ? null : indexForOrdering.getClass().getSimpleName()));
+                        queryLog.log("querySelectivity: " + querySelectivity);
+                        queryLog.log("selectivityThreshold: " + selectivityThreshold);
                     }
-                    // At this point we might have found an appropriate indexForOrdering, or it might still be null.
+                    if (querySelectivity > selectivityThreshold) {
+                        // Selectivity is too high for index ordering strategy.
+                        // Use the materialize ordering strategy instead.
+                        indexForOrdering = null;
+                    }
+                    // else: querySelectivity <= selectivityThreshold, so we use the index ordering strategy.
                 }
             }
         }

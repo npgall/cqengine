@@ -20,6 +20,7 @@ import com.googlecode.concurrenttrees.radix.RadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -196,7 +197,8 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * @return A union view over the given result sets
      */
     ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, Query<O> query, QueryOptions queryOptions) {
-        if (DeduplicationOption.isLogicalElimination(queryOptions) && !(getAttribute() instanceof SimpleAttribute)) {
+        if (DeduplicationOption.isLogicalElimination(queryOptions)
+                && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
             return new ResultSetUnion<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {
