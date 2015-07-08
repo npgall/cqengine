@@ -20,22 +20,22 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
- * Asserts that an attribute has a value (is not null).
+ * Asserts that an attribute does not have a value (is null).
  *
  * @author Niall Gallagher
  */
-public class Has<O, A> extends SimpleQuery<O, A> {
+public class HasNot<O, A> extends SimpleQuery<O, A> {
 
     private final Attribute<O, A> attribute;
 
-    public Has(Attribute<O, A> attribute) {
+    public HasNot(Attribute<O, A> attribute) {
         super(attribute);
         this.attribute = attribute;
     }
 
     @Override
     public String toString() {
-        return "has(" + asLiteral(super.getAttributeName()) + ")";
+        return "hasNot(" + asLiteral(super.getAttributeName()) + ")";
     }
 
     @Override
@@ -47,18 +47,18 @@ public class Has<O, A> extends SimpleQuery<O, A> {
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
             if (attributeValue != null) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Has)) return false;
+        if (!(o instanceof HasNot)) return false;
 
-        Has equal = (Has) o;
+        HasNot equal = (HasNot) o;
 
         if (!attribute.equals(equal.attribute)) return false;
 
