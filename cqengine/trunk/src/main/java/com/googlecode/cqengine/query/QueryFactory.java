@@ -17,7 +17,9 @@ package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.StandingQueryAttribute;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
@@ -614,6 +616,27 @@ public class QueryFactory {
         return new Threshold(key, value);
     }
 
+    /**
+     * Creates a {@link SelfAttribute} for the given object.
+     *
+     * @param objectType The type of object
+     * @return a {@link SelfAttribute} for the given object
+     */
+    public static <O> SelfAttribute<O> selfAttribute(Class<O> objectType) {
+        return new SelfAttribute<O>(objectType);
+    }
+
+    /**
+     * Creates a {@link StandingQueryAttribute} based on the given query. An index can then be built on this attribute,
+     * and it will be able to to answer the query in constant time complexity O(1).
+     *
+     * @param standingQuery The standing query to encapsulate
+     * @return a {@link StandingQueryAttribute} encapsulating the given query
+     */
+    public static <O> StandingQueryAttribute<O> forStandingQuery(Query<O> standingQuery) {
+        return new StandingQueryAttribute<O>(standingQuery);
+    }
+
     // ***************************************************************************************************************
     // The following methods are just overloaded vararg variants of existing methods above.
     // These methods are unnecessary as of Java 7, and are provided only for backward compatibility with Java 6 and
@@ -756,7 +779,7 @@ public class QueryFactory {
         Collection<Query<O>> queries = Arrays.asList(query1, query2, query3, query4, query5);
         return new Or<O>(queries);
     }
-    
+
     // ***************************************************************************************************************
 
     /**

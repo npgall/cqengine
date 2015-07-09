@@ -17,6 +17,7 @@ package com.googlecode.cqengine.engine;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.StandingQueryAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
@@ -70,7 +71,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     // Map of CompoundAttributes to compound index on that compound attribute...
     private final ConcurrentMap<CompoundAttribute<O>, CompoundIndex<O>> compoundIndexes = new ConcurrentHashMap<CompoundAttribute<O>, CompoundIndex<O>>();
     // Map of queries to standing query index on that query...
-    private final ConcurrentMap<Query<O>, StandingQueryIndex<O>> standingQueryIndexes = new ConcurrentHashMap<Query<O>, StandingQueryIndex<O>>();
+    private final ConcurrentMap<Query<O>, Index<O>> standingQueryIndexes = new ConcurrentHashMap<Query<O>, Index<O>>();
     // Fallback index (handles queries which other indexes don't common)...
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Initially true, updated as indexes are added in addIndex()...
@@ -133,7 +134,16 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             useCloseableResultSet = index instanceof ResourceIndex || useCloseableResultSet;
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
-            addAttributeIndex(attributeIndex, queryOptions);
+            Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
+            if (indexedAttribute instanceof StandingQueryAttribute) {
+                @SuppressWarnings("unchecked")
+                StandingQueryAttribute<O> standingQueryAttribute = (StandingQueryAttribute<O>) indexedAttribute;
+                Query<O> standingQuery = standingQueryAttribute.getQuery();
+                addStandingQueryIndex(index, standingQuery, queryOptions);
+            }
+            else {
+                addAttributeIndex(attributeIndex, queryOptions);
+            }
         }
         else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
@@ -168,12 +178,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     }
 
     /**
-     * Adds a {@link StandingQueryIndex}.
+     * Adds either a {@link StandingQueryIndex} or a regular index build on a {@link StandingQueryAttribute}.
      * @param standingQueryIndex The index to add
      * @param standingQuery The query on which the index is based
      */
-    void addStandingQueryIndex(StandingQueryIndex<O> standingQueryIndex, Query<O> standingQuery, QueryOptions queryOptions) {
-        StandingQueryIndex<O> existingIndex = standingQueryIndexes.putIfAbsent(standingQuery, standingQueryIndex);
+    void addStandingQueryIndex(Index<O> standingQueryIndex, Query<O> standingQuery, QueryOptions queryOptions) {
+        Index<O> existingIndex = standingQueryIndexes.putIfAbsent(standingQuery, standingQueryIndex);
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for standing query: " + standingQuery);
         }
@@ -623,10 +633,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     ResultSet<O> retrieveRecursive(Query<O> query, final QueryOptions queryOptions) {
 
         // Check if we can process this query from a standing query index...
-        StandingQueryIndex<O> standingQueryIndex = standingQueryIndexes.get(query);
+        Index<O> standingQueryIndex = standingQueryIndexes.get(query);
         if (standingQueryIndex != null) {
             // No deduplication required for standing queries.
-            return standingQueryIndex.retrieve(query, queryOptions);
+            if (standingQueryIndex instanceof StandingQueryIndex) {
+                return standingQueryIndex.retrieve(query, queryOptions);
+            }
+            else {
+                return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
+            }
         } // else no suitable standing query index exists, process the query normally...
 
         if (query instanceof SimpleQuery) {

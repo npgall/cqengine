@@ -130,7 +130,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             add(Has.class);
         }});
 
-        this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9\\s]", "");
+        this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9]", "");
         this.primaryKeyAttribute = primaryKeyAttribute;
         this.foreignKeyAttribute = foreignKeyAttribute;
         this.connectionManager = connectionManager;
