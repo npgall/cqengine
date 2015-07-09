@@ -17,10 +17,12 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.StandingQueryAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
@@ -75,7 +77,7 @@ public class IndexedCollectionFunctionalTest {
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow tests *during development only!*...
-    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "true"));
+    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "false"));
 
     // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
     static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
@@ -544,7 +546,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "off-heap collection";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(OffHeapConcurrentIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = in(Car.CAR_ID, 3, 4, 5);
                                 expectedResults = new ExpectedResults() {{
@@ -563,7 +565,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "off-heap index";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(OffHeapConcurrentIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -582,7 +584,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "disk index";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(DiskConcurrentIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -601,7 +603,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "merge cost without indexes";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -618,7 +620,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "merge costs with indexes";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -649,7 +651,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost without indexes";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -663,7 +665,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with HashIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -677,7 +679,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with NavigableIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -691,7 +693,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with RadixTreeIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -705,7 +707,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with ReversedRadixTreeIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -719,7 +721,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with InvertedRadixTreeIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -733,7 +735,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with SuffixTreeIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -747,7 +749,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "retrieval cost with CompoundIndex";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Fusion"));
                                 expectedResults = new ExpectedResults() {{
@@ -1020,7 +1022,7 @@ public class IndexedCollectionFunctionalTest {
                                 queryOptions = queryOptions(orderBy(ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 1;
-                                    carIdsInOrder = asList(8);
+                                    carIdsInOrder = singletonList(8);
                                 }};
                             }}// TODO: failing...,
 //                            new QueryToEvaluate() {{
@@ -1103,7 +1105,7 @@ public class IndexedCollectionFunctionalTest {
                     dataSet = REGULAR_DATASET;
                     removeDataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
                                 expectedResults = new ExpectedResults() {{
@@ -1135,10 +1137,12 @@ public class IndexedCollectionFunctionalTest {
                     dataSet = REGULAR_DATASET;
                     clearDataSet = true;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
-                    queriesToEvaluate = asList(
+                    queriesToEvaluate = singletonList(
                             new QueryToEvaluate() {{
                                 query = equal(Car.MANUFACTURER, "Ford");
-                                expectedResults = new ExpectedResults() {{ size = 0; }};
+                                expectedResults = new ExpectedResults() {{
+                                    size = 0;
+                                }};
                             }}
                     );
                     indexCombinations = indexCombinations(
@@ -1152,6 +1156,65 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(OffHeapIndex.onAttribute(
                                             Car.MANUFACTURER,
+                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
+                                            createForeignKeyAttribute()
+                                    )
+                            )
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "standing query index";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 5;
+                                    retrievalCost = 10;
+                                    mergeCost = 5;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(StandingQueryIndex.onQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))))
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "HashIndex on standing query";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 5;
+                                    retrievalCost = 30;
+                                    mergeCost = 5;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(HashIndex.onAttribute(forStandingQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE)))))
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "OffHeapIndex on standing query";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 5;
+                                    retrievalCost = 60;
+                                    mergeCost = 5;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(OffHeapIndex.onAttribute(
+                                            forStandingQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))),
                                             OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
                                             createForeignKeyAttribute()
                                     )
@@ -1459,7 +1522,13 @@ public class IndexedCollectionFunctionalTest {
         }
         else if (index instanceof AttributeIndex) {
             Attribute attribute = ((AttributeIndex) index).getAttribute();
-            description += ".onAttribute(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
+            if (attribute instanceof StandingQueryAttribute) {
+                description += ".onAttribute(" + attribute.getAttributeName() + ")";
+            }
+            else {
+                description += ".onAttribute(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
+
+            }
         }
         if (index instanceof AbstractMapBasedAttributeIndex && index.isQuantized()) {
             description += " (quantized)";
