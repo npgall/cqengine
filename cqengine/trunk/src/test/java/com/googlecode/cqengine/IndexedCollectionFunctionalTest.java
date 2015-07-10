@@ -870,22 +870,38 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                // Should order cars without any features first, followed by cars with features
-                                // in ascending alphabetical order of feature string...
-                                queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)));
+                                // Ascending regular order: <cars with no features> <cars with features in ascending feature order>
+                                queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), descending(Car.CAR_ID)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
-                                    carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
+                                    carIdsInOrder = asList(8, 6, 5, 0, 9, 2, 3, 4, 1, 7);
                                 }};
                             }},
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                // Should order cars without any features last, preceded by cars with features
-                                // in descending alphabetical order of feature string...
-                                queryOptions = queryOptions(orderBy(descending(Car.FEATURES), ascending(Car.CAR_ID)));
+                                // Ascending hasFirst order: <cars with features in ascending feature order> <cars with no features>
+                                queryOptions = queryOptions(orderBy(ascending(hasFirst(Car.FEATURES)), ascending(Car.FEATURES), descending(Car.CAR_ID)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
-                                    carIdsInOrder = asList(7, 1, 4, 3, 2, 9, 0, 5, 6, 8);
+                                    carIdsInOrder = asList(9, 2, 3, 4, 1, 7, 8, 6, 5, 0);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = all(Car.class);
+                                // Descending regular order: <cars with features in descending feature order> <cars with no features>
+                                queryOptions = queryOptions(orderBy(descending(Car.FEATURES), descending(Car.CAR_ID)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 10;
+                                    carIdsInOrder = asList(7, 1, 4, 3, 2, 9, 8, 6, 5, 0);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = all(Car.class);
+                                // Descending hasFirst order: <cars with no features> <cars with features in descending feature order>
+                                queryOptions = queryOptions(orderBy(descending(hasFirst(Car.FEATURES)), descending(Car.FEATURES), descending(Car.CAR_ID)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 10;
+                                    carIdsInOrder = asList(8, 6, 5, 0, 7, 1, 4, 3, 2, 9);
                                 }};
                             }}
                     );

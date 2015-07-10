@@ -16,10 +16,8 @@
 package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SelfAttribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.StandingQueryAttribute;
+import com.googlecode.cqengine.attribute.*;
+import com.googlecode.cqengine.attribute.OrderHasFirstAttribute;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
@@ -265,8 +263,6 @@ public class QueryFactory {
 
     /**
      * Creates an {@link Has} query which asserts that an attribute has a value (is not null).
-     * <p/>
-     * Asserts that an attribute has a value (is not null).
      * <p/>
      * To accelerate {@code has(...)} queries, add a Standing Query Index on {@code has(...)}.
      * <p/>
@@ -624,6 +620,25 @@ public class QueryFactory {
      */
     public static <O> SelfAttribute<O> selfAttribute(Class<O> objectType) {
         return new SelfAttribute<O>(objectType);
+    }
+
+    /**
+     * Returns an {@link OrderHasFirstAttribute} which which can be used in an
+     * {@link #orderBy(AttributeOrder, AttributeOrder)} clause to override the default placement in results of objects
+     * which have, and do not have, values for a given delegate attribute.
+     * <p/>
+     * Essentially, this attribute can be used to order results based on whether a {@link #has(Attribute)} query on the
+     * delegate attribute would return true or false. See documentation in {@link OrderHasFirstAttribute} for more
+     * details.
+     *
+     * @param delegateAttribute The attribute which may or may not return values, based on which results should be
+     * ordered
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link OrderHasFirstAttribute} which which can be used in an
+     * {@link #orderBy(AttributeOrder, AttributeOrder)} clause
+     */
+    public static <O> OrderHasFirstAttribute<O> hasFirst(Attribute<O, ?> delegateAttribute) {
+        return new OrderHasFirstAttribute<O>(delegateAttribute);
     }
 
     /**
