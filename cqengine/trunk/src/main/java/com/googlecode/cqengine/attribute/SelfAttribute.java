@@ -41,6 +41,11 @@ public class SelfAttribute<O> extends SimpleAttribute<O, O> {
         return object;
     }
 
+    /**
+     * @deprecated Use the equivalent {@link com.googlecode.cqengine.query.QueryFactory#selfAttribute(Class)} method
+     * instead. This method will be removed in a future version of CQEngine.
+     */
+    @Deprecated
     public static <O> SelfAttribute<O> self(Class<O> type) {
         return new SelfAttribute<O>(type);
     }
