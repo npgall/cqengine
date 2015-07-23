@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.sqlite;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.support.CloseableIterable;
+import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.index.support.ResourceIndex;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.persistence.Persistence;
@@ -156,6 +157,21 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     @Override
     public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return backingIndex().getCountForKey(key, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions) {
+        return backingIndex().getStatisticsForDistinctKeysDescending(queryOptions);
+    }
+
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        return backingIndex().getCountOfDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return backingIndex().getStatisticsForDistinctKeys(queryOptions);
     }
 
     @Override

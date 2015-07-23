@@ -16,13 +16,10 @@
 package com.googlecode.cqengine.index.compound;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
-import com.googlecode.cqengine.index.support.Factory;
-import com.googlecode.cqengine.index.support.KeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -173,6 +170,16 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
     @Override
     public Integer getCountForKey(CompoundValueTuple<O> key, QueryOptions queryOptions) {
         return super.getCountForKey(key);
+    }
+
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        return super.getCountOfDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<CompoundValueTuple<O>>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return super.getStatisticsForDistinctKeys(queryOptions);
     }
 
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------

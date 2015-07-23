@@ -18,12 +18,14 @@ package com.googlecode.cqengine.index.sqlite;
 import com.google.common.collect.Lists;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
+import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.FilterQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -38,6 +40,7 @@ import java.util.*;
 
 import static com.googlecode.cqengine.query.QueryFactory.equal;
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.testutil.TestUtil.setOf;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -509,8 +512,8 @@ public class SQLiteIndexTest {
         when(resultSet.getStatement()).thenReturn(preparedStatement);
         when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
         when(resultSet.getInt(1)).thenReturn(1).thenReturn(3);
-        when(idToObject.getValue(1,queryOptions)).thenReturn(data.get(0));
-        when(idToObject.getValue(3,queryOptions)).thenReturn(data.get(2));
+        when(idToObject.getValue(1, queryOptions)).thenReturn(data.get(0));
+        when(idToObject.getValue(3, queryOptions)).thenReturn(data.get(2));
 
         // Iterator
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
@@ -836,6 +839,79 @@ public class SQLiteIndexTest {
         expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");
         actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending("Civic", true, "Insight", true, noQueryOptions()));
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetCountOfDistinctKeys(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
+                Car.MANUFACTURER,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), QueryFactory.noQueryOptions());
+
+        Assert.assertEquals(Integer.valueOf(4), offHeapIndex.getCountOfDistinctKeys(noQueryOptions()));
+    }
+
+    @Test
+    public void testGetStatisticsForDistinctKeys(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
+                Car.MANUFACTURER,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), QueryFactory.noQueryOptions());
+
+        Set<KeyStatistics<String>> keyStatistics = setOf(offHeapIndex.getStatisticsForDistinctKeys(noQueryOptions()));
+        Assert.assertEquals(setOf(
+                        new KeyStatistics<String>("Ford", 6),
+                        new KeyStatistics<String>("Honda", 6),
+                        new KeyStatistics<String>("Toyota", 6),
+                        new KeyStatistics<String>("BMW", 2)
+
+                ),
+                keyStatistics);
+    }
+
+    @Test
+    public void testGetStatisticsForDistinctKeysDescending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
+                Car.MANUFACTURER,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), QueryFactory.noQueryOptions());
+
+        Set<KeyStatistics<String>> keyStatistics = setOf(offHeapIndex.getStatisticsForDistinctKeysDescending(noQueryOptions()));
+        Assert.assertEquals(setOf(
+                        new KeyStatistics<String>("Toyota", 6),
+                        new KeyStatistics<String>("Honda", 6),
+                        new KeyStatistics<String>("Ford", 6),
+                        new KeyStatistics<String>("BMW", 2)
+
+                ),
+                keyStatistics);
     }
 
     @Test(expected = IllegalStateException.class)

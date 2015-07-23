@@ -63,4 +63,13 @@ public interface SortedKeyStatisticsIndex<A extends Comparable<A>, O> extends Ke
      * @return The distinct keys in the index within the given bounds, in descending order
      */
     public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions);
+
+    /**
+     * Returns the statistics {@link KeyStatistics} for all distinct keys in the index,  in descending order
+     *
+     * @param queryOptions Optional parameters for the query
+     * @return The statistics {@link KeyStatistics} for all distinct keys in the index,  in descending order
+     */
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions);
+
 }

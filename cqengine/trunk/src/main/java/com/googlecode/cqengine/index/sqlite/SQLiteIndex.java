@@ -639,6 +639,75 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         return getDistinctKeysInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, true, queryOptions);
     }
 
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        final ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        Connection connection = null;
+        try {
+            connection = connectionManager.getConnection(SQLiteIndex.this);
+            return DBQueries.getCountOfDistinctKeys(tableName, connection);
+        }finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions) {
+        return getStatisticsForDistinctKeys(queryOptions, true);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return getStatisticsForDistinctKeys(queryOptions, false);
+    }
+
+    CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(final QueryOptions queryOptions, final boolean sortByKeyDescending){
+
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
+
+        return new CloseableIterable<KeyStatistics<A>>() {
+            @Override
+            public CloseableIterator<KeyStatistics<A>> iterator() {
+                final ConnectionManager connectionManager = getConnectionManager(queryOptions);
+                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+
+                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(connection));
+
+
+                final java.sql.ResultSet resultSet = DBQueries.getDistinctKeysAndCounts(sortByKeyDescending, tableName, connection);
+                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(resultSet));
+
+                return new LazyCloseableIterator<KeyStatistics<A>>() {
+                    @Override
+                    protected KeyStatistics<A> computeNext() {
+                        try {
+                            if (!resultSet.next()) {
+                                close();
+                                return endOfData();
+                            }
+                            A key = DBUtils.getValueFromResultSet(1, resultSet, attribute.getAttributeType());
+                            Integer count = DBUtils.getValueFromResultSet(2, resultSet, Integer.class);
+                            return new KeyStatistics<A>(key, count);
+                        }
+                        catch (Exception e) {
+                            endOfData();
+                            close();
+                            throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
+                        }
+                    }
+
+                    @Override
+                    public void close() {
+                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                    }
+                };
+            }
+        };
+
+    }
+
     CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
         final Query<O> query;
         if (lowerBound != null && upperBound != null) {

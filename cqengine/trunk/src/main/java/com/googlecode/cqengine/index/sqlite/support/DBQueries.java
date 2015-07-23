@@ -484,6 +484,36 @@ public class DBQueries {
 
     }
 
+    public static int getCountOfDistinctKeys(final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT COUNT(DISTINCT value) FROM cqtbl_%s",tableName);
+        Statement statement = null;
+        try{
+            statement = connection.createStatement();
+            java.sql.ResultSet resultSet = statement.executeQuery(selectSql);
+            if (!resultSet.next()){
+                throw new IllegalStateException("Unable to execute count. The ResultSet returned no row. Query: " + selectSql);
+            }
+
+            return resultSet.getInt(1);
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to count distinct keys.", e);
+        }
+    }
+
+    public static java.sql.ResultSet getDistinctKeysAndCounts(boolean sortByKeyDescending, final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT DISTINCT value, COUNT(value) AS valueCount FROM cqtbl_%s GROUP BY (value) %s", tableName, sortByKeyDescending ? "ORDER BY value DESC" : "");
+        Statement statement = null;
+        try{
+            statement = connection.createStatement();
+            return statement.executeQuery(selectSql);
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to look up index entries and counts.", e);
+        }
+        // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
+    }
+
     public static java.sql.ResultSet getAllIndexEntries(final String tableName, final Connection connection){
         final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s ORDER BY objectKey;",tableName);
         Statement statement = null;

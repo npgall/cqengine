@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.index.support.KeyStatisticsIndex;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -46,5 +47,35 @@ public class HashIndexTest {
         for (String model : distinctModels) {
             Assert.assertEquals(Integer.valueOf(2), MODEL_INDEX.getCountForKey(model, noQueryOptions()));
         }
+    }
+
+    @Test
+    public void testGetCountOfDistinctKeys(){
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        KeyStatisticsIndex<String, Car> MANUFACTURER_INDEX = HashIndex.onAttribute(Car.MANUFACTURER);
+        collection.addIndex(MANUFACTURER_INDEX);
+
+        collection.addAll(CarFactory.createCollectionOfCars(20));
+
+        Assert.assertEquals(Integer.valueOf(4), MANUFACTURER_INDEX.getCountOfDistinctKeys(noQueryOptions()));
+    }
+
+    @Test
+    public void testGetStatisticsForDistinctKeys(){
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        KeyStatisticsIndex<String, Car> MANUFACTURER_INDEX = HashIndex.onAttribute(Car.MANUFACTURER);
+        collection.addIndex(MANUFACTURER_INDEX);
+
+        collection.addAll(CarFactory.createCollectionOfCars(20));
+
+        Set<KeyStatistics<String>> keyStatistics = setOf(MANUFACTURER_INDEX.getStatisticsForDistinctKeys(noQueryOptions()));
+        Assert.assertEquals(setOf(
+                        new KeyStatistics<String>("Ford", 6),
+                        new KeyStatistics<String>("Honda", 6),
+                        new KeyStatistics<String>("Toyota", 6),
+                        new KeyStatistics<String>("BMW", 2)
+
+                ),
+                keyStatistics);
     }
 }
