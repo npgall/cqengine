@@ -21,6 +21,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.support.CloseableIterable;
+import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.index.support.ResourceIndex;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.query.Query;
@@ -155,6 +156,21 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     @Override
     public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
         return offHeapIndex.getDistinctKeysDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions) {
+        return offHeapIndex.getStatisticsForDistinctKeysDescending(queryOptions);
+    }
+
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        return offHeapIndex.getCountOfDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return offHeapIndex.getStatisticsForDistinctKeys(queryOptions);
     }
 
     @Override

@@ -43,4 +43,21 @@ public interface KeyStatisticsIndex<A, O> extends Index<O> {
      * @return The number of objects stored in the bucket in the index with the given key
      */
     public Integer getCountForKey(A key, QueryOptions queryOptions);
+
+    /**
+     * Returns the count of distinct keys in the index.
+     *
+     * @param queryOptions Optional parameters for the query
+     * @return The count of distinct keys in the index.
+     */
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions);
+
+    /**
+     * Returns the statistics {@link KeyStatistics} for all distinct keys in the index
+     *
+     * @param queryOptions Optional parameters for the query
+     * @return The statistics {@link KeyStatistics} for all distinct keys in the index
+     */
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions);
+
 }

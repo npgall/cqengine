@@ -18,10 +18,7 @@ package com.googlecode.cqengine.index.hash;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
-import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
-import com.googlecode.cqengine.index.support.Factory;
-import com.googlecode.cqengine.index.support.KeyStatisticsAttributeIndex;
-import com.googlecode.cqengine.index.support.CloseableIterable;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
@@ -193,6 +190,16 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     @Override
     public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
         return super.getDistinctKeys();
+    }
+
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        return super.getCountOfDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return super.getStatisticsForDistinctKeys(queryOptions);
     }
 
     // ---------- Static factory methods to create HashIndexes ----------

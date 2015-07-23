@@ -204,7 +204,7 @@ public class DBQueriesTest {
             expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
 
             connection = connectionManager.getConnection(null);
-            DBQueries.bulkRemove(Arrays.asList(1), NAME, connection);
+            DBQueries.bulkRemove(Collections.singletonList(1), NAME, connection);
             assertQueryResultSet("SELECT * FROM " + TABLE_NAME, expectedRows, connectionManager);
 
         }finally {
@@ -368,10 +368,6 @@ public class DBQueriesTest {
 
             StringStartsWith<Car, String> startsWith = startsWith(Car.FEATURES, "ab");
 
-            List<DBQueries.Row<Integer, String>> expectedRows = new ArrayList<DBQueries.Row<Integer, String>>(2);
-            expectedRows.add(new DBQueries.Row<Integer, String>(1, "abs"));
-            expectedRows.add(new DBQueries.Row<Integer, String>(3, "abs"));
-
             connection = connectionManager.getConnection(null);
             resultSet = DBQueries.search(startsWith, NAME, connection);
             assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 3));
@@ -445,6 +441,84 @@ public class DBQueriesTest {
         assertEquals("Update returned error code: -1", expected.getMessage());
     }
 
+    @Test
+    public void getDistinctKeysAndCounts(){
+
+        Connection connection = null;
+        ResultSet resultSet = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            connection = connectionManager.getConnection(null);
+            resultSet = DBQueries.getDistinctKeysAndCounts(false, NAME, connection);
+
+            Map<String, Integer> resultSetToMap = resultSetToMap(resultSet);
+            assertEquals(3, resultSetToMap.size());
+            assertEquals(new Integer(2), resultSetToMap.get("abs"));
+            assertEquals(new Integer(1), resultSetToMap.get("airbags"));
+            assertEquals(new Integer(1), resultSetToMap.get("gps"));
+
+        }finally {
+            DBUtils.closeQuietly(resultSet);
+            DBUtils.closeQuietly(connection);
+        }
+
+    }
+
+    @Test
+    public void getDistinctKeysAndCounts_SortByKeyDescending(){
+
+        Connection connection = null;
+        ResultSet resultSet = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            connection = connectionManager.getConnection(null);
+            resultSet = DBQueries.getDistinctKeysAndCounts(true, NAME, connection);
+
+            Map<String, Integer> resultSetToMap = resultSetToMap(resultSet);
+            assertEquals(3, resultSetToMap.size());
+
+            Iterator<Map.Entry<String, Integer>> entriesIterator = resultSetToMap.entrySet().iterator();
+
+            Map.Entry entry = entriesIterator.next();
+            assertEquals("gps", entry.getKey());
+            assertEquals(1, entry.getValue());
+
+            entry = entriesIterator.next();
+            assertEquals("airbags", entry.getKey());
+            assertEquals(1, entry.getValue());
+
+            entry = entriesIterator.next();
+            assertEquals("abs", entry.getKey());
+            assertEquals(2, entry.getValue());
+
+        }finally {
+            DBUtils.closeQuietly(resultSet);
+            DBUtils.closeQuietly(connection);
+        }
+
+    }
+
+    @Test
+    public void getCountOfDistinctKeys(){
+
+        Connection connection = null;
+        try {
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            initWithTestData(connectionManager);
+
+            connection = connectionManager.getConnection(null);
+            int countOfDistinctKeys = DBQueries.getCountOfDistinctKeys(NAME, connection);
+            assertEquals(3, countOfDistinctKeys);
+
+        }finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
     void createSchema(final ConnectionManager connectionManager){
         Connection connection = null;
         Statement statement = null;
@@ -504,15 +578,34 @@ public class DBQueriesTest {
             }
 
             if (exists)
-                Assert.assertTrue("Object '" + name + "' must exists in 'sqlite_master' but it doesn't. found:" + found + ". Objects found: " + objectsFound, found);
+                Assert.assertTrue("Object '" + name + "' must exists in 'sqlite_master' but it doesn't. found: " + found + ". Objects found: " + objectsFound, found);
             else
-                Assert.assertFalse("Object '" + name + "' must NOT exists in 'sqlite_master' but it does. found:" + found + "Objects found: " + objectsFound, found);
+                Assert.assertFalse("Object '" + name + "' must NOT exists in 'sqlite_master' but it does. found: " + found + " Objects found: " + objectsFound, found);
 
         }catch(Exception e){
             throw new IllegalStateException("Unable to verify existence of the object '" + name + "' in the 'sqlite_master' table", e);
         }finally {
             DBUtils.closeQuietly(connection);
             DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static <K, V> Map<K, V> resultSetToMap(final ResultSet resultSet){
+
+        try {
+            final Map<K, V> map = new LinkedHashMap<K, V>();
+
+            while (resultSet.next()) {
+
+                K key = (K) resultSet.getObject(1);
+                V value = (V) resultSet.getObject(2);
+
+                map.put(key, value);
+            }
+
+            return map;
+        }catch(Exception e){
+            throw new IllegalStateException("Unable to transform the resultSet into a Map", e);
         }
     }
 

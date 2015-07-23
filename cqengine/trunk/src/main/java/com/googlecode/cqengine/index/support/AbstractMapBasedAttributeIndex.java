@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.index.support;
 
+import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -169,6 +170,33 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
     protected Integer getCountForKey(A key) {
         StoredResultSet<O> objectsForKey = this.indexMap.get(key);
         return objectsForKey == null ? 0 : objectsForKey.size();
+    }
+
+
+    protected Integer getCountOfDistinctKeys(QueryOptions queryOptions){
+        return this.indexMap.keySet().size();
+    }
+
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions){
+
+        final Iterator<A> distinctKeysIterator = this.indexMap.keySet().iterator();
+
+        return wrapNonCloseable(new Iterable<KeyStatistics<A>>() {
+            @Override
+            public Iterator<KeyStatistics<A>> iterator() {
+                return new LazyIterator<KeyStatistics<A>>() {
+                    @Override
+                    protected KeyStatistics<A> computeNext() {
+                        if (distinctKeysIterator.hasNext()) {
+                            A key = distinctKeysIterator.next();
+                            return new KeyStatistics<A>(key, getCountForKey(key));
+                        } else {
+                            return endOfData();
+                        }
+                    }
+                };
+            }
+        });
     }
 
     // ---------- Hook methods which can be overridden by indexes using a Quantizer ----------

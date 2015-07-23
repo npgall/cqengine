@@ -15,18 +15,16 @@
  */
 package com.googlecode.cqengine.index.navigable;
 
+import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
-import com.googlecode.cqengine.index.support.Factory;
-import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
-import com.googlecode.cqengine.index.support.CloseableIterable;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
-import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
@@ -323,6 +321,37 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     @Override
     public Integer getCountForKey(A key, QueryOptions queryOptions) {
         return super.getCountForKey(key);
+    }
+
+    @Override
+    public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
+        return super.getCountOfDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
+        return super.getStatisticsForDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(final QueryOptions queryOptions) {
+        final CloseableIterator<A> distinctKeysDescending = getDistinctKeysDescending(queryOptions).iterator();
+        return wrapNonCloseable(new Iterable<KeyStatistics<A>>() {
+            @Override
+            public Iterator<KeyStatistics<A>> iterator() {
+                return new LazyIterator<KeyStatistics<A>>() {
+                    @Override
+                    protected KeyStatistics<A> computeNext() {
+                        if (distinctKeysDescending.hasNext()){
+                            A key = distinctKeysDescending.next();
+                            return new KeyStatistics<A>(key, getCountForKey(key, queryOptions));
+                        }else{
+                            return endOfData();
+                        }
+                    }
+                };
+            }
+        });
     }
 
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------

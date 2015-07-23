@@ -17,12 +17,15 @@ package com.googlecode.cqengine.index.navigable;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.support.KeyStatistics;
+import com.googlecode.cqengine.index.support.KeyStatisticsIndex;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -52,6 +55,55 @@ public class NavigableIndexTest {
 
         Set<String> distinctModelsDescending = setOf(MODEL_INDEX.getDistinctKeysDescending(noQueryOptions()));
         assertEquals(asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord"), new ArrayList<String>(distinctModelsDescending));
+    }
+
+    @Test
+    public void testGetCountOfDistinctKeys(){
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        KeyStatisticsIndex<String, Car> MANUFACTURER_INDEX = NavigableIndex.onAttribute(Car.MANUFACTURER);
+        collection.addIndex(MANUFACTURER_INDEX);
+
+        collection.addAll(CarFactory.createCollectionOfCars(20));
+
+        Assert.assertEquals(Integer.valueOf(4), MANUFACTURER_INDEX.getCountOfDistinctKeys(noQueryOptions()));
+    }
+
+    @Test
+    public void testGetStatisticsForDistinctKeys(){
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        KeyStatisticsIndex<String, Car> MANUFACTURER_INDEX = NavigableIndex.onAttribute(Car.MANUFACTURER);
+        collection.addIndex(MANUFACTURER_INDEX);
+
+        collection.addAll(CarFactory.createCollectionOfCars(20));
+
+        Set<KeyStatistics<String>> keyStatistics = setOf(MANUFACTURER_INDEX.getStatisticsForDistinctKeys(noQueryOptions()));
+        Assert.assertEquals(setOf(
+                        new KeyStatistics<String>("Ford", 6),
+                        new KeyStatistics<String>("Honda", 6),
+                        new KeyStatistics<String>("Toyota", 6),
+                        new KeyStatistics<String>("BMW", 2)
+
+                ),
+                keyStatistics);
+    }
+
+    @Test
+    public void testGetStatisticsForDistinctKeysDescending(){
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        SortedKeyStatisticsIndex<String, Car> MANUFACTURER_INDEX = NavigableIndex.onAttribute(Car.MANUFACTURER);
+        collection.addIndex(MANUFACTURER_INDEX);
+
+        collection.addAll(CarFactory.createCollectionOfCars(20));
+
+        Set<KeyStatistics<String>> keyStatistics = setOf(MANUFACTURER_INDEX.getStatisticsForDistinctKeysDescending(noQueryOptions()));
+        Assert.assertEquals(setOf(
+                        new KeyStatistics<String>("Toyota", 6),
+                        new KeyStatistics<String>("Honda", 6),
+                        new KeyStatistics<String>("Ford", 6),
+                        new KeyStatistics<String>("BMW", 2)
+
+                ),
+                keyStatistics);
     }
 
     @Test
