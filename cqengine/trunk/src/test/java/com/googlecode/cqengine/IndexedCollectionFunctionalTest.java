@@ -1594,9 +1594,12 @@ public class IndexedCollectionFunctionalTest {
 
     static class AppendableCollection extends LinkedList<String> implements Appendable {
 
+        final String lineSeparator = System.getProperty("line.separator");
         @Override
         public Appendable append(CharSequence csq) throws IOException {
-            super.add(String.valueOf(csq));
+            if (!lineSeparator.equals(csq)) {
+                super.add(String.valueOf(csq));
+            }
             return this;
         }
 
