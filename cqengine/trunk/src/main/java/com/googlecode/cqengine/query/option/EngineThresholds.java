@@ -45,7 +45,7 @@ public enum EngineThresholds {
      * then it will use an index to order results. When query selectivity is higher than this threshold then it will
      * retrieve all results and order them afterwards.
      */
-    INDEX_ORDERING_SELECTIVITY(0.5);
+    INDEX_ORDERING_SELECTIVITY(0.0);
 
     final double thresholdDefault;
 
