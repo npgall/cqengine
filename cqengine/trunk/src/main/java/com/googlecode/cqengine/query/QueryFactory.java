@@ -17,7 +17,6 @@ package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.*;
-import com.googlecode.cqengine.attribute.OrderHasFirstAttribute;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
@@ -623,22 +622,39 @@ public class QueryFactory {
     }
 
     /**
-     * Returns an {@link OrderHasFirstAttribute} which which can be used in an
-     * {@link #orderBy(AttributeOrder, AttributeOrder)} clause to override the default placement in results of objects
-     * which have, and do not have, values for a given delegate attribute.
+     * Returns an {@link OrderMissingLastAttribute} which which can be used in an {@link #orderBy(AttributeOrder)}
+     * clause to specify that objects which do not have values for the given delegate attribute should be returned after
+     * objects which do have values for the attribute.
      * <p/>
      * Essentially, this attribute can be used to order results based on whether a {@link #has(Attribute)} query on the
-     * delegate attribute would return true or false. See documentation in {@link OrderHasFirstAttribute} for more
+     * delegate attribute would return true or false. See documentation in {@link OrderMissingLastAttribute} for more
      * details.
      *
      * @param delegateAttribute The attribute which may or may not return values, based on which results should be
      * ordered
      * @param <O> The type of the object containing the attribute
-     * @return An {@link OrderHasFirstAttribute} which which can be used in an
-     * {@link #orderBy(AttributeOrder, AttributeOrder)} clause
+     * @return An {@link OrderMissingLastAttribute} which orders objects with values before those without values
      */
-    public static <O> OrderHasFirstAttribute<O> hasFirst(Attribute<O, ?> delegateAttribute) {
-        return new OrderHasFirstAttribute<O>(delegateAttribute);
+    public static <O> OrderMissingLastAttribute<O> missingLast(Attribute<O, ? extends Comparable> delegateAttribute) {
+        return new OrderMissingLastAttribute<O>(delegateAttribute);
+    }
+
+    /**
+     * Returns an {@link OrderMissingFirstAttribute} which which can be used in an {@link #orderBy(AttributeOrder)}
+     * clause to specify that objects which do not have values for the given delegate attribute should be returned
+     * before objects which do have values for the attribute.
+     * <p/>
+     * Essentially, this attribute can be used to order results based on whether a {@link #has(Attribute)} query on the
+     * delegate attribute would return true or false. See documentation in {@link OrderMissingFirstAttribute} for more
+     * details.
+     *
+     * @param delegateAttribute The attribute which may or may not return values, based on which results should be
+     * ordered
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link OrderMissingFirstAttribute} which orders objects without values before those with values
+     */
+    public static <O> OrderMissingFirstAttribute<O> missingFirst(Attribute<O, ? extends Comparable> delegateAttribute) {
+        return new OrderMissingFirstAttribute<O>(delegateAttribute);
     }
 
     /**
