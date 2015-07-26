@@ -913,7 +913,7 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(
                                     NavigableIndex.onAttribute(Car.CAR_ID),
                                     NavigableIndex.onAttribute(Car.FEATURES),
-                                    NavigableIndex.onAttribute(forStandingQuery(not(has(Car.FEATURES))))
+                                    NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES))
                             )
                     );
                 }},
@@ -1073,7 +1073,11 @@ public class IndexedCollectionFunctionalTest {
                             }}
                     );
                     indexCombinations = indexCombinations(
-                            indexCombination(NavigableIndex.onAttribute(Car.CAR_ID), NavigableIndex.onAttribute(Car.FEATURES), NavigableIndex.onAttribute(forStandingQuery(not(has(Car.FEATURES))))),
+                            indexCombination(
+                                    NavigableIndex.onAttribute(Car.CAR_ID),
+                                    NavigableIndex.onAttribute(Car.FEATURES),
+                                    NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES))
+                            ),
                             indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID)),
                             indexCombination(OffHeapIndex.onAttribute(
                                             Car.CAR_ID,
