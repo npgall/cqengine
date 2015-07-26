@@ -15,8 +15,7 @@
  */
 package com.googlecode.cqengine.resultset.order;
 
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.query.option.AttributeOrder;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
@@ -45,8 +44,20 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
     @SuppressWarnings("unchecked")
     public int compare(O o1, O o2) {
         for (AttributeOrder<O> attributeOrder : attributeSortOrders) {
-            @SuppressWarnings("unchecked")
-            int comparison = compareAttributeValues(attributeOrder.getAttribute(), o1, o2);
+            Attribute<O, ? extends Comparable> attribute = attributeOrder.getAttribute();
+            int comparison;
+            if (attribute instanceof OrderControlAttribute) {
+                OrderControlAttribute<O> orderControl = (OrderControlAttribute<O>)(OrderControlAttribute)(attribute);
+                comparison = orderControl.getValue(o1, queryOptions).compareTo(orderControl.getValue(o2, queryOptions));
+                if (comparison != 0) {
+                    // One of the objects has values for the delegate attribute encapsulated in OrderControlAttribute,
+                    // and the other object does not. Return this difference so that they will be ordered relative to
+                    // each other based whether they have values or not...
+                    return comparison;
+                }
+                attribute = (Attribute<O, ? extends Comparable>) orderControl.getDelegateAttribute();
+            }
+            comparison = compareAttributeValues(attribute, o1, o2);
             if (comparison != 0) {
                 // Found a difference. Invert the sign if order is descending, and return it...
                 return attributeOrder.isDescending() ? comparison * -1 : comparison;

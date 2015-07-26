@@ -49,6 +49,7 @@ import com.googlecode.cqengine.testutil.OffHeapConcurrentIndexedCollection;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -82,6 +83,8 @@ public class IndexedCollectionFunctionalTest {
     // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
     static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
     static final TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
+
+    static final boolean RUN_HIGH_PRIORITY_SCENARIOS_ONLY = false;
 
     // Macro scenarios specify sets of IndexedCollection implementations,
     // sets of index combinations, and sets of queries. Macro scenarios will be expanded
@@ -858,7 +861,7 @@ public class IndexedCollectionFunctionalTest {
                 new MacroScenario() {{
                     name = "ordering";
                     dataSet = SMALL_DATASET;
-                    collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
                     queriesToEvaluate = asList(
                             new QueryToEvaluate() {{
                                 query = in(Car.MANUFACTURER, "Ford", "Toyota");
@@ -879,8 +882,8 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                // Ascending hasFirst order: <cars with features in ascending feature order> <cars with no features>
-                                queryOptions = queryOptions(orderBy(ascending(hasFirst(Car.FEATURES)), ascending(Car.FEATURES), descending(Car.CAR_ID)));
+                                // Ascending missingLast order: <cars with features in ascending feature order> <cars with no features>
+                                queryOptions = queryOptions(orderBy(ascending(missingLast(Car.FEATURES)), descending(Car.CAR_ID)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
                                     carIdsInOrder = asList(9, 2, 3, 4, 1, 7, 8, 6, 5, 0);
@@ -897,15 +900,22 @@ public class IndexedCollectionFunctionalTest {
                             }},
                             new QueryToEvaluate() {{
                                 query = all(Car.class);
-                                // Descending hasFirst order: <cars with no features> <cars with features in descending feature order>
-                                queryOptions = queryOptions(orderBy(descending(hasFirst(Car.FEATURES)), descending(Car.FEATURES), descending(Car.CAR_ID)));
+                                // Descending missingFirst order: <cars with no features> <cars with features in descending feature order>
+                                queryOptions = queryOptions(orderBy(descending(missingFirst(Car.FEATURES)), descending(Car.CAR_ID)));
                                 expectedResults = new ExpectedResults() {{
                                     size = 10;
                                     carIdsInOrder = asList(8, 6, 5, 0, 7, 1, 4, 3, 2, 9);
                                 }};
                             }}
                     );
-                    indexCombinations = indexCombinations(noIndexes());
+                    indexCombinations = indexCombinations(
+                            noIndexes(),
+                            indexCombination(
+                                    NavigableIndex.onAttribute(Car.CAR_ID),
+                                    NavigableIndex.onAttribute(Car.FEATURES),
+                                    NavigableIndex.onAttribute(forStandingQuery(not(has(Car.FEATURES))))
+                            )
+                    );
                 }},
                 new MacroScenario() {{
                     name = "index ordering";
@@ -1040,30 +1050,30 @@ public class IndexedCollectionFunctionalTest {
                                     size = 1;
                                     carIdsInOrder = singletonList(8);
                                 }};
-                            }}// TODO: failing...,
-//                            new QueryToEvaluate() {{
-//                                query = all(Car.class);
-//                                // Should order cars without any features first, followed by cars with features
-//                                // in ascending alphabetical order of feature string...
-//                                queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
-//                                expectedResults = new ExpectedResults() {{
-//                                    size = 10;
-//                                    carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
-//                                }};
-//                            }},
-//                            new QueryToEvaluate() {{
-//                                query = all(Car.class);
-//                                // Should order cars without any features last, preceded by cars with features
-//                                // in descending alphabetical order of feature string...
-//                                queryOptions = queryOptions(orderBy(descending(Car.FEATURES), ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
-//                                expectedResults = new ExpectedResults() {{
-//                                    size = 10;
-//                                    carIdsInOrder = asList(7, 1, 4, 3, 2, 9, 0, 5, 6, 8);
-//                                }};
-//                            }}
+                            }},
+                            new QueryToEvaluate() {{
+                                query = all(Car.class);
+                                // Should order cars without any features first, followed by cars with features
+                                // in ascending alphabetical order of feature string...
+                                queryOptions = queryOptions(orderBy(ascending(Car.FEATURES), ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 10;
+                                    carIdsInOrder = asList(0, 5, 6, 8, 9, 2, 3, 4, 1, 7);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = all(Car.class);
+                                // Should order cars without any features last, preceded by cars with features
+                                // in descending alphabetical order of feature string...
+                                queryOptions = queryOptions(orderBy(descending(Car.FEATURES), ascending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 10;
+                                    carIdsInOrder = asList(7, 1, 4, 3, 2, 9, 0, 5, 6, 8);
+                                }};
+                            }}
                     );
                     indexCombinations = indexCombinations(
-                            indexCombination(NavigableIndex.onAttribute(Car.CAR_ID), NavigableIndex.onAttribute(Car.FEATURES)),
+                            indexCombination(NavigableIndex.onAttribute(Car.CAR_ID), NavigableIndex.onAttribute(Car.FEATURES), NavigableIndex.onAttribute(forStandingQuery(not(has(Car.FEATURES))))),
                             indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID)),
                             indexCombination(OffHeapIndex.onAttribute(
                                             Car.CAR_ID,
@@ -1270,6 +1280,7 @@ public class IndexedCollectionFunctionalTest {
         ExpectedResults expectedResults = null;
         Class collectionImplementation;
         Iterable<Index> indexCombination;
+        boolean highPriority = false;
 
         @Override
         public String toString() {
@@ -1307,6 +1318,7 @@ public class IndexedCollectionFunctionalTest {
                                 expectedResults = currentQueryToEvaluate.expectedResults;
                                 collectionImplementation = currentCollectionImplementation;
                                 indexCombination = currentIndexCombination;
+                                highPriority = currentQueryToEvaluate.highPriority;
                             }};
                             scenarios.add(Collections.<Object>singletonList(scenario));
                         }
@@ -1323,6 +1335,10 @@ public class IndexedCollectionFunctionalTest {
     @UseDataProvider(value = "expandMacroScenarios")
     @SuppressWarnings("unchecked")
     public void testScenario(Scenario scenario) {
+        if (RUN_HIGH_PRIORITY_SCENARIOS_ONLY && !scenario.highPriority) {
+            throw new AssumptionViolatedException("Skipping non-high priority scenario");
+        }
+
         temporaryFileDatabase.before();
         temporaryInMemoryDatabase.before();
         if (!IndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
@@ -1420,6 +1436,7 @@ public class IndexedCollectionFunctionalTest {
         Query<Car> query = none(Car.class);
         QueryOptions queryOptions = noQueryOptions();
         ExpectedResults expectedResults = null;
+        boolean highPriority = false;
     }
 
     static class ExpectedResults {

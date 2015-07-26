@@ -16,6 +16,9 @@
 package com.googlecode.cqengine.query.option;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.OrderControlAttribute;
+import com.googlecode.cqengine.attribute.OrderMissingFirstAttribute;
+import com.googlecode.cqengine.attribute.OrderMissingLastAttribute;
 
 /**
  * Represents an attribute and an associated preference for sorting results according to that attribute
@@ -45,9 +48,27 @@ public class AttributeOrder<O> {
 
     @Override
     public String toString() {
-        return descending
-                ? "descending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")"
-                : "ascending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
+        if (attribute instanceof OrderMissingLastAttribute) {
+            OrderControlAttribute orderControlAttribute = (OrderControlAttribute) attribute;
+            @SuppressWarnings("unchecked")
+            Attribute<O, ? extends Comparable> delegateAttribute = orderControlAttribute.getDelegateAttribute();
+            return descending
+                    ? "descending(missingLast(" + delegateAttribute.getObjectType().getSimpleName() + "." + delegateAttribute.getAttributeName() + "))"
+                    : "ascending(missingLast(" + delegateAttribute.getObjectType().getSimpleName() + "." + delegateAttribute.getAttributeName() + "))";
+        }
+        if (attribute instanceof OrderMissingFirstAttribute) {
+            OrderControlAttribute orderControlAttribute = (OrderControlAttribute) attribute;
+            @SuppressWarnings("unchecked")
+            Attribute<O, ? extends Comparable> delegateAttribute = orderControlAttribute.getDelegateAttribute();
+            return descending
+                    ? "descending(missingFirst(" + delegateAttribute.getObjectType().getSimpleName() + "." + delegateAttribute.getAttributeName() + "))"
+                    : "ascending(missingFirst(" + delegateAttribute.getObjectType().getSimpleName() + "." + delegateAttribute.getAttributeName() + "))";
+        }
+        else {
+            return descending
+                    ? "descending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")"
+                    : "ascending(" + attribute.getObjectType().getSimpleName() + "." + attribute.getAttributeName() + ")";
+        }
     }
 
     @Override

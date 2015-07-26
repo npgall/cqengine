@@ -16,8 +16,7 @@
 package com.googlecode.cqengine.engine;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.StandingQueryAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
@@ -330,13 +329,39 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // Check if an index is actually available to support it...
                 AttributeOrder<O> firstOrder = allSortOrders.iterator().next();
                 @SuppressWarnings("unchecked")
-                final Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
-                for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
-                    if (index instanceof SortedKeyStatisticsAttributeIndex) {
-                        indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
-                        break;
+                Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
+                if (firstAttribute instanceof OrderControlAttribute) {
+                    //noinspection unchecked
+                    firstAttribute = ((OrderControlAttribute)firstAttribute).getDelegateAttribute(); // TODO unchecked
+                }
+
+                // Before we check if an index is available to support index ordering, we need to account for the fact
+                // that even if such an index is available, it might not contain all objects in the collection.
+                //
+                // An index built on a SimpleAttribute, is guaranteed to contain all objects in the collection, because
+                // SimpleAttribute is guaranteed to return a value for every object.
+                // OTOH an index built on a non-SimpleAttribute, is not guaranteed to contain all objects in the
+                // collection, because non-SimpleAttributes are permitted to return *zero* or more values for any
+                // object. Objects for which non-SimpleAttributes return zero values, will be omitted from the index.
+                //
+                // Therefore, if we will use an index to order results, we must ensure that the collection also has a
+                // suitable index to allow the objects which are not in the index to be retrieved as well. When
+                // ordering results, we must return those objects either before or after the objects which are found in
+                // the index. Here we proceed to locate a suitable index to use for ordering results, only if we will
+                // also be able to retrieve the objects missing from that index efficiently as well...
+                if (firstAttribute instanceof SimpleAttribute || standingQueryIndexes.get(not(has(firstAttribute))) != null) {
+                    // Either we are sorting by a SimpleAttribute, or we are sorting by a non-SimpleAttribute and we
+                    // also will be able to retrieve objects which do not have values for the non-SimpleAttribute
+                    // efficiently. Now check if an index exists which would allow index ordering...
+                    for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
+                        if (index instanceof SortedKeyStatisticsAttributeIndex) {
+                            indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
+                            break;
+                        }
                     }
                 }
+
+
                 if (queryLog != null) {
                     queryLog.log("indexForOrdering: " + (indexForOrdering == null ? null : indexForOrdering.getClass().getSimpleName()));
                 }
@@ -452,29 +477,46 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     /**
      * Use an index to order results.
      */
-    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, final OrderByOption<O> orderByOption, final SortedKeyStatisticsIndex<?, O> primarySortIndex) {
+    ResultSet<O> retrieveWithIndexOrdering(final Query<O> query, final QueryOptions queryOptions, final OrderByOption<O> orderByOption, final SortedKeyStatisticsIndex<?, O> indexForOrdering) {
         final List<AttributeOrder<O>> allSortOrders = orderByOption.getAttributeOrders();
 
         final AttributeOrder<O> primarySortOrder = allSortOrders.get(0);
+
+        // If the client wrapped the first attribute by which results should be ordered in an OrderControlAttribute,
+        // assign it here...
         @SuppressWarnings("unchecked")
-        final Attribute<O, Comparable> primarySortAttribute = (Attribute<O, Comparable>) primarySortOrder.getAttribute();
+        final OrderControlAttribute<O> orderControlAttribute =
+                (primarySortOrder.getAttribute() instanceof OrderControlAttribute)
+                        ? (OrderControlAttribute<O>)primarySortOrder.getAttribute() : null;
+
+        // If the first attribute by which results should be ordered was wrapped, unwrap it, and assign it here...
+        @SuppressWarnings("unchecked")
+        final Attribute<O, Comparable> primarySortAttribute =
+                (orderControlAttribute == null)
+                        ? (Attribute<O, Comparable>) primarySortOrder.getAttribute()
+                        : (Attribute<O, Comparable>) orderControlAttribute.getDelegateAttribute();
+
         final boolean primarySortDescending = primarySortOrder.isDescending();
 
-        final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortOrder.getAttribute());
+        final boolean attributeCanHaveZeroValues = !(primarySortAttribute instanceof SimpleAttribute);
+        final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof SimpleAttribute || primarySortAttribute instanceof SimpleNullableAttribute);
+
+        final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);
 
         // Ensure that at the end of processing the request, that we close any resources we opened...
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
         closeableQueryResources.add(resultSetResourcesToClose);
 
-        return new ResultSetUnionAll<O>(new Iterable<ResultSet<O>>() {
+        Iterable<ResultSet<O>> resultSetsToUnion = new Iterable<ResultSet<O>>() {
             @Override
             public Iterator<ResultSet<O>> iterator() {
                 return new LazyIterator<ResultSet<O>>() {
                     Comparable previousKey = null;
                     boolean lastKeyProcessed = false;
 
-                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(primarySortIndex, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+
                     // Ensure this CloseableIterator gets closed...
                     {resultSetResourcesToClose.add(keysInRange);}
 
@@ -499,15 +541,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
                         ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
 
-                        // We must also sort results within each bucket, in case the index is quantized,
-                        // or in case there are additional sort orders after the first one...
-                        final List<AttributeOrder<O>> sortOrdersForBucket = primarySortIndex.isQuantized()
-                                ? allSortOrders // If the index is quantized, we must re-sort on all sort orders within each bucket.
-                                : allSortOrders.subList(1, allSortOrders.size()); // No need to re-sort on the primary sort order.
+                        final List<AttributeOrder<O>> sortOrdersForBucket = determineSortOrdersForBucket(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
 
-                        if (!sortOrdersForBucket.isEmpty() ) {
+                        if (!sortOrdersForBucket.isEmpty()) {
                             Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
-                            resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, query, queryOptions);
+                            resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, restrictedQuery, queryOptions);
                         }
 
                         previousKey = currentKey;
@@ -515,7 +553,76 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     }
                 };
             }
-        }, query, queryOptions);
+        };
+        ResultSet<O> results = new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
+
+        if (attributeCanHaveZeroValues) {
+            // Combine the results from the index ordered search, with objects which would be missing from that index...
+
+            Not<O> missingValuesQuery = not(has(primarySortAttribute));
+            Query<O> combinedQuery = or(query, missingValuesQuery);
+            Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
+
+            ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
+
+            final List<AttributeOrder<O>> sortOrdersForBucket = determineSortOrdersForBucket(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
+
+            if (!sortOrdersForBucket.isEmpty()) {
+                Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
+                missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, missingValuesQuery, queryOptions);
+            }
+
+            if (orderControlAttribute instanceof OrderMissingFirstAttribute) {
+                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), combinedQuery, queryOptions);
+            }
+            else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
+                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), combinedQuery, queryOptions);
+            }
+            else if (primarySortOrder.isDescending()) {
+                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), combinedQuery, queryOptions);
+            }
+            else {
+                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), combinedQuery, queryOptions);
+            }
+        }
+
+        if (attributeCanHaveMoreThanOneValue) {
+            // Deduplicate results in case the same object could appear in more than one bucket
+            // and so otherwise could be returned more than once...
+            results = new MaterializingResultSet<O>(results, query, queryOptions);
+        }
+
+        return results;
+    }
+
+    /**
+     * Called when using an index to order results, to determine if or how results within each bucket
+     * in that index should be sorted.
+     * <p/>
+     *
+     * We must sort results within each bucket, when:
+     * <ol>
+     *     <li>
+     *         The index is quantized.
+     *     </li>
+     *     <li>
+     *         The attribute can have multiple values (if object 1 values ["a"] and  object 2 has values
+     *         ["a", "b"] then objects 1 & 2 will both be in the same bucket, but object 1 should sort first ascending).
+     *     </li>
+     *     <li>
+     *         There are additional sort orders after the first one.
+     *     </li>
+     * </ol>
+     *
+     * @param allSortOrders The user-specified sort orders
+     * @param attributeCanHaveMoreThanOneValue If the primary attribute used for sorting can return more than one value
+     * @param index The index from which the bucket is accessed
+     * @return A list of AttributeOrder objects representing the sort order to apply to objects in the bucket
+     */
+    static <O> List<AttributeOrder<O>> determineSortOrdersForBucket(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index) {
+        return (index.isQuantized() || attributeCanHaveMoreThanOneValue)
+                ? allSortOrders // We must re-sort on all sort orders within each bucket.
+                : allSortOrders.subList(1, allSortOrders.size());
     }
 
     static <O> Query<O> getRangeRestriction(boolean descending, Attribute<O, Comparable> attribute, Comparable currentKey, Comparable previousKey) {
