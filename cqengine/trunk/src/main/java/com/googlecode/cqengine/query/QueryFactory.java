@@ -668,6 +668,21 @@ public class QueryFactory {
         return new StandingQueryAttribute<O>(standingQuery);
     }
 
+    /**
+     * Creates a {@link StandingQueryAttribute} which returns true if the given attribute does not have values for
+     * an object.
+     * <p/>
+     * An index can then be built on this attribute, and it will be able to to answer a <code>not(has(attribute))</code>
+     * query, returning objects which do not have values for that attribute, in constant time complexity O(1).
+     *
+     * @param attribute The attribute which will be used in a <code>not(has(attribute))</code> query
+     * @return a {@link StandingQueryAttribute} which returns true if the given attribute does not have values for
+     * an object
+     */
+    public static <O, A> StandingQueryAttribute<O> forObjectsMissing(Attribute<O, A> attribute) {
+        return forStandingQuery(not(has(attribute)));
+    }
+
     // ***************************************************************************************************************
     // The following methods are just overloaded vararg variants of existing methods above.
     // These methods are unnecessary as of Java 7, and are provided only for backward compatibility with Java 6 and
