@@ -26,9 +26,15 @@ package com.googlecode.cqengine.query.option;
 public class QueryLog {
 
     final Appendable sink;
+    final String lineSeparator;
 
     public QueryLog(Appendable sink) {
+        this(sink, System.getProperty("line.separator"));
+    }
+
+    public QueryLog(Appendable sink, String lineSeparator) {
         this.sink = sink;
+        this.lineSeparator = lineSeparator;
     }
 
     public Appendable getSink() {
@@ -38,6 +44,9 @@ public class QueryLog {
     public void log(String message) {
         try {
             sink.append(message);
+            if (lineSeparator != null) {
+                sink.append(lineSeparator);
+            }
         }
         catch (Exception e) {
             throw new IllegalStateException("Exception appending to query log", e);
