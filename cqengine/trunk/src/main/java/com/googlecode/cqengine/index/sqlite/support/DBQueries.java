@@ -484,6 +484,21 @@ public class DBQueries {
 
     }
 
+    public static <O> java.sql.ResultSet getKeysAndValues(final Query<O> query, boolean descending, final String tableName, final Connection connection){
+        final String selectSql = String.format("SELECT objectKey, value FROM cqtbl_%s",tableName);
+        PreparedStatement statement = null;
+        try{
+            String orderByClause = descending ? " ORDER BY value DESC" : " ORDER BY value ASC";
+            statement = createAndBindSelectPreparedStatement(selectSql, orderByClause, Collections.<WhereClause>emptyList(), query, connection);
+            return statement.executeQuery();
+        }catch(Exception e){
+            DBUtils.closeQuietly(statement);
+            throw new IllegalStateException("Unable to look up keys and values. Query: " + query, e);
+        }
+        // In case of success we leave the statement and result-set open because the iteration of an Index ResultSet is lazy.
+
+    }
+
     public static int getCountOfDistinctKeys(final String tableName, final Connection connection){
         final String selectSql = String.format("SELECT COUNT(DISTINCT value) FROM cqtbl_%s",tableName);
         Statement statement = null;

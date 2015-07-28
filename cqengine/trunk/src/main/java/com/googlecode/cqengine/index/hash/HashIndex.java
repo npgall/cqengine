@@ -202,6 +202,11 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
         return super.getStatisticsForDistinctKeys(queryOptions);
     }
 
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions) {
+        return super.getKeysAndValues();
+    }
+
     // ---------- Static factory methods to create HashIndexes ----------
 
     /**

@@ -29,6 +29,7 @@ import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
@@ -352,6 +353,43 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
                 };
             }
         });
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions) {
+        return wrapNonCloseable(IteratorUtil.flatten(getKeysAndValuesInRange(null, true, null, true)));
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return wrapNonCloseable(IteratorUtil.flatten(getKeysAndValuesInRange(lowerBound, lowerInclusive, upperBound, upperInclusive)));
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions) {
+        return wrapNonCloseable(IteratorUtil.flatten(getKeysAndValuesInRange(null, true, null, true).descendingMap()));
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return wrapNonCloseable(IteratorUtil.flatten(getKeysAndValuesInRange(lowerBound, lowerInclusive, upperBound, upperInclusive).descendingMap()));
+    }
+
+    NavigableMap<A, StoredResultSet<O>> getKeysAndValuesInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+        NavigableMap<A, StoredResultSet<O>> results;
+        if (lowerBound != null && upperBound != null) {
+            results = indexMap.subMap(lowerBound, lowerInclusive, upperBound, upperInclusive);
+        }
+        else if (lowerBound != null) {
+            results = indexMap.tailMap(lowerBound, lowerInclusive);
+        }
+        else if (upperBound != null) {
+            results = indexMap.headMap(upperBound, upperInclusive);
+        }
+        else {
+            results = indexMap;
+        }
+        return results;
     }
 
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------

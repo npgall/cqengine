@@ -709,19 +709,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     }
 
     CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
-        final Query<O> query;
-        if (lowerBound != null && upperBound != null) {
-            query = between(attribute, lowerBound, lowerInclusive, upperBound, upperInclusive);
-        }
-        else if (lowerBound != null) {
-            query = lowerInclusive ? greaterThanOrEqualTo(attribute, lowerBound) : greaterThan(attribute, lowerBound);
-        }
-        else if (upperBound != null) {
-            query = upperInclusive ? lessThanOrEqualTo(attribute, upperBound) : lessThan(attribute, upperBound);
-        }
-        else {
-            query = has(attribute);
-        }
+        final Query<O> query = getKeyRangeRestriction(lowerBound, lowerInclusive, upperBound, upperInclusive);
 
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
@@ -763,6 +751,91 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 };
             }
         };
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(final QueryOptions queryOptions) {
+        return getKeysAndValues(null, true, null, true, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final QueryOptions queryOptions) {
+        return getKeysAndValuesInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, false, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions) {
+        return getKeysAndValuesDescending(null, true, null, true, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return getKeysAndValuesInRange(lowerBound, lowerInclusive, upperBound, upperInclusive, true, queryOptions);
+    }
+
+    CloseableIterable<KeyValue<A, O>> getKeysAndValuesInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
+        final Query<O> query = getKeyRangeRestriction(lowerBound, lowerInclusive, upperBound, upperInclusive);
+
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
+
+        return new CloseableIterable<KeyValue<A, O>>() {
+            @Override
+            public CloseableIterator<KeyValue<A, O>> iterator() {
+                final ConnectionManager connectionManager = getConnectionManager(queryOptions);
+                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+
+                resultSetResourcesToClose.add(DBUtils.wrapConnectionInCloseable(searchConnection));
+
+
+                final java.sql.ResultSet searchResultSet = DBQueries.getKeysAndValues(query, descending, tableName, searchConnection);
+                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+
+                return new LazyCloseableIterator<KeyValue<A, O>>() {
+                    @Override
+                    protected KeyValue<A, O> computeNext() {
+                        try {
+                            if (!searchResultSet.next()) {
+                                close();
+                                return endOfData();
+                            }
+                            final K objectKey = DBUtils.getValueFromResultSet(1, searchResultSet, primaryKeyAttribute.getAttributeType());
+                            final A objectValue = DBUtils.getValueFromResultSet(2, searchResultSet, attribute.getAttributeType());
+                            final O object = foreignKeyAttribute.getValue(objectKey, queryOptions);
+                            return new KeyValueMaterialized<A, O>(objectValue, object);
+                        }
+                        catch (Exception e) {
+                            endOfData();
+                            close();
+                            throw new IllegalStateException("Unable to retrieve the ResultSet item.", e);
+                        }
+                    }
+
+                    @Override
+                    public void close() {
+                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                    }
+                };
+            }
+        };
+    }
+
+    Query<O> getKeyRangeRestriction(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive) {
+        final Query<O> query;
+        if (lowerBound != null && upperBound != null) {
+            query = between(attribute, lowerBound, lowerInclusive, upperBound, upperInclusive);
+        }
+        else if (lowerBound != null) {
+            query = lowerInclusive ? greaterThanOrEqualTo(attribute, lowerBound) : greaterThan(attribute, lowerBound);
+        }
+        else if (upperBound != null) {
+            query = upperInclusive ? lessThanOrEqualTo(attribute, upperBound) : lessThan(attribute, upperBound);
+        }
+        else {
+            query = has(attribute);
+        }
+        return query;
     }
 
     @Override

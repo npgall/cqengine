@@ -182,6 +182,11 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
         return super.getStatisticsForDistinctKeys(queryOptions);
     }
 
+    @Override
+    public CloseableIterable<KeyValue<CompoundValueTuple<O>, O>> getKeysAndValues(QueryOptions queryOptions) {
+        return super.getKeysAndValues();
+    }
+
     // ---------- Hook methods which can be overridden by subclasses using a Quantizer ----------
 
     /**

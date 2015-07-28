@@ -20,10 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.support.CloseableIterable;
-import com.googlecode.cqengine.index.support.KeyStatistics;
-import com.googlecode.cqengine.index.support.ResourceIndex;
-import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -171,6 +168,26 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     @Override
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
         return offHeapIndex.getStatisticsForDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions) {
+        return offHeapIndex.getKeysAndValues(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return offHeapIndex.getKeysAndValues(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions) {
+        return offHeapIndex.getKeysAndValuesDescending(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return offHeapIndex.getKeysAndValuesDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override

@@ -72,4 +72,57 @@ public interface SortedKeyStatisticsIndex<A extends Comparable<A>, O> extends Ke
      */
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions);
 
+    /**
+     * Returns the keys and corresponding values for those keys in the index. Note the same key
+     * will be returned multiple times if more than one object has the same key. Also the same value might be returned
+     * multiple times, each time for a different key, if the index is built on a multi-value attribute.
+     *
+     * @return The keys and corresponding values for those keys in the index, in ascending order of key
+     *
+     * @param queryOptions Optional parameters for the query
+     */
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions);
+
+    /**
+     * Returns the keys within an optional range and corresponding values for those keys in the index. Note the same key
+     * will be returned multiple times if more than one object has the same key. Also the same value might be returned
+     * multiple times, each time for a different key, if the index is built on a multi-value attribute.
+     *
+     * @param lowerBound The lower bound for the keys returned, or null if no lower bound should be applied
+     * @param lowerInclusive true if the lowerBound is inclusive, false if exclusive
+     * @param upperBound The upper bound for the keys returned, or null if no upper bound should be applied
+     * @param upperInclusive true if the lowerBound is inclusive, false if exclusive
+     * @param queryOptions Optional parameters for the query
+     *
+     * @return The keys and corresponding values for those keys in the index, in ascending order of key
+     */
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions);
+
+    /**
+     * Returns the keys and corresponding values for those keys in the index. Note the same key
+     * will be returned multiple times if more than one object has the same key. Also the same value might be returned
+     * multiple times, each time for a different key, if the index is built on a multi-value attribute.
+     *
+     * @return The keys and corresponding values for those keys in the index, in ascending order of key
+     *
+     * @param queryOptions Optional parameters for the query
+     */
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions);
+
+    /**
+     * Returns the keys within an optional range and corresponding values for those keys in the index. Note the same key
+     * will be returned multiple times if more than one object has the same key. Also the same value might be returned
+     * multiple times, each time for a different key, if the index is built on a multi-value attribute.
+     *
+     * @param lowerBound The lower bound for the keys returned, or null if no lower bound should be applied
+     * @param lowerInclusive true if the lowerBound is inclusive, false if exclusive
+     * @param upperBound The upper bound for the keys returned, or null if no upper bound should be applied
+     * @param upperInclusive true if the lowerBound is inclusive, false if exclusive
+     * @param queryOptions Optional parameters for the query
+     *
+     * @return The keys and corresponding values for those keys in the index, in descending order of key
+     */
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions);
+
+
 }
