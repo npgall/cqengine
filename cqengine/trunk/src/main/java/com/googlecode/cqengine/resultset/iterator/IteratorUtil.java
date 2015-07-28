@@ -89,7 +89,7 @@ public class IteratorUtil {
      * @param map The map to be transformed
      * @param <A> Type of the key in the map
      * @param <O> Type of the objects returned by the Iterables in the map
-     * @return A flattened stream of {@code KeyValue} objects
+     * @return A flattened stream of {@code KeyValue&lt;A, O&gt;} objects
      */
     public static <A, O> Iterable<KeyValue<A, O>> flatten(final Map<A, ? extends Iterable<O>> map) {
         return new Iterable<KeyValue<A, O>>() {
