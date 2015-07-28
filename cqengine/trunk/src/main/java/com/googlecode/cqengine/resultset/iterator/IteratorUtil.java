@@ -16,7 +16,12 @@
 package com.googlecode.cqengine.resultset.iterator;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.cqengine.index.support.KeyValue;
+import com.googlecode.cqengine.index.support.KeyValueMaterialized;
+
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Niall Gallagher
@@ -74,6 +79,64 @@ public class IteratorUtil {
             @Override
             public T next() {
                 return iterator.next();
+            }
+        };
+    }
+
+    /**
+     * Transforms a {@code Map&lt;A, Iterable&lt;O&gt;&gt;} into a stream of {@code KeyValue&lt;A, O&gt;} objects.
+     *
+     * @param map The map to be transformed
+     * @param <A> Type of the key in the map
+     * @param <O> Type of the objects returned by the Iterables in the map
+     * @return A flattened stream of {@code KeyValue} objects
+     */
+    public static <A, O> Iterable<KeyValue<A, O>> flatten(final Map<A, ? extends Iterable<O>> map) {
+        return new Iterable<KeyValue<A, O>>() {
+            @Override
+            public Iterator<KeyValue<A, O>> iterator() {
+                return new LazyIterator<KeyValue<A, O>>() {
+                    Iterator<? extends Map.Entry<A, ? extends Iterable<O>>> entriesIterator = map.entrySet().iterator();
+                    Iterator<KeyValue<A, O>> valuesIterator = Collections.<KeyValue<A, O>>emptySet().iterator();
+                    @Override
+                    protected KeyValue<A, O> computeNext() {
+                        while (true) {
+                            if (valuesIterator.hasNext()) {
+                                return valuesIterator.next();
+                            }
+                            if (!entriesIterator.hasNext()) {
+                                return endOfData();
+                            }
+                            Map.Entry<A, ? extends Iterable<O>> entry = entriesIterator.next();
+                            valuesIterator = flatten(entry.getKey(), entry.getValue()).iterator();
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Transforms a key of type {@code A} and an {@code Iterable&lt;O&gt;} into a stream of {@code KeyValue&lt;A, O&gt;}
+     * objects.
+     *
+     * @param key The key to be transformed
+     * @param values The values to be transformed
+     * @param <A> Type of the key
+     * @param <O> Type of the objects returned by the Iterable
+     * @return A flattened stream of {@code KeyValue&lt;A, O&gt;} objects
+     */
+    public static <A, O> Iterable<KeyValue<A, O>> flatten(final A key, final Iterable<O> values) {
+        return new Iterable<KeyValue<A, O>>() {
+            @Override
+            public Iterator<KeyValue<A, O>> iterator() {
+                return new LazyIterator<KeyValue<A, O>>() {
+                    final Iterator<O> valuesIterator = values.iterator();
+                    @Override
+                    protected KeyValue<A, O> computeNext() {
+                        return valuesIterator.hasNext() ? new KeyValueMaterialized<A, O>(key, valuesIterator.next()) : endOfData();
+                    }
+                };
             }
         };
     }

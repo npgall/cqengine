@@ -17,10 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.support.CloseableIterable;
-import com.googlecode.cqengine.index.support.KeyStatistics;
-import com.googlecode.cqengine.index.support.ResourceIndex;
-import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.PersistentSet;
 import com.googlecode.cqengine.query.Query;
@@ -172,6 +169,26 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     @Override
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
         return backingIndex().getStatisticsForDistinctKeys(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions) {
+        return backingIndex().getKeysAndValues(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return backingIndex().getKeysAndValues(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions) {
+        return backingIndex().getKeysAndValuesDescending(queryOptions);
+    }
+
+    @Override
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
+        return backingIndex().getKeysAndValuesDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override

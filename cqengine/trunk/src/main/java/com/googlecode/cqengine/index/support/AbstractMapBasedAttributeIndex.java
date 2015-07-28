@@ -19,6 +19,7 @@ import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
 import java.io.IOException;
@@ -138,6 +139,10 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
 
     protected CloseableIterable<A> getDistinctKeys() {
         return wrapNonCloseable(this.indexMap.keySet());
+    }
+
+    protected CloseableIterable<KeyValue<A, O>> getKeysAndValues() {
+        return wrapNonCloseable(IteratorUtil.flatten(this.indexMap));
     }
 
     protected static <T> CloseableIterable<T> wrapNonCloseable(final Iterable<T> iterable) {

@@ -60,4 +60,15 @@ public interface KeyStatisticsIndex<A, O> extends Index<O> {
      */
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions);
 
+    /**
+     * Returns the keys and corresponding values for those keys in the index. Note the same key
+     * will be returned multiple times if more than one object has the same key. Also the same value might be returned
+     * multiple times, each time for a different key, if the index is built on a multi-value attribute.
+     *
+     * @return The keys and corresponding values for those keys in the index
+     *
+     * @param queryOptions Optional parameters for the query
+     */
+    public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions);
+
 }

@@ -15,10 +15,12 @@
  */
 package com.googlecode.cqengine.index.sqlite;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
+import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.index.support.KeyStatistics;
+import com.googlecode.cqengine.index.support.KeyValue;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.FilterQuery;
@@ -839,6 +841,93 @@ public class SQLiteIndexTest {
         expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");
         actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending("Civic", true, "Insight", true, noQueryOptions()));
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetKeysAndValues(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
+                Car.MANUFACTURER,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+
+        Multimap<String, Car> expected = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
+        expected.put("BMW", CarFactory.createCar(9));
+        expected.put("Ford", CarFactory.createCar(0));
+        expected.put("Ford", CarFactory.createCar(1));
+        expected.put("Ford", CarFactory.createCar(2));
+        expected.put("Honda", CarFactory.createCar(3));
+        expected.put("Honda", CarFactory.createCar(4));
+        expected.put("Honda", CarFactory.createCar(5));
+        expected.put("Toyota", CarFactory.createCar(6));
+        expected.put("Toyota", CarFactory.createCar(7));
+        expected.put("Toyota", CarFactory.createCar(8));
+
+
+        Multimap<String, Car> actual = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
+
+        CloseableIterable<KeyValue<String, Car>> keysAndValues = offHeapIndex.getKeysAndValues(QueryFactory.noQueryOptions());
+
+        for (KeyValue<String, Car> keyValue : keysAndValues) {
+            actual.put(keyValue.getKey(), keyValue.getValue());
+        }
+
+        assertEquals("keys and values", expected, actual);
+
+        List<String> expectedKeysOrder = Lists.newArrayList(expected.keySet());
+        List<String> actualKeysOrder = Lists.newArrayList(actual.keySet());
+        assertEquals("key order", expectedKeysOrder, actualKeysOrder);
+    }
+
+    @Test
+    public void testGetKeysAndValuesDescending(){
+        ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
+        SQLiteIndex<String, Car, Integer> offHeapIndex = SQLiteIndex.onAttribute(
+                Car.MANUFACTURER,
+                Car.CAR_ID,
+                new SimpleAttribute<Integer, Car>() {
+                    @Override
+                    public Car getValue(Integer carId, QueryOptions queryOptions) {
+                        return CarFactory.createCar(carId);
+                    }
+                },
+                connectionManager
+        );
+        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), QueryFactory.noQueryOptions());
+
+        Multimap<String, Car> expected = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
+        expected.put("Toyota", CarFactory.createCar(6));
+        expected.put("Toyota", CarFactory.createCar(7));
+        expected.put("Toyota", CarFactory.createCar(8));
+        expected.put("Honda", CarFactory.createCar(3));
+        expected.put("Honda", CarFactory.createCar(4));
+        expected.put("Honda", CarFactory.createCar(5));
+        expected.put("Ford", CarFactory.createCar(0));
+        expected.put("Ford", CarFactory.createCar(1));
+        expected.put("Ford", CarFactory.createCar(2));
+        expected.put("BMW", CarFactory.createCar(9));
+
+        Multimap<String, Car> actual = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
+
+        CloseableIterable<KeyValue<String, Car>> keysAndValues = offHeapIndex.getKeysAndValuesDescending(QueryFactory.noQueryOptions());
+
+        for (KeyValue<String, Car> keyValue : keysAndValues) {
+            actual.put(keyValue.getKey(), keyValue.getValue());
+        }
+
+        assertEquals("keys and values", expected, actual);
+
+        List<String> expectedKeysOrder = Lists.newArrayList(expected.keySet());
+        List<String> actualKeysOrder = Lists.newArrayList(actual.keySet());
+        assertEquals("key order", expectedKeysOrder, actualKeysOrder);
     }
 
     @Test
