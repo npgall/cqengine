@@ -120,6 +120,10 @@
                         <relocation>
                             <pattern>org</pattern>
                             <shadedPattern>com.googlecode.cqengine.lib.org</shadedPattern>
+                            <excludes>
+                                <!-- Don't relocate SQLite as it will be unable to load its native library... -->
+                                <exclude>org.sqlite.**</exclude>
+                            </excludes>
                         </relocation>
                         <relocation>
                             <pattern>de</pattern>
