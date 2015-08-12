@@ -25,7 +25,7 @@ public abstract class ValueParser<A> {
             return parse(valueType, stringValue);
         }
         catch (Exception e) {
-            throw new InvalidQueryException("Failed to parse as type " + valueType.getSimpleName() + ": " + stringValue);
+            throw new InvalidQueryException("Failed to parse as type " + valueType.getSimpleName() + ": " + stringValue, e);
         }
     }
 
