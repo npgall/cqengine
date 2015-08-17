@@ -21,30 +21,41 @@ import static com.googlecode.cqengine.query.option.EngineThresholds.*;
 public class IndexOrderingTest {
 
     public static void main(String[] args) {
+        final int NUM_ITERATIONS = 1000;
+        final int[] numObjects = {10000, 10000, 100000};
+        final double[] selectivityThreshold = {0.0, 0.5, 1.0};
+
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.addAll(CarFactory.createCollectionOfCars(100000));
+        cars.addAll(CarFactory.createCollectionOfCars(1000000));
 
         cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
+        cars.addIndex(NavigableIndex.onAttribute(Car.COLOR));
 
-        QueryLog queryLog = new QueryLog(System.out);
+        for (int n : numObjects) {
+            for (double s : selectivityThreshold) {
+                long start = System.currentTimeMillis();
+                long count = 0;
+                for (int i = 0; i < NUM_ITERATIONS; i++) {
+                    count = countRetrievedResults(cars, n, s);
+                }
+                long timeTaken = System.currentTimeMillis() - start;
+                System.out.println("Number: " + n + ", selectivity threshold: " + s + ", time taken per iteration: " + (timeTaken / (double)NUM_ITERATIONS) + " (count=" + count + ")");
+            }
+        }
+    }
 
-        ResultSet<Car> resultSet = cars.retrieve(has(Car.CAR_ID), queryOptions(
+    static long countRetrievedResults(IndexedCollection<Car> cars, int numObjects, double indexOrderingSelectivityThreshold) {
+        ResultSet<Car> resultSet = cars.retrieve(and(lessThan(Car.CAR_ID, numObjects), equal(Car.COLOR, Car.Color.BLUE)), queryOptions(
                 orderBy(descending(Car.CAR_ID)),
-                queryLog,
-                applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0))
+                applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, indexOrderingSelectivityThreshold))
         ));
-        {
-            long start = System.currentTimeMillis();
-            int count = IteratorUtil.countElements(resultSet);
-            long timeTaken = System.currentTimeMillis() - start;
-            System.out.println("Time taken for " + count + " results: " + timeTaken);
+        int count = 0;
+        for (Car c : resultSet) {
+            count++;
+            if (count>= 10) {
+                break;
+            }
         }
-        System.out.println();
-        {
-            long start = System.currentTimeMillis();
-            int count = IteratorUtil.countElements(resultSet);
-            long timeTaken = System.currentTimeMillis() - start;
-            System.out.println("Time taken for " + count + " results: " + timeTaken);
-        }
+        return count;
     }
 }
