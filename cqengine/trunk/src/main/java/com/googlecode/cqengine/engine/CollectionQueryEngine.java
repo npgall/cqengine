@@ -41,6 +41,7 @@ import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
+import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterable;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
@@ -54,6 +55,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.concatenate;
+import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSort;
 
 /**
  * The main component of {@code CQEngine} - maintains a set of indexes on a collection and accepts queries which
@@ -354,7 +357,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     // also will be able to retrieve objects which do not have values for the non-SimpleAttribute
                     // efficiently. Now check if an index exists which would allow index ordering...
                     for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
-                        if (index instanceof SortedKeyStatisticsAttributeIndex) {
+                        if (index instanceof SortedKeyStatisticsAttributeIndex && !index.isQuantized()) {
                             indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
                             break;
                         }
@@ -508,53 +511,110 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
         closeableQueryResources.add(resultSetResourcesToClose);
 
-        Iterable<ResultSet<O>> resultSetsToUnion = new Iterable<ResultSet<O>>() {
+        ResultSet<O> results = new ResultSet<O>() {
             @Override
-            public Iterator<ResultSet<O>> iterator() {
-                return new LazyIterator<ResultSet<O>>() {
-                    Comparable previousKey = null;
-                    boolean lastKeyProcessed = false;
+            public Iterator<O> iterator() {
+                // Ensure that at the end of processing the request, that we close any resources we opened...
+                final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+                final CloseableSet resultSetResourcesToClose = new CloseableSet();
+                closeableQueryResources.add(resultSetResourcesToClose);
 
-                    final CloseableIterator<? extends Comparable> keysInRange = getKeysInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+                final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
 
-                    // Ensure this CloseableIterator gets closed...
-                    {resultSetResourcesToClose.add(keysInRange);}
+                final CloseableIterator<? extends KeyValue<? extends Comparable<?>, O>> keysAndValuesInRange = getKeysAndValuesInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+                // Ensure this CloseableIterator gets closed...
+                resultSetResourcesToClose.add(keysAndValuesInRange);
 
-                    @Override
-                    protected ResultSet<O> computeNext() {
-                        Comparable currentKey = null;
-                        if (!keysInRange.hasNext()) {
-                            if (previousKey == null || lastKeyProcessed) {
-                                // Either there were no keys in the range, or we have finished processing them all...
-                                CloseableQueryResources.closeQuietly(keysInRange);
-                                return endOfData();
-                            }
-                            // There are no more keys, but we do one final loop to process the last bucket...
-                            lastKeyProcessed = true;
+                if (sortOrdersForBucket.isEmpty()) {
+                    Iterator<O> sorted = new LazyIterator<O>() {
+                        @Override
+                        protected O computeNext() {
+                            return keysAndValuesInRange.hasNext() ? keysAndValuesInRange.next().getValue() : endOfData();
                         }
-                        else {
-                            currentKey = keysInRange.next();
+                    };
+                    return new FilteringIterator<O>(sorted, queryOptions) {
+                        @Override
+                        public boolean isValid(O object, QueryOptions queryOptions) {
+                            return query.matches(object, queryOptions);
                         }
-                        Query<O> rangeRestriction = getRangeRestriction(primarySortDescending, primarySortAttribute, currentKey, previousKey);
+                    };
+                }
+                else {
+                    final Iterator<O> sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
 
-                        Query<O> restrictedQuery = and(query, rangeRestriction);
-
-                        ResultSet<O> resultsForThisKey = retrieveRecursive(restrictedQuery, queryOptions);
-
-                        final List<AttributeOrder<O>> sortOrdersForBucket = determineSortOrdersForBucket(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
-
-                        if (!sortOrdersForBucket.isEmpty()) {
-                            Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
-                            resultsForThisKey = new MaterializingOrderedResultSet<O>(resultsForThisKey, comparator, restrictedQuery, queryOptions);
+                    return new FilteringIterator<O>(sorted, queryOptions) {
+                        @Override
+                        public boolean isValid(O object, QueryOptions queryOptions) {
+                            return query.matches(object, queryOptions);
                         }
+                    };
+                }
+            }
 
-                        previousKey = currentKey;
-                        return resultsForThisKey;
-                    }
-                };
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                try {
+                    return rs.contains(object);
+                }
+                finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public boolean matches(O object) {
+                return query.matches(object, queryOptions);
+            }
+
+            @Override
+            public Query<O> getQuery() {
+                return query;
+            }
+
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+
+            @Override
+            public int getRetrievalCost() {
+                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                try {
+                    return rs.getRetrievalCost();
+                }
+                finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public int getMergeCost() {
+                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                try {
+                    return rs.getMergeCost();
+                }
+                finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public int size() {
+                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                try {
+                    return rs.size();
+                }
+                finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public void close() {
+
             }
         };
-        ResultSet<O> results = new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
 
         if (attributeCanHaveZeroValues) {
             // Combine the results from the index ordered search, with objects which would be missing from that index...
@@ -565,7 +625,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
 
-            final List<AttributeOrder<O>> sortOrdersForBucket = determineSortOrdersForBucket(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
+            final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
 
             if (!sortOrdersForBucket.isEmpty()) {
                 Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
@@ -619,40 +679,24 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @param index The index from which the bucket is accessed
      * @return A list of AttributeOrder objects representing the sort order to apply to objects in the bucket
      */
-    static <O> List<AttributeOrder<O>> determineSortOrdersForBucket(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index) {
+    static <O> List<AttributeOrder<O>> determineAdditionalSortOrdersForIndexOrdering(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index) {
         return (index.isQuantized() || attributeCanHaveMoreThanOneValue)
                 ? allSortOrders // We must re-sort on all sort orders within each bucket.
                 : allSortOrders.subList(1, allSortOrders.size());
     }
 
-    static <O> Query<O> getRangeRestriction(boolean descending, Attribute<O, Comparable> attribute, Comparable currentKey, Comparable previousKey) {
-        if (!descending) {
-            return (previousKey == null)
-                    ? lessThanOrEqualTo(attribute, currentKey)
-                    : (currentKey == null)
-                        ? greaterThan(attribute, previousKey)
-                        : between(attribute, previousKey, false, currentKey, true);
-        } else {
-            return (previousKey == null)
-                    ? greaterThan(attribute, currentKey)
-                    : (currentKey == null)
-                        ? lessThanOrEqualTo(attribute, previousKey)
-                        : between(attribute, currentKey, false, previousKey, true);
-        }
-    }
-
-    static <A extends Comparable<A>, O> CloseableIterator<A> getKeysInRange(SortedKeyStatisticsIndex<A, O> index, RangeBounds<?> queryBounds, boolean descending, QueryOptions queryOptions) {
+    static <A extends Comparable<A>, O> CloseableIterator<KeyValue<A, O>> getKeysAndValuesInRange(SortedKeyStatisticsIndex<A, O> index, RangeBounds<?> queryBounds, boolean descending, QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         RangeBounds<A> typedBounds = (RangeBounds<A>) queryBounds;
         if (!descending) {
-            return index.getDistinctKeys(
+            return index.getKeysAndValues(
                     typedBounds.lowerBound, typedBounds.lowerInclusive,
                     typedBounds.upperBound, typedBounds.upperInclusive,
                     queryOptions
             ).iterator();
         }
         else {
-            return index.getDistinctKeysDescending(
+            return index.getKeysAndValuesDescending(
                     typedBounds.lowerBound, typedBounds.lowerInclusive,
                     typedBounds.upperBound, typedBounds.upperInclusive,
                     queryOptions

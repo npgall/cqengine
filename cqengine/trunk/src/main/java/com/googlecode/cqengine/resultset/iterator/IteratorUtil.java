@@ -19,9 +19,7 @@ import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.index.support.KeyValue;
 import com.googlecode.cqengine.index.support.KeyValueMaterialized;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Niall Gallagher
@@ -137,6 +135,47 @@ public class IteratorUtil {
                         return valuesIterator.hasNext() ? new KeyValueMaterialized<A, O>(key, valuesIterator.next()) : endOfData();
                     }
                 };
+            }
+        };
+    }
+
+    public static <O> Iterator<O> concatenate(final Iterator<? extends Iterable<O>> iterables) {
+        return new ConcatenatingIterator<O>() {
+            @Override
+            public Iterator<O> getNextIterator() {
+                return iterables.hasNext() ? iterables.next().iterator() : null;
+            }
+        };
+    }
+
+    public static <O> Iterator<Set<O>> groupAndSort(final Iterator<? extends KeyValue<?, O>> values, final Comparator<O> comparator) {
+        return new LazyIterator<Set<O>>() {
+            final Iterator<? extends KeyValue<?, O>> valuesIterator = values;
+            Set<O> currentGroup = new TreeSet<O>(comparator);
+            Object currentKey = null;
+
+            @Override
+            protected Set<O> computeNext() {
+
+                while (valuesIterator.hasNext()) {
+                    KeyValue<?, O> next = valuesIterator.next();
+                    if (!next.getKey().equals(currentKey)) {
+                        Set<O> result = currentGroup;
+                        currentKey = next.getKey();
+                        currentGroup = new TreeSet<O>(comparator);
+                        currentGroup.add(next.getValue());
+                        return result;
+                    }
+                    currentGroup.add(next.getValue());
+                }
+                if (currentGroup.isEmpty()) {
+                    return endOfData();
+                }
+                else {
+                    Set<O> result = currentGroup;
+                    currentGroup = new TreeSet<O>(comparator);
+                    return result;
+                }
             }
         };
     }

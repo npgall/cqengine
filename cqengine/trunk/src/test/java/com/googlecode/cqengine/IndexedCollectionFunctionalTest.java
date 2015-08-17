@@ -1078,7 +1078,6 @@ public class IndexedCollectionFunctionalTest {
                                     NavigableIndex.onAttribute(Car.FEATURES),
                                     NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES))
                             ),
-                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID)),
                             indexCombination(OffHeapIndex.onAttribute(
                                             Car.CAR_ID,
                                             OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
@@ -1130,6 +1129,28 @@ public class IndexedCollectionFunctionalTest {
                                 )
                         );
                     }},
+                new MacroScenario() {{
+                    name = "index ordering strategy selection - negative";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = asList(
+                            // Try to force use of the index ordering strategy (set selectivity threshold = 1.0),
+                            // however it will not actually be used...
+                            new QueryToEvaluate() {{
+                                query = between(Car.CAR_ID, 4, 6); // querySelectivity = 1.0 - 3/10 = 0.7
+                                queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 3;
+                                    carIdsInOrder = asList(6, 5, 4);
+                                    // The materialize strategy will be used instead because the index is quantized...
+                                    containsQueryLogMessages = singletonList("orderingStrategy: materialize");
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(NavigableIndex.withQuantizerOnAttribute(IntegerQuantizer.withCompressionFactor(5), Car.CAR_ID))
+                    );
+                }},
                 new MacroScenario() {{
                     name = "remove objects";
                     dataSet = REGULAR_DATASET;
