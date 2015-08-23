@@ -8,7 +8,7 @@ Welcome to the new home of CQEngine!
 * *MVCC transaction isolation*
 
 ---
-* The latest source code for CQEngine is here on GitHub.
 * Documentation is currently being transferred here to GitHub; and in the meantime you can find full documentation for CQEngine at CQEngine's previous home on Google Code: https://code.google.com/p/cqengine/
+* The latest source code for CQEngine is here on GitHub.
 * The latest release of CQEngine is 2.1.0 (August 2015).
 * CQEngine's discussion forum can be found at: http://groups.google.com/group/cqengine-discuss
