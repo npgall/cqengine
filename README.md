@@ -8,4 +8,4 @@ Welcome to the new home of CQEngine!
 * You can find the latest source code for CQEngine here on GitHub.
 * The latest release of CQEngine is 2.1.0 (August 2015)
 * Documentation is currently being transferred here to GitHub; and in the meantime you can find full documentation for CQEngine at CQEngine's previous home on Google Code: https://code.google.com/p/cqengine/
-* CQEngine's discussion forum can be found here: http://groups.google.com/group/cqengine-discuss
+* CQEngine's discussion forum can be found at: http://groups.google.com/group/cqengine-discuss
