@@ -2,7 +2,10 @@ Welcome to the new home of CQEngine!
 
 *CQEngine – Collection Query Engine – is a Java collection which can be searched using SQL-like queries, with extremely low latency. Supports millions of queries per second, with response times in the order of microseconds.*
 
-*CQEngine supports on-heap persistence, off-heap persistence, disk persistence, and supports MVCC transaction isolation.*
+* On-heap persistence
+* Off-heap persistence
+* Disk persistence
+* MVCC transaction isolation
 
 ---
 * You can find the latest source code for CQEngine here on GitHub.
