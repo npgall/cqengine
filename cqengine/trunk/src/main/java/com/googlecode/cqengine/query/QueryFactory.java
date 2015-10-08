@@ -149,7 +149,7 @@ public class QueryFactory {
      * @param <O> The type of the object containing the attribute
      * @return An {@link Or} query comprised of several {@link Equal} queries
      */
-    public static <O, A> Or<O> in(Attribute<O, A> attribute, A... attributeValues) {
+    public static <O, A> Query<O> in(Attribute<O, A> attribute, A... attributeValues) {
         return in(attribute, Arrays.asList(attributeValues));
     }
 
@@ -168,7 +168,14 @@ public class QueryFactory {
      * @param <O> The type of the object containing the attribute
      * @return An {@link Or} query comprised of several {@link Equal} queries
      */
-    public static <O, A> Or<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
+    public static <O, A> Query<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
+        if (attributeValues.isEmpty()) {
+            return none(attribute.getObjectType());
+        }
+        if (attributeValues.size() == 1) {
+            A singleValue = attributeValues.iterator().next();
+            return equal(attribute, singleValue);
+        }
         List<Query<O>> equalStatements = new ArrayList<Query<O>>(attributeValues.size());
         for (A attributeValue : attributeValues) {
             Equal<O, A> equalStatement = equal(attribute, attributeValue);
