@@ -60,7 +60,7 @@ Several implementations of CQEngine's `IndexedCollection` are provided, supporti
   * [ObjectLockingIndexedCollection](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/ObjectLockingIndexedCollection.html) - lock-free concurrent reads, and some locking of writes for object-level transaction isolation and consistency guarantees
   * [TransactionalIndexedCollection](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html)  - lock-free concurrent reads, and sequential writes for full [transaction isolation](documentation/TransactionIsolation.md) using Multi-Version Concurrency Control
 
-For more details see the TransactionIsolation wiki page.
+For more details see [TransactionIsolation](documentation/TransactionIsolation.md).
 
 
 ---
