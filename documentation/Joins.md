@@ -4,7 +4,7 @@ Although it is often easier and more performant to de-normalize data, it is poss
 
 ## SQL EXISTS ##
 Given a collection of Cars, and a collections of Garages, find cars which are convertible or which have a sunroof, which can be serviced by garages in a particular city.
-Source code of this example [here](https://code.google.com/p/cqengine/source/browse/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/join/SqlExists.java).
+Source code of this example [here](../code/src/test/java/com/googlecode/cqengine/examples/join/SqlExists.java).
 
 ```
 package com.googlecode.cqengine.examples.join;
@@ -57,7 +57,7 @@ BMW M3 has a sunroof or is convertible, and can be serviced in Dublin<br>
 
 ## SQL EXISTS-based JOIN ##
 Given a collection of Cars, and a collections of Garages, find cars which are convertible or which have a sunroof, which can be serviced by garages in a particular city, along with the names of those garages.
-Source code of this example [here](https://code.google.com/p/cqengine/source/browse/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/join/SqlExistsBasedJoin.java).
+Source code of this example [here](../code/src/test/java/com/googlecode/cqengine/examples/join/SqlExistsBasedJoin.java).
 
 ```
 package com.googlecode.cqengine.examples.join;
