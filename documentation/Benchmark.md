@@ -21,6 +21,7 @@ Class [Car (source)](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/
 Class [CarFactory (source)](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java) contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotonically increasing `carId` to every car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
 
 As such, some statistics about the makeup of the collection of cars:
+
 | **Color** | **% of cars** | **Manufacturer** | **% of cars** | **Number of doors** | **% of cars** |
 |:----------|:--------------|:-----------------|:--------------|:--------------------|:--------------|
 | Red       | 30%           | Ford             | 30%           | 5                   | 50%           |
