@@ -543,8 +543,8 @@ CQEngine is in Maven Central. See [Downloads](documentation/Downloads.md).
 
 ## Project Status ##
 
-  * CQEngine 2.0.3 is the current release as of writing (May 2015), and is in Maven central
-  * A ReleaseNotes page has been added to document changes between releases
+  * CQEngine 2.1.0 is the current release as of writing (October 2015), and is in Maven central
+  * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
 Report any bugs/feature requests in the [Issues](http://github.com/npgall/cqengine/issues) tab.
