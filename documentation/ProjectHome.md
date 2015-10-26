@@ -535,9 +535,7 @@ CQEngine is in Maven Central. See [Downloads](Downloads.md).
 
   * CQEngine is somewhat similar to [Microsoft LINQ](http://en.wikipedia.org/wiki/Language_Integrated_Query), but a difference is LINQ queries on collections are evaluated via iteration/filtering whereas CQEngine uses set theory, thus CQEngine would outperform LINQ
 
-  * [Concurrent Trees](http://code.google.com/p/concurrent-trees/) provides Concurrent Radix Trees and Concurrent Suffix Trees, used by some indexes in CQEngine
-
-  * Other projects by the same author: [here](http://code.google.com/u/101193024487469590176/)
+  * [Concurrent Trees](https://github.com/npgall/concurrent-trees/) provides Concurrent Radix Trees and Concurrent Suffix Trees, used by some indexes in CQEngine
 
 
 ---
@@ -549,7 +547,7 @@ CQEngine is in Maven Central. See [Downloads](Downloads.md).
   * A ReleaseNotes page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
-Report any bugs/feature requests in the [Issues](https://code.google.com/p/cqengine/issues/list) tab.
+Report any bugs/feature requests in the [Issues](http://github.com/npgall/cqengine/issues) tab.
 For support please use the [Discussion Forum](https://groups.google.com/forum/#!forum/cqengine-discuss), not direct email to the developers.
 
 

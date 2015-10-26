@@ -71,7 +71,7 @@ However queries which are ongoing while batch or several modifications are made 
 
 ## READ\_COMMITTED Isolation for Batch Modifications ##
 
-Applications can use a [ReadWriteLock](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/locks/ReadWriteLock.html) (for write _always_ scenarios) or a [ReadWriteUpdateLock](http://code.google.com/p/concurrent-locks/) (for read and _potentially_ write scenarios) to obtain transactional or READ\_COMMITTED isolation with CQEngine.
+Applications can use a [ReadWriteLock](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/locks/ReadWriteLock.html) (for write _always_ scenarios) or a [ReadWriteUpdateLock](http://github.com/npgall/concurrent-locks) (for read and _potentially_ write scenarios) to obtain transactional or READ\_COMMITTED isolation with CQEngine.
 
 Applications should cache the lock in the same place as the `IndexedCollection` it will protect, and use it as follows to ensure READ\_COMMITTED isolation, only when needed:
 

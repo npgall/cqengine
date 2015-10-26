@@ -1,6 +1,6 @@
 Benchmarks to compare the retrieval performance (latency) of CQEngine versus two types of iteration: _naive iteration_ and _optimized iteration_, previously discussed [here](TheLimitsOfIteration.md).
 
-For those not familiar with microbenchmarks, be aware that results below are useful only for comparing the _relative_ latency of the approaches (and even then with caveats), and that _absolute_ latency is likely to be higher in production environments:  [Myths, Lies and Microbenchmarks](http://code.google.com/p/cqengine/wiki/FrequentlyAskedQuestions#Myths,_Lies_and_Microbenchmarks:_Isn't_x_milliseconds_fast)
+For those not familiar with microbenchmarks, be aware that results below are useful only for comparing the _relative_ latency of the approaches (and even then with caveats), and that _absolute_ latency is likely to be higher in production environments:  [Myths, Lies and Microbenchmarks](FrequentlyAskedQuestions.md)
 
 
 
