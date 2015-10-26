@@ -33,7 +33,7 @@ Given that the benchmark creates a collection of 100,000 cars, as an example: 30
 
 The benchmarks were run on a 1.8GHz Intel Core i7 Apple machine running OS X 10.7.4 and Java 1.6.0\_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/) and [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java). Source code for individual tests is referenced in each test below.
 
-The original tab-separated output from the benchmark is available as a spreadsheet [here](http://cqengine.googlecode.com/svn/wiki/documents/benchmark-results.ods).
+The original tab-separated output from the benchmark is available as a spreadsheet [here](documents/benchmark-results.ods).
 
 Because CQEngine uses _lazy evaluation_ throughout, and so it returns `ResultSet`s for every query almost immediately; to measure the performance of CQEngine, these benchmarks retrieve a `ResultSet` from CQEngine, and then iterate through all cars in the result set, simply counting the number of results. As discussed in some of the examples below, it is unlikely that a real-world application would do this and therefore this is somewhat _harsh_ on CQEngine, _understating_ its advantages. However this seems the only way to compare performance versus iteration on an equal footing in this microbenchmark scenario.
 
@@ -64,7 +64,7 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
   * CQEngine is **778473.29% faster** than naive iteration
   * CQEngine is **751179.23% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/unique-index-carid.png](http://cqengine.googlecode.com/svn/wiki/images/unique-index-carid.png)
+![unique-index-carid.png](images/unique-index-carid.png)
 
 
 ---
@@ -87,7 +87,7 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
   * CQEngine is **423.17% faster** than naive iteration
   * CQEngine is **241.83% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png](http://cqengine.googlecode.com/svn/wiki/images/hash-index-manufacturer-ford.png)
+![hash-index-manufacturer-ford.png](images/hash-index-manufacturer-ford.png)
 
 
 ---
@@ -110,7 +110,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
   * CQEngine is **1627.06% faster** than naive iteration
   * CQEngine is **1324.17% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png](http://cqengine.googlecode.com/svn/wiki/images/hash-index-model-focus.png)
+![hash-index-model-focus.png](images/hash-index-model-focus.png)
 
 
 ---
@@ -134,7 +134,7 @@ This query matches 20,000 cars; 20% of the collection of 100,000 cars.
   * CQEngine is **506.08% faster** than naive iteration
   * CQEngine is **325.89% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/navigable-index-price-between.png](http://cqengine.googlecode.com/svn/wiki/images/navigable-index-price-between.png)
+![navigable-index-price-between.png](images/navigable-index-price-between.png)
 
 
 ---
@@ -157,7 +157,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. Note: See
   * CQEngine is **1357.81% faster** than naive iteration
   * CQEngine is **1110.12% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/radix-tree-index-model-starts-with-p.png](http://cqengine.googlecode.com/svn/wiki/images/radix-tree-index-model-starts-with-p.png)
+![radix-tree-index-model-starts-with-p.png](images/radix-tree-index-model-starts-with-p.png)
 
 
 ---
@@ -180,7 +180,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars.
   * CQEngine is **1860.53% faster** than naive iteration
   * CQEngine is **1605.31% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/suffix-tree-index-model-contains-g.png](http://cqengine.googlecode.com/svn/wiki/images/suffix-tree-index-model-contains-g.png)
+![suffix-tree-index-model-contains-g.png](images/suffix-tree-index-model-contains-g.png)
 
 
 ---
@@ -203,7 +203,7 @@ This example demonstrates a **mis-configured application** which has not added a
   * **Naive iteration** is **43.21% faster** than CQEngine
   * **Optimized iteration** is **53.27% faster** than CQEngine
 
-![http://cqengine.googlecode.com/svn/wiki/images/no-indexes-model-focus.png](http://cqengine.googlecode.com/svn/wiki/images/no-indexes-model-focus.png)
+![no-indexes-model-focus.png](images/no-indexes-model-focus.png)
 
 
 ---
@@ -248,7 +248,7 @@ WHERE
   * CQEngine is **172.60% faster** than naive iteration
   * CQEngine is **136.61% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png](http://cqengine.googlecode.com/svn/wiki/images/non-optimal-indexes-manufacturer-color-doors.png)
+![non-optimal-indexes-manufacturer-color-doors.png](images/non-optimal-indexes-manufacturer-color-doors.png)
 
 
 ---
@@ -269,7 +269,7 @@ This example demonstrates the improvement in performance when an **optimal** ind
   * CQEngine is **1625.70% faster** than naive iteration
   * CQEngine is **1283.20% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/compound-index-manufacturer-color-doors.png](http://cqengine.googlecode.com/svn/wiki/images/compound-index-manufacturer-color-doors.png)
+![compound-index-manufacturer-color-doors.png](images/compound-index-manufacturer-color-doors.png)
 
 
 ---
@@ -308,7 +308,7 @@ WHERE
   * CQEngine is **1607.43% faster** than naive iteration
   * CQEngine is **1299.96% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/standing-query-index-manufacturer-color-doors.png](http://cqengine.googlecode.com/svn/wiki/images/standing-query-index-manufacturer-color-doors.png)
+![standing-query-index-manufacturer-color-doors.png](images/standing-query-index-manufacturer-color-doors.png)
 
 
 ---
@@ -331,7 +331,7 @@ This example demonstrates the effect of **_quantization_** on indexes. Quantizat
   * CQEngine is **481984.43% faster** than naive iteration
   * CQEngine is **467645.90% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/quantized-hash-index-unique-carid.png](http://cqengine.googlecode.com/svn/wiki/images/quantized-hash-index-unique-carid.png)
+![quantized-hash-index-unique-carid.png](images/quantized-hash-index-unique-carid.png)
 
 
 ---
@@ -354,7 +354,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
   * CQEngine is **330187.50% faster** than naive iteration
   * CQEngine is **325727.79% faster** than optimized iteration
 
-![http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png](http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png)
+![quantized-navigable-index-carid-between.png](images/quantized-navigable-index-carid-between.png)
 
 
 ---
@@ -364,7 +364,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
 The benchmarks above measure the performance of CQEngine when retrieving objects. This section measures the performance and overhead in CQEngine to build indexes on objects in the first place.
 
-The source code for these benchmarks can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/indexingbenchmark/). The original tab-separated output from the benchmark is available as a spreadsheet [here](http://cqengine.googlecode.com/svn/wiki/documents/indexing-benchmark-results.ods).
+The source code for these benchmarks can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/indexingbenchmark/). The original tab-separated output from the benchmark is available as a spreadsheet [here](documents/indexing-benchmark-results.ods).
 
 This benchmark followed the same methodology discussed in the methodology section above, on the same 1.8GHz Apple machine.
 
