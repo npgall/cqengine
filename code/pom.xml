@@ -20,14 +20,9 @@
         </license>
     </licenses>
     <scm>
-        <url>http://cqengine.googlecode.com/svn/cqengine/trunk/</url>
-        <connection>scm:svn:http://cqengine.googlecode.com/svn/cqengine/trunk/</connection>
-        <developerConnection>scm:svn:https://cqengine.googlecode.com/svn/cqengine/trunk/</developerConnection>
-        <!--
-            Note: When performing a release for the first time, run the following
-            and and choose to permanently accept Google's server certificate:
-                svn log -v https://cqengine.googlecode.com/svn/cqengine/trunk/
-        -->
+        <connection>scm:git:git@github.com:npgall/cqengine.git</connection>
+        <url>scm:git:git@github.com:npgall/cqengine.git</url>
+        <developerConnection>scm:git:git@github.com:npgall/cqengine.git</developerConnection>
     </scm>
     <developers>
         <developer>
