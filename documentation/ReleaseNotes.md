@@ -1,3 +1,17 @@
+Release notes for versions of CQEngine available in Maven Central.
+
+### Version 2.1.0 - 2015-08-24 ###
+  * Support for running SQL queries on the collection.
+  * Support for running CQN (CQEngine Native) string-based queries on the collection (queries with the same syntax as programmatic queries, but in string form).
+  * Significant performance improvements for complex queries.
+  * Bulk import support for Off-heap and Disk persistence.
+  * More fine-grained control over the ordering of objects by attributes where some objects might not have values for the attribute: orderBy(missingFirst(attribute)) and orderBy(missingLast(attribute)).
+  * Nearly all indexes (On-heap, Off-heap and Disk) can now accelerate standing queries; StandingQueryIndex, which was on-heap only, is deprecated.
+  * The statistics APIs exposed by indexes, now provide additional statistics on the distribution of values in the index, and allow applications to traverse indexes directly (for advanced use cases).
+  * The performance of the "index" ordering strategy, useful for time time-series queries is improved.
+  * Deployed to Maven central.
+  * For more information and usage examples for this release see [this post](http://groups.google.com/d/msg/cqengine-discuss/Pvs0reAYC9U/DsyoCkwBBAAJ).
+
 ### Version 2.0.3 - 2015-05-16 ###
   * Updated Xerial SQLite driver used by `DiskIndex` and `OffHeapIndex` to 3.8.10.1, improves hot redeploy support in webapps
   * Deployed to Maven central
