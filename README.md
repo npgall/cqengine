@@ -553,4 +553,4 @@ For support please use the [Discussion Forum](http://groups.google.com/forum/#!f
 
 Many thanks to JetBrains for supporting CQEngine with free IntelliJ licenses!
 
-[![](images/logo_jetbrains.png)](http://www.jetbrains.com)[![](images/logo_intellij_idea.png)](http://www.jetbrains.com/idea/)
+[![](documentation/images/logo_jetbrains.png)](http://www.jetbrains.com)[![](documentation/images/logo_intellij_idea.png)](http://www.jetbrains.com/idea/)
