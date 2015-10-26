@@ -123,13 +123,13 @@ Here is a **complete example** of how to build a collection, add indexes and per
 
 **STEP 1: Create a new indexed collection**
 
-```
+```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 ```
 
 **STEP 2: Add some indexes to the collection**
 
-```
+```java
 cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
 cars.addIndex(ReversedRadixTreeIndex.onAttribute(Car.NAME));
 cars.addIndex(SuffixTreeIndex.onAttribute(Car.DESCRIPTION));
@@ -138,7 +138,7 @@ cars.addIndex(HashIndex.onAttribute(Car.FEATURES));
 
 **STEP 3: Add some objects to the collection**
 
-```
+```java
 cars.add(new Car(1, "ford focus", "great condition, low mileage", Arrays.asList("spare tyre", "sunroof")));
 cars.add(new Car(2, "ford taurus", "dirty and unreliable, flat tyre", Arrays.asList("spare tyre", "radio")));
 cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
@@ -152,7 +152,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
 * *Example 1: Cars whose name ends with 'vic' or whose id is less than 2*
 
   Query:
-  ```
+  ```java
     Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
     for (Car car : cars.retrieve(query1)) {
         System.out.println(car);
@@ -167,7 +167,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
 * *Example 2: Cars whose flat tyre can be replaced*
 
   Query:
-  ```
+  ```java
     Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
     for (Car car : cars.retrieve(query2)) {
         System.out.println(car);
@@ -181,7 +181,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
 * *Example 3: Cars which have a sunroof or a radio but are not dirty*
 
   Query:
-  ```
+  ```java
     Query<Car> query3 = and(in(Car.FEATURES, "sunroof", "radio"), not(contains(Car.DESCRIPTION, "dirty")));
     for (Car car : cars.retrieve(query3)) {
         System.out.println(car);
@@ -208,7 +208,7 @@ CQEngine needs to access fields inside objects, so that it can build indexes on 
 CQEngine does not use reflection to do this; instead it uses **attributes**, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object.
 
 Here's how to define an attribute for a Car object, which reads the `Car.carId` field:
-```
+```java
 public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
     public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
 };
@@ -220,7 +220,7 @@ Since this attribute reads a field from a `Car` object, the usual place to put t
 CQEngine also supports **[MultiValueAttribute](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/attribute/MultiValueAttribute.html)** which can read the values of fields which themselves are collections. And so it supports building indexes on objects based on things like keywords associated with those objects.
 
 Here's how to define a `MultiValueAttribute` for a `Car` object which reads the values from `Car.features` where that field is a `List<String>`:
-```
+```java
 public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Car, String>("features") {
     public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
 };
@@ -250,7 +250,7 @@ It can be noted that attributes are only required to return a value given an obj
 An attribute can **_calculate_** an appropriate value for an object, based on a function applied to data contained in other fields or from external data sources.
 
 Here's how to define a calculated (or virtual) attribute by applying a function over the Car's other fields:
-```
+```java
 public static final Attribute<Car, Boolean> IS_DIRTY = new SimpleAttribute<Car, Boolean>("is_dirty") {
     public Boolean getValue(Car car, QueryOptions queryOptions) { return car.description.contains("dirty"); }
 };
@@ -261,7 +261,7 @@ A `HashIndex` could be built on the virtual attribute above, enabling fast retri
 **Associations with other `IndexedCollections` or External Data Sources**
 
 Here is an example for a virtual attribute which **associates** with each `Car` a list of locations which can service it, from an external data source:
-```
+```java
 public static final Attribute<Car, String> SERVICE_LOCATIONS = new MultiValueAttribute<Car, String>() {
     public List<String> getValues(Car car, QueryOptions queryOptions) {
         return CarServiceManager.getServiceLocationsForCar(car);
@@ -289,25 +289,25 @@ CQEngine's `IndexedCollection`s can be configured to store objects added to them
 **On-heap**
 
 Store the collection on the Java heap:
-```
+```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 ```
 
 **Off-heap**
 
 Store the collection in native memory, within the JVM process but outside the Java heap:
-```
+```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
 ```
 
 **Disk**
 
 Store the collection in a temp file on disk (then see `DiskPersistence.getFile()`):
-```
+```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKey(Car.CAR_ID));
 ```
 Or, store the collection in a particular file on disk:
-```
+```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, new File("cars.dat")));
 ```
 
@@ -324,28 +324,28 @@ CQEngine has been tested using off-heap persistence with collections of 10 milli
 **On-heap**
 
 Add an on-heap index on "manufacturer":
-```
+```java
 cars.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
 ```
 
 **Off-heap**
 
 Add an off-heap index on "manufacturer":
-```
+```java
 cars.addIndex(OffHeapIndex.onAttribute(Car.MANUFACTURER));
 ```
 
 **Disk**
 
 Add a disk index on "manufacturer":
-```
+```java
 cars.addIndex(DiskIndex.onAttribute(Car.MANUFACTURER));
 ```
 
 ### Querying with persistence ###
 
 When either the `IndexedCollection`, or one or more indexes are located off-heap or on disk, take care to close the ResultSet when finished reading.
-```
+```java
 ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"));
 try {
     for (Car car : results) {
@@ -428,12 +428,12 @@ By default, CQEngine does not order results; it simply returns objects in the or
 CQEngine can be instructed to order results via query options as follows.
 
 **Order by price descending**
-```
+```java
 ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(descending(Car.PRICE))));
 ```
 
 **Order by price descending, then number of doors ascending**
-```
+```java
 ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(descending(Car.PRICE), ascending(Car.DOORS))));
 ```
 
@@ -446,7 +446,7 @@ CQEngine also supports an alternative ordering strategy, "INDEX", which uses an 
 INDEX ordering can only be used when results are to be ordered by a single `SimpleAttribute`, and there is a `NavigableIndex`, `OffHeapIndex`, or `DiskIndex` on that attribute (or specifically, an index which implements the [SortedKeyStatisticsIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/support/SortedKeyStatisticsIndex.html) interface).
 
 The INDEX ordering strategy can be requested via a query option:
-```
+```java
 ResultSet<Car> results = cars.retrieve(
         between(Car.CAR_ID, 40, 50),
         queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX))
@@ -482,7 +482,7 @@ When CQEngine is run on Java 8, additional methods will appear on CQEngine `Resu
 Thus on Java 8 CQEngine can provide efficient query evaluation, and then lambda expressions can be used to group or aggregate results.
 
 Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream` which can be grouped and aggregated using lambda expressions:
-```
+```java
 public static <O> Stream<O> asStream(ResultSet<O> rs) {
     return StreamSupport.stream(rs.spliterator(), false);
 }
