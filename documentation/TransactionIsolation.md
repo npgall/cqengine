@@ -1,5 +1,5 @@
 # READ\_COMMITTED transaction isolation with MVCC #
-As of CQEngine 2.0, [TransactionalIndexedCollection](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html) is included which implements [Multi-Version Concurrency Control](http://en.wikipedia.org/wiki/Multiversion_concurrency_control) (MVCC), supporting [READ\_COMMITTED transaction isolation](http://en.wikipedia.org/wiki/Isolation_%28database_systems%29) out of the box.
+As of CQEngine 2.0, [TransactionalIndexedCollection](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html) is included which implements [Multi-Version Concurrency Control](http://en.wikipedia.org/wiki/Multiversion_concurrency_control) (MVCC), supporting [READ\_COMMITTED transaction isolation](http://en.wikipedia.org/wiki/Isolation_%28database_systems%29) out of the box.
 
 A transaction is composed of a set of objects to be added to the collection, and a set of objects to be removed from the collection. Either one of those sets can be empty, so this supports bulk atomic addition and atomic removal of objects from the collection. But if both sets are non-empty then it allows bulk atomic replacement of objects in the collection.
 
@@ -43,11 +43,11 @@ finally {
 
 ## Atomically replacing the same object ##
 
-Note that if you would like to replace an existing object with a new version of what is effectively the _same object_, then you will need to add a hidden version field to your object as discussed in the [JavaDoc](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html).
+Note that if you would like to replace an existing object with a new version of what is effectively the _same object_, then you will need to add a hidden version field to your object as discussed in the [JavaDoc](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/TransactionalIndexedCollection.html).
 
 # Transaction Isolation without MVCC #
 
-_**This section mostly applies to versions of CQEngine prior to 2.0 which did not include `TransactionalIndexedCollection` and MVCC support. However the information is still correct and may be useful to understand CQEngine's internal concurrency model - especially when using one of the other, non-transactional, [implementations of IndexedCollection](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/package-summary.html).**_
+_**This section mostly applies to versions of CQEngine prior to 2.0 which did not include `TransactionalIndexedCollection` and MVCC support. However the information is still correct and may be useful to understand CQEngine's internal concurrency model - especially when using one of the other, non-transactional, [implementations of IndexedCollection](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/package-summary.html).**_
 
 CQEngine provides lock-free reads by default.
 

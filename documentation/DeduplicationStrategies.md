@@ -50,7 +50,7 @@ CQEngine implements this using the following algorithm (using lazy evaluation du
 
 **Some notes**
 
-  * _If it is known that for a given `or` query, that sets matching the query will be **disjoint**_ (will not contain duplicates), _logical elimination can be disabled at the query fragment level_. To do so, use [this](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/query/logical/Or.html#Or(java.util.Collection,%20boolean)) constructor of the `Or` query class.
+  * _If it is known that for a given `or` query, that sets matching the query will be **disjoint**_ (will not contain duplicates), _logical elimination can be disabled at the query fragment level_. To do so, use [this](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/logical/Or.html#Or(java.util.Collection,%20boolean)) constructor of the `Or` query class.
 
   * _For `in`-type queries_ (which are equivalent to `or(equal(..), equal(..))`), _logical elimination is disabled by default_. This is because the values supplied for `in` queries all refer to the same attribute, and it is assumed that the application will take care of not supplying nonsense queries containing duplicate values for the same attribute. Note that `MultiValueAttribute`s can complicate this. To prevent logical deduplication being disabled for `in`-type queries, compose the query using nested `or(equal(..), ...)` queries instead.
 

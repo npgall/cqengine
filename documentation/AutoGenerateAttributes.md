@@ -4,7 +4,7 @@ CQEngine provides two methods for generating attributes automatically: **bytecod
 
 # AttributeBytecodeGenerator #
 
-The following example uses [AttributeBytecodeGenerator](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeBytecodeGenerator.html) to generate attribute bytecode automatically, and then uses the generated attribute in a query at runtime.
+The following example uses [AttributeBytecodeGenerator](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeBytecodeGenerator.html) to generate attribute bytecode automatically, and then uses the generated attribute in a query at runtime.
 
 ```
 package com.googlecode.cqengine.examples.codegen;
@@ -47,7 +47,7 @@ public class GenerateAttributeByteCode {
 ```
 
 # AttributeSourceGenerator #
-CQEngine also provides an [AttributeSourceGenerator](http://cqengine.googlecode.com/svn/cqengine/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html), which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class.
+CQEngine also provides an [AttributeSourceGenerator](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html), which given any target class, can automatically generate source code for CQEngine attributes which access the fields in the target class.
 
 The source code for attributes can either be generated for the purpose of copy & pasting into the target  class, or attributes can be generated into a separate companion class.
 
