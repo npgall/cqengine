@@ -12,7 +12,7 @@ To explain further, this question is best answered with another question:
 **What is the average latency per request for a queue of 10 requests where each request takes 10ms to process?**
 
 Here is a nice diagram:
-![http://cqengine.googlecode.com/svn/wiki/images/latency-in-a-queue.png](http://cqengine.googlecode.com/svn/wiki/images/latency-in-a-queue.png)
+![latency-in-a-queue.png](images/latency-in-a-queue.png)
 
 Overall latency per request, is processing time for that request, plus the sum of processing times for requests ahead of it in the queue. Or overall latency = **_processing time_** + **_queueing delay_**.
 

@@ -16,9 +16,9 @@ Several individual tests within the benchmark simulate retrieving cars based on 
 
 The tests additionally measure the latency of _"CQEngine Statistics"_ which refers to the speed at which CQEngine can calculate the number of objects which _would_ match the query using its accelerated `ResultSet.size()` method. That method can determine the number of objects very quickly from statistics contained in indexes in some but not all of the test cases.
 
-Class [Car (source)](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/Car.java) is a simple immutable object with CQEngine attributes defined for its fields: `carId`, `manufacturer`, `model`, `color`, `doors`, `price`.
+Class [Car (source)](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/testutil/Car.java) is a simple immutable object with CQEngine attributes defined for its fields: `carId`, `manufacturer`, `model`, `color`, `doors`, `price`.
 
-Class [CarFactory (source)](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java) contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotonically increasing `carId` to every car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
+Class [CarFactory (source)](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/testutil/CarFactory.java) contains a method which generates a collection of cars of any given size. The method creates the collection from a set of 10 templates. The first car is a Ford Focus, the second a Ford Fusion and so on. The method assigns a unique monotonically increasing `carId` to every car it creates. When more than 10 cars are requested, the method starts cycling through the templates again. Therefore car 0 and car 10 are both a Ford Focus, car 1 and car 11 are both a Ford Fusion and so on.
 
 As such, some statistics about the makeup of the collection of cars:
 
@@ -32,7 +32,7 @@ As such, some statistics about the makeup of the collection of cars:
 
 Given that the benchmark creates a collection of 100,000 cars, as an example: 30,000 of those cars will be manufactured by Ford, and 10,000 cars will specifically be model Ford Focus, all evenly distributed throughout the collection.
 
-The benchmarks were run on a 1.8GHz Intel Core i7 Apple machine running OS X 10.7.4 and Java 1.6.0\_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/testutil/) and [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java). Source code for individual tests is referenced in each test below.
+The benchmarks were run on a 1.8GHz Intel Core i7 Apple machine running OS X 10.7.4 and Java 1.6.0\_26. All benchmarks were each run 10,000 times as a warmup, before running 10,000 times again for measurement. Garbage collection was performed before each measurement. Source code for the benchmark framework logic can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/testutil/) and [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/BenchmarkRunner.java). Source code for individual tests is referenced in each test below.
 
 The original tab-separated output from the benchmark is available as a spreadsheet [here](documents/benchmark-results.ods).
 
@@ -56,7 +56,7 @@ This example demonstrates CQEngine's support for _constant_ retrieval time regar
 
   * CQEngine query: `equal(Car.CAR_ID, 500)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 500`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/UniqueIndex_CarId.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/UniqueIndex_CarId.java)
 
 **Benchmark Results**
 
@@ -79,7 +79,7 @@ This query matches 30,000 cars; 30% of the collection of 100,000 cars. This benc
 
   * CQEngine query: `equal(Car.MANUFACTURER, "Ford")`
   * SQL equivalent: `SELECT * FROM cars WHERE manufacturer = 'Ford'`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ManufacturerFord.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ManufacturerFord.java)
 
 **Benchmark Results**
 
@@ -102,7 +102,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. CQEngine 
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ModelFocus.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/HashIndex_ModelFocus.java)
 
 **Benchmark Results**
 
@@ -126,7 +126,7 @@ This query matches 20,000 cars; 20% of the collection of 100,000 cars.
   * CQEngine query: `between(Car.PRICE, 3000.0, true, 4000.0, false)`
     * _Note: true = inclusive, false = exclusive_
   * SQL equivalent: `SELECT * FROM cars WHERE price >= 3000.0 AND price < 4000.0`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NavigableIndex_PriceBetween.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/NavigableIndex_PriceBetween.java)
 
 **Benchmark Results**
 
@@ -149,7 +149,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars. Note: See
 
   * CQEngine query: `startsWith(Car.MODEL, "P")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE 'P%'`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/RadixTreeIndex_ModelStartsWithP.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/RadixTreeIndex_ModelStartsWithP.java)
 
 **Benchmark Results**
 
@@ -172,7 +172,7 @@ This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
   * CQEngine query: `contains(Car.MODEL, "g")`
   * SQL equivalent: `SELECT * FROM cars WHERE model LIKE '%g%'`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/SuffixTreeIndex_ModelContainsG.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/SuffixTreeIndex_ModelContainsG.java)
 
 **Benchmark Results**
 
@@ -195,7 +195,7 @@ This example demonstrates a **mis-configured application** which has not added a
 
   * CQEngine query: `equal(Car.MODEL, "Focus")`
   * SQL equivalent: `SELECT * FROM cars WHERE model = 'Focus'`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NoIndexes_ModelFocus.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/NoIndexes_ModelFocus.java)
 
 **Benchmark Results**
 
@@ -240,7 +240,7 @@ WHERE
     AND color = 'blue'
     AND doors = 3
 ```
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree.java)
 
 **Benchmark Results**
 
@@ -261,7 +261,7 @@ Retrieve and iterate `Car` objects from the collection based on `Car.manufacture
 
 This example demonstrates the improvement in performance when an **optimal** index is added, for the _same query_ as in the non-optimal indexes example above. This query matches 10,000 cars; 10% of the collection of 100,000 cars.
 
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/CompoundIndex_ManufacturerToyotaColorBlueDoorsThree.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/CompoundIndex_ManufacturerToyotaColorBlueDoorsThree.java)
 
 **Benchmark Results**
 
@@ -300,7 +300,7 @@ WHERE
     AND color = 'blue'
     AND doors <> 3
 ```
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive.java)
 
 **Benchmark Results**
 
@@ -323,7 +323,7 @@ This example demonstrates the effect of **_quantization_** on indexes. Quantizat
 
   * CQEngine query: `equal(Car.CAR_ID, 501)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId = 501`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_HashIndex_CarId.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_HashIndex_CarId.java)
 
 **Benchmark Results**
 
@@ -346,7 +346,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
   * CQEngine query: `between(Car.CAR_ID, 500, 502)`
   * SQL equivalent: `SELECT * FROM cars WHERE carId BETWEEN 500 AND 502`
-  * Source code: [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_NavigableIndex_CarId.java)
+  * Source code: [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/benchmark/tasks/Quantized_NavigableIndex_CarId.java)
 
 **Benchmark Results**
 
@@ -365,7 +365,7 @@ This example demonstrates that _quantization_ can be applied to navigable indexe
 
 The benchmarks above measure the performance of CQEngine when retrieving objects. This section measures the performance and overhead in CQEngine to build indexes on objects in the first place.
 
-The source code for these benchmarks can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/indexingbenchmark/). The original tab-separated output from the benchmark is available as a spreadsheet [here](documents/indexing-benchmark-results.ods).
+The source code for these benchmarks can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/indexingbenchmark/). The original tab-separated output from the benchmark is available as a spreadsheet [here](documents/indexing-benchmark-results.ods).
 
 This benchmark followed the same methodology discussed in the methodology section above, on the same 1.8GHz Apple machine.
 

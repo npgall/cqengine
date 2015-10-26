@@ -24,7 +24,7 @@ Conventional iteration is hugely inefficient, with time complexity O(_n_ _t_). I
 
 Even with optimizations applied to convention iteration, CQEngine can outperform conventional iteration by wide margins. Here is a graph for a test comparing CQEngine latency with iteration for a range-type query:
 
-![http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png](http://cqengine.googlecode.com/svn/wiki/images/quantized-navigable-index-carid-between.png)
+![quantized-navigable-index-carid-between.png](images/quantized-navigable-index-carid-between.png)
 
   * **1,116,071 queries per second** (on a single 1.8GHz CPU core)
   * **0.896 microseconds per query**
@@ -193,7 +193,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
     Car{carId=3, name='honda civic', description='has a flat tyre and high mileage', features=[radio]}
   ```
 
-Complete source code for these examples can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/introduction/).
+Complete source code for these examples can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/introduction/).
 
 
 ---
@@ -452,7 +452,7 @@ ResultSet<Car> results = cars.retrieve(
         queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX))
 );
 ```
-A complete example can be found [here](http://cqengine.googlecode.com/svn/cqengine/trunk/src/test/java/com/googlecode/cqengine/examples/ordering/IndexOrderingDemo.java).
+A complete example can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/ordering/IndexOrderingDemo.java).
 
 ---
 
