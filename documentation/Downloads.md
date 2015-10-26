@@ -7,7 +7,7 @@ CQEngine is in Maven Central, and can be added to a Maven project as follows:
     <version>x.x.x</version>
 </dependency>
 ```
-See the ReleaseNotes page for the latest version number.
+See [ReleaseNotes](ReleaseNotes.md) for the latest version number.
 
 ## Download for Non-Maven Projects ##
 For non-Maven projects, a version built with [maven-shade-plugin](http://maven.apache.org/plugins/maven-shade-plugin/) is provided, which contains CQEngine and all of its own dependencies packaged in a single jar file (ending "-all").

@@ -535,7 +535,7 @@ CQEngine is in Maven Central. See [Downloads](Downloads.md).
 
   * CQEngine is somewhat similar to [Microsoft LINQ](http://en.wikipedia.org/wiki/Language_Integrated_Query), but a difference is LINQ queries on collections are evaluated via iteration/filtering whereas CQEngine uses set theory, thus CQEngine would outperform LINQ
 
-  * [Concurrent Trees](https://github.com/npgall/concurrent-trees/) provides Concurrent Radix Trees and Concurrent Suffix Trees, used by some indexes in CQEngine
+  * [Concurrent Trees](http://github.com/npgall/concurrent-trees/) provides Concurrent Radix Trees and Concurrent Suffix Trees, used by some indexes in CQEngine
 
 
 ---
@@ -548,9 +548,9 @@ CQEngine is in Maven Central. See [Downloads](Downloads.md).
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
 Report any bugs/feature requests in the [Issues](http://github.com/npgall/cqengine/issues) tab.
-For support please use the [Discussion Forum](https://groups.google.com/forum/#!forum/cqengine-discuss), not direct email to the developers.
+For support please use the [Discussion Forum](http://groups.google.com/forum/#!forum/cqengine-discuss), not direct email to the developers.
 
 
 Many thanks to JetBrains for supporting CQEngine with free IntelliJ licenses!
 
-[![](images/logo_jetbrains.png)](https://www.jetbrains.com)[![](images/logo_intellij_idea.png)](https://www.jetbrains.com/idea/)
+[![](images/logo_jetbrains.png)](http://www.jetbrains.com)[![](images/logo_intellij_idea.png)](http://www.jetbrains.com/idea/)

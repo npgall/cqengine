@@ -41,4 +41,4 @@ This applies to the benchmarks in this project for both iteration and CQEngine: 
 
 ## Which Transaction Isolation levels does CQEngine support? ##
 
-  * See TransactionIsolation
+  * See [TransactionIsolation](TransactionIsolation.md)
