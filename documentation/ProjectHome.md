@@ -239,7 +239,7 @@ Note these are an alternative to using [ReflectiveAttribute](http://htmlpreview.
   * [AttributeSourceGenerator](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeSourceGenerator.html) can automatically generate the source code for the simple and multi-value attributes discussed above.
   * [AttributeBytecodeGenerator](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeBytecodeGenerator.html) can automatically generate the class bytecode for the simple and multi-value attributes discussed above, and load them into the application at runtime as if they had been compiled from source code.
 
-See the AutoGenerateAttributes wiki page for more details.
+See [AutoGenerateAttributes](AutoGenerateAttributes.md) for more details.
 
 ### Attributes as Functions ###
 
