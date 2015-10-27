@@ -1,19 +1,17 @@
-CQEngine – Collection Query Engine – is a Java collection which can be searched using SQL-like queries, with _extremely_ low latency. Supports _millions_ of queries per second, with response times in the order of _microseconds_.
+# CQEngine - Collection Query Engine #
+
+CQEngine – Collection Query Engine – is a high-performance Java collection which can be searched with SQL-like queries, with _extremely_ low latency.
+
+  * Search collections or arbitrary data sources with SQL-like queries
+  * Achieve millions of queries per second, with query latencies measured in microseconds
+  * Offload query traffic from databases - scale your application tier
+  * Outperform databases by a factor of thousands, even on low-end hardware
 
 Supports on-heap persistence, off-heap persistence, disk persistence, and supports MVCC transaction isolation.
 
 Interesting reviews of CQEngine by syntx.co:
   * [Getting started with CQEngine: LINQ for Java, only faster](http://syntx.co/languages-frameworks/getting-started-with-cqengine-linq-for-java-only-faster/)
   * [Comparing Search Performance of CQEngine with Standard Java Collections](http://syntx.co/languages-frameworks/comparing-search-performance-of-cqengine-with-standard-java-collections/)
-
-
-## Applications ##
-
-  * Retrieve objects matching SQL-like queries from collections, arbitrary, or mixed data sources, with ultra-low latency
-  * Achieve sub-millisecond query latency and massive increase in throughput on datasets loaded from databases
-  * 1000+ times faster than iterating collections, 10000+ times faster than databases
-  * Store the collection on-heap, off-heap, or on disk
-  * Achieve millions of queries per second even on low-end hardware
 
 ## The Limits of Iteration ##
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
