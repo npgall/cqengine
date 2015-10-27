@@ -1,4 +1,4 @@
-Release notes for versions of CQEngine available in Maven Central.
+# CQEngine Release Notes #
 
 ### Version 2.1.0 - 2015-08-24 ###
   * Support for running SQL queries on the collection.
