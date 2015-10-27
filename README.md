@@ -523,8 +523,17 @@ Simply put, CQEngine can build indexes on, and query, any type of Java collectio
 
 ## Usage in Maven and Non-Maven Projects ##
 
-CQEngine is in Maven Central. See [Downloads](documentation/Downloads.md).
+CQEngine is in Maven Central, and can be added to a Maven project as follows:
+```
+<dependency>
+    <groupId>com.googlecode.cqengine</groupId>
+    <artifactId>cqengine</artifactId>
+    <version>x.x.x</version>
+</dependency>
+```
+See [ReleaseNotes](ReleaseNotes.md) for the latest version number.
 
+For non-Maven projects, a version built with [maven-shade-plugin](http://maven.apache.org/plugins/maven-shade-plugin/) is also provided, which contains CQEngine and all of its own dependencies packaged in a single jar file (ending "-all"). It can be downloaded from Maven central as "-all.jar" [here](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.googlecode.cqengine%22%20AND%20a%3A%22cqengine%22).
 
 ---
 
