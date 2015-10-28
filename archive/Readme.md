@@ -3,3 +3,5 @@ were made while CQEngine was hosted in Subversion on Google Code: versions <=2.1
 
 CQEngine versions >2.1.0 (since September 2015), will be released from GitHub, and tags for those versions can be found
 directly in the GitHub repository.
+
+This project was previously hosted at: https://code.google.com/p/cqengine/
