@@ -20,9 +20,9 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/npgall/${artifactId}.git</url>
-        <connection>scm:git:https://github.com/npgall/${artifactId}.git</connection>
-        <developerConnection>scm:git:git@github.com:npgall/${artifactId}.git</developerConnection>
+        <url>https://github.com/npgall/${project.artifactId}.git</url>
+        <connection>scm:git:https://github.com/npgall/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:npgall/${project.artifactId}.git</developerConnection>
     </scm>
     <developers>
         <developer>
