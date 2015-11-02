@@ -13,6 +13,7 @@ Interesting reviews of CQEngine:
   * [syntx.io: Comparing search performance of CQEngine with standard Java collections](http://syntx.io/comparing-search-performance-of-cqengine-with-standard-java-collections/)
   * [syntx.io: Getting started with CQEngine: LINQ for Java, only faster](http://syntx.io/getting-started-with-cqengine-linq-for-java-only-faster/)
   * [excelian.com: Exposure and counterparty limit checking: NoSQL indexing and querying solution](http://www.excelian.com/exposure-and-counterparty-limit-checking)
+  * [gravity4.com: Gravity4 Engineering Blog](http://gravity4.com/welcome-gravity4-engineering-blog/)
   * [snapdeal.com/reducedata.com: How we scaled: 300K QPS & 3-5B requests a day](https://medium.com/@azifali/how-we-scaled-300k-qps-3-5b-requests-a-day-f69a641f1ae2)
 
 ## The Limits of Iteration ##
