@@ -10,8 +10,8 @@ CQEngine – Collection Query Engine – is a high-performance Java collection w
 Supports on-heap persistence, off-heap persistence, disk persistence, and supports MVCC transaction isolation.
 
 Interesting reviews of CQEngine:
-  * [Getting started with CQEngine: LINQ for Java, only faster](https://dzone.com/articles/getting-started-cqengine-linq)
   * [Comparing Search Performance of CQEngine with Standard Java Collections](https://dzone.com/articles/comparing-search-performance)
+  * [Getting started with CQEngine: LINQ for Java, only faster](https://dzone.com/articles/getting-started-cqengine-linq)
 
 ## The Limits of Iteration ##
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
