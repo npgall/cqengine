@@ -147,7 +147,7 @@ cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.as
 
 Note: add import statement to your class: _`import static com.googlecode.cqengine.query.QueryFactory.*`_
 
-* *Example 1: Cars whose name ends with 'vic' or whose id is less than 2*
+* *Example 1: Find cars whose name ends with 'vic' or whose id is less than 2*
 
   Query:
   ```java
@@ -162,7 +162,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
     Car{carId=1, name='ford focus', description='great condition, low mileage', features=[spare tyre, sunroof]}
   ```
   
-* *Example 2: Cars whose flat tyre can be replaced*
+* *Example 2: Find cars whose flat tyre can be replaced*
 
   Query:
   ```java
@@ -176,7 +176,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
     Car{carId=2, name='ford taurus', description='dirty and unreliable, flat tyre', features=[spare tyre, radio]}
   ```
   
-* *Example 3: Cars which have a sunroof or a radio but are not dirty*
+* *Example 3: Find cars which have a sunroof or a radio but are not dirty*
 
   Query:
   ```java
