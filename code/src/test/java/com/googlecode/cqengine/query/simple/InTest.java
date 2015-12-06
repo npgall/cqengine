@@ -21,21 +21,16 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
-import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 
-import static com.googlecode.cqengine.query.QueryFactory.has;
 import static com.googlecode.cqengine.query.QueryFactory.in;
-import static com.googlecode.cqengine.query.QueryFactory.not;
 
 /**
+ * @author Kevin Minder
  * @author Niall Gallagher
  */
 public class InTest {
@@ -46,17 +41,19 @@ public class InTest {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         Attribute<Car, String> NAME = new SimpleNullableAttribute<Car, String>("name") {
-            public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
+            public String getValue(Car car, QueryOptions queryOptions) {
+                return car.name;
+            }
         };
-        cars.addIndex( NavigableIndex.onAttribute( NAME ) );
+        cars.addIndex(NavigableIndex.onAttribute(NAME));
 
         // Add some objects to the collection...
-        cars.add(new Car( 1, "ford", null, null ));
-        cars.add(new Car( 2, "honda", null, null ));
-        cars.add(new Car( 3, "toyota", null, null ));
+        cars.add(new Car(1, "ford", null, null));
+        cars.add(new Car(2, "honda", null, null));
+        cars.add(new Car(3, "toyota", null, null));
 
-        Assert.assertEquals(cars.retrieve(in(NAME,"ford","honda")).size(), 2);
-        Assert.assertEquals(cars.retrieve(in(NAME,Arrays.asList("ford","honda"))).size(), 2);
+        Assert.assertEquals(cars.retrieve(in(NAME, "ford", "honda")).size(), 2);
+        Assert.assertEquals(cars.retrieve(in(NAME, Arrays.asList("ford", "honda"))).size(), 2);
     }
 
     @Test
@@ -65,17 +62,19 @@ public class InTest {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         Attribute<Car, String> NAME = new SimpleNullableAttribute<Car, String>("name") {
-            public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
+            public String getValue(Car car, QueryOptions queryOptions) {
+                return car.name;
+            }
         };
-        cars.addIndex( NavigableIndex.onAttribute( NAME ) );
+        cars.addIndex(NavigableIndex.onAttribute(NAME));
 
         // Add some objects to the collection...
-        cars.add(new Car( 1, "ford", null, null ));
-        cars.add(new Car( 2, "honda", null, null ));
-        cars.add(new Car( 3, "toyota", null, null ));
+        cars.add(new Car(1, "ford", null, null));
+        cars.add(new Car(2, "honda", null, null));
+        cars.add(new Car(3, "toyota", null, null));
 
-        Assert.assertEquals(cars.retrieve(in(NAME,"ford")).size(), 1);
-        Assert.assertEquals(cars.retrieve(in(NAME,Arrays.asList("ford"))).size(), 1);
+        Assert.assertEquals(cars.retrieve(in(NAME, "ford")).size(), 1);
+        Assert.assertEquals(cars.retrieve(in(NAME, Collections.singletonList("ford"))).size(), 1);
     }
 
     @Test
@@ -84,35 +83,28 @@ public class InTest {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
 
         Attribute<Car, String> NAME = new SimpleNullableAttribute<Car, String>("name") {
-            public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
+            public String getValue(Car car, QueryOptions queryOptions) {
+                return car.name;
+            }
         };
-        cars.addIndex( NavigableIndex.onAttribute( NAME ) );
+        cars.addIndex(NavigableIndex.onAttribute(NAME));
 
         // Add some objects to the collection...
-        cars.add(new Car( 1, "ford", null, null ));
-        cars.add(new Car( 2, "honda", null, null ));
-        cars.add(new Car( 3, "toyota", null, null ));
+        cars.add(new Car(1, "ford", null, null));
+        cars.add(new Car(2, "honda", null, null));
+        cars.add(new Car(3, "toyota", null, null));
 
         Assert.assertEquals(cars.retrieve(in(NAME)).size(), 0);
-        Assert.assertEquals(cars.retrieve(in(NAME,new ArrayList<String>())).size(), 0);
+        Assert.assertEquals(cars.retrieve(in(NAME, new ArrayList<String>())).size(), 0);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testInNull() {
-        // Create an indexed collection (note: could alternatively use CQEngine.copyFrom() existing collection)...
-        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-
         Attribute<Car, String> NAME = new SimpleNullableAttribute<Car, String>("name") {
-            public String getValue(Car car, QueryOptions queryOptions) { return car.name; }
+            public String getValue(Car car, QueryOptions queryOptions) {
+                return car.name;
+            }
         };
-        cars.addIndex( NavigableIndex.onAttribute( NAME ) );
-
-        // Add some objects to the collection...
-        cars.add(new Car( 1, "ford", null, null ));
-        cars.add(new Car( 2, "honda", null, null ));
-        cars.add(new Car( 3, "toyota", null, null ));
-
-        Assert.assertEquals(cars.retrieve( in( NAME, (Collection)null ) ).size(), 0 );
+        in(NAME, (Collection<String>) null);
     }
-
 }
