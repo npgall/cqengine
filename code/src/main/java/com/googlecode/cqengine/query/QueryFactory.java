@@ -169,19 +169,21 @@ public class QueryFactory {
      * @return An {@link Or} query comprised of several {@link Equal} queries
      */
     public static <O, A> Query<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
-        if (attributeValues.isEmpty()) {
-            return none(attribute.getObjectType());
+        int n = ( attributeValues == null ) ? 0 : attributeValues.size();
+        switch( n ) {
+            case 0:
+                return none( attribute.getObjectType() );
+            case 1:
+                A singleValue = attributeValues.iterator().next();
+                return equal( attribute, singleValue );
+            default:
+                List<Query<O>> equalStatements = new ArrayList<Query<O>>( attributeValues.size() );
+                for( A attributeValue : attributeValues ) {
+                    Equal<O, A> equalStatement = equal( attribute, attributeValue );
+                    equalStatements.add( equalStatement );
+                }
+                return new Or<O>( equalStatements, attribute instanceof SimpleAttribute );
         }
-        if (attributeValues.size() == 1) {
-            A singleValue = attributeValues.iterator().next();
-            return equal(attribute, singleValue);
-        }
-        List<Query<O>> equalStatements = new ArrayList<Query<O>>(attributeValues.size());
-        for (A attributeValue : attributeValues) {
-            Equal<O, A> equalStatement = equal(attribute, attributeValue);
-            equalStatements.add(equalStatement);
-        }
-        return new Or<O>(equalStatements, attribute instanceof SimpleAttribute);
     }
 
     /**
