@@ -9,12 +9,11 @@ By default, CQEngine uses what's known as the "materialize" strategy to order re
 Essentially, this allows CQEngine to use the most suitable indexes to locate objects matching the query, and then it sorts the results explicity afterwards.
 
 ## Ordering strategy: "index" ##
-The "index" ordering strategy causes CQEngine to use an index on an attribute by which results must be ordered, to drive its search.
-No other indexes will be used.
+The "index" ordering strategy allows CQEngine to use an index on an attribute by which results must be ordered, to drive its search. No other indexes will be used for the search, but results will not need to be sorted afterwards.
 
 ## Best practices ##
 
-The "index" ordering strategy causes CQEngine to use an index on an attribute by which results must be ordered, to drive its search. No other indexes will be used.
+The "index" ordering strategy forces CQEngine to use an index on an attribute by which results must be ordered (when available), to drive its search.
 * This strategy can be useful when results must be ordered in time series (most recent first, for example), and the objects which match the query will be stored consecutively in the index used for ordering.
 * It also makes sense to use this strategy, when a query matches a large fraction of the collection - because it avoids the need to sort a large fraction of the collection afterwards.
 
