@@ -308,6 +308,8 @@ The attribute above would allow the `IndexedCollection` of cars to be searched f
 
 The locations which service a car, could alternatively be retrieved from another `IndexedCollection`, of `Garage`s, for example. **Care should be taken if building indexes on virtual attributes** however, if referenced data might change leaving obsolete information in indexes. A **strategy to accommodate this** is: if no index exists for a virtual attribute referenced in a query, and other attributes are also referenced in the query for which indexes exist, CQEngine will automatically reduce the candidate set of objects to the minimum using other indexes before querying the virtual attribute. In turn if virtual attributes perform retrievals from _other_ `IndexedCollection`s, then those collections could be indexed appropriately without a risk of stale data.
 
+---
+
 ### Joins ###
 
 The examples above define attributes on a primary `IndexedCollection` which read data from secondary collections or external data sources.
@@ -473,20 +475,11 @@ ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(descending(Ca
 
 Note that ordering results as above uses the default "MATERIALIZE" ordering strategy. This is relatively expensive, dependent on the number of objects matching the query, and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results in this way also implicitly eliminates duplicates.
 
-### Index-driven ordering ###
+### Index-accelerated ordering ###
 
-CQEngine also supports an alternative ordering strategy, "INDEX", which uses an index to order results instead. The INDEX strategy reduces the latency to access the first object in the sorted results, at the expense of adding more total overhead if the entire ResultSet was iterated.
+CQEngine also has support to use an index to accelerate, or eliminate, the overhead of ordering results. This strategy reduces the latency to access the first object in the sorted results, at the expense of adding more total overhead if the entire ResultSet was iterated.
 
-INDEX ordering can only be used when results are to be ordered by a single `SimpleAttribute`, and there is a `NavigableIndex`, `OffHeapIndex`, or `DiskIndex` on that attribute (or specifically, an index which implements the [SortedKeyStatisticsIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/support/SortedKeyStatisticsIndex.html) interface).
-
-The INDEX ordering strategy can be requested via a query option:
-```java
-ResultSet<Car> results = cars.retrieve(
-        between(Car.CAR_ID, 40, 50),
-        queryOptions(orderBy(descending(Car.CAR_ID)), orderingStrategy(INDEX))
-);
-```
-A complete example can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/ordering/IndexOrderingDemo.java).
+For more details see [IndexOrdering](documentation/IndexOrdering.md).
 
 ---
 
