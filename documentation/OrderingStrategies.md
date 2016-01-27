@@ -1,11 +1,14 @@
 # Ordering Strategies #
 
-## The "materialize" ordering strategy ##
+There is often a tradeoff between the overhead to retrieve results, and the overhead to sort results.
+Therefore CQEngine supports various strategies to minimise the overhead, described below.
+
+## Ordering strategy: "materialize" ##
 
 By default, CQEngine uses what's known as the "materialize" strategy to order results.
 Essentially, this allows CQEngine to use the most suitable indexes to locate objects matching the query, and then it sorts the results explicity afterwards.
 
-## The "index" ordering strategy ##
+## Ordering strategy: "index" ##
 The "index" ordering strategy causes CQEngine to use an index on an attribute by which results must be ordered, to drive its search.
 No other indexes will be used.
 
