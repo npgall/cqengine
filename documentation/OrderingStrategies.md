@@ -36,5 +36,6 @@ What is selectivity?
 If a threshold between 0.0 and 1.0 is specified, then CQEngine will compute the selectivity of the query automatically.
 It will then automatically use the _index_ strategy if the selectivity is below the given threshold, and the _materialize_ strategy if the selectivity is above the given threshold.
 
-However, actually computing the selectivity of the query, itself introduces computation overhead.
-Performance can sometimes be better, by forcing use of a particular strategy for certain types of query, than to incur the overhead to try to compute the best strategy on-the-fly.
+However there is a computation tradeoff:
+* Computing the selectivity of the query, itself introduces computation overhead.
+* Performance can sometimes be better, by forcing use of a particular strategy for certain types of query, than to incur the overhead to try to compute the best strategy on-the-fly.
