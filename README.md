@@ -429,9 +429,7 @@ It is possible that a query would result in the same object being returned more 
 
 For example if an object matches several attribute values specified in an `or`-type query, then the object will be returned multiple times, one time for each attribute matched. Intersections (`and`-type queries) and negations (`not`-type queries) do not produce duplicates.
 
-By default, CQEngine does _not_ perform de-duplication of results; however it can be _instructed_ to do so, using various strategies such as Logical Elimination and Materialize.
-
-Read more: [DeduplicationStrategies](documentation/DeduplicationStrategies.md)
+By default, CQEngine does _not_ perform de-duplication of results; however it can be _instructed_ to do so, using various strategies such as Logical Elimination and Materialize. Read more: [DeduplicationStrategies](documentation/DeduplicationStrategies.md)
 
 ---
 
