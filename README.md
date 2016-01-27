@@ -429,30 +429,9 @@ It is possible that a query would result in the same object being returned more 
 
 For example if an object matches several attribute values specified in an `or`-type query, then the object will be returned multiple times, one time for each attribute matched. Intersections (`and`-type queries) and negations (`not`-type queries) do not produce duplicates.
 
-By default, CQEngine does _not_ perform de-duplication of results; however it can be _instructed_ to do so, using various strategies.
+By default, CQEngine does _not_ perform de-duplication of results; however it can be _instructed_ to do so, using various strategies such as Logical Elimination and Materialize.
 
-### Logical Elimination Strategy ###
-
-Eliminate duplicates using the rules of set theory, without _materializing_ (copying) the results into an intermediate set.
-
-This is best explained as follows:
-
-  * Let ∪ = conventional set union, duplicates are eliminated
-  * Let ∪ₐ = union all, union without eliminating duplicates
-  * Let – = set difference
-
-Conventional set union, ∪, can be achieved by combining ∪ₐ (union all) with set difference –.
-
-  * A ∪ B ∪ C = (A ∪ₐ (B – A)) ∪ₐ ((C – B) – A)
-
-  * Read more: [Logical Elimination Strategy usage and tradeoffs](documentation/DeduplicationStrategies.md)
-
-### Materialize Strategy ###
-
-Despite the typical interpretation, this does not materialize all objects up-front.
-
-  * Read more: [Materialize Strategy usage and tradeoffs](documentation/DeduplicationStrategies.md)
-
+Read more: [DeduplicationStrategies](documentation/DeduplicationStrategies.md)
 
 ---
 
