@@ -456,7 +456,7 @@ Note that ordering results as above uses the default _materialize_ ordering stra
 
 ### Index-accelerated ordering ###
 
-CQEngine also has support to use an index to accelerate, or eliminate, the overhead of ordering results. This strategy reduces the latency to access the first object in the sorted results, at the expense of adding more total overhead if the entire ResultSet was iterated. Read more: [OrderingStrategies](documentation/OrderingStrategies.md).
+CQEngine also has support to use an index to accelerate, or eliminate, the overhead of ordering results. This strategy reduces the latency to access the first object in the sorted results, at the expense of adding more total overhead if the entire ResultSet was iterated. Read more: [OrderingStrategies](documentation/OrderingStrategies.md)
 
 ---
 
