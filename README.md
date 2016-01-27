@@ -194,6 +194,48 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
 
 Complete source code for these examples can be found [here](http://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/introduction/).
 
+---
+
+## String-based queries: SQL and CQN dialects ##
+
+As an alternative to programmatic queries, CQEngine also has support for running string-based queries on the collection, in either SQL or CQN (CQEngine Native) format.
+
+Example of running an SQL query on a collection (full source [here](https://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/parser/SQLQueryDemo.java)):
+```java
+public static void main(String[] args) {
+    SQLParser<Car> parser = SQLParser.forPojoWithAttributes(Car.class, createAttributes(Car.class));
+    IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
+    cars.addAll(CarFactory.createCollectionOfCars(10));
+
+    ResultSet<Car> results = parser.retrieve(cars, "SELECT * FROM cars WHERE (" +
+                                    "(manufacturer = 'Ford' OR manufacturer = 'Honda') " +
+                                    "AND price <= 5000.0 " +
+                                    "AND color NOT IN ('GREEN', 'WHITE')) " +
+                                    "ORDER BY manufacturer DESC, price ASC");
+    for (Car car : results) {
+        System.out.println(car); // Prints: Honda Accord, Ford Fusion, Ford Focus
+    }
+}
+```
+
+Example of running a CQN query on a collection (full source [here](https://github.com/npgall/cqengine/blob/master/code/src/test/java/com/googlecode/cqengine/examples/parser/CQNQueryDemo.java)):
+```java
+public static void main(String[] args) {
+    CQNParser<Car> parser = CQNParser.forPojoWithAttributes(Car.class, createAttributes(Car.class));
+    IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
+    cars.addAll(CarFactory.createCollectionOfCars(10));
+
+    ResultSet<Car> results = parser.retrieve(cars,
+                                    "and(" +
+                                        "or(equal(\"manufacturer\", \"Ford\"), equal(\"manufacturer\", \"Honda\")), " +
+                                        "lessThanOrEqualTo(\"price\", 5000.0), " +
+                                        "not(in(\"color\", GREEN, WHITE))" +
+                                    ")");
+    for (Car car : results) {
+        System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
+    }
+}
+```
 
 ---
 
@@ -356,9 +398,7 @@ finally {
 }
 ```
 
-
 ---
-
 
 ## Result Sets ##
 
