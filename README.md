@@ -208,7 +208,7 @@ public static void main(String[] args) {
 | **CI**           | _String Is Contained In_ | `isContainedIn(Car.NAME, "I am shopping for a Ford Focus car")` |
 | **RX**           | _String Matches Regular Expression_ | `matchesRegex(Car.MODEL, "Ford.*")` |
 | **HS**           | _Has (aka `IS NOT NULL`)_ | `has(Car.DESCRIPTION)` / `not(has(Car.DESCRIPTION))` |
-| **SQ**           | _Standing Query_ | _Can the index accelerate a _query_ (as opposed to an attribute) to provide constant time complexity for any simple query, complex query, or fragment_ |
+| **SQ**           | _Standing Query_ | _Can the index accelerate a query (as opposed to an attribute) to provide constant time complexity for any simple query, complex query, or fragment_ |
 | **QZ**           | _Quantization_ | _Does the index accept a quantizer to control granularity_ |
 
 Note: CQEngine also supports complex queries via **`and`**, **`or`**, **`not`**, and combinations thereof, across all indexes.
