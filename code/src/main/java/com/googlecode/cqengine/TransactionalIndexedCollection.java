@@ -19,6 +19,7 @@ import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.ArgumentValidationOption;
+import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableFilteringResultSet;
@@ -94,6 +95,11 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * @author Niall Gallagher
  */
 public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollection<O> {
+
+    /**
+     * A query option flag which can be supplied to the update method to control the replacement behaviour.
+     */
+    public static final String STRICT_REPLACEMENT = "STRICT_REPLACEMENT";
 
     final Class<O> objectType;
     final AtomicLong versionGenerator = new AtomicLong();
@@ -173,6 +179,16 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      * Note that if the application disables this validation and proceeds to call this method with non-compliant
      * arguments anyway, then indexes may become inconsistent. Validation should only be skipped when it is certain that
      * the application will be compliant.
+     * <p/>
+     * <b>Atomically replacing objects with STRICT_REPLACEMENT</b><br/>
+     * By default, this method will not check if the objects to be removed are actually contained in the collection.
+     * If any objects to be removed are not actually contained, then the objects to be added will be added anyway.
+     * <p/>
+     * Applications requiring "strict" object replacement, can supply QueryOption:
+     * <code>enableFlags(TransactionalIndexedCollection.STRICT_REPLACEMENT))</code>.
+     * If this query option is supplied, then a check will be performed to ensure that all of the objects to be removed
+     * are actually contained in the collection. If any objects to be removed are not contained, then the collection
+     * will not be modified and this method will return false.
      */
     @Override
     public boolean update(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd, QueryOptions queryOptions) {
@@ -191,6 +207,11 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
             Iterator<O> objectsToAddIterator = objectsToAdd.iterator();
             if (!objectsToRemoveIterator.hasNext() && !objectsToAddIterator.hasNext()) {
                 return false;
+            }
+            if (FlagsEnabled.isFlagEnabled(queryOptions, STRICT_REPLACEMENT)) {
+                if (!collectionContainsAllIterable(collection, objectsToRemove)) {
+                    return false;
+                }
             }
             boolean modified = false;
             if (objectsToAddIterator.hasNext()) {
@@ -368,6 +389,18 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         else {
             return IteratorUtil.iterableContains(objects, o);
         }
+    }
+
+    static <O> boolean collectionContainsAllIterable(Collection<O> collection, Iterable<O> candidates) {
+        if (candidates instanceof Collection) {
+            return collection.containsAll((Collection<?>) candidates);
+        }
+        for (O candidate : candidates) {
+            if (!collection.contains(candidate)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static <O> void ensureUpdateSetsAreDisjoint(final Iterable<O> objectsToRemove, final Iterable<O> objectsToAdd) {

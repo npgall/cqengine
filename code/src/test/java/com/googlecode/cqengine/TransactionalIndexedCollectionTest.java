@@ -30,9 +30,7 @@ import org.junit.Assert;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static com.googlecode.cqengine.query.QueryFactory.all;
-import static com.googlecode.cqengine.query.QueryFactory.argumentValidation;
-import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.ArgumentValidationStrategy.SKIP;
 import static com.googlecode.cqengine.testutil.CarFactory.createCar;
 import static java.util.Arrays.asList;
@@ -223,15 +221,34 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         indexedCollection.update(s1, s2);
     }
 
+    public void testStrictReplacement() {
+        {
+            // Verify that with STRICT_REPLACEMENT, when some objects to be replaced are not stored, collection is not modified...
+            TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+            indexedCollection.addAll(asSet(1, 2, 3));
+            assertFalse(indexedCollection.update(asSet(3, 4), asSet(5, 6), queryOptions(enableFlags(TransactionalIndexedCollection.STRICT_REPLACEMENT))));
+            assertEquals(indexedCollection, asSet(1, 2, 3));
+        }
+        {
+            // Verify that without STRICT_REPLACEMENT, when some objects to be replaced are not stored, collection is modified...
+            TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+            indexedCollection.addAll(asSet(1, 2, 3));
+            assertTrue(indexedCollection.update(asSet(3, 4), asSet(5, 6)));
+            assertEquals(indexedCollection, asSet(1, 2, 5, 6));
+        }
+        {
+            // Verify that with STRICT_REPLACEMENT, when no objects are to be replaced, collection is modified...
+            TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
+            indexedCollection.addAll(asSet(1, 2, 3));
+            assertTrue(indexedCollection.update(Collections.<Integer>emptySet(), asSet(4, 5), queryOptions(enableFlags(TransactionalIndexedCollection.STRICT_REPLACEMENT))));
+            assertEquals(indexedCollection, asSet(1, 2, 3, 4, 5));
+        }
+    }
+
     public void testIterableContains() {
         final Set<Integer> collection = asSet(1, 2, 3);
         ResultSet<Integer> resultSet = new StoredSetBasedResultSet<Integer>(collection);
-        Iterable<Integer> iterable = new Iterable<Integer>() {
-            @Override
-            public Iterator<Integer> iterator() {
-                return collection.iterator();
-            }
-        };
+        Iterable<Integer> iterable = asIterable(collection);
 
         assertTrue(TransactionalIndexedCollection.iterableContains(collection, 1));
         assertFalse(TransactionalIndexedCollection.iterableContains(collection, 4));
@@ -241,6 +258,27 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         assertFalse(TransactionalIndexedCollection.iterableContains(iterable, 4));
     }
 
+    public void testCollectionContainsAllIterable() {
+        final Set<Integer> collection = asSet(1, 2, 3);
+
+        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 2, 3)));
+        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 2, 3))));
+        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 4, 3)));
+        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 4, 3))));
+        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 2, 3, 4)));
+        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 2, 3, 4))));
+        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, Collections.<Integer>emptySet()));
+        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(Collections.<Integer>emptySet())));
+    }
+
+    static <O> Iterable<O> asIterable(final Collection<O> collection) {
+        return new Iterable<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                return collection.iterator();
+            }
+        };
+    }
     static <O> Set<O> asSet(O... objects) {
         return new LinkedHashSet<O>(asList(objects));
     }

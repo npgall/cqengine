@@ -18,6 +18,7 @@ package com.googlecode.cqengine.functional;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
+import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.query.option.EngineThresholds;
 import com.googlecode.cqengine.query.option.QueryLog;
 import com.googlecode.cqengine.resultset.ResultSet;
