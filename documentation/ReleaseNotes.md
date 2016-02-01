@@ -3,7 +3,7 @@
 ### Version 2.1.1 - 2016-01-27 ###
   * Maintenance release.
   * Merged pull requests from gzsombor and kminder which improve the handling of in() queries - many thanks!
-  * Deplyoed to Maven Central.
+  * Deployed to Maven Central.
 
 ### Version 2.1.0 - 2015-08-24 ###
   * Support for running SQL queries on the collection.
