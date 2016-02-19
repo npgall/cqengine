@@ -18,6 +18,8 @@ package com.googlecode.cqengine.persistence.offheap;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.persistence.Persistence;
@@ -103,6 +105,15 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
         catch (SQLException e) {
             throw new IllegalStateException("Failed to open SQLite connection for memory instance: " + instanceName, e);
         }
+    }
+
+    /**
+     * @param index The {@link Index} for which a connection is required.
+     * @return True if the given index is a {@link OffHeapIndex}. Otherwise false.
+     */
+    @Override
+    public boolean supportsIndex(Index<?> index) {
+        return index instanceof OffHeapIndex;
     }
 
     @Override

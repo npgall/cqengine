@@ -35,6 +35,14 @@ public interface ConnectionManager {
     Connection getConnection(Index<?> index);
 
     /**
+     * Checks if this instance of ConnectionManager can provide connections to the persistence of the given index.
+     * @param index The {@link Index} for which a connection is required.
+     * @return true if this instance of ConnectionManager can provide connections to the persistence of the given index.
+     * False otherwise.
+     */
+    boolean supportsIndex(Index<?> index);
+
+    /**
      * Informs if index updates should be applied.
      *
      * @param index The index.

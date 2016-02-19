@@ -167,6 +167,11 @@ public class TemporaryDatabase {
                 }
 
                 @Override
+                public boolean supportsIndex(Index<?> index) {
+                    return true;
+                }
+
+                @Override
                 public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
                     return applyUpdateForIndexEnabled;
                 }
@@ -232,6 +237,11 @@ public class TemporaryDatabase {
                 @Override
                 public Connection getConnection(Index<?> index) {
                     return connection;
+                }
+
+                @Override
+                public boolean supportsIndex(Index<?> index) {
+                    return true;
                 }
 
                 @Override

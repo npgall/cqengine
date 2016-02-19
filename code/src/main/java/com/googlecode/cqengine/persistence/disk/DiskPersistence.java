@@ -17,6 +17,7 @@ package com.googlecode.cqengine.persistence.disk;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.persistence.Persistence;
@@ -64,6 +65,15 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
         catch (SQLException e) {
             throw new IllegalStateException("Failed to open SQLite connection for file: " + file, e);
         }
+    }
+
+    /**
+     * @param index The {@link Index} for which a connection is required.
+     * @return True if the given index is a {@link DiskIndex}. Otherwise false.
+     */
+    @Override
+    public boolean supportsIndex(Index<?> index) {
+        return index instanceof DiskIndex;
     }
 
     @Override

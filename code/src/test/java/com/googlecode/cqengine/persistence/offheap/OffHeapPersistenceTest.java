@@ -17,6 +17,10 @@ package com.googlecode.cqengine.persistence.offheap;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -73,6 +77,19 @@ public class OffHeapPersistenceTest {
         persistence.compact();
         long bytesUsedAfterCompaction = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used after compaction (" + bytesUsedAfterCompaction + ") should be equal to initial bytes used (" + initialBytesUsed + ")", bytesUsedAfterCompaction == initialBytesUsed);
+    }
+
+    @Test
+    public void testSupportsIndex() {
+        OffHeapPersistence<Car, Integer> persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+
+        Index<Car> offHeapIndex = OffHeapIndex.onAttribute(Car.MANUFACTURER);
+        Index<Car> diskIndex = DiskIndex.onAttribute(Car.MANUFACTURER);
+        Index<Car> navigableIndex = NavigableIndex.onAttribute(Car.MANUFACTURER);
+
+        Assert.assertTrue(persistence.supportsIndex(offHeapIndex));
+        Assert.assertFalse(persistence.supportsIndex(diskIndex));
+        Assert.assertFalse(persistence.supportsIndex(navigableIndex));
     }
 
     @Test

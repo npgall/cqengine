@@ -17,6 +17,10 @@ package com.googlecode.cqengine.persistence.disk;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -78,6 +82,19 @@ public class DiskPersistenceTest {
         long bytesUsedAfterCompaction = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used after compaction (" + bytesUsedAfterCompaction + ") should be equal to initial bytes used (" + initialBytesUsed + ")", bytesUsedAfterCompaction == initialBytesUsed);
         Assert.assertTrue("Failed to delete temp file:" + persistence.getFile(), persistence.getFile().delete());
+    }
+
+    @Test
+    public void testSupportsIndex() {
+        DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
+
+        Index<Car> diskIndex = DiskIndex.onAttribute(Car.MANUFACTURER);
+        Index<Car> offHeapIndex = OffHeapIndex.onAttribute(Car.MANUFACTURER);
+        Index<Car> navigableIndex = NavigableIndex.onAttribute(Car.MANUFACTURER);
+
+        Assert.assertTrue(persistence.supportsIndex(diskIndex));
+        Assert.assertFalse(persistence.supportsIndex(offHeapIndex));
+        Assert.assertFalse(persistence.supportsIndex(navigableIndex));
     }
 
     @Test
