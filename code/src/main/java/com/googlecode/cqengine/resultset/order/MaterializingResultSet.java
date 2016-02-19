@@ -69,6 +69,9 @@ public class MaterializingResultSet<O> extends ResultSet<O> {
 
             @Override
             public boolean hasNext() {
+                if (nextObject != null) {
+                    return true;
+                }
                 while(wrappedIterator.hasNext()) {
                     O next = wrappedIterator.next();
                     if (next == null) {
