@@ -39,11 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p/>
  *
  * @author Niall Gallagher
- * @deprecated This index is deprecated, since {@link com.googlecode.cqengine.attribute.StandingQueryAttribute} was
- * added which allows any index to accelerate standing queries. StandingQueryIndex index will be removed in a
- * future version of CQEngine.
  */
-@Deprecated
 public class StandingQueryIndex<O> implements Index<O> {
 
     private static final int INDEX_RETRIEVAL_COST = 10;

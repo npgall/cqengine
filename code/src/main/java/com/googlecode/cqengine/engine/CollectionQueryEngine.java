@@ -36,6 +36,7 @@ import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.closeable.CloseableFilteringResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
@@ -619,30 +620,40 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (attributeCanHaveZeroValues) {
             // Combine the results from the index ordered search, with objects which would be missing from that index...
 
+            // Retrieve missing objects from the secondary index on objects which don't have a value for the primary sort attribute...
             Not<O> missingValuesQuery = not(has(primarySortAttribute));
-            Query<O> combinedQuery = or(query, missingValuesQuery);
-            Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
-
             ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
 
+            // Filter the objects from the secondary index, to ensure they match the query...
+            missingResults = new CloseableFilteringResultSet<O>(missingResults, query, queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    return query.matches(object, queryOptions);
+                }
+            };
+
+            // Determine if we need to sort the missing objects...
+            Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
             final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
 
             if (!sortOrdersForBucket.isEmpty()) {
+                // We do need to sort the missing objects...
                 Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
-                missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, missingValuesQuery, queryOptions);
+                missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, query, queryOptions);
             }
 
+            // Concatenate the main results and the missing objects, accounting for which batch should come first...
             if (orderControlAttribute instanceof OrderMissingFirstAttribute) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), combinedQuery, queryOptions);
+                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), query, queryOptions);
             }
             else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), combinedQuery, queryOptions);
+                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), query, queryOptions);
             }
             else if (primarySortOrder.isDescending()) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), combinedQuery, queryOptions);
+                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), query, queryOptions);
             }
             else {
-                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), combinedQuery, queryOptions);
+                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), query, queryOptions);
             }
         }
 
