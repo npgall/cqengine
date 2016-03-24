@@ -1,5 +1,11 @@
 # CQEngine Release Notes #
 
+### Version 2.1.3 - 2016-03-24 ###
+  * Maintenance release.
+  * Further improvements in index-accelerated ordering strategy.
+  * ResultSet now implements java.io.Closeable, allowing use with Java 7 try-with-resources - closes issue #52.
+  * Deployed to Maven Central.
+ 
 ### Version 2.1.2 - 2016-03-23 ###
   * Maintenance release.
   * Merged pull request #54 from devinrsmith which fixes an issue where calling MaterializingResultSet.hasNext() repeatedly without calling next() advances the iterator when it should not.
