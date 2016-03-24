@@ -5,7 +5,7 @@
   * Merged pull request #54 from devinrsmith which fixes an issue where calling MaterializingResultSet.hasNext() repeatedly without calling next() advances the iterator when it should not.
   * Fixed an edge case when index-accelerated ordering is enabled: if the primary attribute used for sorting was multi-valued, and some objects did not have any value for that attribute, then the objects which did not have a value for the attribute could be returned after the main results even if they did not fully match the query.
   * Deployed to Maven Central.
-  * 
+
 ### Version 2.1.1 - 2016-01-27 ###
   * Maintenance release.
   * Merged pull requests from gzsombor and kminder which improve the handling of in() queries - many thanks!
