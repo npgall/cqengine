@@ -20,12 +20,13 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.common.NoSuchObjectException;
 import com.googlecode.cqengine.resultset.common.NonUniqueObjectException;
 
+import java.io.Closeable;
 import java.util.Iterator;
 
 /**
  * @author Niall Gallagher
  */
-public abstract class ResultSet<O> implements Iterable<O> {
+public abstract class ResultSet<O> implements Iterable<O>, Closeable {
 
     /**
      * Returns an {@link Iterator} over objects matching the query for which this {@link ResultSet} was constructed.

@@ -42,9 +42,11 @@ import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
+import com.googlecode.cqengine.resultset.filter.DeduplicatingMaterializingIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterable;
+import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
@@ -512,44 +514,42 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
         closeableQueryResources.add(resultSetResourcesToClose);
 
-        ResultSet<O> results = new ResultSet<O>() {
+        return new ResultSet<O>() {
             @Override
             public Iterator<O> iterator() {
-                // Ensure that at the end of processing the request, that we close any resources we opened...
-                final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-                final CloseableSet resultSetResourcesToClose = new CloseableSet();
-                closeableQueryResources.add(resultSetResourcesToClose);
+                Iterator<O> mainResults = retrieveWithIndexOrderingMainResults(query, queryOptions, indexForOrdering, allSortOrders, rangeBoundsFromQuery, attributeCanHaveMoreThanOneValue, primarySortDescending);
 
-                final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
+                // Combine the results from the index ordered search, with objects which would be missing from that
+                // index, which is possible in the case that the primary sort attribute is nullable or multi-valued...
 
-                final CloseableIterator<? extends KeyValue<? extends Comparable<?>, O>> keysAndValuesInRange = getKeysAndValuesInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
-                // Ensure this CloseableIterator gets closed...
-                resultSetResourcesToClose.add(keysAndValuesInRange);
+                Iterator<O> combinedResults;
+                if (attributeCanHaveZeroValues) {
+                    Iterator<O> missingResults = retrieveWithIndexOrderingMissingResults(query, queryOptions, primarySortAttribute, allSortOrders, attributeCanHaveMoreThanOneValue);
 
-                if (sortOrdersForBucket.isEmpty()) {
-                    Iterator<O> sorted = new LazyIterator<O>() {
-                        @Override
-                        protected O computeNext() {
-                            return keysAndValuesInRange.hasNext() ? keysAndValuesInRange.next().getValue() : endOfData();
-                        }
-                    };
-                    return new FilteringIterator<O>(sorted, queryOptions) {
-                        @Override
-                        public boolean isValid(O object, QueryOptions queryOptions) {
-                            return query.matches(object, queryOptions);
-                        }
-                    };
+                    // Concatenate the main results and the missing objects, accounting for which batch should come first...
+                    if (orderControlAttribute instanceof OrderMissingFirstAttribute) {
+                        combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(missingResults, mainResults));
+                    }
+                    else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
+                        combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(mainResults, missingResults));
+                    }
+                    else if (primarySortOrder.isDescending()) {
+                        combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(mainResults, missingResults));
+                    }
+                    else {
+                        combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(missingResults, mainResults));
+                    }
                 }
                 else {
-                    final Iterator<O> sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
-
-                    return new FilteringIterator<O>(sorted, queryOptions) {
-                        @Override
-                        public boolean isValid(O object, QueryOptions queryOptions) {
-                            return query.matches(object, queryOptions);
-                        }
-                    };
+                    combinedResults = mainResults;
                 }
+
+                if (attributeCanHaveMoreThanOneValue) {
+                    // Deduplicate results in case the same object could appear in more than one bucket
+                    // and so otherwise could be returned more than once...
+                    combinedResults = new DeduplicatingMaterializingIterator<O>(combinedResults);
+                }
+                return combinedResults;
             }
 
             @Override
@@ -616,54 +616,72 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             }
         };
+    }
 
-        if (attributeCanHaveZeroValues) {
-            // Combine the results from the index ordered search, with objects which would be missing from that index...
 
-            // Retrieve missing objects from the secondary index on objects which don't have a value for the primary sort attribute...
-            Not<O> missingValuesQuery = not(has(primarySortAttribute));
-            ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
+    Iterator<O> retrieveWithIndexOrderingMainResults(final Query<O> query, QueryOptions queryOptions, SortedKeyStatisticsIndex<?, O> indexForOrdering, List<AttributeOrder<O>> allSortOrders, RangeBounds<?> rangeBoundsFromQuery, boolean attributeCanHaveMoreThanOneValue, boolean primarySortDescending) {
+        // Ensure that at the end of processing the request, that we close any resources we opened...
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
 
-            // Filter the objects from the secondary index, to ensure they match the query...
-            missingResults = new CloseableFilteringResultSet<O>(missingResults, query, queryOptions) {
+        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
+
+        final CloseableIterator<? extends KeyValue<? extends Comparable<?>, O>> keysAndValuesInRange = getKeysAndValuesInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+        // Ensure this CloseableIterator gets closed...
+        resultSetResourcesToClose.add(keysAndValuesInRange);
+
+        final Iterator<O> sorted;
+        if (sortOrdersForBucket.isEmpty()) {
+            sorted = new LazyIterator<O>() {
                 @Override
-                public boolean isValid(O object, QueryOptions queryOptions) {
-                    return query.matches(object, queryOptions);
+                protected O computeNext() {
+                    return keysAndValuesInRange.hasNext() ? keysAndValuesInRange.next().getValue() : endOfData();
                 }
             };
+        }
+        else {
+            sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
+        }
+        return new FilteringIterator<O>(sorted, queryOptions) {
+            @Override
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return query.matches(object, queryOptions);
+            }
+        };
+    }
 
-            // Determine if we need to sort the missing objects...
-            Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
-            final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
+    Iterator<O> retrieveWithIndexOrderingMissingResults(final Query<O> query, QueryOptions queryOptions, Attribute<O, Comparable> primarySortAttribute, List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue) {
 
-            if (!sortOrdersForBucket.isEmpty()) {
-                // We do need to sort the missing objects...
-                Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
-                missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, query, queryOptions);
-            }
+        // Ensure that at the end of processing the request, that we close any resources we opened...
+        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
+        final CloseableSet resultSetResourcesToClose = new CloseableSet();
+        closeableQueryResources.add(resultSetResourcesToClose);
 
-            // Concatenate the main results and the missing objects, accounting for which batch should come first...
-            if (orderControlAttribute instanceof OrderMissingFirstAttribute) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), query, queryOptions);
+        // Retrieve missing objects from the secondary index on objects which don't have a value for the primary sort attribute...
+        Not<O> missingValuesQuery = not(has(primarySortAttribute));
+        ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
+
+        // Filter the objects from the secondary index, to ensure they match the query...
+        missingResults = new CloseableFilteringResultSet<O>(missingResults, query, queryOptions) {
+            @Override
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return query.matches(object, queryOptions);
             }
-            else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), query, queryOptions);
-            }
-            else if (primarySortOrder.isDescending()) {
-                results = new ResultSetUnionAll<O>(Arrays.asList(results, missingResults), query, queryOptions);
-            }
-            else {
-                results = new ResultSetUnionAll<O>(Arrays.asList(missingResults, results), query, queryOptions);
-            }
+        };
+
+        // Determine if we need to sort the missing objects...
+        Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
+        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
+
+        if (!sortOrdersForBucket.isEmpty()) {
+            // We do need to sort the missing objects...
+            Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
+            missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, query, queryOptions);
         }
 
-        if (attributeCanHaveMoreThanOneValue) {
-            // Deduplicate results in case the same object could appear in more than one bucket
-            // and so otherwise could be returned more than once...
-            results = new MaterializingResultSet<O>(results, query, queryOptions);
-        }
-
-        return results;
+        resultSetResourcesToClose.add(missingResults);
+        return missingResults.iterator();
     }
 
     /**

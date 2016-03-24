@@ -18,21 +18,16 @@ package com.googlecode.cqengine.resultset.order;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.filter.DeduplicatingMaterializingIterator;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
-import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Wraps another {@link ResultSet} and ensures that the {@link Iterator} returned by the {@link #iterator()} method
  * never returns the same object more than once.
  * <p/>
- * This {@link ResultSet} does not materialize all objects up-front, rather it starts returning objects from the
- * wrapped {@link ResultSet} immediately, and records during iteration the objects issued so far in a temporary
- * collection. If the wrapped {@link ResultSet} returns the same object more than once, this {@link ResultSet} will
- * transparently skip it and move to the next object.
+ * The implementation delegates to {@link DeduplicatingMaterializingIterator}.
  * <p/>
  * Note that the {@link #size()} method in this implementation has O(n) time complexity, because it uses the
  * deduplicating iterator to count objects.
@@ -60,44 +55,7 @@ public class MaterializingResultSet<O> extends ResultSet<O> {
      */
     @Override
     public Iterator<O> iterator() {
-        return new UnmodifiableIterator<O>() {
-
-            Iterator<O> wrappedIterator = wrappedResultSet.iterator();
-            Set<O> materializedSet = new HashSet<O>();
-
-            O nextObject = null;
-
-            @Override
-            public boolean hasNext() {
-                if (nextObject != null) {
-                    return true;
-                }
-                while(wrappedIterator.hasNext()) {
-                    O next = wrappedIterator.next();
-                    if (next == null) {
-                        throw new IllegalStateException("Unexpectedly received null from the wrapped ResultSet's iterator.next()");
-                    }
-                    if (!materializedSet.add(next)) {
-                        continue;
-                    }
-                    nextObject = next;
-                    return true;
-                }
-                nextObject = null;
-                materializedSet.clear(); // ..help GC
-                return false;
-            }
-
-            @Override
-            public O next() {
-                O next = nextObject;
-                if (next == null) {
-                    throw new IllegalStateException("Detected an attempt to call iterator.next() without calling iterator.hasNext() immediately beforehand");
-                }
-                nextObject = null;
-                return next;
-            }
-        };
+        return new DeduplicatingMaterializingIterator<O>(wrappedResultSet.iterator());
     }
 
     /**

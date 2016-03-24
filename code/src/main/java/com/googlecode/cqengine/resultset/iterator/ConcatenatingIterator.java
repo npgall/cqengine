@@ -47,4 +47,14 @@ public abstract class ConcatenatingIterator<O> extends UnmodifiableIterator<O> {
     }
 
     public abstract Iterator<O> getNextIterator();
+
+    public static <O> ConcatenatingIterator<O> concatenate(final Iterable<Iterator<O>> iterators) {
+        return new ConcatenatingIterator<O>() {
+            final Iterator<Iterator<O>> iteratorIterator = iterators.iterator();
+            @Override
+            public Iterator<O> getNextIterator() {
+                return iteratorIterator.hasNext() ? iteratorIterator.next() : null;
+            }
+        };
+    }
 }
