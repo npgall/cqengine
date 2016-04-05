@@ -554,7 +554,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             @Override
             public boolean contains(O object) {
-                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.contains(object);
                 }
@@ -580,7 +580,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             @Override
             public int getRetrievalCost() {
-                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.getRetrievalCost();
                 }
@@ -591,7 +591,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             @Override
             public int getMergeCost() {
-                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.getMergeCost();
                 }
