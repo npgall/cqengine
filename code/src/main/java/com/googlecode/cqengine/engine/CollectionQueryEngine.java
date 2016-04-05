@@ -602,7 +602,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             @Override
             public int size() {
-                ResultSet<O> rs = retrieveRecursive(query, queryOptions);
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.size();
                 }
