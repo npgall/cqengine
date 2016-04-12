@@ -20,6 +20,7 @@ import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -188,7 +189,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
     public void testConstructor() {
         TransactionalIndexedCollection<Car> indexedCollection = new TransactionalIndexedCollection<Car>(
                 Car.class,
-                new DefaultConcurrentSetFactory<Car>()
+                new OnHeapPersistence<Car>()
         );
         assertEquals(indexedCollection.objectType, Car.class);
         assertEquals(1L, indexedCollection.currentVersion);

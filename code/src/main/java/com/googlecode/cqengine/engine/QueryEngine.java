@@ -29,14 +29,6 @@ import com.googlecode.cqengine.resultset.ResultSet;
 public interface QueryEngine<O> {
 
     /**
-     * Retrieves a {@link ResultSet} which provides objects matching the given query.
-     *
-     * @param query A query representing some assertions which sought objects must match
-     * @return A {@link ResultSet} which provides objects matching the given query
-     */
-    public ResultSet<O> retrieve(Query<O> query);
-
-    /**
      * Retrieves a {@link ResultSet} which provides objects matching the given query, additionally accepting
      * {@link QueryOptions} which can specify ordering of results, deduplication strategy etc.
      *
@@ -49,29 +41,19 @@ public interface QueryEngine<O> {
     /**
      * Adds the given index to the collection.
      * <p/>
-     * Subsequently queries passed to the {@link #retrieve(com.googlecode.cqengine.query.Query)} methods will use these
-     * indexes if suitable for the particular queries, to speed up retrievals.
-     *
-     * @param index The index to add
-     */
-    public void addIndex(Index<O> index);
-
-    /**
-     * Adds the given index to the collection.
-     * <p/>
-     * Subsequently queries passed to the {@link #retrieve(com.googlecode.cqengine.query.Query)} methods will use these
-     * indexes if suitable for the particular queries, to speed up retrievals.
+     * Subsequently queries passed to the {@link #retrieve(com.googlecode.cqengine.query.Query, QueryOptions)} method
+     * will use these indexes if suitable for the particular queries, to speed up retrievals.
      * @param index The index to add
      * @param queryOptions Optional parameters for the index
      */
     public void addIndex(Index<O> index, QueryOptions queryOptions);
 
     /**
-     * Returns the set of which were previously added to the collection via the
-     * {@link #addIndex(com.googlecode.cqengine.index.Index)} method.
+     * Returns the set of indexes which were previously added to the collection via the
+     * {@link #addIndex(com.googlecode.cqengine.index.Index, QueryOptions)} method.
      *
      * @return The set of which were previously added to the collection via the
-     * {@link #addIndex(com.googlecode.cqengine.index.Index)} method
+     * {@link #addIndex(com.googlecode.cqengine.index.Index, QueryOptions)} method
      */
     public Iterable<Index<O>> getIndexes();
 }

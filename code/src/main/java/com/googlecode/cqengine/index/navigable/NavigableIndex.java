@@ -19,6 +19,7 @@ import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -94,6 +95,11 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
     @Override
     public boolean isMutable() {
         return true;
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     /**

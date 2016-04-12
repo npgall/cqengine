@@ -40,4 +40,9 @@ public class CloseableSet implements Closeable {
             iterator.remove();
         }
     }
+
+    @Override
+    public String toString() {
+        return closeables.toString();
+    }
 }

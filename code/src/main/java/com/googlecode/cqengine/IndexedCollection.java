@@ -44,7 +44,6 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
     /**
      * {@inheritDoc}
      */
-    @Override
     ResultSet<O> retrieve(Query<O> query);
 
     /**
@@ -125,7 +124,6 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
     /**
      * {@inheritDoc}
      */
-    @Override
     void addIndex(Index<O> index);
 
     /**

@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.compound;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
@@ -102,6 +103,11 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
     @Override
     public boolean isMutable() {
         return true;
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     /**

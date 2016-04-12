@@ -57,6 +57,10 @@ public class QueryOptions {
         options.put(key, value);
     }
 
+    public void remove(Object key) {
+        options.remove(key);
+    }
+
     @Override
     public String toString() {
         return "queryOptions(" + options + ')';

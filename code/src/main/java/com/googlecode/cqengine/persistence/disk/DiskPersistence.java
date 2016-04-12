@@ -18,24 +18,29 @@ package com.googlecode.cqengine.persistence.disk;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.sqlite.ConnectionManager;
+import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
+import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
+import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
-import com.googlecode.cqengine.persistence.Persistence;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLitePersistentSet;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteDiskIdentityIndex;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Set;
 
 /**
  * Specifies that a collection or indexes should be persisted to a particular file on disk.
  *
  * @author niall.gallagher
  */
-public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
+public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersistence<O, A> {
 
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final File file;
@@ -72,13 +77,8 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
      * @return True if the given index is a {@link DiskIndex}. Otherwise false.
      */
     @Override
-    public boolean supportsIndex(Index<?> index) {
-        return index instanceof DiskIndex;
-    }
-
-    @Override
-    public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
-        return true;
+    public boolean supportsIndex(Index<O> index) {
+        return index instanceof DiskIndex || index instanceof SQLiteDiskIdentityIndex;
     }
 
     @Override
@@ -145,8 +145,43 @@ public class DiskPersistence<O, A extends Comparable<A>> implements Persistence<
     }
 
     @Override
-    public Set<O> create() {
-        return new SQLitePersistentSet<O, A>(this);
+    public ObjectStore<O> createObjectStore() {
+        return new SQLiteObjectStore<O, A>(this);
+    }
+
+    @Override
+    public SQLiteDiskIdentityIndex<A, O> createIdentityIndex() {
+        return SQLiteDiskIdentityIndex.onAttribute(primaryKeyAttribute);
+    }
+
+    /**
+     * Creates a new {@link RequestScopeConnectionManager} and adds it to the given query options with key
+     * {@link ConnectionManager}, if an only if no object with that key is already in the query options.
+     * This allows the application to supply its own implementation of {@link ConnectionManager} to override the default
+     * if necessary.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void openRequestScopeResources(QueryOptions queryOptions) {
+        if (queryOptions.get(ConnectionManager.class) == null) {
+            queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
+        }
+    }
+
+    /**
+     * Closes a {@link RequestScopeConnectionManager} if it is present in the given query options with key
+     * {@link ConnectionManager}.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void closeRequestScopeResources(QueryOptions queryOptions) {
+        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        if (connectionManager instanceof RequestScopeConnectionManager) {
+            ((RequestScopeConnectionManager) connectionManager).close();
+            queryOptions.remove(ConnectionManager.class);
+        }
     }
 
     /**

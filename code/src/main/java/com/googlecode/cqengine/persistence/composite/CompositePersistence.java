@@ -17,136 +17,93 @@ package com.googlecode.cqengine.persistence.composite;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.sqlite.ConnectionManager;
+import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
+import com.googlecode.cqengine.persistence.ExternalPersistence;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
-import java.sql.Connection;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A Persistence object which wraps two or more backing Persistence objects.
  * <p/>
- * Delegates index-based persistence operations to the backing Persistence object which indicates it supports the given
- * index via {@link Persistence#supportsIndex(Index)}.
- * <p/>
- * For aggregate persistence operation {@link Persistence#expand(long)}, divides the bytes to expand evenly
- * between persistence objects. See that method's JavaDoc for details.
- * <p/>
- * For aggregate persistence operation {@link Persistence#compact()}, simply compacts all persistence objects.
+ * The collection itself will be persisted to the primary persistence object supplied to the constructor.
  *
  * @author niall.gallagher
  */
-public class CompositePersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
+public class CompositePersistence<O> implements Persistence<O> {
 
-    final Persistence<O, A> primaryPersistence;
-    final Persistence<O, A> secondaryPersistence;
-    final List<? extends Persistence<O, A>> additionalPersistences;
-    final SimpleAttribute<O, A> primaryKeyAttribute;
+    final Persistence<O> primaryPersistence;
+    final Persistence<O> secondaryPersistence;
+    final List<? extends Persistence<O>> additionalPersistences;
+
+    // Cache of the Persistence object associated with each index.
+    // Tuned for very little concurrency because this is caching static config.
+    final ConcurrentMap<Index<O>, Persistence<O>> indexPersistences = new ConcurrentHashMap<Index<O>, Persistence<O>>(1, 1.0F, 1);
 
     /**
-     * Creates a CompositePersistence wrapping two or more backing peristences.
-     * @param primaryPersistence The first backing persistence to wrap.
+     * Creates a CompositePersistence wrapping two or more backing persistences.
+     * <b>The collection itself will be persisted to the primary persistence.</b>
+     *
+     * @param primaryPersistence The first backing persistence to wrap, and to use to persist the collection itself.
      * @param secondaryPersistence The second backing persistence to wrap.
      * @param additionalPersistences Zero or more additional backing persistences to wrap.
      * @throws NullPointerException If any argument is null.
      * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
      */
-    public CompositePersistence(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
-        validateBackingPersistences(primaryPersistence, secondaryPersistence, additionalPersistences);
+    public CompositePersistence(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
+        validatePersistenceArguments(primaryPersistence, secondaryPersistence, additionalPersistences);
         this.primaryPersistence = primaryPersistence;
         this.secondaryPersistence = secondaryPersistence;
         this.additionalPersistences = additionalPersistences;
-        this.primaryKeyAttribute = primaryPersistence.getPrimaryKeyAttribute();
     }
 
-    @Override
-    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
-        return primaryKeyAttribute;
-    }
-
-    /**
-     * @return The sum of {@link Persistence#getBytesUsed()} reported by the wrapped Persistence objects.
-     */
-    @Override
-    public long getBytesUsed() {
-        long totalBytesUsed = primaryPersistence.getBytesUsed();
-        totalBytesUsed += secondaryPersistence.getBytesUsed();
-        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
-            totalBytesUsed += additionalPersistence.getBytesUsed();
-        }
-        return totalBytesUsed;
-    }
-
-    /**
-     * Calls {@link Persistence#compact()} on all wrapped Persistence objects.
-     */
-    @Override
-    public void compact() {
-        primaryPersistence.compact();
-        secondaryPersistence.compact();
-        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
-            additionalPersistence.compact();
-        }
-    }
-
-    /**
-     * Divides the given {@code totalBytesToExpand} by the number of wrapped persistence objects to determine
-     * {@code bytesToExpandPerPersistence}, and calls {@link Persistence#expand(long)} on each wrapped Persistence
-     * object supplying that value.
-     * <p/>
-     * If there are any remainder bytes which did not divide evenly, expands the primary Persistence object by the
-     * remainder bytes as well.
-     */
-    @Override
-    public void expand(long totalBytesToExpand) {
-        final int numPersistences = 2 + additionalPersistences.size();
-        final long bytesToExpandPerPersistence = totalBytesToExpand / numPersistences;
-        final long remainderBytes = totalBytesToExpand % numPersistences;
-        primaryPersistence.expand(bytesToExpandPerPersistence + remainderBytes);
-        secondaryPersistence.expand(bytesToExpandPerPersistence);
-        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
-            additionalPersistence.expand(bytesToExpandPerPersistence);
-        }
-    }
 
     @Override
-    public Connection getConnection(Index<?> index) {
-        Persistence<O, A> persistence = getPersistenceForIndex(index, primaryPersistence, secondaryPersistence, additionalPersistences);
-        return persistence.getConnection(index);
-    }
-
-    @Override
-    public boolean supportsIndex(Index<?> index) {
-        Persistence<O, A> persistence = getPersistenceForIndexOrNull(index, primaryPersistence, secondaryPersistence, additionalPersistences);
+    public boolean supportsIndex(Index<O> index) {
+        Persistence<O> persistence = getPersistenceForIndexOrNullWithCaching(index);
         return persistence != null;
     }
 
-    @Override
-    public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
-        Persistence<O, A> persistence = getPersistenceForIndex(index, primaryPersistence, secondaryPersistence, additionalPersistences);
-        return persistence.isApplyUpdateForIndexEnabled(index);
-    }
-
-    @Override
-    public Set<O> create() {
-        return primaryPersistence.create();
-    }
-
-    static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceForIndex(Index<?> index, Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
-        Persistence<O, A> persistence = getPersistenceForIndexOrNull(index, primaryPersistence, secondaryPersistence, additionalPersistences);
+    public Persistence<O> getPersistenceForIndex(Index<O> index) {
+        Persistence<O> persistence = getPersistenceForIndexOrNullWithCaching(index);
         if (persistence == null) {
             throw new IllegalStateException("No persistence is configured for index: " + index);
         }
         return persistence;
     }
 
-    static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceForIndexOrNull(Index<?> index, Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
+    @Override
+    public ObjectStore<O> createObjectStore() {
+        return primaryPersistence.createObjectStore();
+    }
+
+    Persistence<O> getPersistenceForIndexOrNullWithCaching(Index<O> index) {
+        Persistence<O> persistence = indexPersistences.get(index);
+        if (persistence == null) {
+            persistence = getPersistenceForIndexOrNull(index);
+            if (persistence != null) {
+                Persistence<O> existing = indexPersistences.putIfAbsent(index, persistence);
+                if (existing != null) {
+                    persistence = existing;
+                }
+            }
+        }
+        return persistence;
+    }
+
+    Persistence<O> getPersistenceForIndexOrNull(Index<O> index) {
         if (primaryPersistence.supportsIndex(index)) {
             return primaryPersistence;
         }
         if (secondaryPersistence.supportsIndex(index)) {
             return secondaryPersistence;
         }
-        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
+        for (Persistence<O> additionalPersistence : additionalPersistences) {
             if (additionalPersistence.supportsIndex(index)) {
                 return additionalPersistence;
             }
@@ -154,15 +111,110 @@ public class CompositePersistence<O, A extends Comparable<A>> implements Persist
         return null;
     }
 
-    static <O, A extends Comparable<A>> void validateBackingPersistences(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
-        final SimpleAttribute<O, A> primaryKeyAttribute = primaryPersistence.getPrimaryKeyAttribute();
-        if (!primaryKeyAttribute.equals(secondaryPersistence.getPrimaryKeyAttribute())) {
-            throw new IllegalArgumentException("All persistence implementations must be on the same primary key.");
+    public Persistence<O> getPrimaryPersistence() {
+        return primaryPersistence;
+    }
+
+    public Persistence<O> getSecondaryPersistence() {
+        return secondaryPersistence;
+    }
+
+    public List<? extends Persistence<O>> getAdditionalPersistences() {
+        return additionalPersistences;
+    }
+
+    /**
+     * Validates that all of the given Persistence objects are non-null, and validates that all Persistence objects
+     * which are instances of {@link ExternalPersistence} have the same {@link ExternalPersistence#getPrimaryKeyAttribute()}.
+     *
+     * @param primaryPersistence A Persistence object to be validated
+     * @param secondaryPersistence A Persistence object to be validated
+     * @param additionalPersistences Zero or more Persistence objects to be validated
+     */
+    static <O> void validatePersistenceArguments(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
+        SimpleAttribute<O, ?> primaryKeyAttribute;
+        primaryKeyAttribute = validatePersistenceArgument(primaryPersistence, null);
+        primaryKeyAttribute = validatePersistenceArgument(secondaryPersistence, primaryKeyAttribute);
+        for (Persistence<O> additionalPersistence : additionalPersistences) {
+            validatePersistenceArgument(additionalPersistence, primaryKeyAttribute);
         }
-        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
-            if (!primaryKeyAttribute.equals(additionalPersistence.getPrimaryKeyAttribute())) {
-                throw new IllegalArgumentException("All persistence implementations must be on the same primary key.");
-            }
+    }
+
+    /**
+     * Helper method for {@link #validatePersistenceArguments(Persistence, Persistence, List)}. See documentation of
+     * that method for details.
+     */
+    static <O> SimpleAttribute<O, ?> validatePersistenceArgument(Persistence<O> persistence, SimpleAttribute<O, ?> primaryKeyAttribute) {
+        if (persistence == null) {
+            throw new NullPointerException("The Persistence argument cannot be null.");
         }
+        if (!(persistence instanceof ExternalPersistence)) {
+            return primaryKeyAttribute;
+        }
+        ExternalPersistence<O, ?> externalPersistence = (ExternalPersistence<O, ?>)persistence;
+        if (primaryKeyAttribute == null) {
+            primaryKeyAttribute = externalPersistence.getPrimaryKeyAttribute();
+        }
+        else if (!primaryKeyAttribute.equals(externalPersistence.getPrimaryKeyAttribute())) {
+            throw new IllegalArgumentException("All ExternalPersistence implementations must be on the same primary key.");
+        }
+        return primaryKeyAttribute;
+    }
+
+    /**
+     * Creates a new {@link RequestScopeConnectionManager} and adds it to the given query options with key
+     * {@link ConnectionManager}, if an only if no object with that key is already in the query options.
+     * This allows the application to supply its own implementation of {@link ConnectionManager} to override the default
+     * if necessary.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void openRequestScopeResources(QueryOptions queryOptions) {
+        if (queryOptions.get(ConnectionManager.class) == null) {
+            queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
+        }
+    }
+
+    /**
+     * Closes a {@link RequestScopeConnectionManager} if it is present in the given query options with key
+     * {@link ConnectionManager}.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void closeRequestScopeResources(QueryOptions queryOptions) {
+        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        if (connectionManager instanceof RequestScopeConnectionManager) {
+            ((RequestScopeConnectionManager) connectionManager).close();
+            queryOptions.remove(ConnectionManager.class);
+        }
+    }
+
+    /**
+     * Creates a CompositePersistence wrapping two or more backing persistences.
+     * <b>The collection itself will be persisted to the primary persistence.</b>
+     *
+     * @param primaryPersistence The first backing persistence to wrap, and to use to persist the collection itself.
+     * @param secondaryPersistence The second backing persistence to wrap.
+     * @param additionalPersistences Zero or more additional backing persistences to wrap.
+     * @throws NullPointerException If any argument is null.
+     * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
+     */
+    public static <O> CompositePersistence<O> of(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
+        return new CompositePersistence<O>(primaryPersistence, secondaryPersistence, additionalPersistences);
+    }
+
+    /**
+     * Creates a CompositePersistence wrapping two backing persistences.
+     * <b>The collection itself will be persisted to the primary persistence.</b>
+     *
+     * @param primaryPersistence The first backing persistence to wrap, and to use to persist the collection itself.
+     * @param secondaryPersistence The second backing persistence to wrap.
+     * @throws NullPointerException If any argument is null.
+     * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
+     */
+    public static <O> CompositePersistence<O> of(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence) {
+        return new CompositePersistence<O>(primaryPersistence, secondaryPersistence, Collections.<Persistence<O>>emptyList());
     }
 }

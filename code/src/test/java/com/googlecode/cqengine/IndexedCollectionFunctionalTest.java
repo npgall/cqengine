@@ -20,13 +20,12 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.StandingQueryAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
-import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
-import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
@@ -34,7 +33,13 @@ import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.composite.CompositePersistence;
+import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteDiskIdentityIndex;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -53,11 +58,10 @@ import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
-import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
 import static java.util.Arrays.asList;
@@ -79,10 +83,6 @@ public class IndexedCollectionFunctionalTest {
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow tests *during development only!*...
     static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "false"));
-
-    // Databases used by off-heap indexes which are created and destroyed before and after each test scenario...
-    static final TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryInMemoryDatabase();
-    static final TemporaryFileDatabase temporaryFileDatabase = new TemporaryFileDatabase();
 
     static final boolean RUN_HIGH_PRIORITY_SCENARIOS_ONLY = false;
 
@@ -515,34 +515,10 @@ public class IndexedCollectionFunctionalTest {
                                         }
                                     }, Car.MANUFACTURER, Car.MODEL)
                             ),
-                            indexCombination(SQLiteIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            Car.CAR_ID,
-                                            createForeignKeyAttribute(),
-                                            temporaryInMemoryDatabase.getConnectionManager(true)
-                                    )
-
-                            ),
-                            indexCombination(SQLiteIndex.onAttribute(
-                                            Car.FEATURES,
-                                            Car.CAR_ID,
-                                            createForeignKeyAttribute(),
-                                            temporaryInMemoryDatabase.getConnectionManager(true)
-                                    )
-                            ),
-                            indexCombination(SQLiteIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            Car.CAR_ID,
-                                            createForeignKeyAttribute(),
-                                            temporaryFileDatabase.getConnectionManager(true)
-                                    )
-                            ),
-                            indexCombination(OffHeapIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-                                            createForeignKeyAttribute()
-                                    )
-                            )
+                            indexCombination(OffHeapIndex.onAttribute(Car.MANUFACTURER)),
+                            indexCombination(DiskIndex.onAttribute(Car.FEATURES)),
+                            indexCombination(DiskIndex.onAttribute(Car.MANUFACTURER)),
+                            indexCombination(OffHeapIndex.onAttribute(Car.MANUFACTURER))
                     );
                 }},
                 new MacroScenario() {{
@@ -641,13 +617,7 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(SQLiteIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            Car.CAR_ID,
-                                            createForeignKeyAttribute(),
-                                            temporaryInMemoryDatabase.getConnectionManager(true)
-                                    )
-                            )
+                            indexCombination(DiskIndex.onAttribute(Car.MANUFACTURER))
                     );
                 }},
                 new MacroScenario() {{
@@ -1078,12 +1048,7 @@ public class IndexedCollectionFunctionalTest {
                                     NavigableIndex.onAttribute(Car.FEATURES),
                                     NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES))
                             ),
-                            indexCombination(OffHeapIndex.onAttribute(
-                                            Car.CAR_ID,
-                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-                                            createForeignKeyAttribute()
-                                    )
-                            )
+                            indexCombination(OffHeapIndex.onAttribute(Car.CAR_ID))
                     );
                 }},
                 new MacroScenario() {{
@@ -1175,12 +1140,7 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(OffHeapIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-                                            createForeignKeyAttribute()
-                                    )
-                            )
+                            indexCombination(OffHeapIndex.onAttribute(Car.MANUFACTURER))
                     );
                 }},
                 new MacroScenario() {{
@@ -1205,12 +1165,7 @@ public class IndexedCollectionFunctionalTest {
                             indexCombination(ReversedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(InvertedRadixTreeIndex.onAttribute(Car.MANUFACTURER)),
                             indexCombination(SuffixTreeIndex.onAttribute(Car.MANUFACTURER)),
-                            indexCombination(OffHeapIndex.onAttribute(
-                                            Car.MANUFACTURER,
-                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-                                            createForeignKeyAttribute()
-                                    )
-                            )
+                            indexCombination(OffHeapIndex.onAttribute(Car.MANUFACTURER))
                     );
                 }},
                 new MacroScenario() {{
@@ -1264,11 +1219,9 @@ public class IndexedCollectionFunctionalTest {
                             }}
                     );
                     indexCombinations = indexCombinations(
-                            indexCombination(OffHeapIndex.onAttribute(
-                                            forStandingQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))),
-                                            OffHeapPersistence.onPrimaryKey(Car.CAR_ID),
-                                            createForeignKeyAttribute()
-                                    )
+                            indexCombination(OffHeapIndex.onAttribute(forStandingQuery(
+                                    or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))
+                                ))
                             )
                     );
                 }}
@@ -1364,29 +1317,61 @@ public class IndexedCollectionFunctionalTest {
             throw new AssumptionViolatedException("Skipping non-high priority scenario");
         }
 
-        temporaryFileDatabase.before();
-        temporaryInMemoryDatabase.before();
         if (!IndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
             throw new IllegalStateException("Invalid IndexedCollection class: " + scenario.collectionImplementation);
         }
+        boolean hasDiskIndex = false, hasOffHeapIndex = false;
+        for (Index<Car> index : scenario.indexCombination) {
+            if (index instanceof DiskIndex || index instanceof SQLiteDiskIdentityIndex) {
+                hasDiskIndex = true;
+            }
+            else if (index instanceof OffHeapIndex || index instanceof SQLiteOffHeapIdentityIndex) {
+                hasOffHeapIndex = true;
+            }
+        }
+        Persistence<Car> persistence;
+        if (hasDiskIndex && hasOffHeapIndex) {
+            persistence = CompositePersistence.of(OffHeapPersistence.onPrimaryKey(Car.CAR_ID), DiskPersistence.onPrimaryKey(Car.CAR_ID));
+        }
+        else if (hasDiskIndex) {
+            persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
+        }
+        else if (hasOffHeapIndex) {
+            persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+        }
+        else {
+            persistence = null; // TODO: non null?
+        }
         IndexedCollection<Car> indexedCollection;
         try {
-            if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
-                indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class).newInstance(Car.class);
+            if (persistence != null) {
+                if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
+                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class, Persistence.class).newInstance(Car.class, persistence);
+                }
+                else {
+                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Persistence.class).newInstance(persistence);
+                }
             }
             else {
-                indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.newInstance();
+                if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
+                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class).newInstance(Car.class);
+                }
+                else {
+                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.newInstance();
+                }
             }
         }
         catch (Exception e) {
             throw new IllegalStateException("Could not instantiate IndexedCollection: " + scenario.collectionImplementation, e);
         }
         for (Index<Car> index : scenario.indexCombination) {
-            try {
-                indexedCollection.addIndex(index);
-            }
-            catch (Exception e) {
-                throw new IllegalStateException("Could not add " + getIndexDescription(index), e);
+            if (!persistenceProvidesEquivalentIndexAlready(persistence, index)) {
+                try {
+                    indexedCollection.addIndex(index);
+                }
+                catch (Exception e) {
+                    throw new IllegalStateException("Could not add " + getIndexDescription(index), e);
+                }
             }
         }
         indexedCollection.addAll(scenario.dataSet);
@@ -1397,9 +1382,39 @@ public class IndexedCollectionFunctionalTest {
             indexedCollection.clear();
         }
 
-        evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
-        temporaryFileDatabase.after();
-        temporaryInMemoryDatabase.after();
+        try {
+            evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
+        }
+        catch (RuntimeException e) {
+            System.err.println("Failed scenario: " + scenario);
+            throw e;
+        }
+        catch (AssertionError e) {
+            System.err.println("Failed scenario: " + scenario);
+            throw e;
+        }
+        finally {
+            if (persistence instanceof DiskPersistence) {
+                DiskPersistence diskPersistence = (DiskPersistence) persistence;
+                File diskPersistenceFile = diskPersistence.getFile();
+                if (!diskPersistenceFile.delete()) {
+                    throw new IllegalStateException("Failed to delete temporary disk persistence file: " + diskPersistenceFile);
+                }
+            }
+        }
+    }
+
+    static boolean persistenceProvidesEquivalentIndexAlready(Persistence<Car> persistence, Index<Car> indexToBeAdded) {
+        if (persistence != null && !(persistence instanceof OnHeapPersistence)) {
+            // Persistence is non-heap therefore has a primary key index already.
+            if (indexToBeAdded instanceof AttributeIndex) {
+                if (Car.CAR_ID.equals(((AttributeIndex) indexToBeAdded).getAttribute())) {
+                    // Collection will already have an identity index on this attribute...
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     static void evaluateQuery(IndexedCollection<Car> indexedCollection, Query<Car> query, QueryOptions queryOptions, ExpectedResults expectedResults) {

@@ -21,6 +21,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
@@ -77,7 +78,7 @@ public class PersistenceIndexingBenchmark {
                 double previousInsertsPerSecond = Double.NaN;
                 for (int numIndexes : NUM_INDEXES) {
                     IndexedCollection<Car> collection;
-                    Persistence<Car, String> persistence;
+                    SQLitePersistence<Car, String> persistence;
                     switch (INDEX_TYPE_TO_TEST) {
                         case ON_HEAP: {
                             collection = new ConcurrentIndexedCollection<Car>();
@@ -134,23 +135,13 @@ public class PersistenceIndexingBenchmark {
 
     static void addOffHeapIndexes(OffHeapPersistence<Car, String> persistence, IndexedCollection<Car> collection, int numIndexesToAdd) {
         for (int i = 0; i < numIndexesToAdd; i++) {
-            collection.addIndex(OffHeapIndex.onAttribute(new IndexedAttribute("attribute_" + (i + 1)), persistence, new SimpleAttribute<String, Car>() {
-                @Override
-                public Car getValue(String object, QueryOptions queryOptions) {
-                    return CarFactory.createCar(Integer.valueOf(object.replaceFirst("/some/path/", "")));
-                }
-            }));
+            collection.addIndex(OffHeapIndex.onAttribute(new IndexedAttribute("attribute_" + (i + 1))));
         }
     }
 
     static void addDiskIndexes(DiskPersistence<Car, String> persistence, IndexedCollection<Car> collection, int numIndexesToAdd) {
         for (int i = 0; i < numIndexesToAdd; i++) {
-            collection.addIndex(DiskIndex.onAttribute(new IndexedAttribute("attribute_" + (i + 1)), persistence, new SimpleAttribute<String, Car>() {
-                @Override
-                public Car getValue(String object, QueryOptions queryOptions) {
-                    return CarFactory.createCar(Integer.valueOf(object.replaceFirst("/some/path/", "")));
-                }
-            }));
+            collection.addIndex(DiskIndex.onAttribute(new IndexedAttribute("attribute_" + (i + 1))));
         }
     }
 

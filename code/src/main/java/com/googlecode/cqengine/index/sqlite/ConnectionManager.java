@@ -35,15 +35,8 @@ public interface ConnectionManager {
     Connection getConnection(Index<?> index);
 
     /**
-     * Checks if this instance of ConnectionManager can provide connections to the persistence of the given index.
-     * @param index The {@link Index} for which a connection is required.
-     * @return true if this instance of ConnectionManager can provide connections to the persistence of the given index.
-     * False otherwise.
-     */
-    boolean supportsIndex(Index<?> index);
-
-    /**
      * Informs if index updates should be applied.
+     * This is for advanced use cases only, where the application supplies a custom ConnectionManager to CQEngine.
      *
      * @param index The index.
      * @return true if updates on the index should be applied. False otherwise.

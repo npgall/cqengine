@@ -33,8 +33,7 @@ public class SQLiteIdentityIndexTest {
     @Test
     public void testSerialization() {
         SQLiteIdentityIndex<Integer, Car> index = new SQLiteIdentityIndex<Integer, Car>(
-                Car.CAR_ID,
-                temporaryDatabase.getConnectionManager(true)
+                Car.CAR_ID
         );
 
         SimpleAttribute<Car, byte[]> serializingAttribute = index.new SerializingAttribute(Car.class, byte[].class);

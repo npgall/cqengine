@@ -19,6 +19,8 @@ import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -29,27 +31,29 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+
 public class CollectionQueryEngineTest {
 
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation1() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(null);
+        queryEngine.addIndex(null, noQueryOptions());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAddIndex_ArgumentValidation2() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
         queryEngine.retrieveRecursive(new Query<Car>() {
             @Override
             public boolean matches(Car object, QueryOptions queryOptions) {
                 return false;
             }
-        }, QueryFactory.noQueryOptions());
+        }, noQueryOptions());
     }
 
     @Test
@@ -61,56 +65,60 @@ public class CollectionQueryEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateStandingQueryIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)));
-        queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)));
+        queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)), noQueryOptions());
+        queryEngine.addIndex(StandingQueryIndex.onQuery(QueryFactory.has(Car.CAR_ID)), noQueryOptions());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateCompoundIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL));
-        queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL));
+        queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL), noQueryOptions());
+        queryEngine.addIndex(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL), noQueryOptions());
     }
 
     @Test
     public void testIsMutable() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
         Assert.assertTrue(queryEngine.isMutable());
-        queryEngine.addIndex(createImmutableIndex());
+        queryEngine.addIndex(createImmutableIndex(), noQueryOptions());
         Assert.assertFalse(queryEngine.isMutable());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testEnsureMutable() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(createImmutableIndex());
-        queryEngine.addAll(Collections.singleton(CarFactory.createCar(1)), QueryFactory.noQueryOptions());
+        queryEngine.addIndex(createImmutableIndex(), noQueryOptions());
+        queryEngine.addAll(Collections.singleton(CarFactory.createCar(1)), noQueryOptions());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAddDuplicateIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
-        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
     }
 
     @Test
     public void testAddNonDuplicateIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(Collections.<Car>emptySet(), QueryFactory.noQueryOptions());
+        queryEngine.init(emptyObjectStore(), noQueryOptions());
 
-        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
-        queryEngine.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
+        queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
+        queryEngine.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
+    }
+
+    static ObjectStore<Car> emptyObjectStore() {
+        return new ConcurrentOnHeapObjectStore<Car>();
     }
 
     static HashIndex<Integer, Car> createImmutableIndex() {

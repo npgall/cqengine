@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.engine;
 
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
@@ -53,10 +55,10 @@ public interface ModificationListener<O> {
     public void clear(QueryOptions queryOptions);
 
     /**
-     * Notifies the listener that the given collection has just been created.
+     * Notifies the listener that the given ObjectStore has just been created.
      *
-     * @param collection The entire collection
+     * @param objectStore The ObjectStore which persists objects
      * @param queryOptions Optional parameters for the update
      */
-    public void init(Set<O> collection, QueryOptions queryOptions);
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions);
 }

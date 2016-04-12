@@ -18,19 +18,22 @@ package com.googlecode.cqengine.persistence.offheap;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.sqlite.ConnectionManager;
+import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
+import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
-import com.googlecode.cqengine.persistence.Persistence;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLitePersistentSet;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -64,7 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author niall.gallagher
  */
-public class OffHeapPersistence<O, A extends Comparable<A>> implements Persistence<O, A>, Closeable {
+public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePersistence<O, A>, Closeable {
 
     static final AtomicInteger INSTANCE_ID_GENERATOR = new AtomicInteger();
 
@@ -112,8 +115,8 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
      * @return True if the given index is a {@link OffHeapIndex}. Otherwise false.
      */
     @Override
-    public boolean supportsIndex(Index<?> index) {
-        return index instanceof OffHeapIndex;
+    public boolean supportsIndex(Index<O> index) {
+        return index instanceof OffHeapIndex || index instanceof SQLiteOffHeapIdentityIndex;
     }
 
     @Override
@@ -121,11 +124,6 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
         DBUtils.closeQuietly(persistentConnection);
         this.persistentConnection = null;
         this.closed = true;
-    }
-
-    @Override
-    public boolean isApplyUpdateForIndexEnabled(Index<?> index) {
-        return true;
     }
 
     @Override
@@ -198,8 +196,43 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements Persisten
     }
 
     @Override
-    public Set<O> create() {
-        return new SQLitePersistentSet<O, A>(this);
+    public SQLiteObjectStore<O, A> createObjectStore() {
+        return new SQLiteObjectStore<O, A>(this);
+    }
+
+    @Override
+    public SQLiteOffHeapIdentityIndex<A, O> createIdentityIndex() {
+        return SQLiteOffHeapIdentityIndex.onAttribute(primaryKeyAttribute);
+    }
+
+    /**
+     * Creates a new {@link RequestScopeConnectionManager} and adds it to the given query options with key
+     * {@link ConnectionManager}, if an only if no object with that key is already in the query options.
+     * This allows the application to supply its own implementation of {@link ConnectionManager} to override the default
+     * if necessary.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void openRequestScopeResources(QueryOptions queryOptions) {
+        if (queryOptions.get(ConnectionManager.class) == null) {
+            queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
+        }
+    }
+
+    /**
+     * Closes a {@link RequestScopeConnectionManager} if it is present in the given query options with key
+     * {@link ConnectionManager}.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
+     */
+    @Override
+    public void closeRequestScopeResources(QueryOptions queryOptions) {
+        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        if (connectionManager instanceof RequestScopeConnectionManager) {
+            ((RequestScopeConnectionManager) connectionManager).close();
+            queryOptions.remove(ConnectionManager.class);
+        }
     }
 
     /**

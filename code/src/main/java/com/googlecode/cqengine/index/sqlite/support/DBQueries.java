@@ -213,10 +213,8 @@ public class DBQueries {
     public static <K,A> int bulkAdd(Iterable<Row<K, A>> rows, final String tableName, final Connection connection){
         final String sql = String.format("INSERT OR IGNORE INTO cqtbl_%s values(?, ?);", tableName);
         PreparedStatement statement = null;
-        Boolean previousAutocommit = null;
         int totalRowsModified = 0;
         try {
-            previousAutocommit = DBUtils.setAutoCommit(connection, false);
             statement = connection.prepareStatement(sql);
 
             for (Row<K, A> row : rows) {
@@ -229,7 +227,6 @@ public class DBQueries {
                 ensureNotNegative(m);
                 totalRowsModified += m;
             }
-            DBUtils.commit(connection);
             return totalRowsModified;
         }
         catch (NullPointerException e) {
@@ -246,8 +243,6 @@ public class DBQueries {
             throw new IllegalStateException("Unable to bulk add rows to the index table: "+ tableName + ". Rolled back: " + rolledBack, e);
         }finally {
             DBUtils.closeQuietly(statement);
-            if (previousAutocommit != null)
-                DBUtils.setAutoCommit(connection, previousAutocommit);
         }
     }
 

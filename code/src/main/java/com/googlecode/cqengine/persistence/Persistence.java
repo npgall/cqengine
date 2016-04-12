@@ -15,43 +15,61 @@
  */
 package com.googlecode.cqengine.persistence;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.Factory;
-import com.googlecode.cqengine.index.sqlite.ConnectionManager;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Set;
 
 /**
  * An interface with multiple implementations, which provide details on how a collection or indexes should be persisted
- * off-heap (for example to off-heap memory, or to disk).
+ * (for example on-heap, off-heap, or disk).
  *
  * @author niall.gallagher
  */
-public interface Persistence<O, A extends Comparable<A>> extends ConnectionManager, Factory<Set<O>> {
-
-    SimpleAttribute<O, A> getPrimaryKeyAttribute();
+public interface Persistence<O> {
 
     /**
-     * @return The number of bytes used to persist the collection and/or indexes
+     * Creates an ObjectStore which can store the objects added to the collection, either on-heap off-heap or on disk,
+     * depending on the persistence implementation.
+     *
+     * @return An ObjectStore which persists objects added to the collection.
      */
-    long getBytesUsed();
+    ObjectStore<O> createObjectStore();
 
     /**
-     * Compacts the underlying persistence, which returns unused memory or disk space to the operating system.
+     * Checks if this persistence manages the given index.
+     * @param index The {@link Index} to check.
+     * @return true if this persistence manages the given index. False otherwise.
      */
-    void compact();
+    boolean supportsIndex(Index<O> index);
 
     /**
-     * Expands the underlying persistence by the given number of bytes in a single operation. This will usually result
-     * in the persistence being expanded into an additional contiguous chunk of memory or region on disk.
+     * Called at the start of every request into CQEngine, to prepare any resources needed by the request in order
+     * to access the persistence.
      * <p/>
-     * After this method returns, the operating system will report that the memory or disk space used for persistence
-     * has increased by this amount, but internally the space will simply be reserved for future use. The reserved space
-     * will be used to store objects added to the collection subsequently, without needing to request more memory from
-     * the OS ad-hoc.
+     * The implementation of this method may be a no-op in some persistence implementations, such as those exclusively
+     * on-heap. However the implementation of this method in other persistence implementations, such as off-heap or
+     * on-disk, may open files or connections to the persistence for use by the ObjectStore and indexes during the
+     * request.
      * <p/>
-     * This can reduce fragmentation of the persistence file on some OS filesystems, especially if used prior to bulk
-     * imports when the persistence is on a non-SSD disk.
+     * This method does not modify the state of the Persistence object; instead it will add any resources it opens to
+     * the given QueryOptions object. The related {@link #closeRequestScopeResources(QueryOptions)} method will then
+     * be called at the end of every request into CQEngine, to close any resources in the QueryOptions which this method
+     * opened.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine.
      */
-    void expand(long numBytes);
+    void openRequestScopeResources(QueryOptions queryOptions);
+
+    /**
+     * Called at the end of every request into CQEngine, to close any resources which were opened by the
+     * {@link #openRequestScopeResources(QueryOptions)} method and stored in the given query options.
+     *
+     * @param queryOptions The query options supplied with the request into CQEngine, and which has earlier been
+     *                     supplied to the {@link #openRequestScopeResources(QueryOptions)} method.
+     */
+    void closeRequestScopeResources(QueryOptions queryOptions);
+
 }

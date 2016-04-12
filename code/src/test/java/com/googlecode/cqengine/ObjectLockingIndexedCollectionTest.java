@@ -20,6 +20,7 @@ import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
@@ -61,7 +62,7 @@ public class ObjectLockingIndexedCollectionTest extends TestCase {
 
     public void testConstructor() {
         ObjectLockingIndexedCollection<Integer> collection1 = new ObjectLockingIndexedCollection<Integer>();
-        ObjectLockingIndexedCollection<Integer> collection2 = new ObjectLockingIndexedCollection<Integer>(new DefaultConcurrentSetFactory<Integer>());
+        ObjectLockingIndexedCollection<Integer> collection2 = new ObjectLockingIndexedCollection<Integer>(new OnHeapPersistence<Integer>());
         ObjectLockingIndexedCollection<Integer> collection3 = new ObjectLockingIndexedCollection<Integer>(64);
 
         assertEquals(64, collection1.stripedLock.concurrencyLevel);

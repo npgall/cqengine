@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.hash;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -82,6 +83,11 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     @Override
     public boolean isMutable() {
         return true;
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     /**

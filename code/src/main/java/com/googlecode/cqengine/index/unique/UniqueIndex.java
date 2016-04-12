@@ -18,14 +18,16 @@ package com.googlecode.cqengine.index.unique;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
@@ -111,7 +113,12 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
         return false;
     }
 
-	@Override
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
+    }
+
+    @Override
 	public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
 		Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) 
@@ -220,8 +227,8 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        addAll(collection, queryOptions);
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

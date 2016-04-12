@@ -17,6 +17,8 @@ package com.googlecode.cqengine.index.support;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -125,8 +127,8 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        addAll(collection, queryOptions);
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**
@@ -152,7 +154,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
                 return new CloseableIterator<T>() {
                     final Iterator<T> iterator = iterable.iterator();
                     @Override
-                    public void close() throws IOException {
+                    public void close() {
                         // No-op.
                     }
                     @Override

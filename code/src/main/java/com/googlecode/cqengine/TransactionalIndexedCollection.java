@@ -17,6 +17,8 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.support.Factory;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.ArgumentValidationOption;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
@@ -118,28 +120,24 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     }
 
     /**
-     * Creates a new {@link TransactionalIndexedCollection} with default settings.
-     *
-     * Uses {@link DefaultConcurrentSetFactory} to create the backing set.
+     * Creates a new {@link TransactionalIndexedCollection} with default settings, using {@link OnHeapPersistence}.
      *
      * @param objectType The type of objects which will be stored in the collection
      */
     public TransactionalIndexedCollection(Class<O> objectType) {
-        super(new DefaultConcurrentSetFactory<O>());
-        this.objectType = objectType;
-        // Set up initial version...
-        incrementVersion(Collections.<O>emptySet());
+        this(objectType, new OnHeapPersistence<O>());
     }
 
     /**
      * Creates a new {@link TransactionalIndexedCollection} which will use the given factory to create the backing set.
      *
      * @param objectType The type of objects which will be stored in the collection
-     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
-     * added to the indexed collection will be stored
+     * @param persistence The {@link Persistence} implementation which will create a concurrent {@link java.util.Set}
+     *                    in which objects added to the indexed collection will be stored, and which will provide
+     *                    access to the underlying storage of indexes.
      */
-    public TransactionalIndexedCollection(Class<O> objectType, Factory<Set<O>> backingSetFactory) {
-        super(backingSetFactory);
+    public TransactionalIndexedCollection(Class<O> objectType, Persistence<O> persistence) {
+        super(persistence);
         this.objectType = objectType;
         // Set up initial version...
         incrementVersion(Collections.<O>emptySet());
@@ -203,45 +201,51 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
 
         // Otherwise apply MVCC to support READ_COMMITTED isolation...
         synchronized (writeMutex) {
-            Iterator<O> objectsToRemoveIterator = objectsToRemove.iterator();
-            Iterator<O> objectsToAddIterator = objectsToAdd.iterator();
-            if (!objectsToRemoveIterator.hasNext() && !objectsToAddIterator.hasNext()) {
-                return false;
-            }
-            if (FlagsEnabled.isFlagEnabled(queryOptions, STRICT_REPLACEMENT)) {
-                if (!collectionContainsAllIterable(collection, objectsToRemove)) {
+            queryOptions = openRequestScopeResourcesIfNecessary(queryOptions);
+            try {
+                Iterator<O> objectsToRemoveIterator = objectsToRemove.iterator();
+                Iterator<O> objectsToAddIterator = objectsToAdd.iterator();
+                if (!objectsToRemoveIterator.hasNext() && !objectsToAddIterator.hasNext()) {
                     return false;
                 }
-            }
-            boolean modified = false;
-            if (objectsToAddIterator.hasNext()) {
-                // Configure new reading threads to exclude the objects we will add...
-                incrementVersion(objectsToAdd);
+                if (FlagsEnabled.isFlagEnabled(queryOptions, STRICT_REPLACEMENT)) {
+                    if (!collectionContainsAllIterable(getObjectStoreAsSet(queryOptions), objectsToRemove)) {
+                        return false;
+                    }
+                }
+                boolean modified = false;
+                if (objectsToAddIterator.hasNext()) {
+                    // Configure new reading threads to exclude the objects we will add...
+                    incrementVersion(objectsToAdd);
+
+                    // Wait for this to take effect across all threads...
+                    waitForReadersOfPreviousVersionsToFinish();
+
+                    // Now add the given objects...
+                    modified = doAddAll(objectsToAdd, queryOptions);
+                }
+                if (objectsToRemoveIterator.hasNext()) {
+                    // Configure (or reconfigure) new reading threads to (instead) exclude the objects we will remove...
+                    incrementVersion(objectsToRemove);
+
+                    // Wait for this to take effect across all threads...
+                    waitForReadersOfPreviousVersionsToFinish();
+
+                    // Now remove the given objects...
+                    modified = doRemoveAll(objectsToRemove, queryOptions) || modified;
+                }
+
+                // Finally, remove the exclusion...
+                incrementVersion(Collections.<O>emptySet());
 
                 // Wait for this to take effect across all threads...
                 waitForReadersOfPreviousVersionsToFinish();
 
-                // Now add the given objects...
-                modified = doAddAll(objectsToAdd, queryOptions);
+                return modified;
             }
-            if (objectsToRemoveIterator.hasNext()) {
-                // Configure (or reconfigure) new reading threads to (instead) exclude the objects we will remove...
-                incrementVersion(objectsToRemove);
-
-                // Wait for this to take effect across all threads...
-                waitForReadersOfPreviousVersionsToFinish();
-
-                // Now remove the given objects...
-                modified = doRemoveAll(objectsToRemove, queryOptions) || modified;
+            finally {
+                closeRequestScopeResourcesIfNecessary(queryOptions);
             }
-
-            // Finally, remove the exclusion...
-            incrementVersion(Collections.<O>emptySet());
-
-            // Wait for this to take effect across all threads...
-            waitForReadersOfPreviousVersionsToFinish();
-
-            return modified;
         }
     }
 
@@ -297,7 +301,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         // Prepare to lazily read all objects from the collection *without using MVCC* (..READ_UNCOMMITTED),
         // and lazily filter it to return only the subsetToRemove objects which are not in the given collection...
         Query<O> query = all(objectType);
-        FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>(
+        FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>( // TODO: should this be closed?
                 retrieve(query, queryOptions(isolationLevel(READ_UNCOMMITTED))), query, noQueryOptions()) {
             @Override
             public boolean isValid(O object, QueryOptions queryOptions) {

@@ -60,6 +60,11 @@ public class Thresholds {
         return thresholds.get(key);
     }
 
+    @Override
+    public String toString() {
+        return thresholds.toString();
+    }
+
     public static Double getThreshold(QueryOptions queryOptions, Object key) {
         Thresholds thresholds = queryOptions.get(Thresholds.class);
         return thresholds == null ? null : thresholds.getThreshold(key);

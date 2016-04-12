@@ -15,9 +15,14 @@
  */
 package com.googlecode.cqengine;
 
+import com.googlecode.cqengine.index.support.CloseableIterator;
+import com.googlecode.cqengine.index.support.CloseableQueryResources;
 import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.index.support.Factory;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -59,46 +64,46 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
     final StripedLock stripedLock;
 
     /**
-     * Creates a new {@link ObjectLockingIndexedCollection} with default settings.
-     *
-     * Uses {@link com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory} to create the backing set,
-     * and sets concurrency level at a default of 64.
+     * Creates a new {@link ObjectLockingIndexedCollection} with default settings, using {@link OnHeapPersistence}
+     * and a default concurrency level 64.
      */
     public ObjectLockingIndexedCollection() {
-        this(new DefaultConcurrentSetFactory<O>(), 64);
+        this(new OnHeapPersistence<O>(), 64);
     }
 
     /**
-     * Creates a new {@link ObjectLockingIndexedCollection} which will use the given factory to create the backing set,
-     * and sets concurrency level at a default of 64.
+     * Creates a new {@link ObjectLockingIndexedCollection} which will use the given persistence to create the backing
+     * set, and a default concurrency level 64.
      *
-     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
-     * added to the indexed collection will be stored
+     * @param persistence The {@link Persistence} implementation which will create a concurrent {@link java.util.Set}
+     *                    in which objects added to the indexed collection will be stored, and which will provide
+     *                    access to the underlying storage of indexes.
      */
-    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory) {
-        this(backingSetFactory, 64);
+    public ObjectLockingIndexedCollection(Persistence<O> persistence) {
+        this(persistence, 64);
     }
 
     /**
-     * Creates a new {@link ObjectLockingIndexedCollection} which uses {@link DefaultConcurrentSetFactory} to create the
-     * backing set, and sets concurrency level to the given value.
+     * Creates a new {@link ObjectLockingIndexedCollection} using {@link OnHeapPersistence} and the given concurrency
+     * level.
      *
      * @param concurrencyLevel The estimated number of concurrently updating threads
      */
     public ObjectLockingIndexedCollection(int concurrencyLevel) {
-        this(new DefaultConcurrentSetFactory<O>(), concurrencyLevel);
+        this(new OnHeapPersistence<O>(), concurrencyLevel);
     }
 
     /**
-     * Creates a new {@link ObjectLockingIndexedCollection}, allowing the backing set implementation and concurrency
-     * level to be set explicitly.
+     * Creates a new {@link ObjectLockingIndexedCollection}, which will use the given persistence to create the backing
+     * set, and the given concurrency level.
      *
-     * @param backingSetFactory A factory which will create a concurrent {@link java.util.Set} in which objects
-     * added to the indexed collection will be stored
+     * @param persistence The {@link Persistence} implementation which will create a concurrent {@link java.util.Set}
+     *                    in which objects added to the indexed collection will be stored, and which will provide
+     *                    access to the underlying storage of indexes.
      * @param concurrencyLevel The estimated number of concurrently updating threads
      */
-    public ObjectLockingIndexedCollection(Factory<Set<O>> backingSetFactory, int concurrencyLevel) {
-        super(backingSetFactory);
+    public ObjectLockingIndexedCollection(Persistence<O> persistence, int concurrencyLevel) {
+        super(persistence);
         this.stripedLock = new StripedLock(concurrencyLevel);
     }
 
@@ -127,12 +132,18 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
      * {@inheritDoc}
      */
     @Override
-    public Iterator<O> iterator() {
-        return new Iterator<O>() {
-            private final Iterator<O> collectionIterator = collection.iterator();
+    public CloseableIterator<O> iterator() {
+        return new CloseableIterator<O>() {
+            final QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
+
+            private final CloseableIterator<O> collectionIterator = objectStore.iterator(queryOptions);
             @Override
             public boolean hasNext() {
-                return collectionIterator.hasNext();
+                boolean hasNext = collectionIterator.hasNext();
+                if (!hasNext) {
+                    close();
+                }
+                return hasNext;
             }
 
             private O currentObject = null;
@@ -152,11 +163,17 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.removeAll(Collections.singleton(currentObject), QueryFactory.noQueryOptions());
+                    indexEngine.removeAll(Collections.singleton(currentObject), queryOptions);
                 }
                 finally {
                     lock.unlock();
                 }
+            }
+
+            @Override
+            public void close() {
+                CloseableQueryResources.closeQuietly(collectionIterator);
+                closeRequestScopeResourcesIfNecessary(queryOptions);
             }
         };
     }

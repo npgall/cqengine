@@ -21,7 +21,10 @@ import com.googlecode.concurrenttrees.suffix.SuffixTree;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -83,6 +86,11 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     @Override
     public boolean isQuantized() {
         return false;
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     @Override
@@ -335,8 +343,8 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        addAll(collection, queryOptions);
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

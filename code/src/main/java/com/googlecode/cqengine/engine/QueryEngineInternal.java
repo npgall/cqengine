@@ -15,6 +15,11 @@
  */
 package com.googlecode.cqengine.engine;
 
+import com.googlecode.cqengine.index.support.ResourceIndex;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.simple.SimpleQuery;
+import com.googlecode.cqengine.resultset.ResultSet;
+
 /**
  * @author Niall Gallagher
  */
@@ -27,4 +32,13 @@ public interface QueryEngineInternal<O> extends QueryEngine<O>, ModificationList
      * @return True if all indexes are mutable, false if any indexes are not mutable
      */
     public boolean isMutable();
+
+    /**
+     * Returns true if any of the indexes which have been added implement the {@link ResourceIndex} interface, which
+     * indicates if those indexes need {@link ResultSet#close()} to be called by the application when it has finished
+     * using the ResultSet, in order for it to free resources which were opened to process the request.
+     *
+     * @return if any of the indexes which have been added implement the {@link ResourceIndex} interface
+     */
+    public boolean hasResourceIndexes();
 }

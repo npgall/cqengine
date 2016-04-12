@@ -17,15 +17,20 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.engine.QueryEngine;
+import com.googlecode.cqengine.index.AttributeIndex;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.persistence.ExternalPersistence;
 import com.googlecode.cqengine.persistence.Persistence;
-import com.googlecode.cqengine.persistence.support.PersistentSet;
+import com.googlecode.cqengine.persistence.composite.CompositePersistence;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * An abstract class which wraps a {@link SQLiteIndex}, and simplifies some of its configuration options to make it
@@ -37,48 +42,97 @@ import java.util.Set;
  */
 public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extends Comparable<K>> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
-    final Class<? extends Persistence> persistenceType;
-    volatile Attribute<O, A> attribute;
+    final Class<? extends SQLitePersistence> persistenceType;
+    final Attribute<O, A> attribute;
     volatile SQLiteIndex<A, O, K> backingIndex;
 
-    protected SimplifiedSQLiteIndex(final Attribute<O, A> attribute,
-                                    final Persistence<O, K> persistence,
-                                    final SimpleAttribute<K, O> foreignKeyAttribute) {
-        this.persistenceType = persistence.getClass();
-        this.attribute = attribute;
-        this.backingIndex = new SQLiteIndex<A, O, K>(
-                attribute,
-                persistence.getPrimaryKeyAttribute(),
-                foreignKeyAttribute,
-                persistence);
-    }
-
-    protected SimplifiedSQLiteIndex(Class<? extends Persistence<O, A>> persistenceType, Attribute<O, A> attribute) {
+    protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
         this.persistenceType = persistenceType;
         this.attribute = attribute;
     }
 
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        if (backingIndex == null) {
-            if (!(collection instanceof PersistentSet)) {
-                throw new IllegalStateException("No persistence strategy was configured for " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "', neither at index-level nor at IndexedCollection-level");
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+        Persistence<O> persistence = getPersistenceFromQueryOptions(queryOptions);
+        QueryEngine<O> queryEngine = getQueryEngineQueryOptions(queryOptions);
+
+        final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
+        final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine);
+        final SimpleAttribute<K, O> foreignKeyAttribute = new SimpleAttribute<K, O>(primaryKeyAttribute.getAttributeType(), primaryKeyAttribute.getObjectType()) {
+            @Override
+            public O getValue(K primaryKeyValue, QueryOptions queryOptions) {
+                return primaryKeyIndex.retrieve(QueryFactory.equal(primaryKeyAttribute, primaryKeyValue), queryOptions).uniqueResult();
             }
-            final PersistentSet<O, K> persistentSet = (PersistentSet<O, K>)collection;
-            final Persistence<O, K> persistence = persistentSet.getPersistence();
-            if (!(persistenceType.isAssignableFrom(persistence.getClass()))) {
-                throw new IllegalStateException("No persistence strategy was configured explicitly for " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "', and the persistence strategy at IndexedCollection-level is not compatible with this index: " + persistence);
+        };
+        backingIndex = new SQLiteIndex<A, O, K>(this.attribute, primaryKeyAttribute, foreignKeyAttribute) {
+            // Override getEffectiveIndex() in the backing index to return a reference to this index...
+            @Override
+            public Index<O> getEffectiveIndex() {
+                return SimplifiedSQLiteIndex.this.getEffectiveIndex();
             }
-            final IdentityAttributeIndex<K, O> identityIndex = persistentSet.getBackingIndex();
-            final SimpleAttribute<O, K> primaryKeyAttribute = persistence.getPrimaryKeyAttribute();
-            final SimpleAttribute<K, O> foreignKeyAttribute = identityIndex.getForeignKeyAttribute();
-            backingIndex = new SQLiteIndex<A, O, K>(
-                    attribute,
-                    primaryKeyAttribute,
-                    foreignKeyAttribute,
-                    persistence);
+        };
+        backingIndex.init(objectStore, queryOptions);
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
+    }
+
+    static <O> Persistence<O> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
+        @SuppressWarnings("unchecked")
+        Persistence<O> persistence = (Persistence<O>) queryOptions.get(Persistence.class);
+        if (persistence == null) {
+            throw new IllegalStateException("A required Persistence object was not supplied in query options");
         }
-        backingIndex.init(collection, queryOptions);
+        return persistence;
+    }
+
+    static <O> QueryEngine<O> getQueryEngineQueryOptions(QueryOptions queryOptions) {
+        @SuppressWarnings("unchecked")
+        QueryEngine<O> queryEngine = (QueryEngine<O>) queryOptions.get(QueryEngine.class);
+        if (queryEngine == null) {
+            throw new IllegalStateException("The QueryEngine was not supplied in query options");
+        }
+        return queryEngine;
+    }
+
+    SimpleAttribute<O, K> getPrimaryKeyFromPersistence(Persistence<O> persistence) {
+
+        if (persistence instanceof ExternalPersistence) {
+            return ((ExternalPersistence<O, K>) persistence).getPrimaryKeyAttribute();
+        }
+        else if (persistence instanceof CompositePersistence) {
+            CompositePersistence<O> compositePersistence = (CompositePersistence<O>) persistence;
+            if (compositePersistence.getPrimaryPersistence() instanceof ExternalPersistence) {
+                return ((ExternalPersistence<O, K>) compositePersistence.getPrimaryPersistence()).getPrimaryKeyAttribute();
+            }
+            else if (compositePersistence.getSecondaryPersistence() instanceof ExternalPersistence) {
+                return ((ExternalPersistence<O, K>) compositePersistence.getSecondaryPersistence()).getPrimaryKeyAttribute();
+            }
+            else {
+                for (Persistence<O> additionalPersistence : compositePersistence.getAdditionalPersistences()) {
+                    if (additionalPersistence instanceof ExternalPersistence) {
+                        return ((ExternalPersistence<O, K>) additionalPersistence).getPrimaryKeyAttribute();
+                    }
+                }
+            }
+        }
+        throw new IllegalStateException("This index " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "' cannot be added to the IndexedCollection, because the configured persistence does not report the primary key attribute.");
+    }
+
+    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine) {
+        for (Index<O> index : queryEngine.getIndexes()) {
+            if (index instanceof AttributeIndex) {
+                AttributeIndex<K, O> attributeIndex = (AttributeIndex<K, O>) index;
+                if (primaryKeyAttribute.equals(attributeIndex.getAttribute())) {
+                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null))) {
+                        return attributeIndex;
+                    }
+                }
+            }
+        }
+        throw new IllegalStateException("This index " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "' cannot be added to the IndexedCollection yet, because it requires that an index on the primary key to be added first.");
     }
 
     SQLiteIndex<A, O, K> backingIndex() {

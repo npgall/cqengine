@@ -20,6 +20,7 @@ import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
+import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
@@ -27,7 +28,10 @@ import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
-import com.googlecode.cqengine.persistence.support.PersistentSet;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStoreResultSet;
+import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
@@ -51,7 +55,6 @@ import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
 import com.googlecode.cqengine.resultset.order.MaterializingResultSet;
-import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +72,8 @@ import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSo
  */
 public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
-    private volatile Set<O> collection = Collections.emptySet();
+    private volatile Persistence<O> persistence;
+    private volatile ObjectStore<O> objectStore;
 
     // Map of attributes to set of indexes on that attribute...
     private final ConcurrentMap<Attribute<O, ?>, Set<Index<O>>> attributeIndexes = new ConcurrentHashMap<Attribute<O, ?>, Set<Index<O>>>();
@@ -83,38 +87,35 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     private volatile boolean allIndexesAreMutable = true;
     // This will be set to true if any index is added which requires
     // the outer ResultSet.close() method to close resources added to QueryOptions...
-    private volatile boolean useCloseableResultSet = false;
+    private volatile boolean hasResourceIndexes = false;
 
     public CollectionQueryEngine() {
     }
 
     @Override
-    public void init(final Set<O> collection, final QueryOptions queryOptions) {
-        this.collection = collection;
-        if (collection instanceof PersistentSet) {
-            // If the collection is backed by a PersistentSet, add the backing index of the PersistentSet
-            // so it can also be used as a regular index to accelerate queries...
-            PersistentSet<O, ? extends Comparable<?>> persistentSet = (PersistentSet<O, ? extends Comparable<?>>)collection;
-            addIndex(persistentSet.getBackingIndex());
+    public void init(final ObjectStore<O> objectStore, final QueryOptions queryOptions) {
+        this.objectStore = objectStore;
+        this.persistence = getPersistenceFromQueryOptions(queryOptions);
+        if (objectStore instanceof SQLiteObjectStore) {
+            // If the collection is backed by a SQLiteObjectStore, add the backing index of the SQLiteObjectStore
+            // so that it can also be used as a regular index to accelerate queries...
+            SQLiteObjectStore<O, ? extends Comparable<?>> sqLiteObjectStore = (SQLiteObjectStore<O, ? extends Comparable<?>>)objectStore;
+            SQLiteIdentityIndex<? extends Comparable<?>, O> backingIndex = sqLiteObjectStore.getBackingIndex();
+            addIndex(backingIndex, queryOptions);
         }
+
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                index.init(collection, queryOptions);
+                queryOptions.put(QueryEngine.class, this);
+                queryOptions.put(Persistence.class, persistence);
+                index.init(objectStore, queryOptions);
                 return true;
             }
         });
     }
 
     // -------------------- Methods for adding indexes --------------------
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void addIndex(Index<O> index) {
-        addIndex(index, noQueryOptions());
-    }
 
     /**
      * {@inheritDoc}
@@ -136,7 +137,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         }
         else if (index instanceof AttributeIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
-            useCloseableResultSet = index instanceof ResourceIndex || useCloseableResultSet;
+            hasResourceIndexes = index instanceof ResourceIndex || hasResourceIndexes;
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
@@ -179,8 +180,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (!indexesOnThisAttribute.add(attributeIndex)) {
             throw new IllegalStateException("An equivalent index has already been added for attribute: " + attribute);
         }
-        attributeIndex.init(collection, queryOptions);
+        queryOptions.put(QueryEngine.class, this);
+        queryOptions.put(Persistence.class, persistence);
+        attributeIndex.init(objectStore, queryOptions);
     }
+
+
 
     /**
      * Adds either a {@link StandingQueryIndex} or a regular index build on a {@link StandingQueryAttribute}.
@@ -192,7 +197,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for standing query: " + standingQuery);
         }
-        standingQueryIndex.init(collection, queryOptions);
+        queryOptions.put(QueryEngine.class, this);
+        queryOptions.put(Persistence.class, persistence);
+        standingQueryIndex.init(objectStore, queryOptions);
     }
 
     /**
@@ -205,7 +212,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for compound attribute: " + compoundAttribute);
         }
-        compoundIndex.init(collection, queryOptions);
+        queryOptions.put(QueryEngine.class, this);
+        queryOptions.put(Persistence.class, persistence);
+        compoundIndex.init(objectStore, queryOptions);
     }
 
     // -------------------- Method for accessing indexes --------------------
@@ -252,8 +261,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      *
      * @return The entire collection wrapped as a {@link ResultSet}, with retrieval cost {@link Integer#MAX_VALUE}
      */
-    ResultSet<O> getEntireCollectionAsResultSet() {
-        return new StoredSetBasedResultSet<O>(this.collection, Integer.MAX_VALUE) {
+    ResultSet<O> getEntireCollectionAsResultSet(Query<O> query, QueryOptions queryOptions) {
+        return new ObjectStoreResultSet<O>(objectStore, query, queryOptions, Integer.MAX_VALUE) {
             // Override getMergeCost() to avoid calling size(),
             // which may be expensive for custom implementations of lazy backing sets...
             @Override
@@ -298,14 +307,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     }
 
     // -------------------- Methods for query processing --------------------
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ResultSet<O> retrieve(Query<O> query) {
-        return retrieve(query, noQueryOptions());
-    }
 
     /**
      * {@inheritDoc}
@@ -440,7 +441,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         }
 
         // Return the results...
-        if (useCloseableResultSet) {
+        if (hasResourceIndexes) {
             return new CloseableResultSet<O>(resultSet, query, queryOptions) {
                 @Override
                 public void close() {
@@ -682,6 +683,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         resultSetResourcesToClose.add(missingResults);
         return missingResults.iterator();
+    }
+
+    static <O> Persistence<O> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
+        @SuppressWarnings("unchecked")
+        Persistence<O> persistence = (Persistence<O>) queryOptions.get(Persistence.class);
+//        if (persistence == null) {
+//            throw new IllegalStateException("A required Persistence object was not supplied in query options");
+//        } // TODO
+        return persistence;
     }
 
     /**
@@ -935,7 +945,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
-            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, query, queryOptions);
+            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(query, queryOptions), resultSetToNegate, query, queryOptions);
         }
         else {
             throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));
@@ -1161,6 +1171,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public boolean isMutable() {
         return allIndexesAreMutable;
+    }
+
+    @Override
+    public boolean hasResourceIndexes() {
+        return hasResourceIndexes;
     }
 
     /**

@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
+import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 
 /**
@@ -25,7 +26,15 @@ import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
  */
 public class OffHeapConcurrentIndexedCollection extends ConcurrentIndexedCollection<Car> {
 
+
     public OffHeapConcurrentIndexedCollection() {
-        super(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
+        this(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
+    }
+
+    public OffHeapConcurrentIndexedCollection(Persistence<Car> persistence) {
+        super(persistence);
+        if (!(persistence instanceof OffHeapPersistence)) {
+            throw new IllegalStateException("Unexpected persistence implementation: " + persistence);
+        }
     }
 }

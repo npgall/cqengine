@@ -65,4 +65,15 @@ public interface Index<O> extends ModificationListener<O> {
      */
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
 
+    /**
+     * Returns the effective index, which Persistence objects will use to determine the identity of the index making
+     * persistence requests. Most Index implementations will typically return a reference to themselves ('this').
+     * However in advanced cases when one index delegates to another, the implementation of the wrapping index will
+     * create a subclass the delegate index, and override this method in the delegate index so that when the delegate
+     * index interacts with the persistence, it will identify itself as the outer or "effective" index.
+     *
+     * @return The effective index, in the case that this index is wrapped by another index.
+     */
+    public Index<O> getEffectiveIndex();
+
 }

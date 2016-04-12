@@ -16,6 +16,8 @@
 package com.googlecode.cqengine.index.fallback;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.All;
@@ -47,7 +49,7 @@ public class FallbackIndex<O> implements Index<O> {
     private static final int INDEX_RETRIEVAL_COST = Integer.MAX_VALUE;
     private static final int INDEX_MERGE_COST = Integer.MAX_VALUE;
 
-    private Set<O> collection = Collections.emptySet();
+    volatile ObjectStore<O> objectStore = null;
 
     public FallbackIndex() {
     }
@@ -62,6 +64,11 @@ public class FallbackIndex<O> implements Index<O> {
     @Override
     public boolean isMutable() {
         return true;
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     /**
@@ -90,13 +97,13 @@ public class FallbackIndex<O> implements Index<O> {
             @Override
             public Iterator<O> iterator() {
                 if (query instanceof All) {
-                    return IteratorUtil.wrapAsUnmodifiable(collection.iterator());
+                    return IteratorUtil.wrapAsUnmodifiable(objectStore.iterator(queryOptions));
                 }
                 else if (query instanceof None) {
                     return Collections.<O>emptyList().iterator();
                 }
                 else {
-                    return new FilteringIterator<O>(collection.iterator(), queryOptions) {
+                    return new FilteringIterator<O>(objectStore.iterator(queryOptions), queryOptions) {
                         @Override
                         public boolean isValid(O object, QueryOptions queryOptions) {
                             return query.matches(object, queryOptions);
@@ -170,9 +177,9 @@ public class FallbackIndex<O> implements Index<O> {
      * {@link Index#retrieve(com.googlecode.cqengine.query.Query, com.googlecode.cqengine.query.option.QueryOptions)} method can subsequently iterate.</b>
      */
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         // Store the collection...
-        this.collection = collection;
+        this.objectStore = objectStore;
     }
 
     /**
@@ -181,6 +188,6 @@ public class FallbackIndex<O> implements Index<O> {
      */
     @Override
     public void clear(QueryOptions queryOptions) {
-        collection.clear();
+        objectStore.clear(queryOptions);
     }
 }

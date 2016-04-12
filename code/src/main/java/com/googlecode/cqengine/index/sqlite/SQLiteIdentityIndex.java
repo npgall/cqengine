@@ -20,7 +20,9 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -46,18 +48,22 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  */
 public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
 
-    final SQLiteIndex<A, O, byte[]> offHeapIndex;
+    final SQLiteIndex<A, O, byte[]> sqLiteIndex;
     final Class<O> objectType;
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final SimpleAttribute<A, O> foreignKeyAttribute;
 
-    public SQLiteIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute, ConnectionManager connectionManager) {
-        this.offHeapIndex = SQLiteIndex.onAttribute(
+    public SQLiteIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute) {
+        this.sqLiteIndex = new SQLiteIndex<A, O, byte[]>(
                 primaryKeyAttribute,
                 new SerializingAttribute(primaryKeyAttribute.getObjectType(), byte[].class),
-                new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType()),
-                connectionManager
-        );
+                new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType())) {
+            // Override getEffectiveIndex() in the SQLiteIndex to return a reference to this index...
+            @Override
+            public Index<O> getEffectiveIndex() {
+                return SQLiteIdentityIndex.this.getEffectiveIndex();
+            }
+        };
         this.objectType = primaryKeyAttribute.getObjectType();
         this.primaryKeyAttribute = primaryKeyAttribute;
         this.foreignKeyAttribute = new ForeignKeyAttribute();
@@ -72,47 +78,52 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
      */
     @Override
     public Attribute<O, A> getAttribute() {
-        return offHeapIndex.getAttribute();
+        return sqLiteIndex.getAttribute();
     }
 
     @Override
     public boolean isMutable() {
-        return offHeapIndex.isMutable();
+        return sqLiteIndex.isMutable();
     }
 
     @Override
     public boolean supportsQuery(Query<O> query) {
-        return offHeapIndex.supportsQuery(query);
+        return sqLiteIndex.supportsQuery(query);
     }
 
     @Override
     public boolean isQuantized() {
-        return offHeapIndex.isQuantized();
+        return sqLiteIndex.isQuantized();
+    }
+
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
     }
 
     @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
-        return offHeapIndex.retrieve(query, queryOptions);
+        return sqLiteIndex.retrieve(query, queryOptions);
     }
 
     @Override
     public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        return offHeapIndex.addAll(objects, queryOptions);
+        return sqLiteIndex.addAll(objects, queryOptions);
     }
 
     @Override
     public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        return offHeapIndex.removeAll(objects, queryOptions);
+        return sqLiteIndex.removeAll(objects, queryOptions);
     }
 
     @Override
     public void clear(QueryOptions queryOptions) {
-        offHeapIndex.clear(queryOptions);
+        sqLiteIndex.clear(queryOptions);
     }
 
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
-        offHeapIndex.init(collection, queryOptions);
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+        sqLiteIndex.init(objectStore, queryOptions);
     }
 
 
@@ -132,62 +143,62 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
 
     @Override
     public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
-        return offHeapIndex.getDistinctKeys(queryOptions);
+        return sqLiteIndex.getDistinctKeys(queryOptions);
     }
 
     @Override
     public Integer getCountForKey(A key, QueryOptions queryOptions) {
-        return offHeapIndex.getCountForKey(key, queryOptions);
+        return sqLiteIndex.getCountForKey(key, queryOptions);
     }
 
     @Override
     public CloseableIterable<A> getDistinctKeys(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
-        return offHeapIndex.getDistinctKeys(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+        return sqLiteIndex.getDistinctKeys(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override
     public CloseableIterable<A> getDistinctKeysDescending(QueryOptions queryOptions) {
-        return offHeapIndex.getDistinctKeysDescending(queryOptions);
+        return sqLiteIndex.getDistinctKeysDescending(queryOptions);
     }
 
     @Override
     public CloseableIterable<A> getDistinctKeysDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
-        return offHeapIndex.getDistinctKeysDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+        return sqLiteIndex.getDistinctKeysDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeysDescending(QueryOptions queryOptions) {
-        return offHeapIndex.getStatisticsForDistinctKeysDescending(queryOptions);
+        return sqLiteIndex.getStatisticsForDistinctKeysDescending(queryOptions);
     }
 
     @Override
     public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
-        return offHeapIndex.getCountOfDistinctKeys(queryOptions);
+        return sqLiteIndex.getCountOfDistinctKeys(queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(QueryOptions queryOptions) {
-        return offHeapIndex.getStatisticsForDistinctKeys(queryOptions);
+        return sqLiteIndex.getStatisticsForDistinctKeys(queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyValue<A, O>> getKeysAndValues(QueryOptions queryOptions) {
-        return offHeapIndex.getKeysAndValues(queryOptions);
+        return sqLiteIndex.getKeysAndValues(queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyValue<A, O>> getKeysAndValues(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
-        return offHeapIndex.getKeysAndValues(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+        return sqLiteIndex.getKeysAndValues(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(QueryOptions queryOptions) {
-        return offHeapIndex.getKeysAndValuesDescending(queryOptions);
+        return sqLiteIndex.getKeysAndValuesDescending(queryOptions);
     }
 
     @Override
     public CloseableIterable<KeyValue<A, O>> getKeysAndValuesDescending(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, QueryOptions queryOptions) {
-        return offHeapIndex.getKeysAndValuesDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
+        return sqLiteIndex.getKeysAndValuesDescending(lowerBound, lowerInclusive, upperBound, upperInclusive, queryOptions);
     }
 
     @Override
@@ -272,16 +283,14 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     }
 
     /**
-     * Creates a new {@link SQLiteIdentityIndex} for the given primary key attribute and connection manager.
+     * Creates a new {@link SQLiteIdentityIndex} for the given primary key attribute.
      *
      * @param primaryKeyAttribute The {@link SimpleAttribute} representing a primary key on which the index will be built.
-     * @param connectionManager The {@link ConnectionManager}
      * @param <A> The type of the attribute.
      * @param <O> The type of the object containing the attributes.
      * @return a new instance of a standalone {@link SQLiteIdentityIndex}
      */
-    public static <A extends Comparable<A>, O> SQLiteIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute,
-                                                           final ConnectionManager connectionManager) {
-        return new SQLiteIdentityIndex<A, O>(primaryKeyAttribute, connectionManager);
+    public static <A extends Comparable<A>, O> SQLiteIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute) {
+        return new SQLiteIdentityIndex<A, O>(primaryKeyAttribute);
     }
 }

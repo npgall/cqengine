@@ -16,6 +16,8 @@
 package com.googlecode.cqengine.index.standingquery;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -24,7 +26,6 @@ import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,6 +68,11 @@ public class StandingQueryIndex<O> implements Index<O> {
         return true;
     }
 
+    @Override
+    public Index<O> getEffectiveIndex() {
+        return this;
+    }
+
     public Query<O> getStandingQuery() {
         return standingQuery;
     }
@@ -105,9 +111,9 @@ public class StandingQueryIndex<O> implements Index<O> {
      * {@inheritDoc}
      */
     @Override
-    public void init(Set<O> collection, QueryOptions queryOptions) {
+    public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         storedResultSet.clear();
-        addAll(collection, queryOptions);
+        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**
