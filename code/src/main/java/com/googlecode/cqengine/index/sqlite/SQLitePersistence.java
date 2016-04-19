@@ -15,18 +15,17 @@
  */
 package com.googlecode.cqengine.index.sqlite;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.persistence.ExternalPersistence;
+import com.googlecode.cqengine.persistence.Persistence;
 
 import java.sql.Connection;
 
 /**
- * An {@link ExternalPersistence} which persists to a SQLite database.
+ * An {@link Persistence} which persists to a SQLite database.
  *
  * @author Silvano Riz
  */
-public interface SQLitePersistence<O, A extends Comparable<A>> extends ExternalPersistence<O, A> {
+public interface SQLitePersistence<O, A extends Comparable<A>> extends Persistence<O, A> {
 
     /**
      * Returns a {@link Connection} to the SQLite database used for persistence.

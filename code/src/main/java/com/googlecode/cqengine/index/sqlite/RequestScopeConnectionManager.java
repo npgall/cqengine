@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RequestScopeConnectionManager implements ConnectionManager, Closeable {
 
-    final Persistence<?> persistence;
+    final Persistence<?, ?> persistence;
 
     // Map of open connections.
     final Map<SQLitePersistence, Connection> openConnections = new ConcurrentHashMap<SQLitePersistence, Connection>(1, 1.0F, 1);
 
-    public RequestScopeConnectionManager(Persistence<?> persistence) {
+    public RequestScopeConnectionManager(Persistence<?, ?> persistence) {
         this.persistence = persistence;
     }
 

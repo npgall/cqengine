@@ -1329,7 +1329,7 @@ public class IndexedCollectionFunctionalTest {
                 hasOffHeapIndex = true;
             }
         }
-        Persistence<Car> persistence;
+        Persistence<Car, Integer> persistence;
         if (hasDiskIndex && hasOffHeapIndex) {
             persistence = CompositePersistence.of(OffHeapPersistence.onPrimaryKey(Car.CAR_ID), DiskPersistence.onPrimaryKey(Car.CAR_ID));
         }
@@ -1404,7 +1404,7 @@ public class IndexedCollectionFunctionalTest {
         }
     }
 
-    static boolean persistenceProvidesEquivalentIndexAlready(Persistence<Car> persistence, Index<Car> indexToBeAdded) {
+    static boolean persistenceProvidesEquivalentIndexAlready(Persistence<Car, Integer> persistence, Index<Car> indexToBeAdded) {
         if (persistence != null && !(persistence instanceof OnHeapPersistence)) {
             // Persistence is non-heap therefore has a primary key index already.
             if (indexToBeAdded instanceof AttributeIndex) {

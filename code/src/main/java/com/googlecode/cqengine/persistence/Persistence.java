@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine.persistence;
 
+import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -28,7 +29,7 @@ import java.util.Set;
  *
  * @author niall.gallagher
  */
-public interface Persistence<O> {
+public interface Persistence<O, A extends Comparable<A>> {
 
     /**
      * Creates an ObjectStore which can store the objects added to the collection, either on-heap off-heap or on disk,
@@ -72,4 +73,9 @@ public interface Persistence<O> {
      */
     void closeRequestScopeResources(QueryOptions queryOptions);
 
+    /**
+     * @return the primary key attribute, if configured. This may be null for some persistence implementations
+     * especially on-heap persistence.
+     */
+    SimpleAttribute<O, A> getPrimaryKeyAttribute();
 }

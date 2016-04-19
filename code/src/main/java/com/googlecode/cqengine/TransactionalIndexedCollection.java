@@ -124,8 +124,9 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      *
      * @param objectType The type of objects which will be stored in the collection
      */
+    @SuppressWarnings("unchecked")
     public TransactionalIndexedCollection(Class<O> objectType) {
-        this(objectType, new OnHeapPersistence<O>());
+        this(objectType, OnHeapPersistence.<O>withoutPrimaryKey());
     }
 
     /**
@@ -136,7 +137,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      *                    in which objects added to the indexed collection will be stored, and which will provide
      *                    access to the underlying storage of indexes.
      */
-    public TransactionalIndexedCollection(Class<O> objectType, Persistence<O> persistence) {
+    public <A extends Comparable<A>> TransactionalIndexedCollection(Class<O> objectType, Persistence<O, A> persistence) {
         super(persistence);
         this.objectType = objectType;
         // Set up initial version...

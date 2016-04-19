@@ -72,7 +72,7 @@ import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSo
  */
 public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
-    private volatile Persistence<O> persistence;
+    private volatile Persistence<O, ? extends Comparable<?>> persistence;
     private volatile ObjectStore<O> objectStore;
 
     // Map of attributes to set of indexes on that attribute...
@@ -685,9 +685,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         return missingResults.iterator();
     }
 
-    static <O> Persistence<O> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
+    static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        Persistence<O> persistence = (Persistence<O>) queryOptions.get(Persistence.class);
+        Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.get(Persistence.class);
 //        if (persistence == null) {
 //            throw new IllegalStateException("A required Persistence object was not supplied in query options");
 //        } // TODO

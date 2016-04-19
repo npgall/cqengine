@@ -67,8 +67,9 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
      * Creates a new {@link ObjectLockingIndexedCollection} with default settings, using {@link OnHeapPersistence}
      * and a default concurrency level 64.
      */
+    @SuppressWarnings("unchecked")
     public ObjectLockingIndexedCollection() {
-        this(new OnHeapPersistence<O>(), 64);
+        this(OnHeapPersistence.<O>withoutPrimaryKey(), 64);
     }
 
     /**
@@ -79,7 +80,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
      *                    in which objects added to the indexed collection will be stored, and which will provide
      *                    access to the underlying storage of indexes.
      */
-    public ObjectLockingIndexedCollection(Persistence<O> persistence) {
+    public <A extends Comparable<A>> ObjectLockingIndexedCollection(Persistence<O, A> persistence) {
         this(persistence, 64);
     }
 
@@ -89,8 +90,9 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
      *
      * @param concurrencyLevel The estimated number of concurrently updating threads
      */
-    public ObjectLockingIndexedCollection(int concurrencyLevel) {
-        this(new OnHeapPersistence<O>(), concurrencyLevel);
+    @SuppressWarnings("unchecked")
+    public <A extends Comparable<A>> ObjectLockingIndexedCollection(int concurrencyLevel) {
+        this(OnHeapPersistence.<O>withoutPrimaryKey(), concurrencyLevel);
     }
 
     /**
@@ -102,7 +104,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
      *                    access to the underlying storage of indexes.
      * @param concurrencyLevel The estimated number of concurrently updating threads
      */
-    public ObjectLockingIndexedCollection(Persistence<O> persistence, int concurrencyLevel) {
+    public <A extends Comparable<A>> ObjectLockingIndexedCollection(Persistence<O, A> persistence, int concurrencyLevel) {
         super(persistence);
         this.stripedLock = new StripedLock(concurrencyLevel);
     }

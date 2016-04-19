@@ -62,7 +62,7 @@ public class ObjectLockingIndexedCollectionTest extends TestCase {
 
     public void testConstructor() {
         ObjectLockingIndexedCollection<Integer> collection1 = new ObjectLockingIndexedCollection<Integer>();
-        ObjectLockingIndexedCollection<Integer> collection2 = new ObjectLockingIndexedCollection<Integer>(new OnHeapPersistence<Integer>());
+        ObjectLockingIndexedCollection<Integer> collection2 = new ObjectLockingIndexedCollection<Integer>(new OnHeapPersistence<Integer, Integer>());
         ObjectLockingIndexedCollection<Integer> collection3 = new ObjectLockingIndexedCollection<Integer>(64);
 
         assertEquals(64, collection1.stripedLock.concurrencyLevel);

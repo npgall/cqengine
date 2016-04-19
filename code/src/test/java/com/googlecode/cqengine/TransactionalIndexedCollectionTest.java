@@ -189,7 +189,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
     public void testConstructor() {
         TransactionalIndexedCollection<Car> indexedCollection = new TransactionalIndexedCollection<Car>(
                 Car.class,
-                new OnHeapPersistence<Car>()
+                new OnHeapPersistence<Car, Integer>()
         );
         assertEquals(indexedCollection.objectType, Car.class);
         assertEquals(1L, indexedCollection.currentVersion);

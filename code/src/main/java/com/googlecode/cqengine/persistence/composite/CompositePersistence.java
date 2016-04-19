@@ -19,7 +19,6 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
-import com.googlecode.cqengine.persistence.ExternalPersistence;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -35,15 +34,15 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author niall.gallagher
  */
-public class CompositePersistence<O> implements Persistence<O> {
+public class CompositePersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
 
-    final Persistence<O> primaryPersistence;
-    final Persistence<O> secondaryPersistence;
-    final List<? extends Persistence<O>> additionalPersistences;
+    final Persistence<O, A> primaryPersistence;
+    final Persistence<O, A> secondaryPersistence;
+    final List<? extends Persistence<O, A>> additionalPersistences;
 
     // Cache of the Persistence object associated with each index.
     // Tuned for very little concurrency because this is caching static config.
-    final ConcurrentMap<Index<O>, Persistence<O>> indexPersistences = new ConcurrentHashMap<Index<O>, Persistence<O>>(1, 1.0F, 1);
+    final ConcurrentMap<Index<O>, Persistence<O, A>> indexPersistences = new ConcurrentHashMap<Index<O>, Persistence<O, A>>(1, 1.0F, 1);
 
     /**
      * Creates a CompositePersistence wrapping two or more backing persistences.
@@ -55,22 +54,26 @@ public class CompositePersistence<O> implements Persistence<O> {
      * @throws NullPointerException If any argument is null.
      * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
      */
-    public CompositePersistence(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
+    public CompositePersistence(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
         validatePersistenceArguments(primaryPersistence, secondaryPersistence, additionalPersistences);
         this.primaryPersistence = primaryPersistence;
         this.secondaryPersistence = secondaryPersistence;
         this.additionalPersistences = additionalPersistences;
     }
 
+    @Override
+    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
+        return primaryPersistence.getPrimaryKeyAttribute();
+    }
 
     @Override
     public boolean supportsIndex(Index<O> index) {
-        Persistence<O> persistence = getPersistenceForIndexOrNullWithCaching(index);
+        Persistence<O, A> persistence = getPersistenceForIndexOrNullWithCaching(index);
         return persistence != null;
     }
 
-    public Persistence<O> getPersistenceForIndex(Index<O> index) {
-        Persistence<O> persistence = getPersistenceForIndexOrNullWithCaching(index);
+    public Persistence<O, A> getPersistenceForIndex(Index<O> index) {
+        Persistence<O, A> persistence = getPersistenceForIndexOrNullWithCaching(index);
         if (persistence == null) {
             throw new IllegalStateException("No persistence is configured for index: " + index);
         }
@@ -82,12 +85,12 @@ public class CompositePersistence<O> implements Persistence<O> {
         return primaryPersistence.createObjectStore();
     }
 
-    Persistence<O> getPersistenceForIndexOrNullWithCaching(Index<O> index) {
-        Persistence<O> persistence = indexPersistences.get(index);
+    Persistence<O, A> getPersistenceForIndexOrNullWithCaching(Index<O> index) {
+        Persistence<O, A> persistence = indexPersistences.get(index);
         if (persistence == null) {
             persistence = getPersistenceForIndexOrNull(index);
             if (persistence != null) {
-                Persistence<O> existing = indexPersistences.putIfAbsent(index, persistence);
+                Persistence<O, A> existing = indexPersistences.putIfAbsent(index, persistence);
                 if (existing != null) {
                     persistence = existing;
                 }
@@ -96,14 +99,14 @@ public class CompositePersistence<O> implements Persistence<O> {
         return persistence;
     }
 
-    Persistence<O> getPersistenceForIndexOrNull(Index<O> index) {
+    Persistence<O, A> getPersistenceForIndexOrNull(Index<O> index) {
         if (primaryPersistence.supportsIndex(index)) {
             return primaryPersistence;
         }
         if (secondaryPersistence.supportsIndex(index)) {
             return secondaryPersistence;
         }
-        for (Persistence<O> additionalPersistence : additionalPersistences) {
+        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
             if (additionalPersistence.supportsIndex(index)) {
                 return additionalPersistence;
             }
@@ -111,31 +114,31 @@ public class CompositePersistence<O> implements Persistence<O> {
         return null;
     }
 
-    public Persistence<O> getPrimaryPersistence() {
+    public Persistence<O, A> getPrimaryPersistence() {
         return primaryPersistence;
     }
 
-    public Persistence<O> getSecondaryPersistence() {
+    public Persistence<O, A> getSecondaryPersistence() {
         return secondaryPersistence;
     }
 
-    public List<? extends Persistence<O>> getAdditionalPersistences() {
+    public List<? extends Persistence<O, A>> getAdditionalPersistences() {
         return additionalPersistences;
     }
 
     /**
      * Validates that all of the given Persistence objects are non-null, and validates that all Persistence objects
-     * which are instances of {@link ExternalPersistence} have the same {@link ExternalPersistence#getPrimaryKeyAttribute()}.
+     * which have primary keys have the same primary keys.
      *
      * @param primaryPersistence A Persistence object to be validated
      * @param secondaryPersistence A Persistence object to be validated
      * @param additionalPersistences Zero or more Persistence objects to be validated
      */
-    static <O> void validatePersistenceArguments(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
-        SimpleAttribute<O, ?> primaryKeyAttribute;
+    static <O, A extends Comparable<A>> void validatePersistenceArguments(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
+        SimpleAttribute<O, A> primaryKeyAttribute;
         primaryKeyAttribute = validatePersistenceArgument(primaryPersistence, null);
         primaryKeyAttribute = validatePersistenceArgument(secondaryPersistence, primaryKeyAttribute);
-        for (Persistence<O> additionalPersistence : additionalPersistences) {
+        for (Persistence<O, A> additionalPersistence : additionalPersistences) {
             validatePersistenceArgument(additionalPersistence, primaryKeyAttribute);
         }
     }
@@ -144,19 +147,18 @@ public class CompositePersistence<O> implements Persistence<O> {
      * Helper method for {@link #validatePersistenceArguments(Persistence, Persistence, List)}. See documentation of
      * that method for details.
      */
-    static <O> SimpleAttribute<O, ?> validatePersistenceArgument(Persistence<O> persistence, SimpleAttribute<O, ?> primaryKeyAttribute) {
+    static <O, A extends Comparable<A>> SimpleAttribute<O, A> validatePersistenceArgument(Persistence<O, A> persistence, SimpleAttribute<O, A> primaryKeyAttribute) {
         if (persistence == null) {
             throw new NullPointerException("The Persistence argument cannot be null.");
         }
-        if (!(persistence instanceof ExternalPersistence)) {
-            return primaryKeyAttribute;
+        if (persistence.getPrimaryKeyAttribute() == null) {
+            throw new IllegalArgumentException("All Persistence implementations in a CompositePersistence must have a primary key.");
         }
-        ExternalPersistence<O, ?> externalPersistence = (ExternalPersistence<O, ?>)persistence;
         if (primaryKeyAttribute == null) {
-            primaryKeyAttribute = externalPersistence.getPrimaryKeyAttribute();
+            primaryKeyAttribute = persistence.getPrimaryKeyAttribute();
         }
-        else if (!primaryKeyAttribute.equals(externalPersistence.getPrimaryKeyAttribute())) {
-            throw new IllegalArgumentException("All ExternalPersistence implementations must be on the same primary key.");
+        else if (!primaryKeyAttribute.equals(persistence.getPrimaryKeyAttribute())) {
+            throw new IllegalArgumentException("All Persistence implementations must be on the same primary key.");
         }
         return primaryKeyAttribute;
     }
@@ -201,8 +203,8 @@ public class CompositePersistence<O> implements Persistence<O> {
      * @throws NullPointerException If any argument is null.
      * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
      */
-    public static <O> CompositePersistence<O> of(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence, List<? extends Persistence<O>> additionalPersistences) {
-        return new CompositePersistence<O>(primaryPersistence, secondaryPersistence, additionalPersistences);
+    public static <O, A extends Comparable<A>> CompositePersistence<O, A> of(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
+        return new CompositePersistence<O, A>(primaryPersistence, secondaryPersistence, additionalPersistences);
     }
 
     /**
@@ -214,7 +216,7 @@ public class CompositePersistence<O> implements Persistence<O> {
      * @throws NullPointerException If any argument is null.
      * @throws IllegalArgumentException If any of the Persistence objects are not on the same primary key.
      */
-    public static <O> CompositePersistence<O> of(Persistence<O> primaryPersistence, Persistence<O> secondaryPersistence) {
-        return new CompositePersistence<O>(primaryPersistence, secondaryPersistence, Collections.<Persistence<O>>emptyList());
+    public static <O, A extends Comparable<A>> CompositePersistence<O, A> of(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence) {
+        return new CompositePersistence<O, A>(primaryPersistence, secondaryPersistence, Collections.<Persistence<O, A>>emptyList());
     }
 }

@@ -1,7 +1,6 @@
 package com.googlecode.cqengine.persistence.support;
 
 import com.googlecode.cqengine.index.AttributeIndex;
-import com.googlecode.cqengine.persistence.ExternalPersistence;
 
 /**
  * A POJO which the query engine adds to query options to provide indexes which use {@link ExternalPersistence} and

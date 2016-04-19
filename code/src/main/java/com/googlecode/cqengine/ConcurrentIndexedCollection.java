@@ -62,15 +62,16 @@ import static java.util.Collections.singleton;
  */
 public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
 
-    protected final Persistence<O> persistence;
+    protected final Persistence<O, ?> persistence;
     protected final ObjectStore<O> objectStore;
     protected final QueryEngineInternal<O> indexEngine;
 
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings, using {@link OnHeapPersistence}.
      */
+    @SuppressWarnings("unchecked")
     public ConcurrentIndexedCollection() {
-        this(new OnHeapPersistence<O>());
+        this(OnHeapPersistence.<O>withoutPrimaryKey());
     }
 
     /**
@@ -80,7 +81,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      *                    in which objects added to the indexed collection will be stored, and which will provide
      *                    access to the underlying storage of indexes.
      */
-    public ConcurrentIndexedCollection(Persistence<O> persistence) {
+    public ConcurrentIndexedCollection(Persistence<O, ? extends Comparable> persistence) {
         this.persistence = persistence;
         this.objectStore = persistence.createObjectStore();
         QueryEngineInternal<O> queryEngine = new CollectionQueryEngine<O>();

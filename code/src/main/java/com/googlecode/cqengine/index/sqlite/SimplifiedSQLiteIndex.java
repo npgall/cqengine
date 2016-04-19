@@ -21,7 +21,6 @@ import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
-import com.googlecode.cqengine.persistence.ExternalPersistence;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.composite.CompositePersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -53,7 +52,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        Persistence<O> persistence = getPersistenceFromQueryOptions(queryOptions);
+        Persistence<O, K> persistence = getPersistenceFromQueryOptions(queryOptions);
         QueryEngine<O> queryEngine = getQueryEngineQueryOptions(queryOptions);
 
         final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
@@ -79,9 +78,9 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return this;
     }
 
-    static <O> Persistence<O> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
+    static <O, K extends Comparable<K>> Persistence<O, K> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        Persistence<O> persistence = (Persistence<O>) queryOptions.get(Persistence.class);
+        Persistence<O, K> persistence = (Persistence<O, K>) queryOptions.get(Persistence.class);
         if (persistence == null) {
             throw new IllegalStateException("A required Persistence object was not supplied in query options");
         }
@@ -97,28 +96,12 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return queryEngine;
     }
 
-    SimpleAttribute<O, K> getPrimaryKeyFromPersistence(Persistence<O> persistence) {
-
-        if (persistence instanceof ExternalPersistence) {
-            return ((ExternalPersistence<O, K>) persistence).getPrimaryKeyAttribute();
+    SimpleAttribute<O, K> getPrimaryKeyFromPersistence(Persistence<O, K> persistence) {
+        SimpleAttribute<O, K> primaryKey = persistence.getPrimaryKeyAttribute();
+        if (primaryKey == null) {
+            throw new IllegalStateException("This index " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "' cannot be added to the IndexedCollection, because the configured persistence was not configured with a primary key attribute.");
         }
-        else if (persistence instanceof CompositePersistence) {
-            CompositePersistence<O> compositePersistence = (CompositePersistence<O>) persistence;
-            if (compositePersistence.getPrimaryPersistence() instanceof ExternalPersistence) {
-                return ((ExternalPersistence<O, K>) compositePersistence.getPrimaryPersistence()).getPrimaryKeyAttribute();
-            }
-            else if (compositePersistence.getSecondaryPersistence() instanceof ExternalPersistence) {
-                return ((ExternalPersistence<O, K>) compositePersistence.getSecondaryPersistence()).getPrimaryKeyAttribute();
-            }
-            else {
-                for (Persistence<O> additionalPersistence : compositePersistence.getAdditionalPersistences()) {
-                    if (additionalPersistence instanceof ExternalPersistence) {
-                        return ((ExternalPersistence<O, K>) additionalPersistence).getPrimaryKeyAttribute();
-                    }
-                }
-            }
-        }
-        throw new IllegalStateException("This index " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "' cannot be added to the IndexedCollection, because the configured persistence does not report the primary key attribute.");
+        return primaryKey;
     }
 
     AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine) {

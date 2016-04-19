@@ -30,7 +30,7 @@ public class DiskConcurrentIndexedCollection extends ConcurrentIndexedCollection
         super(DiskPersistence.onPrimaryKey(Car.CAR_ID));
     }
 
-    public DiskConcurrentIndexedCollection(Persistence<Car> persistence) {
+    public DiskConcurrentIndexedCollection(Persistence<Car, Integer> persistence) {
         super(persistence);
         if (!(persistence instanceof DiskPersistence)) {
             throw new IllegalStateException("Unexpected persistence implementation: " + persistence);

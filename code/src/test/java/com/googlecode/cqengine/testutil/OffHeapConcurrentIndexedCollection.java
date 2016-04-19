@@ -31,7 +31,7 @@ public class OffHeapConcurrentIndexedCollection extends ConcurrentIndexedCollect
         this(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
     }
 
-    public OffHeapConcurrentIndexedCollection(Persistence<Car> persistence) {
+    public OffHeapConcurrentIndexedCollection(Persistence<Car, Integer> persistence) {
         super(persistence);
         if (!(persistence instanceof OffHeapPersistence)) {
             throw new IllegalStateException("Unexpected persistence implementation: " + persistence);
