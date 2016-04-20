@@ -22,6 +22,9 @@ import com.googlecode.cqengine.resultset.ResultSet;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
+import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
+
 /**
  * A ResultSet which provides a view onto the union of other ResultSets, <b>without</b> deduplication.
  * <p/>
@@ -71,7 +74,12 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        return query.matches(object, queryOptions);
+        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
+            return this.contains(object);
+        }
+        else {
+            return query.matches(object, queryOptions);
+        }
     }
 
     /**

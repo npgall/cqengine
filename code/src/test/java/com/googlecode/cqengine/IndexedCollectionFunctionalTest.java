@@ -38,9 +38,7 @@ import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.DeduplicationStrategy;
-import com.googlecode.cqengine.query.option.QueryLog;
-import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -1397,6 +1395,12 @@ public class IndexedCollectionFunctionalTest {
             indexedCollection.clear();
         }
 
+        FlagsEnabled flagsEnabled = scenario.queryOptions.get(FlagsEnabled.class);
+        if (flagsEnabled == null) {
+            flagsEnabled = new FlagsEnabled();
+        }
+        flagsEnabled.add(EngineFlags.PREFER_INDEXES_MERGE_STRATEGY);
+        scenario.queryOptions.put(FlagsEnabled.class, flagsEnabled);
         evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
         temporaryFileDatabase.after();
         temporaryInMemoryDatabase.after();

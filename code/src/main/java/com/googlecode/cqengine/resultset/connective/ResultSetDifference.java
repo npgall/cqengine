@@ -23,6 +23,9 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
+import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
+
 /**
  * A ResultSet which provides a view onto the set difference of two ResultSets.
  * <p/>
@@ -69,7 +72,13 @@ public class ResultSetDifference<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        return query.matches(object, queryOptions);
+        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
+            System.err.println("PREFER_INDEXES_MERGE_STRATEGY in " + ResultSetDifference.class);
+            return this.contains(object);
+        }
+        else {
+            return query.matches(object, queryOptions);
+        }
     }
 
     @Override

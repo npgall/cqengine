@@ -25,6 +25,9 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
+import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
+
 /**
  * A ResultSet which provides a view onto the intersection of other ResultSets.
  *
@@ -93,7 +96,13 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        return query.matches(object, queryOptions);
+        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
+            System.err.println("PREFER_INDEXES_MERGE_STRATEGY in " + ResultSetIntersection.class);
+            return this.contains(object);
+        }
+        else {
+            return query.matches(object, queryOptions);
+        }
     }
 
     @Override
