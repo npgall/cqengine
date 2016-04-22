@@ -46,5 +46,5 @@ public enum EngineFlags {
      *     </li>
      * </ol>
      */
-    PREFER_INDEXES_MERGE_STRATEGY
+    PREFER_INDEX_MERGE_STRATEGY
 }

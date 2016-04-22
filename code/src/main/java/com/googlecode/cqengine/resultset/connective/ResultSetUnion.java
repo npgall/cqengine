@@ -26,9 +26,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
-import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
-
 /**
  * A ResultSet which provides a view onto the union of other ResultSets, with deduplication.
  * <p/>
@@ -42,11 +39,29 @@ public class ResultSetUnion<O> extends ResultSet<O> {
     // ResultSets (not in any particular order)...
     final Iterable<?extends ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
+    final boolean indexMergeStrategyEnabled;
 
     public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
+        this(resultSets, query, queryOptions, false);
+    }
+
+    public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
         this.resultSets = resultSets;
         this.query = query;
         this.queryOptions = queryOptions;
+
+        // If index merge strategy is enabled, validate that we can actually use it for this particular union...
+        if (indexMergeStrategyEnabled) {
+            for (ResultSet resultSet : resultSets) {
+                if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
+                    // We cannot use index merge strategy for this union
+                    // because at least one ResultSet is not backed by an index...
+                    indexMergeStrategyEnabled = false;
+                    break;
+                }
+            }
+        }
+        this.indexMergeStrategyEnabled = indexMergeStrategyEnabled;
     }
 
     @Override
@@ -78,18 +93,33 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
         // An iterator which wraps the UNION ALL iterator, filtering out objects which are contained in ResultSets
         // iterated earlier - so effectively implementing UNION (with duplicates eliminated)...
-        return new FilteringIterator<O>(unionAllIterator, queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                for (ResultSet<O> resultSet : resultSetsAlreadyIterated) {
-                    if (resultSet.matches(object)) {
-                        return false;
+        if (indexMergeStrategyEnabled) {
+            System.err.println("Using index merge in " + ResultSetUnion.class);
+            return new FilteringIterator<O>(unionAllIterator, queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    for (ResultSet<O> resultSet : resultSetsAlreadyIterated) {
+                        if (resultSet.contains(object)) {
+                            return false;
+                        }
                     }
+                    return true;
                 }
-                return true;
-            }
-        };
-
+            };
+        }
+        else {
+            return new FilteringIterator<O>(unionAllIterator, queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    for (ResultSet<O> resultSet : resultSetsAlreadyIterated) {
+                        if (resultSet.matches(object)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            };
+        }
     }
 
     /**
@@ -110,12 +140,7 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
-            return this.contains(object);
-        }
-        else {
-            return query.matches(object, queryOptions);
-        }
+        return query.matches(object, queryOptions);
     }
 
     /**

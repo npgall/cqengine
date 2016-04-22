@@ -23,9 +23,6 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
-import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
-
 /**
  * A ResultSet which provides a view onto the set difference of two ResultSets.
  * <p/>
@@ -39,22 +36,47 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     final ResultSet<O> secondResultSet;
     final Query<O> query;
     final QueryOptions queryOptions;
+    final boolean indexMergeStrategyEnabled;
 
     public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, Query<O> query, QueryOptions queryOptions) {
+        this(firstResultSet, secondResultSet, query, queryOptions, false);
+    }
+
+    public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
         this.firstResultSet = firstResultSet;
         this.secondResultSet = secondResultSet;
         this.query = query;
         this.queryOptions = queryOptions;
+        // If index merge strategy is enabled, validate that we can actually use it for this particular negation...
+        if (indexMergeStrategyEnabled) {
+            if (secondResultSet.getRetrievalCost() == Integer.MAX_VALUE) {
+                // We cannot use index merge strategy for this negation
+                // because the second ResultSet is not backed by an index...
+                indexMergeStrategyEnabled = false;
+            }
+        }
+        this.indexMergeStrategyEnabled = indexMergeStrategyEnabled;
     }
 
     @Override
     public Iterator<O> iterator() {
-        return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                return !secondResultSet.matches(object);
-            }
-        };
+        if (indexMergeStrategyEnabled) {
+            System.err.println("Using index merge in " + ResultSetDifference.class);
+            return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    return !secondResultSet.contains(object);
+                }
+            };
+        }
+        else {
+            return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    return !secondResultSet.matches(object);
+                }
+            };
+        }
     }
 
     /**
@@ -72,13 +94,7 @@ public class ResultSetDifference<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
-            System.err.println("PREFER_INDEXES_MERGE_STRATEGY in " + ResultSetDifference.class);
-            return this.contains(object);
-        }
-        else {
             return query.matches(object, queryOptions);
-        }
     }
 
     @Override

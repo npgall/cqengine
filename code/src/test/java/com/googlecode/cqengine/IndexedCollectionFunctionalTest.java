@@ -94,6 +94,7 @@ public class IndexedCollectionFunctionalTest {
                 new MacroScenario() {{
                     name = "typical queries";
                     dataSet = REGULAR_DATASET;
+                    alsoEvaluateWithIndexMergeStrategy = true; // runs each of these scenarios twice to test with both the default merge strategy and with the index merge strategy
                     collectionImplementations = SKIP_SLOW_TESTS
                             ? classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class)
                             : classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class);
@@ -1288,6 +1289,7 @@ public class IndexedCollectionFunctionalTest {
         Collection<Car> dataSet = Collections.emptySet();
         Collection<Car> removeDataSet = Collections.emptySet();
         Boolean clearDataSet = false;
+        Boolean alsoEvaluateWithIndexMergeStrategy = false;
         Iterable<? extends QueryToEvaluate> queriesToEvaluate = Collections.emptyList();
         Iterable<Class> collectionImplementations;
         Iterable<Iterable<Index>> indexCombinations;
@@ -1303,6 +1305,7 @@ public class IndexedCollectionFunctionalTest {
         ExpectedResults expectedResults = null;
         Class collectionImplementation;
         Iterable<Index> indexCombination;
+        boolean useIndexMergeStrategy = false;
         boolean highPriority = false;
 
         @Override
@@ -1344,6 +1347,22 @@ public class IndexedCollectionFunctionalTest {
                                 highPriority = currentQueryToEvaluate.highPriority;
                             }};
                             scenarios.add(Collections.<Object>singletonList(scenario));
+                            if (macroScenario.alsoEvaluateWithIndexMergeStrategy) {
+                                Scenario scenarioWithIndexMergeStrategy = new Scenario() {{
+                                    name = macroScenario.name;
+                                    dataSet = macroScenario.dataSet;
+                                    removeDataSet = macroScenario.removeDataSet;
+                                    clearDataSet = macroScenario.clearDataSet;
+                                    query = currentQueryToEvaluate.query;
+                                    queryOptions = currentQueryToEvaluate.queryOptions;
+                                    expectedResults = currentQueryToEvaluate.expectedResults;
+                                    collectionImplementation = currentCollectionImplementation;
+                                    indexCombination = currentIndexCombination;
+                                    highPriority = currentQueryToEvaluate.highPriority;
+                                    useIndexMergeStrategy = true;
+                                }};
+                                scenarios.add(Collections.<Object>singletonList(scenarioWithIndexMergeStrategy));
+                            }
                         }
                     }
                 }
@@ -1399,7 +1418,12 @@ public class IndexedCollectionFunctionalTest {
         if (flagsEnabled == null) {
             flagsEnabled = new FlagsEnabled();
         }
-        flagsEnabled.add(EngineFlags.PREFER_INDEXES_MERGE_STRATEGY);
+        if (scenario.useIndexMergeStrategy) {
+            flagsEnabled.add(EngineFlags.PREFER_INDEX_MERGE_STRATEGY);
+        }
+        else {
+            flagsEnabled.remove(EngineFlags.PREFER_INDEX_MERGE_STRATEGY);
+        }
         scenario.queryOptions.put(FlagsEnabled.class, flagsEnabled);
         evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
         temporaryFileDatabase.after();

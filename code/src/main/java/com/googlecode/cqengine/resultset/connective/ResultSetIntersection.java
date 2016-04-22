@@ -25,9 +25,6 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
 
-import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEXES_MERGE_STRATEGY;
-import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
-
 /**
  * A ResultSet which provides a view onto the intersection of other ResultSets.
  *
@@ -39,8 +36,13 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
     // ResultSets sorted in ascending order of merge cost...
     final List<ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
+    final boolean indexMergeStrategyEnabled;
 
     public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
+        this(resultSets, query, queryOptions, false);
+    }
+
+    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
         this.query = query;
         this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
@@ -50,6 +52,19 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         }
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
         this.resultSets = sortedResultSets;
+
+        // If index merge strategy is enabled, validate that we can actually use it for this particular intersection...
+        if (indexMergeStrategyEnabled) {
+            for (ResultSet resultSet : resultSets) {
+                if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
+                    // We cannot use index merge strategy for this intersection
+                    // because at least one ResultSet is not backed by an index...
+                    indexMergeStrategyEnabled = false;
+                    break;
+                }
+            }
+        }
+        this.indexMergeStrategyEnabled = indexMergeStrategyEnabled;
     }
 
     @Override
@@ -62,17 +77,33 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         }
         ResultSet<O> lowestMergeCostResultSet = resultSets.get(0);
         final List<ResultSet<O>> moreExpensiveResultSets = resultSets.subList(1, resultSets.size());
-        return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                for (ResultSet<O> resultSet : moreExpensiveResultSets) {
-                    if (!resultSet.matches(object)) {
-                        return false;
+        if (indexMergeStrategyEnabled) {
+            System.err.println("Using index merge in " + ResultSetIntersection.class);
+            return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    for (ResultSet<O> resultSet : moreExpensiveResultSets) {
+                        if (!resultSet.contains(object)) {
+                            return false;
+                        }
                     }
+                    return true;
                 }
-                return true;
-            }
-        };
+            };
+        }
+        else {
+            return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    for (ResultSet<O> resultSet : moreExpensiveResultSets) {
+                        if (!resultSet.matches(object)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            };
+        }
     }
 
     /**
@@ -96,13 +127,7 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        if (isFlagEnabled(queryOptions, PREFER_INDEXES_MERGE_STRATEGY) && this.getRetrievalCost() < Integer.MAX_VALUE) {
-            System.err.println("PREFER_INDEXES_MERGE_STRATEGY in " + ResultSetIntersection.class);
-            return this.contains(object);
-        }
-        else {
-            return query.matches(object, queryOptions);
-        }
+        return query.matches(object, queryOptions);
     }
 
     @Override

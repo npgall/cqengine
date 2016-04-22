@@ -58,6 +58,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEX_MERGE_STRATEGY;
+import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
 import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.concatenate;
 import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSort;
 
@@ -618,7 +620,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         };
     }
 
-
     Iterator<O> retrieveWithIndexOrderingMainResults(final Query<O> query, QueryOptions queryOptions, SortedKeyStatisticsIndex<?, O> indexForOrdering, List<AttributeOrder<O>> allSortOrders, RangeBounds<?> rangeBoundsFromQuery, boolean attributeCanHaveMoreThanOneValue, boolean primarySortDescending) {
         // Ensure that at the end of processing the request, that we close any resources we opened...
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
@@ -793,7 +794,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * This method is recursive.
      * <p/>
      * When processing a {@link SimpleQuery}, the method will simply delegate to the helper methods
-     * {@link #retrieveIntersection(Collection, QueryOptions)} and {@link #retrieveUnion(Collection, QueryOptions)}
+     * {@link #retrieveIntersection(Collection, QueryOptions, boolean)} and {@link #retrieveUnion(Collection, QueryOptions)}
      * and will return their results.
      * <p/>
      * When processing a descendant of {@link CompoundQuery} ({@link And}, {@link Or}, {@link Not}), the method
@@ -811,6 +812,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} which provides objects matching the given query
      */
     ResultSet<O> retrieveRecursive(Query<O> query, final QueryOptions queryOptions) {
+        final boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
 
         // Check if we can process this query from a standing query index...
         Index<O> standingQueryIndex = standingQueryIndexes.get(query);
@@ -865,14 +867,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                             if (needToProcessSimpleQueries) {
                                 needToProcessSimpleQueries = false;
                                 // Retrieve results for simple queries from indexes...
-                                return retrieveIntersection(and.getSimpleQueries(), queryOptions);
+                                return retrieveIntersection(and.getSimpleQueries(), queryOptions, indexMergeStrategyEnabled);
                             }
                             // Recursively call this method for logical queries...
                             return retrieveRecursive(logicalQueriesIterator.next(), queryOptions);
                         }
                     };
                 }
-            }, query, queryOptions);
+            }, query, queryOptions, indexMergeStrategyEnabled);
         }
         else if (query instanceof Or) {
             final Or<O> or = (Or<O>) query;
@@ -923,7 +925,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             };
             // *** Deduplication can be required for unions... ***
             if (DeduplicationOption.isLogicalElimination(queryOptionsForOrUnion)) {
-                return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
+                return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, indexMergeStrategyEnabled);
             }
             else {
                 return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
@@ -935,7 +937,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
-            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, query, queryOptions);
+            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, query, queryOptions, indexMergeStrategyEnabled);
         }
         else {
             throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));
@@ -976,77 +978,20 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} which provides objects matching the intersection of results for each of the
      * {@link SimpleQuery}s
      */
-    <A> ResultSet<O> retrieveIntersection(Collection<SimpleQuery<O, ?>> queries, QueryOptions queryOptions) {
-        // Iterate through the query objects, store the ResultSet from the index with the lowest merge cost
-        // in the following variables, and put the rest of the query in the moreExpensiveQueries list...
-        SimpleQuery<O, A> lowestMergeCostQuery = null;
-        ResultSet<O> lowestMergeCostResultSet = null;
-        int lowestMergeCost = 0;
-        final List<SimpleQuery<O, A>> moreExpensiveQueries = new ArrayList<SimpleQuery<O, A>>(queries.size() - 1);
+    <A> ResultSet<O> retrieveIntersection(Collection<SimpleQuery<O, ?>> queries, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
+        List<ResultSet<O>> resultSets = new ArrayList<ResultSet<O>>(queries.size());
         for (SimpleQuery query : queries) {
             // Work around type erasure...
             @SuppressWarnings({"unchecked"})
             SimpleQuery<O, A> queryTyped = (SimpleQuery<O, A>) query;
-
             ResultSet<O> resultSet = getResultSetWithLowestRetrievalCost(queryTyped, queryOptions);
-            if (lowestMergeCostResultSet == null) {
-                // First query/index evaluated. Store it as the lowest cost encountered so far...
-                lowestMergeCostQuery = queryTyped;
-                lowestMergeCostResultSet = resultSet;
-                lowestMergeCost = resultSet.getMergeCost();
-            }
-            else {
-                int mergeCost = resultSet.getMergeCost();
-                if (mergeCost < lowestMergeCost) {
-                    // We just found a merge cost lower than the one encountered previously.
-                    // Add the previous lowest cost to to the set of more expensive query...
-                    moreExpensiveQueries.add(lowestMergeCostQuery);
-                    // Set our lowest merge cost to this new one...
-                    lowestMergeCostQuery = queryTyped;
-                    lowestMergeCostResultSet = resultSet;
-                    lowestMergeCost = mergeCost;
-                }
-                else {
-                    // This merge cost is greater than the one already stored.
-                    // Add it to the more expensive set...
-                    moreExpensiveQueries.add(queryTyped);
-                }
-            }
+            resultSets.add(resultSet);
         }
-        // At this point, we have identified the query with the lowest merge cost and stored a corresponding
-        // ResultSet from its index, and we have put all of the other queries into a set of more expensive
-        // queries.
-
-        if (lowestMergeCostResultSet == null) {
-            throw new IllegalStateException("The set of queries supplied was empty");
-        }
-
-        // If we had only one item of query, results from the one index are sufficient.
-        // Return these results, no need for additional evaluation...
-        if (moreExpensiveQueries.isEmpty()) {
-            return lowestMergeCostResultSet;
-
-        }
-
-        // Return an iterator which will iterate these results (which match the query with the lowest merge
-        // cost), and which will test each of these objects on-the-fly to determine if it matches the other more
-        // expensive items of query...
-        final ResultSet<O> lowestCostResultSetRef = lowestMergeCostResultSet;
         @SuppressWarnings("unchecked")
         Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : and(queriesTyped);
-
-        return new FilteringResultSet<O>(lowestCostResultSetRef, query, queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                for (SimpleQuery<O, A> query : moreExpensiveQueries) {
-                    if (!(query.matches(object, queryOptions))) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        };
+        // The rest of the algorithm is implemented in ResultSetIntersection...
+        return new ResultSetIntersection<O>(resultSets, query, queryOptions, indexMergeStrategyEnabled);
     }
 
     /**
@@ -1098,7 +1043,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : or(queriesTyped);
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
-            return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions);
+            boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
+            return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, indexMergeStrategyEnabled);
         }
         else {
             return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
