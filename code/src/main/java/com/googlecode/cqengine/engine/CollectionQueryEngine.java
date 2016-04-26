@@ -38,6 +38,7 @@ import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableFilteringResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
+import com.googlecode.cqengine.resultset.common.CostCachingResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
@@ -47,6 +48,7 @@ import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterable;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
@@ -254,13 +256,23 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      *
      * @return The entire collection wrapped as a {@link ResultSet}, with retrieval cost {@link Integer#MAX_VALUE}
      */
-    ResultSet<O> getEntireCollectionAsResultSet() {
+    ResultSet<O> getEntireCollectionAsResultSet(final Query<O> query, final QueryOptions queryOptions) {
         return new StoredSetBasedResultSet<O>(this.collection, Integer.MAX_VALUE) {
             // Override getMergeCost() to avoid calling size(),
             // which may be expensive for custom implementations of lazy backing sets...
             @Override
             public int getMergeCost() {
                 return Integer.MAX_VALUE;
+            }
+
+            @Override
+            public Query<O> getQuery() {
+                return query;
+            }
+
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
             }
         };
     }
@@ -296,7 +308,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // the fallback index should have been selected in worst case...
             throw new IllegalStateException("Failed to locate an index supporting query: " + query);
         }
-        return lowestCostResultSet;
+        return new CostCachingResultSet<O>(lowestCostResultSet);
     }
 
     // -------------------- Methods for query processing --------------------
@@ -644,16 +656,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         else {
             sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
         }
-        return new FilteringIterator<O>(sorted, queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                return query.matches(object, queryOptions);
-            }
-        };
+
+        return filterIndexOrderingCandidateResults(sorted, query, queryOptions, closeableQueryResources);
     }
 
     Iterator<O> retrieveWithIndexOrderingMissingResults(final Query<O> query, QueryOptions queryOptions, Attribute<O, Comparable> primarySortAttribute, List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue) {
-
         // Ensure that at the end of processing the request, that we close any resources we opened...
         final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
         final CloseableSet resultSetResourcesToClose = new CloseableSet();
@@ -662,14 +669,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // Retrieve missing objects from the secondary index on objects which don't have a value for the primary sort attribute...
         Not<O> missingValuesQuery = not(has(primarySortAttribute));
         ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
+        // Ensure that this is closed...
+        closeableQueryResources.add(missingResults);
 
+        Iterator<O> missingResultsIterator = missingResults.iterator();
         // Filter the objects from the secondary index, to ensure they match the query...
-        missingResults = new CloseableFilteringResultSet<O>(missingResults, query, queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                return query.matches(object, queryOptions);
-            }
-        };
+        missingResultsIterator = filterIndexOrderingCandidateResults(missingResultsIterator, query, queryOptions, closeableQueryResources);
 
         // Determine if we need to sort the missing objects...
         Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
@@ -678,11 +683,53 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (!sortOrdersForBucket.isEmpty()) {
             // We do need to sort the missing objects...
             Comparator<O> comparator = new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions);
-            missingResults = new MaterializingOrderedResultSet<O>(missingResults, comparator, query, queryOptions);
+            missingResultsIterator = IteratorUtil.materializedSort(missingResultsIterator, comparator);
         }
 
-        resultSetResourcesToClose.add(missingResults);
-        return missingResults.iterator();
+        return missingResultsIterator;
+    }
+
+    /**
+     * Filters the given sorted candidate results to ensure they match the query, using either the default merge
+     * strategy or the index merge strategy as appropriate.
+     *
+     * @param sortedCandidateResults The candidate results to be filtered
+     * @param query The query
+     * @param queryOptions The query options
+     * @param closeableQueryResources A set of resources which will be closed when the request has been processed -
+     *                                this method may add resources which need to be closed to this set
+     * @return A filtered iterator which returns the subset of candidate objects which match the query
+     */
+    Iterator<O> filterIndexOrderingCandidateResults(final Iterator<O> sortedCandidateResults, final Query<O> query, final QueryOptions queryOptions, CloseableQueryResources closeableQueryResources) {
+        final boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
+        if (indexMergeStrategyEnabled) {
+            final ResultSet<O> indexAcceleratedQueryResults = retrieveWithoutIndexOrdering(query, queryOptions, null);
+            if (indexAcceleratedQueryResults.getRetrievalCost() == Integer.MAX_VALUE) {
+                // No index is available to accelerate the index merge strategy...
+                indexAcceleratedQueryResults.close();
+                // We fall back to filtering via query.matches() below.
+            }
+            else {
+                // Ensure that indexAcceleratedQueryResults is closed at the end of processing the request...
+                closeableQueryResources.add(indexAcceleratedQueryResults);
+                // This is the index merge strategy where indexes are used to filter the sorted results...
+                return new FilteringIterator<O>(sortedCandidateResults, queryOptions) {
+                    @Override
+                    public boolean isValid(O object, QueryOptions queryOptions) {
+                        return indexAcceleratedQueryResults.contains(object);
+                    }
+                };
+            }
+
+        }
+        // Either index merge strategy is not enabled, or no suitable indexes are available for it.
+        // We filter results by examining values returned by attributes referenced in the query instead...
+        return new FilteringIterator<O>(sortedCandidateResults, queryOptions) {
+            @Override
+            public boolean isValid(O object, QueryOptions queryOptions) {
+                return query.matches(object, queryOptions);
+            }
+        };
     }
 
     /**
@@ -937,7 +984,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
-            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(), resultSetToNegate, query, queryOptions, indexMergeStrategyEnabled);
+            return new ResultSetDifference<O>(getEntireCollectionAsResultSet(query, queryOptions), resultSetToNegate, query, queryOptions, indexMergeStrategyEnabled);
         }
         else {
             throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));

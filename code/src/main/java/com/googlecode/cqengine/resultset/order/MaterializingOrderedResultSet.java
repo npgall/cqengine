@@ -61,11 +61,7 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
      */
     @Override
     public Iterator<O> iterator() {
-        Set<O> materializedSet = new TreeSet<O>(comparator);
-        for (O object : wrappedResultSet) {
-            materializedSet.add(object);
-        }
-        return materializedSet.iterator();
+        return IteratorUtil.materializedSort(wrappedResultSet.iterator(), comparator);
     }
 
     /**

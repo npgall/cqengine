@@ -17,7 +17,7 @@ package com.googlecode.cqengine.resultset.connective;
 
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
-import com.googlecode.cqengine.resultset.common.CostCachingResultSet;
+import com.googlecode.cqengine.resultset.common.ResultSets;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.common.QueryCostComparators;
@@ -46,16 +46,13 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         this.query = query;
         this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
-        List<ResultSet<O>> sortedResultSets = new ArrayList<ResultSet<O>>();
-        for (ResultSet<O> resultSet : resultSets){
-            sortedResultSets.add(new CostCachingResultSet<O>(resultSet, query, queryOptions));
-        }
+        List<ResultSet<O>> sortedResultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
         this.resultSets = sortedResultSets;
 
         // If index merge strategy is enabled, validate that we can actually use it for this particular intersection...
         if (indexMergeStrategyEnabled) {
-            for (ResultSet resultSet : resultSets) {
+            for (ResultSet resultSet : sortedResultSets) {
                 if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
                     // We cannot use index merge strategy for this intersection
                     // because at least one ResultSet is not backed by an index...
@@ -78,7 +75,6 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         ResultSet<O> lowestMergeCostResultSet = resultSets.get(0);
         final List<ResultSet<O>> moreExpensiveResultSets = resultSets.subList(1, resultSets.size());
         if (indexMergeStrategyEnabled) {
-            System.err.println("Using index merge in " + ResultSetIntersection.class);
             return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {

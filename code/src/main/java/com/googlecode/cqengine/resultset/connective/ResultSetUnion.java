@@ -18,6 +18,7 @@ package com.googlecode.cqengine.resultset.connective;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.common.ResultSets;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -46,13 +47,14 @@ public class ResultSetUnion<O> extends ResultSet<O> {
     }
 
     public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
-        this.resultSets = resultSets;
+        List<ResultSet<O>> costCachingResultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
+        this.resultSets = costCachingResultSets;
         this.query = query;
         this.queryOptions = queryOptions;
 
         // If index merge strategy is enabled, validate that we can actually use it for this particular union...
         if (indexMergeStrategyEnabled) {
-            for (ResultSet resultSet : resultSets) {
+            for (ResultSet resultSet : costCachingResultSets) {
                 if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
                     // We cannot use index merge strategy for this union
                     // because at least one ResultSet is not backed by an index...
@@ -94,7 +96,6 @@ public class ResultSetUnion<O> extends ResultSet<O> {
         // An iterator which wraps the UNION ALL iterator, filtering out objects which are contained in ResultSets
         // iterated earlier - so effectively implementing UNION (with duplicates eliminated)...
         if (indexMergeStrategyEnabled) {
-            System.err.println("Using index merge in " + ResultSetUnion.class);
             return new FilteringIterator<O>(unionAllIterator, queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {

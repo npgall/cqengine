@@ -179,4 +179,21 @@ public class IteratorUtil {
             }
         };
     }
+
+    /**
+     * Sorts the results returned by the given iterator, returning the sorted results as a new iterator, by performing
+     * an insertion-sort into an intermediate set in memory.
+     *
+     * @param unsortedIterator An iterator which provides unsorted objects
+     * @param comparator The comparator to use for sorting
+     * @param <O> The type of the objects to be sorted
+     * @return An iterator which returns the objects in sorted order
+     */
+    public static <O> Iterator<O> materializedSort(Iterator<O> unsortedIterator, Comparator<O> comparator) {
+        Set<O> materializedSet = new TreeSet<O>(comparator);
+        while (unsortedIterator.hasNext()) {
+            materializedSet.add(unsortedIterator.next());
+        }
+        return materializedSet.iterator();
+    }
 }

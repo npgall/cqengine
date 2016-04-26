@@ -247,6 +247,14 @@ public class IndexedCollectionFunctionalTest {
                                 }};
                             }},
                             new QueryToEvaluate() {{
+                                highPriority = true;
+                                query = not(greaterThan(Car.CAR_ID, 450));
+                                expectedResults = new ExpectedResults() {{
+                                    containsCarIds = asSet(1, 449, 450);
+                                    doesNotContainCarIds = asSet(451);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
                                 query = equal(Car.FEATURES, "hybrid");
                                 queryOptions = queryOptions(deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION));
                                 expectedResults = new ExpectedResults() {{
@@ -1297,6 +1305,7 @@ public class IndexedCollectionFunctionalTest {
 
     public static class Scenario {
         String name = "<unnamed>";
+        int lineNumber = -1;
         Collection<Car> dataSet = Collections.emptySet();
         Collection<Car> removeDataSet = Collections.emptySet();
         Boolean clearDataSet = false;
@@ -1312,14 +1321,16 @@ public class IndexedCollectionFunctionalTest {
         public String toString() {
             return "[" +
                     "name='" + name + '\'' +
+                    ", line=" + lineNumber +
+                    ", collection=" + collectionImplementation.getSimpleName() +
+                    ", indexes=" + getIndexDescriptions(indexCombination) +
+                    ", indexMergeEnabled=" + useIndexMergeStrategy +
+                    ", query=" + query +
+                    ", queryOptions=" + queryOptions +
                     ", dataSet=<" + dataSet.size() + " items>" +
                     ", removeDataSet=<" + removeDataSet.size() + " items>" +
                     ", clearDataSet=" + clearDataSet +
-                    ", query=" + query +
-                    ", queryOptions=" + queryOptions +
                     ", expectedResults=" + expectedResults +
-                    ", collectionImplementation=" + collectionImplementation.getSimpleName() +
-                    ", indexCombination=" + getIndexDescriptions(indexCombination) +
                     ']';
         }
     }
@@ -1336,6 +1347,7 @@ public class IndexedCollectionFunctionalTest {
                         for (final QueryToEvaluate currentQueryToEvaluate : macroScenario.queriesToEvaluate) {
                             Scenario scenario = new Scenario() {{
                                 name = macroScenario.name;
+                                lineNumber = currentQueryToEvaluate.lineNumber;
                                 dataSet = macroScenario.dataSet;
                                 removeDataSet = macroScenario.removeDataSet;
                                 clearDataSet = macroScenario.clearDataSet;
@@ -1350,6 +1362,7 @@ public class IndexedCollectionFunctionalTest {
                             if (macroScenario.alsoEvaluateWithIndexMergeStrategy) {
                                 Scenario scenarioWithIndexMergeStrategy = new Scenario() {{
                                     name = macroScenario.name;
+                                    lineNumber = currentQueryToEvaluate.lineNumber;
                                     dataSet = macroScenario.dataSet;
                                     removeDataSet = macroScenario.removeDataSet;
                                     clearDataSet = macroScenario.clearDataSet;
@@ -1459,13 +1472,30 @@ public class IndexedCollectionFunctionalTest {
                     assertEquals("carIdsInOrder mismatch for query: " + query, expectedResults.carIdsInOrder, extractCarIds(results, new ArrayList<Integer>()));
                 }
                 if (expectedResults.containsCarIds != null) {
+                    // Validate ResultSet.contains()...
                     for (Integer carId : expectedResults.containsCarIds) {
                         assertTrue("containsCarIds mismatch, results do not contain carId " + carId + " for query: " + query, results.contains(CarFactory.createCar(carId)));
                     }
+                    // Validate actual results returned by ResultSet.iterator()...
+                    Set<Integer> expectedCarIds = new HashSet<Integer>(expectedResults.containsCarIds);
+                    for (Car car : results) {
+                        if (expectedCarIds.contains(car.getCarId())) {
+                            expectedCarIds.remove(car.getCarId());
+                        }
+                        if (expectedCarIds.isEmpty()) {
+                            break;
+                        }
+                    }
+                    assertTrue("containsCarIds mismatch, iterated results do not include carIds " + expectedCarIds + " for query: " + query, expectedCarIds.isEmpty());
                 }
                 if (expectedResults.doesNotContainCarIds != null) {
+                    // Validate ResultSet.contains()...
                     for (Integer carId : expectedResults.doesNotContainCarIds) {
                         assertFalse("doesNotContainCarIds mismatch, results contain carId " + carId + " for query: " + query, results.contains(CarFactory.createCar(carId)));
+                    }
+                    // Validate actual results returned by ResultSet.iterator()...
+                    for (Car car : results) {
+                        assertFalse("doesNotContainCarIds mismatch, results contain carId " + car.getCarId() + " for query: " + query, expectedResults.doesNotContainCarIds.contains(car.getCarId()));
                     }
                 }
                 if (expectedResults.containsQueryLogMessages != null) {
@@ -1486,10 +1516,24 @@ public class IndexedCollectionFunctionalTest {
     }
 
     static class QueryToEvaluate {
+        final int lineNumber = getLineNumber();
         Query<Car> query = none(Car.class);
         QueryOptions queryOptions = noQueryOptions();
         ExpectedResults expectedResults = null;
         boolean highPriority = false;
+
+        static int getLineNumber() {
+            StackTraceElement[] stElements = Thread.currentThread().getStackTrace();
+            for (int i=1; i<stElements.length; i++) {
+                StackTraceElement ste = stElements[i];
+                if (ste.getClassName() != null
+                        && ste.getClassName().startsWith(IndexedCollectionFunctionalTest.class.getName())
+                        && !ste.getClassName().endsWith(QueryToEvaluate.class.getName())) {
+                    return ste.getLineNumber();
+                }
+            }
+            return -1;
+        }
     }
 
     static class ExpectedResults {
@@ -1602,7 +1646,7 @@ public class IndexedCollectionFunctionalTest {
     }
 
     static String getIndexDescription(Index index) {
-        String description = index.getClass().getName();
+        String description = index.getClass().getSimpleName();
         if (index instanceof CompoundIndex) {
             description += ".onAttribute(<CompoundAttribute>)";
         }

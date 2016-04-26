@@ -17,6 +17,7 @@ package com.googlecode.cqengine.resultset.connective;
 
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.common.ResultSets;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
@@ -43,13 +44,13 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     }
 
     public ResultSetDifference(ResultSet<O> firstResultSet, ResultSet<O> secondResultSet, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
-        this.firstResultSet = firstResultSet;
-        this.secondResultSet = secondResultSet;
+        this.firstResultSet = ResultSets.wrapWithCostCachingIfNecessary(firstResultSet);
+        this.secondResultSet = ResultSets.wrapWithCostCachingIfNecessary(secondResultSet);
         this.query = query;
         this.queryOptions = queryOptions;
         // If index merge strategy is enabled, validate that we can actually use it for this particular negation...
         if (indexMergeStrategyEnabled) {
-            if (secondResultSet.getRetrievalCost() == Integer.MAX_VALUE) {
+            if (this.secondResultSet.getRetrievalCost() == Integer.MAX_VALUE) { //note getRetrievalCost() is on the cost-caching wrapper
                 // We cannot use index merge strategy for this negation
                 // because the second ResultSet is not backed by an index...
                 indexMergeStrategyEnabled = false;
@@ -61,7 +62,6 @@ public class ResultSetDifference<O> extends ResultSet<O> {
     @Override
     public Iterator<O> iterator() {
         if (indexMergeStrategyEnabled) {
-            System.err.println("Using index merge in " + ResultSetDifference.class);
             return new FilteringIterator<O>(firstResultSet.iterator(), queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {

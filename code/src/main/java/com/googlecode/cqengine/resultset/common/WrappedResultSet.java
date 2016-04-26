@@ -29,13 +29,9 @@ import java.util.Iterator;
 public class WrappedResultSet<O> extends ResultSet<O> {
 
     final ResultSet<O> wrappedResultSet;
-    final Query<O> query;
-    final QueryOptions queryOptions;
 
-    public WrappedResultSet(ResultSet<O> wrappedResultSet, Query<O> query, QueryOptions queryOptions) {
+    public WrappedResultSet(ResultSet<O> wrappedResultSet) {
         this.wrappedResultSet = wrappedResultSet;
-        this.query = query;
-        this.queryOptions = queryOptions;
     }
 
     @Override
@@ -50,7 +46,7 @@ public class WrappedResultSet<O> extends ResultSet<O> {
 
     @Override
     public boolean matches(O object) {
-        return query.matches(object, queryOptions);
+        return wrappedResultSet.matches(object);
     }
 
     @Override
@@ -75,11 +71,11 @@ public class WrappedResultSet<O> extends ResultSet<O> {
 
     @Override
     public Query<O> getQuery() {
-        return query;
+        return wrappedResultSet.getQuery();
     }
 
     @Override
     public QueryOptions getQueryOptions() {
-        return queryOptions;
+        return wrappedResultSet.getQueryOptions();
     }
 }
