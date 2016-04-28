@@ -61,10 +61,7 @@ public class QueryToStringTest {
         // Note: QueryFactory expands 'in' queries to an 'or' of multiple 'equals' queries (logically equivalent)...
         Assert.assertEquals(
                 "and(" +
-                    "or(" +
-                        "equal(\"doors\", 2), " +
-                        "equal(\"doors\", 4)" +
-                    "), " +
+                    "in(\"doors\", [2, 4]), " +
                     "existsIn(IndexedCollection<Garage>, " +
                         "\"manufacturer\", " +
                         "\"brandsServiced\", " +

@@ -19,6 +19,7 @@ import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
@@ -34,7 +35,10 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
 import java.sql.Connection;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
 import static com.googlecode.cqengine.query.QueryFactory.*;
@@ -123,6 +127,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
+            add(In.class);
             add(LessThan.class);
             add(GreaterThan.class);
             add(Between.class);
@@ -376,8 +381,14 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 @Override
                 public int size() {
                     final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    boolean attributeHasAtMostOneValue = (attribute instanceof SimpleAttribute || attribute instanceof SimpleNullableAttribute);
+                    boolean queryIsADisjointInQuery = query instanceof In && ((In) query).isDisjoint();
                     try {
-                        return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
+                        if (queryIsADisjointInQuery || attributeHasAtMostOneValue) {
+                            return DBQueries.count(query, tableName, connection); // No need to eliminates duplicates
+                        }else{
+                            return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
+                        }
                     } finally {
                         DBUtils.closeQuietly(connection);
                     }
