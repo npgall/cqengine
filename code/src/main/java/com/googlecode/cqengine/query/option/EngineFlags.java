@@ -32,12 +32,9 @@ import com.googlecode.cqengine.query.QueryFactory;
 public enum EngineFlags {
 
     /**
-     * A performance tuning flag which may be useful in applications in which it is more expensive to retrieve values
-     * from attributes, than it is to probe indexes on those attributes, when evaluating a query.
-     * <p/>
-     * This may be useful where the collection which attributes access is stored off-heap, or where attributes read
-     * from external data sources. Essentially this is useful where the latency to access CQEngine indexes, will
-     * typically be lower than the latency to retrieve values from attributes.
+     * A performance tuning flag which may be useful in applications in which objects are stored off-heap, remotely, or
+     * on disk, or generally where it is more expensive to retrieve values from CQEngine attributes, than it is to
+     * probe indexes on those attributes, when evaluating a query.
      * <p/>
      * <b>Example</b><br/>
      * Consider the query: <code>and(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Color.BLUE))</code><br/>
