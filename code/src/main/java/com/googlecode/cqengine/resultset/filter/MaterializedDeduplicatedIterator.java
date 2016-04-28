@@ -30,7 +30,7 @@ import java.util.Set;
  *
  * @author niall.gallagher
  */
-public class DeduplicatingMaterializingIterator<O> extends UnmodifiableIterator<O> {
+public class MaterializedDeduplicatedIterator<O> extends UnmodifiableIterator<O> {
 
     final Iterator<O> backingIterator;
 
@@ -38,7 +38,7 @@ public class DeduplicatingMaterializingIterator<O> extends UnmodifiableIterator<
 
     O nextObject = null;
 
-    public DeduplicatingMaterializingIterator(Iterator<O> backingIterator) {
+    public MaterializedDeduplicatedIterator(Iterator<O> backingIterator) {
         this.backingIterator = backingIterator;
     }
 

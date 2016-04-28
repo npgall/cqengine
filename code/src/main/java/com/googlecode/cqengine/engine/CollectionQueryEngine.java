@@ -36,14 +36,13 @@ import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.closeable.CloseableFilteringResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.common.CostCachingResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetDifference;
 import com.googlecode.cqengine.resultset.connective.ResultSetIntersection;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
-import com.googlecode.cqengine.resultset.filter.DeduplicatingMaterializingIterator;
+import com.googlecode.cqengine.resultset.filter.MaterializedDeduplicatedIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterable;
@@ -51,8 +50,8 @@ import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
-import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
-import com.googlecode.cqengine.resultset.order.MaterializingResultSet;
+import com.googlecode.cqengine.resultset.order.MaterializedOrderedResultSet;
+import com.googlecode.cqengine.resultset.order.MaterializedDeduplicatedResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
@@ -480,15 +479,20 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         // Check if we need to wrap ResultSet to order and/or deduplicate results (deduplicate using MATERIAIZE rather
         // than LOGICAL_ELIMINATION strategy)...
+        final boolean applyMaterializedDeduplication = DeduplicationOption.isMaterialize(queryOptions);
         if (orderByOption != null) {
-            // An OrderByOption was specified, wrap the results in an MaterializingOrderedResultSet,
-            // which will both deduplicate and sort results. O(n^2 log(n)) time complexity to subsequently iterate...
+            // An OrderByOption was specified, wrap the results in an MaterializedOrderedResultSet.
+            // -> This will implicitly sort AND deduplicate the results returned by the ResultSet.iterator() method.
+            // -> However note this does not mean we will also deduplicate the count returned by ResultSet.size()!
+            // -> Deduplicating the count returned by size() is expensive, so we only do this if the client
+            //    requested both ordering AND deduplication explicitly (hence we pass applyMaterializeDeduplication)...
             Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
-            resultSet = new MaterializingOrderedResultSet<O>(resultSet, comparator, query, queryOptions);
-        } else if (DeduplicationOption.isMaterialize(queryOptions)) {
-            // A DeduplicationOption was specified, wrap the results in an MaterializingResultSet,
+            resultSet = new MaterializedOrderedResultSet<O>(resultSet, comparator, applyMaterializedDeduplication);
+        }
+        else if (applyMaterializedDeduplication) {
+            // A DeduplicationOption was specified, wrap the results in an MaterializedDeduplicatedResultSet,
             // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
-            resultSet = new MaterializingResultSet<O>(resultSet, query, queryOptions);
+            resultSet = new MaterializedDeduplicatedResultSet<O>(resultSet);
         }
         return resultSet;
     }
@@ -561,7 +565,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 if (attributeCanHaveMoreThanOneValue) {
                     // Deduplicate results in case the same object could appear in more than one bucket
                     // and so otherwise could be returned more than once...
-                    combinedResults = new DeduplicatingMaterializingIterator<O>(combinedResults);
+                    combinedResults = new MaterializedDeduplicatedIterator<O>(combinedResults);
                 }
                 return combinedResults;
             }

@@ -15,19 +15,22 @@
  */
 package com.googlecode.cqengine.resultset.order;
 
-import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.common.WrappedResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
 
 /**
  * A {@code ResultSet} which wraps another {@code ResultSet}, providing an {@link #iterator()} method which returns
- * objects in sorted order according to a comparator supplied to the constructor of this {@code ResultSet}, and which
- * never returns the same object more than once.
+ * objects from the wrapped ResultSet in sorted order according to a comparator supplied to the constructor of this
+ * {@code ResultSet}, AND which implicitly deduplicates the objects returned as well.
  * <p/>
- * This is implemented by copying objects from the wrapped {@link ResultSet} into a sorted set on-demand when
+ * Note that the {@link #size()} method does not necessarily reflect the outcome of that deduplication.
+ * As deduplication is expensive, the constructor accepts a boolean flag to specify if the size() method should perform
+ * deduplication.
+ * <p/>
+ * Deduplication is implemented by copying objects from the wrapped {@link ResultSet} into a sorted set on-demand when
  * the {@link #iterator()} method is called, and then returning an iterator over that set.
  * <p/>
  * Insertion-sorting, and <u>then iterating</u> objects in this manner has
@@ -36,18 +39,25 @@ import java.util.*;
  *
  * @author Niall Gallagher
  */
-public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
+public class MaterializedOrderedResultSet<O> extends WrappedResultSet<O> {
 
-    final ResultSet<O> wrappedResultSet;
     final Comparator<O> comparator;
-    final Query<O> query;
-    final QueryOptions queryOptions;
+    final boolean deduplicateSize;
 
-    public MaterializingOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator, Query<O> query, QueryOptions queryOptions) {
-        this.wrappedResultSet = wrappedResultSet;
+    /**
+     * @param wrappedResultSet The ResultSet to be ordered.
+     * @param comparator The comparator to use for ordering
+     * @param deduplicateSize If true, the {@link #size()} method will deduplicate results such that the count it
+     *                        returns will match the number of objects returned by the {@link #iterator()} method (but
+     *                        this deduplication is expensive); if false, the size() method will not deduplicate, and so
+     *                        the size reported might sometimes be greater then the number of objects which the
+     *                        {@link #iterator()} method returns (but this computation is inexpensive).
+     *
+     */
+    public MaterializedOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator, boolean deduplicateSize) {
+        super(wrappedResultSet);
         this.comparator = comparator;
-        this.query = query;
-        this.queryOptions = queryOptions;
+        this.deduplicateSize = deduplicateSize;
     }
 
     /**
@@ -61,32 +71,7 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
      */
     @Override
     public Iterator<O> iterator() {
-        return IteratorUtil.materializedSort(wrappedResultSet.iterator(), comparator);
-    }
-
-    /**
-     * Delegates to the {@link ResultSet#contains(Object)} method of the wrapped {@link ResultSet}.
-     *
-     * @param object The object to check for containment in this {@link ResultSet}
-     * @return True if this {@link ResultSet} contains the given object, false if it does not
-     */
-    @Override
-    public boolean contains(O object) {
-        return wrappedResultSet.contains(object);
-    }
-
-    @Override
-    public boolean matches(O object) {
-        return query.matches(object, queryOptions);
-    }
-
-    /**
-     * Returns the retrieval cost of the wrapped {@link ResultSet}.
-     * @return The retrieval cost of the wrapped {@link ResultSet}
-     */
-    @Override
-    public int getRetrievalCost() {
-        return wrappedResultSet.getRetrievalCost();
+        return IteratorUtil.materializedSort(super.iterator(), comparator);
     }
 
     /**
@@ -100,36 +85,18 @@ public class MaterializingOrderedResultSet<O> extends ResultSet<O> {
      */
     @Override
     public int getMergeCost() {
-        long mergeCost = wrappedResultSet.getMergeCost();
+        long mergeCost = super.getMergeCost();
         return (int)Math.min(mergeCost * mergeCost, Integer.MAX_VALUE);
     }
 
     /**
      * {@inheritDoc}
      * <p/>
-     * This implementation has <code>O(merge_cost^2 * log(merge_cost))</code> time complexity, because it delegates to
-     * the {@link #iterator()} method and counts objects returned.
+     * Note that whether or not this method deduplicates results is specified by the parameter supplied to the
+     * constructor of this ResultSet.
      */
     @Override
     public int size() {
-        return IteratorUtil.countElements(this);
-    }
-
-    /**
-     * Closes the wrapped {@code ResultSet}.
-     */
-    @Override
-    public void close() {
-        wrappedResultSet.close();
-    }
-
-    @Override
-    public Query<O> getQuery() {
-        return query;
-    }
-
-    @Override
-    public QueryOptions getQueryOptions() {
-        return queryOptions;
+        return deduplicateSize ? IteratorUtil.countElements(this) : super.size();
     }
 }

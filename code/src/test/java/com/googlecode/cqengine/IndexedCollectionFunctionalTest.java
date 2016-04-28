@@ -1322,9 +1322,9 @@ public class IndexedCollectionFunctionalTest {
             return "[" +
                     "name='" + name + '\'' +
                     ", line=" + lineNumber +
-                    ", collection=" + collectionImplementation.getSimpleName() +
+                    ", collection=" + collectionImplementation.getSimpleName().replace("IndexedCollection", "").toLowerCase() +
                     ", indexes=" + getIndexDescriptions(indexCombination) +
-                    ", indexMergeEnabled=" + useIndexMergeStrategy +
+                    ", mergeStrategy=" + (useIndexMergeStrategy ? "index" : "default") +
                     ", query=" + query +
                     ", queryOptions=" + queryOptions +
                     ", dataSet=<" + dataSet.size() + " items>" +
