@@ -431,49 +431,37 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     }
 
     boolean doAddAll(Iterable<O> objects, QueryOptions queryOptions) {
-        queryOptions = openRequestScopeResourcesIfNecessary(queryOptions);
-        try {
-            if (objects instanceof Collection) {
-                Collection<O> c = (Collection<O>) objects;
-                boolean modified = objectStore.addAll(c, queryOptions);
-                indexEngine.addAll(c, queryOptions);
-                return modified;
-            }
-            else {
-                boolean modified = false;
-                for (O object : objects) {
-                    boolean added = objectStore.add(object, queryOptions);
-                    indexEngine.addAll(singleton(object), queryOptions);
-                    modified = added || modified;
-                }
-                return modified;
-            }
+        if (objects instanceof Collection) {
+            Collection<O> c = (Collection<O>) objects;
+            boolean modified = objectStore.addAll(c, queryOptions);
+            indexEngine.addAll(c, queryOptions);
+            return modified;
         }
-        finally {
-            closeRequestScopeResourcesIfNecessary(queryOptions);
+        else {
+            boolean modified = false;
+            for (O object : objects) {
+                boolean added = objectStore.add(object, queryOptions);
+                indexEngine.addAll(singleton(object), queryOptions);
+                modified = added || modified;
+            }
+            return modified;
         }
     }
 
     boolean doRemoveAll(Iterable<O> objects, QueryOptions queryOptions) {
-        queryOptions = openRequestScopeResourcesIfNecessary(queryOptions);
-        try {
-            if (objects instanceof Collection) {
-                Collection<O> c = (Collection<O>) objects;
-                boolean modified = objectStore.removeAll(c, queryOptions);
-                indexEngine.removeAll(c, queryOptions);
-                return modified;
-            } else {
-                boolean modified = false;
-                for (O object : objects) {
-                    boolean removed = objectStore.remove(object, queryOptions);
-                    indexEngine.removeAll(singleton(object), queryOptions);
-                    modified = removed || modified;
-                }
-                return modified;
+        if (objects instanceof Collection) {
+            Collection<O> c = (Collection<O>) objects;
+            boolean modified = objectStore.removeAll(c, queryOptions);
+            indexEngine.removeAll(c, queryOptions);
+            return modified;
+        } else {
+            boolean modified = false;
+            for (O object : objects) {
+                boolean removed = objectStore.remove(object, queryOptions);
+                indexEngine.removeAll(singleton(object), queryOptions);
+                modified = removed || modified;
             }
-        }
-        finally {
-            closeRequestScopeResourcesIfNecessary(queryOptions);
+            return modified;
         }
     }
 

@@ -34,12 +34,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.googlecode.cqengine.query.QueryFactory.all;
-import static com.googlecode.cqengine.query.QueryFactory.isolationLevel;
-import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.IsolationLevel.READ_UNCOMMITTED;
 import static com.googlecode.cqengine.query.option.IsolationOption.isIsolationLevel;
-import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Extends {@link ConcurrentIndexedCollection} with support for READ_COMMITTED transaction isolation using
@@ -299,19 +296,43 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
 
     @Override
     public boolean retainAll(final Collection<?> c) {
-        // Prepare to lazily read all objects from the collection *without using MVCC* (..READ_UNCOMMITTED),
-        // and lazily filter it to return only the subsetToRemove objects which are not in the given collection...
-        Query<O> query = all(objectType);
-        FilteringResultSet<O> subsetToRemove = new FilteringResultSet<O>( // TODO: should this be closed?
-                retrieve(query, queryOptions(isolationLevel(READ_UNCOMMITTED))), query, noQueryOptions()) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                return !c.contains(object);
+        synchronized (writeMutex) {
+            QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
+            try {
+                // Prepare a query which will match objects in the collection which are not contained in the given
+                // collection of objects to retain and therefore which need to be removed from the collection...
+                // We prepare the query to use the same QueryOptions as above.
+                // Any resources opened for the query which need to be closed,
+                // will be added to the QueryOptions and closed at the end of this method.
+                @SuppressWarnings("unchecked")
+                ResultSet<O> objectsToRemove = super.retrieve(not(in(selfAttribute(objectType), (Collection<O>) c)), queryOptions);
+
+                Iterator<O> objectsToRemoveIterator = objectsToRemove.iterator();
+                if (!objectsToRemoveIterator.hasNext()) {
+                    return false;
+                }
+
+                // Configure new reading threads to exclude the objects we will remove...
+                incrementVersion(objectsToRemove);
+
+                // Wait for this to take effect across all threads...
+                waitForReadersOfPreviousVersionsToFinish();
+
+                // Now remove the given objects...
+                boolean modified = doRemoveAll(objectsToRemove, queryOptions);
+
+                // Finally, remove the exclusion...
+                incrementVersion(Collections.<O>emptySet());
+
+                // Wait for this to take effect across all threads...
+                waitForReadersOfPreviousVersionsToFinish();
+
+                return modified;
             }
-        };
-        // We don't need to use MVCC above, because subsetToRemove will be iterated inside the synchronized update()
-        // method...
-        return update(subsetToRemove, Collections.<O>emptySet());
+            finally {
+                closeRequestScopeResourcesIfNecessary(queryOptions);
+            }
+        }
     }
 
     @Override

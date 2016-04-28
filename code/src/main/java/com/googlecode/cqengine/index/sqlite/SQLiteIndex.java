@@ -558,7 +558,6 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
         Connection connection = connectionManager.getConnection(this);
         DBQueries.clearIndexTable(tableName, connection);
-        DBQueries.compactDatabase(connection);
     }
 
     @Override

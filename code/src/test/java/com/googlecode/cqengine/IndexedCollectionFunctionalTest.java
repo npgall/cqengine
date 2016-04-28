@@ -247,7 +247,6 @@ public class IndexedCollectionFunctionalTest {
                                 }};
                             }},
                             new QueryToEvaluate() {{
-                                highPriority = true;
                                 query = not(greaterThan(Car.CAR_ID, 450));
                                 expectedResults = new ExpectedResults() {{
                                     containsCarIds = asSet(1, 449, 450);
@@ -1370,25 +1369,21 @@ public class IndexedCollectionFunctionalTest {
             persistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
         }
         else {
-            persistence = null; // TODO: non null?
+            persistence = OnHeapPersistence.onPrimaryKey(Car.CAR_ID);
         }
         IndexedCollection<Car> indexedCollection;
         try {
-            if (persistence != null) {
-                if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
-                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class, Persistence.class).newInstance(Car.class, persistence);
+            if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
+                indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class, Persistence.class).newInstance(Car.class, persistence);
+            }
+            else if (OffHeapConcurrentIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
+                if (!(persistence instanceof OffHeapPersistence)) {
+                    persistence =  CompositePersistence.of(OffHeapPersistence.onPrimaryKey(Car.CAR_ID), persistence);
                 }
-                else {
-                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Persistence.class).newInstance(persistence);
-                }
+                indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Persistence.class).newInstance(persistence);
             }
             else {
-                if (TransactionalIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
-                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class).newInstance(Car.class);
-                }
-                else {
-                    indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.newInstance();
-                }
+                indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Persistence.class).newInstance(persistence);
             }
         }
         catch (Exception e) {
@@ -1663,6 +1658,13 @@ public class IndexedCollectionFunctionalTest {
 
     static String getIndexDescription(Index index) {
         String description = index.getClass().getSimpleName();
+        if (description.isEmpty()) {
+            // Anonymous inner class, use enclosing class name...
+            description = index.getClass().getEnclosingClass().getSimpleName();
+            if (description.isEmpty()) {
+                throw new IllegalStateException("Failed to determine name for index: " + index.getClass());
+            }
+        }
         if (index instanceof CompoundIndex) {
             description += ".onAttribute(<CompoundAttribute>)";
         }

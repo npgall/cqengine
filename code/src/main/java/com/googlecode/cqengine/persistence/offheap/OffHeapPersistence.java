@@ -24,7 +24,6 @@ import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
-import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.query.option.QueryOptions;
