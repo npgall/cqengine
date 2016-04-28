@@ -54,9 +54,8 @@ import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
-import com.googlecode.cqengine.resultset.order.MaterializingOrderedResultSet;
-import com.googlecode.cqengine.resultset.order.MaterializingResultSet;
-import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
+import com.googlecode.cqengine.resultset.order.MaterializedDeduplicatedResultSet;
+import com.googlecode.cqengine.resultset.order.MaterializedOrderedResultSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

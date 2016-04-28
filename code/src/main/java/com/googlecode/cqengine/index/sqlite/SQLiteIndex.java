@@ -20,6 +20,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
@@ -368,7 +369,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 @Override
                 public int size() {
                     final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
-                    return DBQueries.countDistinct(query, tableName, connection); // eliminates duplicates
+
                     boolean attributeHasAtMostOneValue = (attribute instanceof SimpleAttribute || attribute instanceof SimpleNullableAttribute);
                     boolean queryIsADisjointInQuery = query instanceof In && ((In) query).isDisjoint();
 

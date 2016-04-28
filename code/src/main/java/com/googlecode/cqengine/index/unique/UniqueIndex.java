@@ -17,10 +17,10 @@ package com.googlecode.cqengine.index.unique;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
-import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
 import com.googlecode.cqengine.query.Query;
