@@ -147,6 +147,23 @@ public class DBUtils {
         }
     }
 
+    /**
+     * <p> Binds a set of values to the statement.
+     *
+     * @param startIndex parameter index from where to start the binding.
+     * @param preparedStatement the prepared statement.
+     * @param values The values to bind
+     * @return The new start index.
+     * @throws SQLException if the binding fails.
+     */
+    public static int setValuesToPreparedStatement(final int startIndex, final PreparedStatement preparedStatement, final Iterable values) throws SQLException {
+        int index = startIndex;
+        for (Object value : values){
+            setValueToPreparedStatement(index++, preparedStatement, value);
+        }
+        return index;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T>T getValueFromResultSet(int index, final ResultSet resultSet, final Class<T> type){
 

@@ -15,26 +15,25 @@
  */
 package com.googlecode.cqengine.index.radix;
 
+import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.RadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
+import com.googlecode.cqengine.query.simple.In;
 import com.googlecode.cqengine.query.simple.StringStartsWith;
 import com.googlecode.cqengine.resultset.ResultSet;
-import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
-import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNecessary;
 
 /**
  * An index backed by a {@link ConcurrentRadixTree}.
@@ -66,6 +65,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
     protected RadixTreeIndex(Attribute<O, A> attribute) {
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
+            add(In.class);
             add(StringStartsWith.class);
         }});
     }
@@ -82,53 +82,13 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
 
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
-        final RadixTree<StoredResultSet<O>> tree = this.tree;        
+        final RadixTree<StoredResultSet<O>> tree = this.tree;
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
-            final Equal<O, A> equal = (Equal<O, A>) query;
-            return new ResultSet<O>() {
-                @Override
-                public Iterator<O> iterator() {
-                    ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
-                    return rs == null ? Collections.<O>emptySet().iterator() : rs.iterator();
-                }
-                @Override
-                public boolean contains(O object) {
-                    ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
-                    return rs != null && rs.contains(object);
-                }
-                @Override
-                public boolean matches(O object) {
-                    return query.matches(object, queryOptions);
-                }
-                @Override
-                public int size() {
-                    ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
-                    return rs == null ? 0 : rs.size();
-                }
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-                @Override
-                public int getMergeCost() {
-                    // Return size of entire stored set as merge cost...
-                    ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
-                    return rs == null ? 0 : rs.size();
-                }
-                @Override
-                public void close() {
-                    // No op.
-                }
-                @Override
-                public Query<O> getQuery() {
-                    return query;
-                }
-                @Override
-                public QueryOptions getQueryOptions() {
-                    return queryOptions;
-                }
-            };
+            return retrieveEqual((Equal<O, A>) query, queryOptions, tree);
+        }
+        else if (queryClass.equals(In.class)){
+            return retrieveIn((In<O, A>) query, queryOptions, tree);
         }
         else if (queryClass.equals(StringStartsWith.class)) {
             final StringStartsWith<O, A> stringStartsWith = (StringStartsWith<O, A>) query;
@@ -136,13 +96,13 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 @Override
                 public Iterator<O> iterator() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysStartingWith(stringStartsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
+                    ResultSet<O> rs = deduplicateIfNecessary(resultSets, query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
                     return rs.iterator();
                 }
                 @Override
                 public boolean contains(O object) {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysStartingWith(stringStartsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
+                    ResultSet<O> rs = deduplicateIfNecessary(resultSets, query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
                     return rs.contains(object);
                 }
                 @Override
@@ -152,7 +112,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 @Override
                 public int size() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysStartingWith(stringStartsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
+                    ResultSet<O> rs = deduplicateIfNecessary(resultSets, query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
                     return rs.size();
                 }
                 @Override
@@ -162,7 +122,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
                 @Override
                 public int getMergeCost() {
                     Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysStartingWith(stringStartsWith.getValue());
-                    ResultSet<O> rs = unionResultSets(resultSets, query, queryOptions);
+                    ResultSet<O> rs = deduplicateIfNecessary(resultSets, query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
                     return rs.getMergeCost();
                 }
                 @Override
@@ -184,38 +144,72 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
         }
     }
 
-    /**
-     * If a query option specifying logical deduplication was supplied, wrap the given result sets in
-     * {@link ResultSetUnion}, otherwise wrap in {@link ResultSetUnionAll}.
-     * <p/>
-     * An exception is if the index is built on a SimpleAttribute, we can avoid deduplication and always use
-     * {@link ResultSetUnionAll}, because the same object could not exist in more than one {@link StoredResultSet}.
-     *
-     * @param results Provides the result sets to union
-     * @param query The query for which the union is being constructed
-     * @param queryOptions Specifies whether or not logical deduplication is required
-     * @return A union view over the given result sets
-     */
-    ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, Query<O> query, QueryOptions queryOptions) {
-        if (DeduplicationOption.isLogicalElimination(queryOptions)
-                && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
-            return new ResultSetUnion<O>(results, query, queryOptions) {
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-            };
-        }
-        else {
-            return new ResultSetUnionAll<O>(results, query, queryOptions) {
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-            };
-        }
+    protected ResultSet<O> retrieveIn(final In<O, A> in, final QueryOptions queryOptions, final RadixTree<StoredResultSet<O>> tree) {
+        // Process the IN query as the union of the EQUAL queries for the values specified by the IN query.
+        final Iterable<? extends ResultSet<O>> results = new Iterable<ResultSet<O>>() {
+            @Override
+            public Iterator<ResultSet<O>> iterator() {
+                return new LazyIterator<ResultSet<O>>() {
+                    final Iterator<A> values = in.getValues().iterator();
+                    @Override
+                    protected ResultSet<O> computeNext() {
+                        if (values.hasNext()){
+                            return retrieveEqual(new Equal<O, A>(in.getAttribute(), values.next()), queryOptions, tree);
+                        }else{
+                            return endOfData();
+                        }
+                    }
+                };
+            }
+        };
+        return deduplicateIfNecessary(results, in, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
     }
 
+    protected ResultSet<O> retrieveEqual(final Equal<O, A> equal, final QueryOptions queryOptions, final RadixTree<StoredResultSet<O>> tree) {
+        return new ResultSet<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
+                return rs == null ? Collections.<O>emptySet().iterator() : rs.iterator();
+            }
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
+                return rs != null && rs.contains(object);
+            }
+            @Override
+            public boolean matches(O object) {
+                return equal.matches(object, queryOptions);
+            }
+            @Override
+            public int size() {
+                ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public int getRetrievalCost() {
+                return INDEX_RETRIEVAL_COST;
+            }
+            @Override
+            public int getMergeCost() {
+                // Return size of entire stored set as merge cost...
+                ResultSet<O> rs = tree.getValueForExactKey(equal.getValue());
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public void close() {
+                // No op.
+            }
+            @Override
+            public Query<O> getQuery() {
+                return equal;
+            }
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+        };
+    }
 
     /**
      * @return A {@link StoredSetBasedResultSet} based on a set backed by {@link ConcurrentHashMap}, as created via

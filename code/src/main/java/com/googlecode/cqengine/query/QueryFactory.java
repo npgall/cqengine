@@ -141,34 +141,47 @@ public class QueryFactory {
     }
 
     /**
-     * A shorthand way to create an {@link Or} query comprised of several {@link Equal} queries.
+     * <p> Creates a {@link In} query which asserts that an attribute has at least one value matching any value in a set of values.
+     * <p> If the given attribute is a {@link SimpleAttribute}, this method will set a hint in the query to
+     * indicate that results for the child queries will inherently be disjoint and so will not require deduplication.
      *
      * @param attribute The attribute to which the query refers
-     * @param attributeValues The potential values for the {@link Equal} queries to be asserted by the {@link Or} query
+     * @param attributeValues The set of values to match
      * @param <A> The type of the attribute
      * @param <O> The type of the object containing the attribute
-     * @return An {@link Or} query comprised of several {@link Equal} queries
+     * @return An {@link In} query
      */
     public static <O, A> Query<O> in(Attribute<O, A> attribute, A... attributeValues) {
         return in(attribute, Arrays.asList(attributeValues));
     }
 
     /**
-     * A shorthand way to create an {@link Or} query comprised of several {@link Equal} queries.
-     * <p/>
-     * Note that <b><u>this can result in more efficient queries</u></b> than several {@link Equal} queries "OR"ed together
-     * using other means.
-     * <p/>
-     * If the given attribute is a {@link SimpleAttribute}, this method will set a hint in the query to
+     * <p> Creates a {@link In} query which asserts that an attribute has at least one value matching any value in a set of values.
+     * <p> If the given attribute is a {@link SimpleAttribute}, this method will set a hint in the query to
      * indicate that results for the child queries will inherently be disjoint and so will not require deduplication.
      *
      * @param attribute The attribute to which the query refers
-     * @param attributeValues The potential values for the {@link Equal} queries to be asserted by the {@link Or} query
+     * @param attributeValues TThe set of values to match
      * @param <A> The type of the attribute
      * @param <O> The type of the object containing the attribute
-     * @return An {@link Or} query comprised of several {@link Equal} queries
+     * @return An {@link In} query
      */
     public static <O, A> Query<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
+        return in(attribute, attribute instanceof SimpleAttribute, new HashSet<A>(attributeValues));
+    }
+
+    /**
+     * <p> Creates a {@link In} query which asserts that an attribute has at least one value matching any value in a set of values.
+     * <p> Note that <b><u>this can result in more efficient queries</u></b> than several {@link Equal} queries "OR"ed together using other means.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param disjoint Set it to {@code true} if deduplication is not necessary because the results are disjoint. Set it to {@code false} deduplication is needed
+     * @param attributeValues The set of values to match
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link In} query
+     */
+    public static <O, A> Query<O> in(Attribute<O, A> attribute, boolean disjoint, Collection<A> attributeValues) {
         int n = attributeValues.size();
         switch (n) {
             case 0:
@@ -177,12 +190,7 @@ public class QueryFactory {
                 A singleValue = attributeValues.iterator().next();
                 return equal(attribute, singleValue);
             default:
-                List<Query<O>> equalStatements = new ArrayList<Query<O>>(attributeValues.size());
-                for (A attributeValue : attributeValues) {
-                    Equal<O, A> equalStatement = equal(attribute, attributeValue);
-                    equalStatements.add(equalStatement);
-                }
-                return new Or<O>(equalStatements, attribute instanceof SimpleAttribute);
+                return new In<O, A>(attribute, disjoint, new HashSet<A>(attributeValues));
         }
     }
 
