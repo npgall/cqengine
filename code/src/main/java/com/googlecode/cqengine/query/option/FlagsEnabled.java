@@ -36,6 +36,10 @@ public class FlagsEnabled {
         flags.add(flag);
     }
 
+    public void remove(Object flag) {
+        flags.remove(flag);
+    }
+
     public boolean isFlagEnabled(Object flag) {
         return flags.contains(flag);
     }

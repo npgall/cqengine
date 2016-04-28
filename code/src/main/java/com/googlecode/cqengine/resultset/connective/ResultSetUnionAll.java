@@ -17,6 +17,7 @@ package com.googlecode.cqengine.resultset.connective;
 
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.common.ResultSets;
 import com.googlecode.cqengine.resultset.iterator.ConcatenatingIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 
@@ -37,7 +38,7 @@ public class ResultSetUnionAll<O> extends ResultSet<O> {
     private final Iterable<? extends ResultSet<O>> resultSets;
 
     public ResultSetUnionAll(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
-        this.resultSets = resultSets;
+        this.resultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
         this.query = query;
         this.queryOptions = queryOptions;
     }

@@ -17,9 +17,7 @@ package com.googlecode.cqengine.resultset.common;
 
 import com.googlecode.cqengine.resultset.ResultSet;
 
-import java.util.AbstractCollection;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Utility methods for working with {@link com.googlecode.cqengine.resultset.ResultSet} objects.
@@ -62,6 +60,30 @@ public class ResultSets {
                 return resultSet.isEmpty();
             }
         };
+    }
+
+    /**
+     * Returns a list of {@link CostCachingResultSet}s, by copying from the result sets given, wrapping them as
+     * necessary via {@link #wrapWithCostCachingIfNecessary(ResultSet)}.
+     *
+     * @param resultSets a list of {@link CostCachingResultSet}s
+     */
+    public static <O> List<ResultSet<O>> wrapWithCostCachingIfNecessary(Iterable<? extends ResultSet<O>> resultSets) {
+        List<ResultSet<O>> result = new LinkedList<ResultSet<O>>();
+        for (ResultSet<O> candidate : resultSets) {
+            result.add(wrapWithCostCachingIfNecessary(candidate));
+        }
+        return result;
+    }
+
+    /**
+     * Returns the given {@link ResultSet} as-is if it is already an instance of {@link CostCachingResultSet}, otherwise
+     * wraps it accordingly and returns the result.
+     * @param resultSet A {@link ResultSet} which may or may not be an instance of {@link CostCachingResultSet}
+     * @return A {@link CostCachingResultSet} as described
+     */
+    public static <O> ResultSet<O> wrapWithCostCachingIfNecessary(final ResultSet<O> resultSet) {
+        return resultSet instanceof CostCachingResultSet ? resultSet : new CostCachingResultSet<O>(resultSet);
     }
 
     /**

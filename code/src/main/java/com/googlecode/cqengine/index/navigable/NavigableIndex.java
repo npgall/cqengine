@@ -23,20 +23,21 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
-import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
-import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
-import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+
+import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNecessary;
 
 /**
  * An index backed by a {@link ConcurrentSkipListMap}.
@@ -78,11 +79,12 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
      */
     protected NavigableIndex(Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> indexMapFactory, Factory<StoredResultSet<O>> valueSetFactory, Attribute<O, A> attribute) {
         super(indexMapFactory, valueSetFactory,  attribute, new HashSet<Class<? extends Query>>() {{
-                add(Equal.class);
-                add(LessThan.class);
-                add(GreaterThan.class);
-                add(Between.class);
-                add(Has.class);
+            add(Equal.class);
+            add(In.class);
+            add(LessThan.class);
+            add(GreaterThan.class);
+            add(Between.class);
+            add(Has.class);
         }});
     }
 
@@ -111,73 +113,11 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         final boolean indexIsQuantized = isQuantized();
         // Process Equal queries in the same was as HashIndex...
         if (queryClass.equals(Equal.class)) {
-            final Equal<O, A> equal = (Equal<O, A>) query;
-            return new ResultSet<O>() {
-                @Override
-                public Iterator<O> iterator() {
-                    ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal, queryOptions).iterator();
-                }
-                @Override
-                public boolean contains(O object) {
-                    ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs != null && filterForQuantization(rs, equal, queryOptions).contains(object);
-                }
-                @Override
-                public boolean matches(O object) {
-                    return query.matches(object, queryOptions);
-                }
-                @Override
-                public int size() {
-                    ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? 0 : filterForQuantization(rs, equal, queryOptions).size();
-                }
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-                @Override
-                public int getMergeCost() {
-                    // Return size of entire stored set as merge cost...
-                    ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
-                    return rs == null ? 0 : rs.size();
-                }
-                @Override
-                public void close() {
-                    // No op.
-                }
-                @Override
-                public Query<O> getQuery() {
-                    return query;
-                }
-                @Override
-                public QueryOptions getQueryOptions() {
-                    return queryOptions;
-                }
-            };
-        }
-        else if (queryClass.equals(Has.class)) {
-            // If a query option specifying logical deduplication is supplied return ResultSetUnion,
-            // otherwise return ResultSetUnionAll.
-            // We can avoid deduplication if the index is built on a SimpleAttribute however,
-            // because the same object could not exist in more than one StoredResultSet...
-            if (DeduplicationOption.isLogicalElimination(queryOptions)
-                    && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
-                return new ResultSetUnion<O>(indexMap.values(), query, queryOptions) {
-                    @Override
-                    public int getRetrievalCost() {
-                        return INDEX_RETRIEVAL_COST;
-                    }
-                };
-            }
-            else {
-                return new ResultSetUnionAll<O>(indexMap.values(), query, queryOptions) {
-                    @Override
-                    public int getRetrievalCost() {
-                        return INDEX_RETRIEVAL_COST;
-                    }
-                };
-            }
+            return retrieveEqual((Equal<O, A>) query, queryOptions);
+        }else if (queryClass.equals(In.class)){
+            return retrieveIn((In<O, A>) query, queryOptions);
+        } else if (queryClass.equals(Has.class)) {
+            return deduplicateIfNecessary(indexMap.values(), query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
         }
         // Process LessThan, GreaterThan and Between queries as follows...
         final IndexRangeLookupFunction<O> lookupFunction;
@@ -232,28 +172,75 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         // Add filtering for quantization (implemented by subclass supporting a Quantizer, a no-op in this class)...
         results = addFilteringForQuantization(results, lookupFunction, queryOptions);
 
-        // If a query option specifying logical deduplication is supplied return ResultSetUnion,
-        // otherwise return ResultSetUnionAll.
-        // We can avoid deduplication if the index is built on a SimpleAttribute however,
-        // because the same object could not exist in more than one StoredResultSet...
-        if (DeduplicationOption.isLogicalElimination(queryOptions)
-                && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
-            return new ResultSetUnion<O>(results, query, queryOptions) {
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-            };
-        }
-        else {
-            return new ResultSetUnionAll<O>(results, query, queryOptions) {
-                @Override
-                public int getRetrievalCost() {
-                    return INDEX_RETRIEVAL_COST;
-                }
-            };
-        }
+        return deduplicateIfNecessary(results, query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
 
+    }
+
+    protected ResultSet<O> retrieveIn(final In<O, A> in, final QueryOptions queryOptions) {
+        // Process the IN query as the union of the EQUAL queries for the values specified by the IN query.
+        final Iterable<? extends ResultSet<O>> results = new Iterable<ResultSet<O>>() {
+            @Override
+            public Iterator<ResultSet<O>> iterator() {
+                return new LazyIterator<ResultSet<O>>() {
+                    final Iterator<A> values = in.getValues().iterator();
+                    @Override
+                    protected ResultSet<O> computeNext() {
+                        if (values.hasNext()){
+                            return retrieveEqual(new Equal<O, A>(in.getAttribute(), values.next()), queryOptions);
+                        }else{
+                            return endOfData();
+                        }
+                    }
+                };
+            }
+        };
+        return deduplicateIfNecessary(results, in, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
+    }
+
+    protected ResultSet<O> retrieveEqual(final Equal<O, A> equal, final QueryOptions queryOptions) {
+        return new ResultSet<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
+                return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, equal, queryOptions).iterator();
+            }
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
+                return rs != null && filterForQuantization(rs, equal, queryOptions).contains(object);
+            }
+            @Override
+            public boolean matches(O object) {
+                return equal.matches(object, queryOptions);
+            }
+            @Override
+            public int size() {
+                ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
+                return rs == null ? 0 : filterForQuantization(rs, equal, queryOptions).size();
+            }
+            @Override
+            public int getRetrievalCost() {
+                return INDEX_RETRIEVAL_COST;
+            }
+            @Override
+            public int getMergeCost() {
+                // Return size of entire stored set as merge cost...
+                ResultSet<O> rs = indexMap.get(getQuantizedValue(equal.getValue()));
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public void close() {
+                // No op.
+            }
+            @Override
+            public Query<O> getQuery() {
+                return equal;
+            }
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+        };
     }
 
     /**

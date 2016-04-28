@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Database (SQLite) query executor used by the {@link SQLiteIndex}.
@@ -295,7 +296,7 @@ public class DBQueries {
     }
 
     static <O, A> PreparedStatement createAndBindSelectPreparedStatement(final String selectPrefix,
-                                                                         String orderByClause,
+                                                                         final String groupingAndSorting,
                                                                          final List<WhereClause> additionalWhereClauses,
                                                                          final Query<O> query,
                                                                          final Connection connection) throws SQLException {
@@ -309,7 +310,7 @@ public class DBQueries {
         if (queryClass == Has.class){
             // Has is a special case, because there is no WHERE clause by default.
             if (additionalWhereClauses.isEmpty()){
-                suffix.append(orderByClause);
+                suffix.append(groupingAndSorting);
                 suffix.append(';');
             }else{
                 stringBuilder.append("WHERE ");
@@ -320,7 +321,7 @@ public class DBQueries {
                         suffix.append(" AND ");
                     }
                 }
-                suffix.append(orderByClause);
+                suffix.append(groupingAndSorting);
                 suffix.append(';');
             }
             stringBuilder.append(suffix);
@@ -329,13 +330,13 @@ public class DBQueries {
         }else {
             // Other queries have a WHERE clause by default.
             if (additionalWhereClauses.isEmpty()){
-                suffix.append(orderByClause);
+                suffix.append(groupingAndSorting);
                 suffix.append(';');
             }else{
                 for (WhereClause additionalWhereClause : additionalWhereClauses){
                     suffix.append(" AND ").append(additionalWhereClause.whereClause);
                 }
-                suffix.append(orderByClause);
+                suffix.append(groupingAndSorting);
                 suffix.append(';');
             }
             if (queryClass == Equal.class) {
@@ -343,7 +344,19 @@ public class DBQueries {
                 stringBuilder.append("WHERE value = ?").append(suffix);
                 statement = connection.prepareStatement(stringBuilder.toString());
                 DBUtils.setValueToPreparedStatement(bindingIndex++, statement, equal.getValue());
-
+            } else if (queryClass == In.class){
+                final In<O, A> in = (In<O, A>) query;
+                Set<A> values = in.getValues();
+                stringBuilder.append("WHERE value IN ( ");
+                for (int i=0; i<values.size(); i++){
+                    if (i > 0){
+                        stringBuilder.append(", ");
+                    }
+                    stringBuilder.append("?");
+                }
+                stringBuilder.append(")").append(suffix);
+                statement = connection.prepareStatement(stringBuilder.toString());
+                bindingIndex = DBUtils.setValuesToPreparedStatement(bindingIndex, statement, values);
             } else if (queryClass == LessThan.class) {
                 final LessThan<O, ? extends Comparable<A>> lessThan = (LessThan<O, ? extends Comparable<A>>) query;
                 boolean isValueInclusive = lessThan.isValueInclusive();
@@ -431,10 +444,11 @@ public class DBQueries {
 
     public static <O> int countDistinct(final Query<O> query, final String tableName, final Connection connection){
 
-        final String selectSql = String.format("SELECT COUNT(DISTINCT objectKey) FROM cqtbl_%s", tableName);
+        // NOTE: Using GROUP BY is much faster than using SELECT DISTINCT in SQLite for deduplication
+        final String selectSql = String.format("SELECT COUNT(1) AS countDistinct FROM (SELECT objectKey FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
-            statement = createAndBindSelectPreparedStatement(selectSql, "", Collections.<WhereClause>emptyList(), query, connection);
+            statement = createAndBindSelectPreparedStatement(selectSql, " GROUP BY objectKey)", Collections.<WhereClause>emptyList(), query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
 
             if (!resultSet.next()){

@@ -25,10 +25,10 @@ import java.util.Iterator;
 /**
  * @author dsmith
  */
-public class MaterializingResultSetTest {
+public class MaterializedDeduplicatedResultSetTest {
     @Test
     public void testMaterializingResultSetIterator() throws Exception {
-        final MaterializingResultSet<Object> set = new MaterializingResultSet<Object>(new StoredSetBasedResultSet<Object>(Collections.<Object>singleton(this)), null, null);
+        final MaterializedDeduplicatedResultSet<Object> set = new MaterializedDeduplicatedResultSet<Object>(new StoredSetBasedResultSet<Object>(Collections.<Object>singleton(this)));
         final Iterator<Object> it = set.iterator();
         Assert.assertTrue(it.hasNext());
         Assert.assertTrue(it.hasNext());

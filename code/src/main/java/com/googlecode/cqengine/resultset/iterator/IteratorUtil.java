@@ -18,6 +18,7 @@ package com.googlecode.cqengine.resultset.iterator;
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.index.support.KeyValue;
 import com.googlecode.cqengine.index.support.KeyValueMaterialized;
+import com.googlecode.cqengine.resultset.filter.MaterializedDeduplicatedIterator;
 
 import java.util.*;
 
@@ -178,5 +179,34 @@ public class IteratorUtil {
                 }
             }
         };
+    }
+
+    /**
+     * Sorts the results returned by the given iterator, returning the sorted results as a new iterator, by performing
+     * an insertion-sort into an intermediate set in memory.
+     * <p/>
+     * Time complexity for building an insertion sorted set is <code>O(merge_cost * log(merge_cost))</code>, and then
+     * iterating it makes this <b><code>O(merge_cost^2 * log(merge_cost))</code></b>. (Merge cost is an approximation
+     * of the cost of iterating all elements in any result set.)
+     *
+     * @param unsortedIterator An iterator which provides unsorted objects
+     * @param comparator The comparator to use for sorting
+     * @param <O> The type of the objects to be sorted
+     * @return An iterator which returns the objects in sorted order
+     */
+    public static <O> Iterator<O> materializedSort(Iterator<O> unsortedIterator, Comparator<O> comparator) {
+        Set<O> materializedSet = new TreeSet<O>(comparator);
+        while (unsortedIterator.hasNext()) {
+            materializedSet.add(unsortedIterator.next());
+        }
+        return materializedSet.iterator();
+    }
+
+    /**
+     * De-duplicates the results returned by the given iterator, by wrapping it in a
+     * {@link MaterializedDeduplicatedIterator}.
+     */
+    public static <O> Iterator<O> materializedDeuplicate(Iterator<O> iterator) {
+        return new MaterializedDeduplicatedIterator<O>(iterator);
     }
 }
