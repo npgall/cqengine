@@ -398,9 +398,10 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public boolean retainAll(Collection<?> c) {
         QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
+        CloseableIterator<O> iterator = null;
         try {
             boolean modified = false;
-            Iterator<O> iterator = iterator();
+            iterator = iterator();
             while (iterator.hasNext()) {
                 O next = iterator.next();
                 if (!c.contains(next)) {
@@ -411,6 +412,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             return modified;
         }
         finally {
+            CloseableRequestResources.closeQuietly(iterator);
             closeRequestScopeResourcesIfNecessary(queryOptions);
         }
     }

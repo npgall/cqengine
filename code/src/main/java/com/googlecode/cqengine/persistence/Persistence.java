@@ -17,7 +17,6 @@ package com.googlecode.cqengine.persistence;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
 

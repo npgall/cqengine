@@ -15,8 +15,6 @@
  */
 package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
-import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.query.Query;
@@ -25,7 +23,7 @@ import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableFilteringResultSet;
-import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
+import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
@@ -358,17 +356,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         if (isIsolationLevel(queryOptions, READ_UNCOMMITTED)) {
             // Allow the query to read directly from the collection with no filtering overhead...
-            return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), query, queryOptions) {
-                @Override
-                public boolean isValid(O object, QueryOptions queryOptions) {
-                    return true;
-                }
-
-                @Override
-                public void close() {
-                    super.close();
-                }
-            };
+            return super.retrieve(query, queryOptions);
         }
         // Otherwise apply READ_COMMITTED isolation...
 
@@ -377,17 +365,16 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         final Version thisVersion = versions.get(thisVersionNumber);
         // Increment the readers count to record that this thread is reading this version...
         thisVersion.readersCount.incrementAndGet();
-        // Return the results matching the query such that:
-        // - We filter out from the results any objects which might not be fully committed yet
-        //   (as configured by writing threads for this version of the collection).
-        // - When the ResultSet.close() method is called, we decrement the readers count
-        //   to record that this thread is no longer reading this version.
-        return new CloseableFilteringResultSet<O>(super.retrieve(query, queryOptions), query, queryOptions) {
-            @Override
-            public boolean isValid(O object, QueryOptions queryOptions) {
-                return !iterableContains(thisVersion.objectsToExclude, object);
-            }
 
+        // Return the results matching the query such that:
+        // - STEP 1: When the ResultSet.close() method is called, we decrement the readers count
+        //   to record that this thread is no longer reading this version.
+        // - STEP 2: We filter out from the results any objects which might not be fully committed yet
+        //   (as configured by writing threads for this version of the collection).
+        ResultSet<O> results = super.retrieve(query, queryOptions);
+
+        // STEP 1: Wrap the results to intercept ResultSet.close()...
+        CloseableResultSet<O> versionReadingResultSet = new CloseableResultSet<O>(results, query, queryOptions) {
             @Override
             public void close() {
                 super.close();
@@ -412,6 +399,20 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 }
             }
         };
+        // STEP 2: Apply filtering as necessary...
+        if (thisVersion.objectsToExclude.iterator().hasNext()) {
+            // Apply the filtering to omit uncommitted objects...
+            return new CloseableFilteringResultSet<O>(versionReadingResultSet, query, queryOptions) {
+                @Override
+                public boolean isValid(O object, QueryOptions queryOptions) {
+                    return !iterableContains(thisVersion.objectsToExclude, object);
+                }
+            };
+        }
+        else {
+            // As there were no objects to exclude, then we can return the results directly without filtering...
+            return versionReadingResultSet;
+        }
     }
 
     static <O> boolean iterableContains(Iterable<O> objects, O o) {

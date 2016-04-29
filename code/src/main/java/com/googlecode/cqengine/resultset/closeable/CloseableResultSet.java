@@ -32,7 +32,7 @@ public class CloseableResultSet<O> extends ResultSet<O> implements Closeable {
     final QueryOptions queryOptions;
     boolean closed = false;
 
-    protected CloseableResultSet(ResultSet<O> wrapped, Query<O> query, QueryOptions queryOptions) {
+    public CloseableResultSet(ResultSet<O> wrapped, Query<O> query, QueryOptions queryOptions) {
         this.wrapped = wrapped;
         this.query = query;
         this.queryOptions = queryOptions;
