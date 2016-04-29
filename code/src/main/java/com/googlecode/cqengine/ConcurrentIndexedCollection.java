@@ -19,7 +19,7 @@ import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.CloseableIterator;
-import com.googlecode.cqengine.index.support.CloseableQueryResources;
+import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -314,7 +314,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
 
             @Override
             public void close() {
-                CloseableQueryResources.closeQuietly(collectionIterator);
+                CloseableRequestResources.closeQuietly(collectionIterator);
                 closeRequestScopeResourcesIfNecessary(queryOptions);
             }
         };

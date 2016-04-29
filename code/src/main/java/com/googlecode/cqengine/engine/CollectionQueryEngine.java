@@ -56,6 +56,7 @@ import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializedDeduplicatedResultSet;
 import com.googlecode.cqengine.resultset.order.MaterializedOrderedResultSet;
+import com.googlecode.cqengine.index.support.CloseableRequestResources.CloseableResourceGroup;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,7 +76,7 @@ import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSo
  */
 public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
-    private volatile Persistence<O, ? extends Comparable<?>> persistence;
+    private volatile Persistence<O, ? extends Comparable> persistence;
     private volatile ObjectStore<O> objectStore;
 
     // Map of attributes to set of indexes on that attribute...
@@ -456,10 +457,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             @Override
             public void close() {
                 super.close();
-                CloseableQueryResources closeableQueryResources = queryOptions.get(CloseableQueryResources.class);
-                if (closeableQueryResources != null) {
-                    closeableQueryResources.closeAll();
-                }
+                CloseableRequestResources.closeForQueryOptions(queryOptions);
             }
         };
     }
@@ -520,11 +518,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof SimpleAttribute || primarySortAttribute instanceof SimpleNullableAttribute);
 
         final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);
-
-        // Ensure that at the end of processing the request, that we close any resources we opened...
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
 
         return new ResultSet<O>() {
             @Override
@@ -632,15 +625,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     Iterator<O> retrieveWithIndexOrderingMainResults(final Query<O> query, QueryOptions queryOptions, SortedKeyStatisticsIndex<?, O> indexForOrdering, List<AttributeOrder<O>> allSortOrders, RangeBounds<?> rangeBoundsFromQuery, boolean attributeCanHaveMoreThanOneValue, boolean primarySortDescending) {
         // Ensure that at the end of processing the request, that we close any resources we opened...
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
 
         final CloseableIterator<? extends KeyValue<? extends Comparable<?>, O>> keysAndValuesInRange = getKeysAndValuesInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
+
         // Ensure this CloseableIterator gets closed...
-        resultSetResourcesToClose.add(keysAndValuesInRange);
+        closeableResourceGroup.add(keysAndValuesInRange);
 
         final Iterator<O> sorted;
         if (sortOrdersForBucket.isEmpty()) {
@@ -655,24 +647,23 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
         }
 
-        return filterIndexOrderingCandidateResults(sorted, query, queryOptions, closeableQueryResources);
+        return filterIndexOrderingCandidateResults(sorted, query, queryOptions);
     }
 
     Iterator<O> retrieveWithIndexOrderingMissingResults(final Query<O> query, QueryOptions queryOptions, Attribute<O, Comparable> primarySortAttribute, List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue) {
         // Ensure that at the end of processing the request, that we close any resources we opened...
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         // Retrieve missing objects from the secondary index on objects which don't have a value for the primary sort attribute...
         Not<O> missingValuesQuery = not(has(primarySortAttribute));
         ResultSet<O> missingResults = retrieveRecursive(missingValuesQuery, queryOptions);
+
         // Ensure that this is closed...
-        closeableQueryResources.add(missingResults);
+        closeableResourceGroup.add(missingResults);
 
         Iterator<O> missingResultsIterator = missingResults.iterator();
         // Filter the objects from the secondary index, to ensure they match the query...
-        missingResultsIterator = filterIndexOrderingCandidateResults(missingResultsIterator, query, queryOptions, closeableQueryResources);
+        missingResultsIterator = filterIndexOrderingCandidateResults(missingResultsIterator, query, queryOptions);
 
         // Determine if we need to sort the missing objects...
         Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
@@ -690,15 +681,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     /**
      * Filters the given sorted candidate results to ensure they match the query, using either the default merge
      * strategy or the index merge strategy as appropriate.
+     * <p/>
+     * This method will add any resources which need to be closed to {@link CloseableRequestResources} in the query options.
      *
      * @param sortedCandidateResults The candidate results to be filtered
      * @param query The query
      * @param queryOptions The query options
-     * @param closeableQueryResources A set of resources which will be closed when the request has been processed -
-     *                                this method may add resources which need to be closed to this set
      * @return A filtered iterator which returns the subset of candidate objects which match the query
      */
-    Iterator<O> filterIndexOrderingCandidateResults(final Iterator<O> sortedCandidateResults, final Query<O> query, final QueryOptions queryOptions, CloseableQueryResources closeableQueryResources) {
+    Iterator<O> filterIndexOrderingCandidateResults(final Iterator<O> sortedCandidateResults, final Query<O> query, final QueryOptions queryOptions) {
         final boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
         if (indexMergeStrategyEnabled) {
             final ResultSet<O> indexAcceleratedQueryResults = retrieveWithoutIndexOrdering(query, queryOptions, null);
@@ -709,7 +700,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
             else {
                 // Ensure that indexAcceleratedQueryResults is closed at the end of processing the request...
-                closeableQueryResources.add(indexAcceleratedQueryResults);
+                final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
+                closeableResourceGroup.add(indexAcceleratedQueryResults);
                 // This is the index merge strategy where indexes are used to filter the sorted results...
                 return new FilteringIterator<O>(sortedCandidateResults, queryOptions) {
                     @Override

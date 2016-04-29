@@ -36,6 +36,7 @@ import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
+import com.googlecode.cqengine.index.support.CloseableRequestResources.CloseableResourceGroup;
 
 import java.sql.Connection;
 import java.util.Collection;
@@ -164,9 +165,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         final ConnectionManager connectionManager = getConnectionManager(queryOptions);
 
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         if (query instanceof FilterQuery){
             final FilterQuery<O, A> filterQuery =  (FilterQuery<O, A>)query;
@@ -176,7 +175,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                     final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
 
                     final java.sql.ResultSet searchResultSet = DBQueries.getAllIndexEntries(tableName, searchConnection);
-                    resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+                    closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
 
                     return new LazyIterator<O>() {
                         @Override
@@ -267,7 +266,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                 @Override
                 public void close() {
-                    CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                    closeableResourceGroup.close();
                 }
 
                 // Method to retrieve all the distinct keys for the matching values from the index. Used in count and contains
@@ -321,7 +320,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                     final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
 
                     final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection); // eliminates duplicates
-                    resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+                    closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
 
                     return new LazyIterator<O>() {
                         @Override
@@ -381,7 +380,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                 @Override
                 public void close() {
-                    CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                    closeableResourceGroup.close();
                 }
 
                 @Override
@@ -629,9 +628,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
     CloseableIterable<KeyStatistics<A>> getStatisticsForDistinctKeys(final QueryOptions queryOptions, final boolean sortByKeyDescending){
 
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         return new CloseableIterable<KeyStatistics<A>>() {
             @Override
@@ -640,7 +637,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
 
                 final java.sql.ResultSet resultSet = DBQueries.getDistinctKeysAndCounts(sortByKeyDescending, tableName, connection);
-                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(resultSet));
+                closeableResourceGroup.add(DBUtils.wrapAsCloseable(resultSet));
 
                 return new LazyCloseableIterator<KeyStatistics<A>>() {
                     @Override
@@ -663,7 +660,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                     @Override
                     public void close() {
-                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                        closeableResourceGroup.close();
                     }
                 };
             }
@@ -674,9 +671,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     CloseableIterable<A> getDistinctKeysInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
         final Query<O> query = getKeyRangeRestriction(lowerBound, lowerInclusive, upperBound, upperInclusive);
 
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         return new CloseableIterable<A>() {
             @Override
@@ -685,7 +680,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
 
                 final java.sql.ResultSet searchResultSet = DBQueries.getDistinctKeys(query, descending, tableName, searchConnection);
-                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+                closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
 
                 return new LazyCloseableIterator<A>() {
                     @Override
@@ -706,7 +701,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                     @Override
                     public void close() {
-                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                        closeableResourceGroup.close();
                     }
                 };
             }
@@ -736,9 +731,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     CloseableIterable<KeyValue<A, O>> getKeysAndValuesInRange(A lowerBound, boolean lowerInclusive, A upperBound, boolean upperInclusive, final boolean descending, final QueryOptions queryOptions) {
         final Query<O> query = getKeyRangeRestriction(lowerBound, lowerInclusive, upperBound, upperInclusive);
 
-        final CloseableQueryResources closeableQueryResources = CloseableQueryResources.from(queryOptions);
-        final CloseableSet resultSetResourcesToClose = new CloseableSet();
-        closeableQueryResources.add(resultSetResourcesToClose);
+        final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         return new CloseableIterable<KeyValue<A, O>>() {
             @Override
@@ -747,7 +740,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
 
                 final java.sql.ResultSet searchResultSet = DBQueries.getKeysAndValues(query, descending, tableName, searchConnection);
-                resultSetResourcesToClose.add(DBUtils.wrapResultSetInCloseable(searchResultSet));
+                closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
 
                 return new LazyCloseableIterator<KeyValue<A, O>>() {
                     @Override
@@ -771,7 +764,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                     @Override
                     public void close() {
-                        CloseableQueryResources.closeQuietly(resultSetResourcesToClose);
+                        closeableResourceGroup.close();
                     }
                 };
             }

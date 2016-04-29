@@ -16,18 +16,13 @@
 package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.index.support.CloseableIterator;
-import com.googlecode.cqengine.index.support.CloseableQueryResources;
-import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
-import com.googlecode.cqengine.index.support.Factory;
+import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
-import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -174,7 +169,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
 
             @Override
             public void close() {
-                CloseableQueryResources.closeQuietly(collectionIterator);
+                CloseableRequestResources.closeQuietly(collectionIterator);
                 closeRequestScopeResourcesIfNecessary(queryOptions);
             }
         };

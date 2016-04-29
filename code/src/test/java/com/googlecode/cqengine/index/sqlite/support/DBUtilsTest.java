@@ -37,7 +37,7 @@ public class DBUtilsTest {
 
         ResultSet resultSet = mock(ResultSet.class);
 
-        Closeable closeable = DBUtils.wrapResultSetInCloseable(resultSet);
+        Closeable closeable = DBUtils.wrapAsCloseable(resultSet);
         closeable.close();
 
         verify(resultSet, times(1)).close();
