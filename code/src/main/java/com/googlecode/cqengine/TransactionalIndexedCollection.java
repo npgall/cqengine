@@ -299,13 +299,22 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         synchronized (writeMutex) {
             QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
             try {
+                // Copy objects into a new set removing nulls.
+                // CQEngine does not permit nulls in queries, but the spec of {@link Collection#retainAll} does.
+                Set<O> objectsToRetain = new HashSet<O>(c.size());
+                for (Object object : c) {
+                    if (object != null) {
+                        @SuppressWarnings("unchecked") O o = (O)object;
+                        objectsToRetain.add(o);
+                    }
+                }
                 // Prepare a query which will match objects in the collection which are not contained in the given
                 // collection of objects to retain and therefore which need to be removed from the collection...
                 // We prepare the query to use the same QueryOptions as above.
                 // Any resources opened for the query which need to be closed,
                 // will be added to the QueryOptions and closed at the end of this method.
                 @SuppressWarnings("unchecked")
-                ResultSet<O> objectsToRemove = super.retrieve(not(in(selfAttribute(objectType), (Collection<O>) c)), queryOptions);
+                ResultSet<O> objectsToRemove = super.retrieve(not(in(selfAttribute(objectType), objectsToRetain)), queryOptions);
 
                 Iterator<O> objectsToRemoveIterator = objectsToRemove.iterator();
                 if (!objectsToRemoveIterator.hasNext()) {

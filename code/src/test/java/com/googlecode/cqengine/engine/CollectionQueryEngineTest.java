@@ -19,6 +19,8 @@ import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
@@ -83,7 +85,9 @@ public class CollectionQueryEngineTest {
     @Test
     public void testIsMutable() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(emptyObjectStore(), noQueryOptions());
+        QueryOptions queryOptions = new QueryOptions();
+        queryOptions.put(Persistence.class, OnHeapPersistence.withoutPrimaryKey());
+        queryEngine.init(emptyObjectStore(), queryOptions);
 
         Assert.assertTrue(queryEngine.isMutable());
         queryEngine.addIndex(createImmutableIndex(), noQueryOptions());
@@ -111,7 +115,9 @@ public class CollectionQueryEngineTest {
     @Test
     public void testAddNonDuplicateIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
-        queryEngine.init(emptyObjectStore(), noQueryOptions());
+        QueryOptions queryOptions = new QueryOptions();
+        queryOptions.put(Persistence.class, OnHeapPersistence.withoutPrimaryKey());
+        queryEngine.init(emptyObjectStore(), queryOptions);
 
         queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
         queryEngine.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());

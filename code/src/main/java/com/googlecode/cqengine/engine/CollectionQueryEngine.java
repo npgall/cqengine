@@ -351,8 +351,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 @SuppressWarnings("unchecked")
                 Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
                 if (firstAttribute instanceof OrderControlAttribute) {
-                    //noinspection unchecked
-                    firstAttribute = ((OrderControlAttribute)firstAttribute).getDelegateAttribute(); // TODO unchecked
+                    @SuppressWarnings("unchecked")
+                    Attribute<O, Comparable> firstAttributeDelegate = ((OrderControlAttribute)firstAttribute).getDelegateAttribute();
+                    firstAttribute = firstAttributeDelegate;
                 }
 
                 // Before we check if an index is available to support index ordering, we need to account for the fact
@@ -740,9 +741,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.get(Persistence.class);
-//        if (persistence == null) {
-//            throw new IllegalStateException("A required Persistence object was not supplied in query options");
-//        } // TODO
+        if (persistence == null) {
+            throw new IllegalStateException("A required Persistence object was not supplied in query options");
+        }
         return persistence;
     }
 

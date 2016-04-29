@@ -447,7 +447,7 @@ public class SQLiteIndexTest {
             carsWithAbsIterator.next();// Should throw exception!
 
         }finally {
-            verify(connection, times(1)).close();
+            verify(connection, times(0)).close(); // Connection should be left open
             verify(preparedStatement, times(1)).close();
             verify(resultSet, times(1)).close();
         }
@@ -495,7 +495,7 @@ public class SQLiteIndexTest {
         assertFalse(carsWithAbsIterator.hasNext());
 
         // The end of the iteration should close the resources
-        verify(connection, times(1)).close();
+        verify(connection, times(0)).close(); // Connection should be left open
         verify(preparedStatement, times(1)).close();
         verify(resultSet, times(1)).close();
 
@@ -538,7 +538,7 @@ public class SQLiteIndexTest {
         // Do not continue with the iteration, but close
         carsWithAbs.close();
 
-        verify(connection, times(1)).close();
+        verify(connection, times(0)).close(); // Connection should be left open
         verify(preparedStatement, times(1)).close();
         verify(resultSet, times(1)).close();
 
@@ -980,7 +980,7 @@ public class SQLiteIndexTest {
             carsWithAbsIterator.next();// Should throw exception!
 
         }finally {
-            verify(connection, times(1)).close();
+            verify(connection, times(0)).close(); // Connection should be left open
             verify(statement, times(1)).close();
             verify(resultSet, times(1)).close();
         }
@@ -1034,7 +1034,7 @@ public class SQLiteIndexTest {
         assertFalse(carsWithAbsIterator.hasNext());
 
         // The end of the iteration should close the resources
-        verify(connection, times(1)).close();
+        verify(connection, times(0)).close(); // Connection should be left open
         verify(statement, times(1)).close();
         verify(resultSet, times(1)).close();
 
@@ -1080,7 +1080,7 @@ public class SQLiteIndexTest {
         // Do not continue with the iteration, but close
         carsWithAbs.close();
 
-        verify(connection, times(1)).close();
+        verify(connection, times(0)).close(); // Connection should be left open
         verify(statement, times(1)).close();
         verify(resultSet, times(1)).close();
 

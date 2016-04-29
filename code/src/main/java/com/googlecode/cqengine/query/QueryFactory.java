@@ -167,7 +167,7 @@ public class QueryFactory {
      * @return An {@link In} query
      */
     public static <O, A> Query<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
-        return in(attribute, attribute instanceof SimpleAttribute, new HashSet<A>(attributeValues));
+        return in(attribute, attribute instanceof SimpleAttribute, attributeValues);
     }
 
     /**
@@ -190,7 +190,9 @@ public class QueryFactory {
                 A singleValue = attributeValues.iterator().next();
                 return equal(attribute, singleValue);
             default:
-                return new In<O, A>(attribute, disjoint, new HashSet<A>(attributeValues));
+                // Copy the values into a Set if necessary...
+                Set<A> values = (attributeValues instanceof Set ? (Set<A>)attributeValues : new HashSet<A>(attributeValues));
+                return new In<O, A>(attribute, disjoint, values);
         }
     }
 
