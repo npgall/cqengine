@@ -30,15 +30,6 @@ import java.util.Date;
  */
 public class DBUtils {
 
-    public static Closeable wrapConnectionInCloseable(final Connection connection){
-        return new Closeable() {
-            @Override
-            public void close() throws IOException {
-                DBUtils.closeQuietly(connection);
-            }
-        };
-    }
-
     public static Closeable wrapResultSetInCloseable(final ResultSet resultSet){
         return new Closeable() {
             @Override

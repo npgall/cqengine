@@ -22,7 +22,6 @@ import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.persistence.Persistence;
-import com.googlecode.cqengine.persistence.composite.CompositePersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -39,7 +38,7 @@ import java.util.Collection;
  *
  * @author niall.gallagher
  */
-public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extends Comparable<K>> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
+public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extends Comparable<K>> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
 
     final Class<? extends SQLitePersistence> persistenceType;
     final Attribute<O, A> attribute;
@@ -53,7 +52,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         Persistence<O, K> persistence = getPersistenceFromQueryOptions(queryOptions);
-        QueryEngine<O> queryEngine = getQueryEngineQueryOptions(queryOptions);
+        QueryEngine<O> queryEngine = getQueryEngineFromQueryOptions(queryOptions);
 
         final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
         final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine);
@@ -87,7 +86,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return persistence;
     }
 
-    static <O> QueryEngine<O> getQueryEngineQueryOptions(QueryOptions queryOptions) {
+    static <O> QueryEngine<O> getQueryEngineFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         QueryEngine<O> queryEngine = (QueryEngine<O>) queryOptions.get(QueryEngine.class);
         if (queryEngine == null) {

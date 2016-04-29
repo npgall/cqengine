@@ -18,13 +18,12 @@ package com.googlecode.cqengine.index.support;
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -128,7 +127,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

@@ -22,7 +22,7 @@ import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
@@ -33,7 +33,6 @@ import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -262,7 +261,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

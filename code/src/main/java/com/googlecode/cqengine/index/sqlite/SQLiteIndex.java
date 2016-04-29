@@ -28,7 +28,7 @@ import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -41,7 +41,6 @@ import java.sql.Connection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
 import static com.googlecode.cqengine.query.QueryFactory.*;
@@ -105,7 +104,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  * </ul>
  * @author Silvano Riz
  */
-public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
+public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
@@ -562,7 +561,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

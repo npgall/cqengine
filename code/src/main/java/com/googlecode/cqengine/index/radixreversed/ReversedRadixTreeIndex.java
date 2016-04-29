@@ -25,7 +25,7 @@ import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -322,7 +322,7 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

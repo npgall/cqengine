@@ -20,12 +20,10 @@ import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.RadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
@@ -286,7 +284,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 
     /**

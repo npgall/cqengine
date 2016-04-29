@@ -17,6 +17,7 @@ package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.composite.CompositePersistence;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 
 /**
@@ -32,7 +33,9 @@ public class DiskConcurrentIndexedCollection extends ConcurrentIndexedCollection
 
     public DiskConcurrentIndexedCollection(Persistence<Car, Integer> persistence) {
         super(persistence);
-        if (!(persistence instanceof DiskPersistence)) {
+        boolean isDiskPersistence = persistence instanceof DiskPersistence;
+        boolean isCompositePersistenceWithDiskPrimary = persistence instanceof CompositePersistence && ((CompositePersistence) persistence).getPrimaryPersistence() instanceof DiskPersistence;
+        if (!isDiskPersistence && !isCompositePersistenceWithDiskPrimary) {
             throw new IllegalStateException("Unexpected persistence implementation: " + persistence);
         }
     }

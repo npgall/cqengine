@@ -27,12 +27,12 @@ import java.util.Collection;
  * Adapts an {@link ObjectStore} to behave like a {@link java.util.Set}, using an existing connection to the
  * persistence when methods belonging to the Set interface are called.
  */
-public class ObjectStoreConnectionReusingSet<O> extends AbstractSet<O> {
+public class ObjectStoreAsSet<O> extends AbstractSet<O> {
 
     final ObjectStore<O> objectStore;
     final QueryOptions queryOptions;
 
-    public ObjectStoreConnectionReusingSet(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+    public ObjectStoreAsSet(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         this.objectStore = objectStore;
         this.queryOptions = queryOptions;
     }

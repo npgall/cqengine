@@ -23,7 +23,7 @@ import com.googlecode.cqengine.index.support.CloseableQueryResources;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreConnectionReusingSet;
+import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -483,8 +483,8 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     }
 
 
-    protected ObjectStoreConnectionReusingSet<O> getObjectStoreAsSet(QueryOptions queryOptions) {
-        return new ObjectStoreConnectionReusingSet<O>(objectStore, queryOptions);
+    protected ObjectStoreAsSet<O> getObjectStoreAsSet(QueryOptions queryOptions) {
+        return new ObjectStoreAsSet<O>(objectStore, queryOptions);
     }
 
     @Override

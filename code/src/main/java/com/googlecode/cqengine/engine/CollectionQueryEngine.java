@@ -88,9 +88,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Initially true, updated as indexes are added in addIndex()...
     private volatile boolean allIndexesAreMutable = true;
-    // This will be set to true if any index is added which requires
-    // the outer ResultSet.close() method to close resources added to QueryOptions...
-    private volatile boolean hasResourceIndexes = false;
 
     public CollectionQueryEngine() {
     }
@@ -140,7 +137,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         }
         else if (index instanceof AttributeIndex) {
             allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
-            hasResourceIndexes = index instanceof ResourceIndex || hasResourceIndexes;
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
@@ -454,22 +450,18 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
         }
 
-        // Return the results...
-        if (hasResourceIndexes) {
-            return new CloseableResultSet<O>(resultSet, query, queryOptions) {
-                @Override
-                public void close() {
-                    super.close();
-                    CloseableQueryResources closeableQueryResources = queryOptions.get(CloseableQueryResources.class);
-                    if (closeableQueryResources != null) {
-                        closeableQueryResources.closeAll();
-                    }
+        // Return the results, ensuring that the close() method will close any resources which were opened...
+        // TODO: possibly not necessary to wrap here, as the IndexedCollections also ensure close() is called...
+        return new CloseableResultSet<O>(resultSet, query, queryOptions) {
+            @Override
+            public void close() {
+                super.close();
+                CloseableQueryResources closeableQueryResources = queryOptions.get(CloseableQueryResources.class);
+                if (closeableQueryResources != null) {
+                    closeableQueryResources.closeAll();
                 }
-            };
-        }
-        else {
-            return resultSet;
-        }
+            }
+        };
     }
 
     /**
@@ -1169,11 +1161,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public boolean isMutable() {
         return allIndexesAreMutable;
-    }
-
-    @Override
-    public boolean hasResourceIndexes() {
-        return hasResourceIndexes;
     }
 
     /**

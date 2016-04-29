@@ -15,11 +15,14 @@
  */
 package com.googlecode.cqengine.index.support;
 
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+
 /**
- * A marker interface which indexes may implement to signal that they open resources which should
- * be closed after each request is processed.
+ * A marker interface which indexes which are not stored on the Java heap implement.
+ * The {@link OnHeapPersistence} will report that it supports indexes
+ * which do NOT implement this interface.
  *
  * @author Niall Gallagher
  */
-public interface ResourceIndex {
+public interface NonHeapIndex {
 }

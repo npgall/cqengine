@@ -46,7 +46,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  *
  * @author niall.gallagher
  */
-public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, ResourceIndex {
+public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
 
     final SQLiteIndex<A, O, byte[]> sqLiteIndex;
     final Class<O> objectType;

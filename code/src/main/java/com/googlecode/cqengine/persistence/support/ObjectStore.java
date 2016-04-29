@@ -49,6 +49,4 @@ public interface ObjectStore<O> {
     boolean removeAll(Collection<?> c, QueryOptions queryOptions);
 
     void clear(QueryOptions queryOptions);
-
-//    Set<O> asSet();
 }

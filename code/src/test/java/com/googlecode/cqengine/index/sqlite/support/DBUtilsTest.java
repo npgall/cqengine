@@ -33,17 +33,6 @@ import static org.mockito.Mockito.*;
 public class DBUtilsTest {
 
     @Test
-    public void testWrapResultSetInCloseable() throws Exception {
-
-        Connection connection = mock(Connection.class);
-
-        Closeable closeable = DBUtils.wrapConnectionInCloseable(connection);
-        closeable.close();
-
-        verify(connection, times(1)).close();
-    }
-
-    @Test
     public void testWrapConnectionInCloseable() throws Exception {
 
         ResultSet resultSet = mock(ResultSet.class);
