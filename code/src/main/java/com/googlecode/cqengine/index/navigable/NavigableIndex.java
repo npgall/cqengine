@@ -18,9 +18,9 @@ package com.googlecode.cqengine.index.navigable;
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -65,7 +65,7 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  *
  * @author Niall Gallagher
  */
-public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements SortedKeyStatisticsAttributeIndex<A, O> {
+public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBasedAttributeIndex<A, O, ConcurrentNavigableMap<A, StoredResultSet<O>>> implements SortedKeyStatisticsAttributeIndex<A, O>, OnHeapTypeIndex {
 
     protected static final int INDEX_RETRIEVAL_COST = 40;
 

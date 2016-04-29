@@ -17,7 +17,7 @@ package com.googlecode.cqengine.persistence.onheap;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.support.NonHeapIndex;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -49,11 +49,11 @@ public class OnHeapPersistence<O, A extends Comparable<A>> implements Persistenc
     }
 
     /**
-     * Returns true if the given index does NOT implement the {@link NonHeapIndex} marker interface.
+     * Returns true if the given index does NOT implement the {@link OnHeapTypeIndex} marker interface.
      */
     @Override
     public boolean supportsIndex(Index<O> index) {
-        return !(index instanceof NonHeapIndex);
+        return index instanceof OnHeapTypeIndex;
     }
 
     @Override

@@ -24,6 +24,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
@@ -58,7 +59,7 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  *
  * @author Niall Gallagher
  */
-public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractAttributeIndex<A, O> {
+public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractAttributeIndex<A, O> implements OnHeapTypeIndex {
 
     private static final int INDEX_RETRIEVAL_COST = 51;
 

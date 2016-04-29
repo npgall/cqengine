@@ -21,6 +21,7 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
@@ -77,7 +78,7 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  * @author Kinz Liu
  * @author Niall Gallagher
  */
-public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> {
+public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnHeapTypeIndex {
 
     protected static final int INDEX_RETRIEVAL_COST = 25;
 

@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.index.support;
-
-import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+package com.googlecode.cqengine.index.support.indextype;
 
 /**
- * A marker interface which indexes which are not stored on the Java heap implement.
- * The {@link OnHeapPersistence} will report that it supports indexes
- * which do NOT implement this interface.
+ * A marker interfaces for indexes which may be persisted in off-heap memory or on disk.
  *
  * @author Niall Gallagher
  */
-public interface NonHeapIndex {
+public interface NonHeapTypeIndex {
 }

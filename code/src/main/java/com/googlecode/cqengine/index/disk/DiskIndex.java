@@ -16,8 +16,8 @@
 package com.googlecode.cqengine.index.disk;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
+import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 
 /**
@@ -30,7 +30,7 @@ import com.googlecode.cqengine.persistence.disk.DiskPersistence;
  *
  * @author niall.gallagher
  */
-public class DiskIndex<A extends Comparable<A>, O, K extends Comparable<K>> extends SimplifiedSQLiteIndex<A, O, K> {
+public class DiskIndex<A extends Comparable<A>, O, K extends Comparable<K>> extends SimplifiedSQLiteIndex<A, O, K> implements DiskTypeIndex  {
 
     DiskIndex(Class<? extends DiskPersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
         super(persistenceType, attribute);

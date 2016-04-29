@@ -22,6 +22,7 @@ import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFa
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
@@ -53,7 +54,7 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  *
  * @author Niall Gallagher
  */
-public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttributeIndex<A, O> {
+public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttributeIndex<A, O> implements OnHeapTypeIndex {
 
     private static final int INDEX_RETRIEVAL_COST = 50;
 

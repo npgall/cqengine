@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.standingquery;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
@@ -41,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Niall Gallagher
  */
-public class StandingQueryIndex<O> implements Index<O> {
+public class StandingQueryIndex<O> implements Index<O>, OnHeapTypeIndex {
 
     private static final int INDEX_RETRIEVAL_COST = 10;
 

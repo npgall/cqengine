@@ -22,6 +22,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -46,7 +47,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  *
  * @author niall.gallagher
  */
-public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
+public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements IdentityAttributeIndex<A, O>, SortedKeyStatisticsAttributeIndex<A, O>, NonHeapTypeIndex {
 
     final SQLiteIndex<A, O, byte[]> sqLiteIndex;
     final Class<O> objectType;

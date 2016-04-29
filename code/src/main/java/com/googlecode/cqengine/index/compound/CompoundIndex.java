@@ -21,6 +21,7 @@ import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
+import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -50,7 +51,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Niall Gallagher
  */
-public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> implements KeyStatisticsAttributeIndex<CompoundValueTuple<O>, O> {
+public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundValueTuple<O>, O, ConcurrentMap<CompoundValueTuple<O>, StoredResultSet<O>>> implements KeyStatisticsAttributeIndex<CompoundValueTuple<O>, O>, OnHeapTypeIndex {
 
     protected static final int INDEX_RETRIEVAL_COST = 20;
 

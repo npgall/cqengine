@@ -18,6 +18,7 @@ package com.googlecode.cqengine.persistence.support.sqlite;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
+import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 
 /**
  * A subclass of {@link SQLiteIdentityIndex} intended for use with disk persistence.
@@ -26,7 +27,7 @@ import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
  *
  * @author niall.gallagher
  */
-public class SQLiteDiskIdentityIndex<A extends Comparable<A>, O> extends SQLiteIdentityIndex<A, O> {
+public class SQLiteDiskIdentityIndex<A extends Comparable<A>, O> extends SQLiteIdentityIndex<A, O> implements DiskTypeIndex{
 
     public SQLiteDiskIdentityIndex(SimpleAttribute<O, A> primaryKeyAttribute) {
         super(primaryKeyAttribute);

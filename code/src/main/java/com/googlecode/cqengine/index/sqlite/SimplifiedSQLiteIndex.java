@@ -21,6 +21,7 @@ import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
@@ -38,7 +39,7 @@ import java.util.Collection;
  *
  * @author niall.gallagher
  */
-public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extends Comparable<K>> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
+public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extends Comparable<K>> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapTypeIndex {
 
     final Class<? extends SQLitePersistence> persistenceType;
     final Attribute<O, A> attribute;

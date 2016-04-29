@@ -16,8 +16,8 @@
 package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
+import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 
 /**
@@ -30,7 +30,7 @@ import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
  *
  * @author niall.gallagher
  */
-public class OffHeapIndex<A extends Comparable<A>, O, K extends Comparable<K>> extends SimplifiedSQLiteIndex<A, O, K> {
+public class OffHeapIndex<A extends Comparable<A>, O, K extends Comparable<K>> extends SimplifiedSQLiteIndex<A, O, K> implements OffHeapTypeIndex {
 
     OffHeapIndex(Class<? extends OffHeapPersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
         super(persistenceType, attribute);

@@ -27,6 +27,7 @@ import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
 import com.googlecode.cqengine.index.support.*;
+import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
@@ -105,7 +106,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  * </ul>
  * @author Silvano Riz
  */
-public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapIndex {
+public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapTypeIndex {
 
     static final int INDEX_RETRIEVAL_COST = 60;
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
