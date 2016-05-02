@@ -49,21 +49,21 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * supported when there are no ongoing writes, but writes are performed sequentially and they block all concurrent
  * reads. Essentially the default concurrency support is equivalent to that afforded by a {@link ReadWriteLock}.
  * <p/>
- * Applications requiring <b><i>full concurrency</i></b> can enable it as follows, by supplying custom <i>override
- * properties</i> to this persistence to enable <i><a href="https://www.sqlite.org/wal.html">Write-Ahead Logging</a></i>
- * in the underlying SQLite database file:
+ * Applications requiring <b><i>full concurrency</i></b> can enable
+ * <i><a href="https://www.sqlite.org/wal.html">Write-Ahead Logging</a></i> ("WAL") mode in the persistence as follows:
  * <pre>
  * DiskPersistence.onPrimaryKeyInFileWithProperties(
  *     Car.CAR_ID,
  *     DiskPersistence.createTempFile(),
- *     new Properties() {{
- *         setProperty("journal_mode", "WAL");
- *     }}
+ *     DiskPersistence.enableWalMode()
  * )
  * </pre>
- * Note that enabling WAL mode generally has more advantages than disadvantages for applications performing a mix of
- * reads and writes - as discussed on the SQLite page linked above. The only reason that CQEngine does not enable WAL
- * mode by default is that non-WAL mode is slightly faster for read-centric applications.
+ * WAL mode supports full concurrency for reads and writes. Note that enabling WAL mode generally has more advantages
+ * than disadvantages for applications performing a mix of reads and writes - as discussed on the SQLite page linked
+ * above.
+ * <p/>
+ * The only reason that CQEngine does not enable WAL mode by default is that non-WAL mode is slightly faster for
+ * read-centric applications.
  *
  * @author niall.gallagher
  */
@@ -221,6 +221,10 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
         }
     }
 
+    /**
+     * Creates a new unique temp file in the JVM temp directory which can be used for persistence.
+     * @return a new unique temp file in the JVM temp directory which can be used for persistence.
+     */
     public static File createTempFile() {
         File tempFile;
         try {
@@ -230,6 +234,19 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
             throw new IllegalStateException("Failed to create temp file for CQEngine disk persistence", e);
         }
         return tempFile;
+    }
+
+    /**
+     * A convenience method which returns a new Properties object containing settings which will enable WAL mode,
+     * which supports concurrent reads and writes in this persistence.
+     *
+     * @return A new properties object containing settings which will enable WAL mode in SQLite for concurrent reads and
+     * writes.
+     */
+    public static Properties enableWalMode() {
+        Properties properties = new Properties();
+        properties.setProperty("journal_mode", "WAL");
+        return properties;
     }
 
     /**

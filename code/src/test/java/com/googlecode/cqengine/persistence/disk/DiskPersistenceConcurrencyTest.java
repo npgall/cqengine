@@ -67,9 +67,7 @@ public class DiskPersistenceConcurrencyTest {
         final IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKeyInFileWithProperties(
                 Car.CAR_ID,
                 tempFile,
-                new Properties() {{
-                    setProperty("journal_mode", "WAL");
-                }}
+                DiskPersistence.enableWalMode()
         ));
         collection.addAll(CarFactory.createCollectionOfCars(100));
 
