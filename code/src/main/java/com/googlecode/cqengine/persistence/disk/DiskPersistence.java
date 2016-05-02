@@ -20,7 +20,6 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
-import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
@@ -34,9 +33,37 @@ import org.sqlite.SQLiteDataSource;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
+import java.util.concurrent.locks.ReadWriteLock;
+
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Specifies that a collection or indexes should be persisted to a particular file on disk.
+ * <p/>
+ * <b>Note on Concurrency</b><br/>
+ * Note this disk persistence implementation supports fully concurrent reads and writes, but that <b><i>full
+ * concurrency is not enabled by default</i></b>.
+ * <p/>
+ * <i>By default</i> this implementation uses the default configuration of SQLite in which concurrent reads are
+ * supported when there are no ongoing writes, but writes are performed sequentially and they block all concurrent
+ * reads. Essentially the default concurrency support is equivalent to that afforded by a {@link ReadWriteLock}.
+ * <p/>
+ * Applications requiring <b><i>full concurrency</i></b> can enable it as follows, by supplying custom <i>override
+ * properties</i> to this persistence to enable <i><a href="https://www.sqlite.org/wal.html">Write-Ahead Logging</a></i>
+ * in the underlying SQLite database file:
+ * <pre>
+ * DiskPersistence.onPrimaryKeyInFileWithProperties(
+ *     Car.CAR_ID,
+ *     DiskPersistence.createTempFile(),
+ *     new Properties() {{
+ *         setProperty("journal_mode", "WAL");
+ *     }}
+ * )
+ * </pre>
+ * Note that enabling WAL mode generally has more advantages than disadvantages for applications performing a mix of
+ * reads and writes - as discussed on the SQLite page linked above. The only reason that CQEngine does not enable WAL
+ * mode by default is that non-WAL mode is slightly faster for read-centric applications.
  *
  * @author niall.gallagher
  */
@@ -46,11 +73,21 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     final File file;
     final SQLiteDataSource sqLiteDataSource;
 
-    protected DiskPersistence(SimpleAttribute<O, A> primaryKeyAttribute, File file) {
+    static final Properties DEFAULT_PROPERTIES = new Properties();
+    static {
+        DEFAULT_PROPERTIES.put("busy_timeout", Integer.MAX_VALUE); // wait indefinitely to acquire locks (technically 68 years)
+    }
+
+    protected DiskPersistence(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {
+        Properties effectiveProperties = new Properties(DEFAULT_PROPERTIES);
+        effectiveProperties.putAll(overrideProperties);
+        SQLiteConfig sqLiteConfig = new SQLiteConfig(effectiveProperties);
+        SQLiteDataSource sqLiteDataSource = new SQLiteDataSource(sqLiteConfig);
+        sqLiteDataSource.setUrl("jdbc:sqlite:file:" + file);
+
         this.primaryKeyAttribute = primaryKeyAttribute;
         this.file = file.getAbsoluteFile();
-        this.sqLiteDataSource = new SQLiteDataSource(new SQLiteConfig());
-        sqLiteDataSource.setUrl("jdbc:sqlite:file:" + file);
+        this.sqLiteDataSource = sqLiteDataSource;
     }
 
     @Override
@@ -63,7 +100,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     }
 
     @Override
-    public Connection getConnection(Index<?> index) {
+    public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
         try {
             return sqLiteDataSource.getConnection();
         }
@@ -85,7 +122,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     public long getBytesUsed() {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnection(null, noQueryOptions());
             return DBQueries.getDatabaseSize(connection);
         }
         finally {
@@ -97,7 +134,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     public void compact() {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnection(null, noQueryOptions());
             DBQueries.compactDatabase(connection);
         }
         finally {
@@ -109,7 +146,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     public void expand(long numBytes) {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnection(null, noQueryOptions());
             DBQueries.expandDatabase(connection, numBytes);
         }
         finally {
@@ -184,6 +221,17 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
         }
     }
 
+    public static File createTempFile() {
+        File tempFile;
+        try {
+            tempFile = File.createTempFile("cqengine_", ".db");
+        }
+        catch (Exception e) {
+            throw new IllegalStateException("Failed to create temp file for CQEngine disk persistence", e);
+        }
+        return tempFile;
+    }
+
     /**
      * Creates a {@link DiskPersistence} object which persists to a temp file on disk. The exact temp file used can
      * be determined by calling the {@link #getFile()} method.
@@ -193,14 +241,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      * @see #onPrimaryKeyInFile(SimpleAttribute, File)
      */
     public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
-        File tempFile;
-        try {
-            tempFile = File.createTempFile("cqengine_", ".db");
-        }
-        catch (Exception e) {
-            throw new IllegalStateException("Failed to create temp file for CQEngine disk persistence", e);
-        }
-        return new DiskPersistence<O, A>(primaryKeyAttribute, tempFile);
+        return DiskPersistence.onPrimaryKeyInFile(primaryKeyAttribute, createTempFile());
     }
 
     /**
@@ -211,6 +252,19 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      * @return A {@link DiskPersistence} object which persists to the given file on disk
      */
     public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFile(SimpleAttribute<O, A> primaryKeyAttribute, File file) {
-        return new DiskPersistence<O, A>(primaryKeyAttribute, file);
+        return DiskPersistence.onPrimaryKeyInFileWithProperties(primaryKeyAttribute, file, new Properties());
+    }
+
+    /**
+     * Creates a {@link DiskPersistence} object which persists to a given file on disk.
+     *
+     * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
+     * @param file The file on disk to which data should be persisted
+     * @param overrideProperties Optional properties to override default settings (can be empty to use all default
+     *                           settings, but cannot be null)
+     * @return A {@link DiskPersistence} object which persists to the given file on disk
+     */
+    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFileWithProperties(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {
+        return new DiskPersistence<O, A>(primaryKeyAttribute, file, overrideProperties);
     }
 }

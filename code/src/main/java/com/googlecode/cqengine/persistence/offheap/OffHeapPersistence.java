@@ -24,6 +24,7 @@ import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
+import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -31,9 +32,20 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 import java.io.Closeable;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.googlecode.cqengine.persistence.support.PersistenceFlags.READ_REQUEST;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
 
 /**
  * Specifies that a collection or indexes should be persisted in native memory, within the JVM process but outside the
@@ -63,6 +75,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * In terms of memory usage, the application can treat this as a very large object. The memory will be freed when this
  * object is garbage collected, but the application can also free memory sooner by calling {@link #close()}, but
  * this is optional.
+ * <p/>
+ * <b>Note on Concurrency</b><br/>
+ * Note that this persistence implementation (backed by an off-heap in-memory SQLite database) has more restrictive
+ * support for concurrency than other persistence implementations. This is because the concurrency support in SQLite is
+ * more limited in its in-memory mode than in its disk-based mode.
+ * <p/>
+ * Concurrent reads are supported when there are no ongoing writes, but writes are performed sequentially and they
+ * block all concurrent reads. Essentially the concurrency support is equivalent to that afforded by a
+ * {@link ReadWriteLock}.
+ * <p/>
+ * As a workaround, any applications requiring more concurrency with an in-memory persistence, for example concurrent
+ * reads and concurrent writes which don't block each other, could consider using {@link DiskPersistence} instead with
+ * the persistence file located on a ram disk.
  *
  * @author niall.gallagher
  */
@@ -74,17 +99,26 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     final String instanceName;
     final SQLiteDataSource sqLiteDataSource;
 
+    // Note we don't configure a default busy_wait property, because SQLite's in-memory database does not support it.
+    static final Properties DEFAULT_PROPERTIES = new Properties();
+
     // A connection which we keep open to prevent SQLite from freeing the in-memory database
     // until this object is garbage-collected, or close() is called explicitly on this object...
     volatile Connection persistentConnection;
     volatile boolean closed = false;
 
-    protected OffHeapPersistence(SimpleAttribute<O, A> primaryKeyAttribute) {
-        this.primaryKeyAttribute = primaryKeyAttribute;
-        this.sqLiteDataSource = new SQLiteDataSource(new SQLiteConfig());
-        this.instanceName = "cqengine_" + INSTANCE_ID_GENERATOR.incrementAndGet();
+    protected OffHeapPersistence(SimpleAttribute<O, A> primaryKeyAttribute, Properties overrideProperties) {
+        Properties effectiveProperties = new Properties(DEFAULT_PROPERTIES);
+        effectiveProperties.putAll(overrideProperties);
+        SQLiteConfig sqLiteConfig = new SQLiteConfig(effectiveProperties);
+        SQLiteDataSource sqLiteDataSource = new SQLiteDataSource(sqLiteConfig);
+        String instanceName = "cqengine_" + INSTANCE_ID_GENERATOR.incrementAndGet();
         sqLiteDataSource.setUrl("jdbc:sqlite:file:" + instanceName + "?mode=memory&cache=shared");
-        this.persistentConnection = getConnection(null);
+
+        this.primaryKeyAttribute = primaryKeyAttribute;
+        this.instanceName = instanceName;
+        this.sqLiteDataSource = sqLiteDataSource;
+        this.persistentConnection = getConnectionInternal(null, noQueryOptions());
     }
 
     @Override
@@ -96,8 +130,28 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
         return instanceName;
     }
 
+    final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
+
+    // Wraps access to the SQLite in-memory database in a read-write lock.
     @Override
-    public Connection getConnection(Index<?> index) {
+    public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
+        // Acquire a read lock IFF the READ_REQUEST flag has been set, otherwise acquire a write lock by default...
+        final Lock connectionLock = isFlagEnabled(queryOptions, READ_REQUEST)
+                                        ? readWriteLock.readLock() : readWriteLock.writeLock();
+
+        connectionLock.lock();
+        Connection connection;
+        try {
+            connection = getConnectionInternal(index, queryOptions);
+        }
+        catch (RuntimeException e) {
+            connectionLock.unlock();
+            throw e;
+        }
+        return LockReleasingConnection.wrap(connection, connectionLock);
+    }
+
+    protected Connection getConnectionInternal(Index<?> index, QueryOptions queryOptions) {
         if (closed) {
             throw new IllegalStateException("OffHeapPersistence has been closed: " + this.toString());
         }
@@ -129,7 +183,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     public long getBytesUsed() {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnectionInternal(null, noQueryOptions());
             return DBQueries.getDatabaseSize(connection);
         }
         finally {
@@ -141,7 +195,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     public void compact() {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnectionInternal(null, noQueryOptions());
             DBQueries.compactDatabase(connection);
         }
         finally {
@@ -153,7 +207,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     public void expand(long numBytes) {
         Connection connection = null;
         try {
-            connection = getConnection(null);
+            connection = getConnectionInternal(null, noQueryOptions());
             DBQueries.expandDatabase(connection, numBytes);
         }
         finally {
@@ -235,6 +289,40 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     }
 
     /**
+     * Wraps a {@link Connection} in a proxy object which delegates all method calls to it, and which additionally
+     * unlocks the given lock whenever the {@link Connection#close()} method is closed.
+     * <p/>
+     * Unlocks the lock at most once, ignoring subsequent calls.
+     */
+    static class LockReleasingConnection implements InvocationHandler {
+        final Connection targetConnection;
+        final Lock lockToUnlock;
+        boolean unlockedAlready = false;
+
+        LockReleasingConnection(Connection targetConnection, Lock lockToUnlock) {
+            this.targetConnection = targetConnection;
+            this.lockToUnlock = lockToUnlock;
+        }
+
+        public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
+            Object result = m.invoke(targetConnection, args);
+            if(m.getName().equals("close") && !unlockedAlready){
+                lockToUnlock.unlock();
+                unlockedAlready = true;
+            }
+            return result;
+        }
+
+        static Connection wrap(Connection targetConnection, Lock lockToUnlock) {
+            return (Connection) Proxy.newProxyInstance(
+                    targetConnection.getClass().getClassLoader(),
+                    new Class<?>[] { Connection.class },
+                    new LockReleasingConnection(targetConnection, lockToUnlock)
+            );
+        }
+    }
+
+    /**
      * Creates an {@link OffHeapPersistence} object which persists to native memory, within the JVM process but outside
      * the Java heap.
      *
@@ -242,6 +330,20 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      * @return An {@link OffHeapPersistence} object which persists to native memory
      */
     public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
-        return new OffHeapPersistence<O, A>(primaryKeyAttribute);
+        return OffHeapPersistence.onPrimaryKeyWithProperties(primaryKeyAttribute, new Properties());
     }
+
+    /**
+     * Creates an {@link OffHeapPersistence} object which persists to native memory, within the JVM process but outside
+     * the Java heap.
+     *
+     * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
+     * @param overrideProperties Optional properties to override default settings (can be empty to use all default
+     *                           settings, but cannot be null)
+     * @return An {@link OffHeapPersistence} object which persists to native memory
+     */
+    public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKeyWithProperties(SimpleAttribute<O, A> primaryKeyAttribute, Properties overrideProperties) {
+        return new OffHeapPersistence<O, A>(primaryKeyAttribute, overrideProperties);
+    }
+
 }

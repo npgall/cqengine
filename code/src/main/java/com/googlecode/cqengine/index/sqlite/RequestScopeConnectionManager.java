@@ -19,12 +19,13 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.composite.CompositePersistence;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.io.Closeable;
 import java.sql.Connection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A ConnectionManager which create connections on-demand to the correct persistence for the indexes requesting the
@@ -44,7 +45,7 @@ public class RequestScopeConnectionManager implements ConnectionManager, Closeab
     final Persistence<?, ?> persistence;
 
     // Map of open connections.
-    final Map<SQLitePersistence, Connection> openConnections = new ConcurrentHashMap<SQLitePersistence, Connection>(1, 1.0F, 1);
+    final ConcurrentMap<SQLitePersistence, Connection> openConnections = new ConcurrentHashMap<SQLitePersistence, Connection>(1, 1.0F, 1);
 
     public RequestScopeConnectionManager(Persistence<?, ?> persistence) {
         this.persistence = persistence;
@@ -52,12 +53,12 @@ public class RequestScopeConnectionManager implements ConnectionManager, Closeab
 
 
     @Override
-    public Connection getConnection(Index<?> index) {
+    public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
         index = index.getEffectiveIndex();
         SQLitePersistence<?, ?> persistence = getPersistenceForIndex(index);
         Connection connection = openConnections.get(persistence);
         if (connection == null) {
-            Connection newConnection = persistence.getConnection(index);
+            Connection newConnection = persistence.getConnection(index, queryOptions);
             Connection existingConnection = openConnections.putIfAbsent(persistence, newConnection);
             if (existingConnection == null) {
                 connection = newConnection;

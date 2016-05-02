@@ -24,7 +24,9 @@ import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
+import com.googlecode.cqengine.persistence.support.PersistenceFlags;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
@@ -103,6 +105,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public ResultSet<O> retrieve(Query<O> query) {
         final QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
+        flagAsReadRequest(queryOptions);
         ResultSet<O> results = indexEngine.retrieve(query, queryOptions);
         return new CloseableResultSet<O>(results, query, queryOptions) {
             @Override
@@ -119,6 +122,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         final QueryOptions queryOptionsOpened = openRequestScopeResourcesIfNecessary(queryOptions);
+        flagAsReadRequest(queryOptionsOpened);
         ResultSet<O> results = indexEngine.retrieve(query, queryOptions);
         return new CloseableResultSet<O>(results, query, queryOptions) {
             @Override
@@ -526,5 +530,16 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         finally {
             closeRequestScopeResourcesIfNecessary(queryOptions);
         }
+    }
+
+    /**
+     * Sets a flag into the given query options to record that this request will read from the collection
+     * but will not modify it.
+     * This is used to facilitate locking in some persistence implementations.
+     *
+     * @param queryOptions The query options for the request
+     */
+    protected static void flagAsReadRequest(QueryOptions queryOptions) {
+        FlagsEnabled.forQueryOptions(queryOptions).add(PersistenceFlags.READ_REQUEST);
     }
 }

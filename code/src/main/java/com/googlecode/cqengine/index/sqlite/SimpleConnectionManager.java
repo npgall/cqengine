@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.sql.Connection;
 
@@ -31,7 +32,7 @@ public class SimpleConnectionManager implements ConnectionManager {
     }
 
     @Override
-    public Connection getConnection(Index<?> index) {
+    public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
         return connection;
     }
 

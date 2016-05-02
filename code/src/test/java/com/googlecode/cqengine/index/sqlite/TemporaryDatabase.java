@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
@@ -158,7 +159,7 @@ public class TemporaryDatabase {
         public ConnectionManager getConnectionManager(final boolean applyUpdateForIndexEnabled) {
             return new ConnectionManager() {
                 @Override
-                public Connection getConnection(Index<?> index) {
+                public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
                     try {
                         return dataSource.getConnection();
                     } catch (Exception e) {
@@ -230,7 +231,7 @@ public class TemporaryDatabase {
         public ConnectionManager getConnectionManager(final boolean applyUpdateForIndexEnabled) {
             return new ConnectionManager() {
                 @Override
-                public Connection getConnection(Index<?> index) {
+                public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
                     return connection;
                 }
 

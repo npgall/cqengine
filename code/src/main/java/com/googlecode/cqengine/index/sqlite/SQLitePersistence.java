@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.sql.Connection;
 
@@ -31,9 +32,10 @@ public interface SQLitePersistence<O, A extends Comparable<A>> extends Persisten
      * Returns a {@link Connection} to the SQLite database used for persistence.
      *
      * @param index The {@link Index} requesting the connection.
+     * @param queryOptions The query options for the request
      * @return The {@link Connection}
      */
-    Connection getConnection(Index<?> index);
+    Connection getConnection(Index<?> index, QueryOptions queryOptions);
 
     /**
      * @return The number of bytes used to persist the collection and/or indexes.

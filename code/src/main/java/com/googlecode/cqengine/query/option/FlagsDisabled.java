@@ -44,6 +44,22 @@ public class FlagsDisabled {
         return flags.contains(flag);
     }
 
+    /**
+     * Returns an existing {@link FlagsDisabled} from the QueryOptions, or adds a new
+     * instance to the query options and returns that.
+     *
+     * @param queryOptions The {@link QueryOptions}
+     * @return The existing QueryOptions's FlagsDisabled or a new instance.
+     */
+    public static FlagsDisabled forQueryOptions(final QueryOptions queryOptions) {
+        FlagsDisabled flags = queryOptions.get(FlagsDisabled.class);
+        if (flags == null) {
+            flags = new FlagsDisabled();
+            queryOptions.put(FlagsDisabled.class, flags);
+        }
+        return flags;
+    }
+
     public static boolean isFlagDisabled(QueryOptions queryOptions, Object flag) {
         FlagsDisabled flagsDisabled = queryOptions.get(FlagsDisabled.class);
         return flagsDisabled != null && flagsDisabled.isFlagDisabled(flag);

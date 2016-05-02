@@ -113,7 +113,7 @@ public class SQLiteIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
@@ -156,7 +156,7 @@ public class SQLiteIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
@@ -200,7 +200,7 @@ public class SQLiteIndexTest {
         Statement statement1 = mock(Statement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(connection1.createStatement()).thenReturn(statement1);
@@ -236,7 +236,7 @@ public class SQLiteIndexTest {
         );
 
         carFeaturesOffHeapIndex.init(emptyObjectStore(), createQueryOptions(connectionManager));
-        verify(connectionManager, times(0)).getConnection(any(SQLiteIndex.class));
+        verify(connectionManager, times(0)).getConnection(any(SQLiteIndex.class), anyQueryOptions());
     }
 
     @Test
@@ -250,7 +250,7 @@ public class SQLiteIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
@@ -295,7 +295,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(1) AS countDistinct FROM (SELECT objectKey FROM " + TABLE_NAME + " WHERE value = ? GROUP BY objectKey);")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -346,7 +346,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -382,7 +382,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
         when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
         when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
@@ -424,7 +424,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -467,7 +467,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -514,7 +514,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT DISTINCT objectKey FROM " + TABLE_NAME + " WHERE value = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -957,7 +957,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(statement);
@@ -1000,7 +1000,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(statement);
@@ -1054,7 +1054,7 @@ public class SQLiteIndexTest {
         SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(statement);
@@ -1097,7 +1097,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " ;")).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(preparedStatement);
@@ -1156,7 +1156,7 @@ public class SQLiteIndexTest {
 
         // Behaviour
         //SELECT objectKey, value FROM cqtbl_%s WHERE objectKey=?
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain).thenReturn(connectionNoRows);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connectionContains).thenReturn(connectionDoNotContain).thenReturn(connectionNoRows);
         when(connectionContains.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementContains);
         when(connectionDoNotContain.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementDoNotContains);
         when(connectionNoRows.prepareStatement("SELECT objectKey, value FROM " + TABLE_NAME + " WHERE objectKey = ?")).thenReturn(preparedStatementNoRows);
@@ -1208,7 +1208,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         // Behaviour//
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery("SELECT objectKey, value FROM " + TABLE_NAME + " ORDER BY objectKey;")).thenReturn(resultSet);
         when(resultSet.getStatement()).thenReturn(statement);

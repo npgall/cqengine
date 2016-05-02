@@ -30,8 +30,6 @@ import org.junit.Test;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
-import java.io.File;
-
 /**
  * @author niall.gallagher
  */

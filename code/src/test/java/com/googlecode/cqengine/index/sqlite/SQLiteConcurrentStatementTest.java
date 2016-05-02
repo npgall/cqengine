@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
+import com.googlecode.cqengine.query.QueryFactory;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +25,8 @@ import org.junit.Test;
 import java.sql.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
 /**
  * Tests that we can open more than one JDBC Statement and ResultSet per Connection, and use them both at the same time
@@ -39,7 +42,7 @@ public class SQLiteConcurrentStatementTest {
 
     @Test
     public void testConcurrentStatements() throws SQLException {
-        Connection connection = temporaryDatabase.getConnectionManager(true).getConnection(null);
+        Connection connection = temporaryDatabase.getConnectionManager(true).getConnection(null, noQueryOptions());
         final int NUM_ROWS = 10;
         try {
             Statement stmt = connection.createStatement();

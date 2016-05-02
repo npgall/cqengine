@@ -173,7 +173,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             return new ResultSet<O>() {
                 @Override
                 public Iterator<O> iterator() {
-                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                     final java.sql.ResultSet searchResultSet = DBQueries.getAllIndexEntries(tableName, searchConnection);
                     closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
@@ -212,7 +212,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                     Connection connection = null;
                     java.sql.ResultSet searchResultSet = null;
                     try {
-                        connection = connectionManager.getConnection(SQLiteIndex.this);
+                        connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
                         searchResultSet = DBQueries.getIndexEntryByObjectKey(primaryKeyAttribute.getValue(object, queryOptions), tableName, connection);
 
                         return lazyMatchingValuesIterable(searchResultSet).iterator().hasNext();
@@ -246,7 +246,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 @Override
                 public int getMergeCost() {
                     //choose between branches.
-                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
                     return DBQueries.count(has(primaryKeyAttribute), tableName, connection); // no need to eliminate duplicates
                 }
 
@@ -255,7 +255,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                     Connection connection = null;
                     java.sql.ResultSet searchResultSet = null;
                     try {
-                        connection = connectionManager.getConnection(SQLiteIndex.this);
+                        connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
                         searchResultSet = DBQueries.getAllIndexEntries(tableName, connection);
 
                         final Iterable<K> iterator = lazyMatchingValuesIterable(searchResultSet);
@@ -318,7 +318,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 @Override
                 public Iterator<O> iterator() {
 
-                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                     final java.sql.ResultSet searchResultSet = DBQueries.search(query, tableName, searchConnection); // eliminates duplicates
                     closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
@@ -349,14 +349,14 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                 @Override
                 public int getMergeCost() {
-                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
                     return DBQueries.count(query, tableName, connection); // no need to eliminate duplicates
                 }
 
                 @Override
                 public boolean contains(O object) {
                     final K objectKey = primaryKeyAttribute.getValue(object, queryOptions);
-                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
                     return DBQueries.contains(objectKey, query, tableName, connection);
                 }
 
@@ -367,7 +367,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
                 @Override
                 public int size() {
-                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                    final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                     boolean attributeHasAtMostOneValue = (attribute instanceof SimpleAttribute || attribute instanceof SimpleNullableAttribute);
                     boolean queryIsADisjointInQuery = query instanceof In && ((In) query).isDisjoint();
@@ -410,7 +410,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return false;
         }
-        createTableIndexIfNeeded(connectionManager);
+        createTableIndexIfNeeded(connectionManager, queryOptions);
 
         if (objects.isEmpty()) {
             return false;
@@ -418,7 +418,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
         final boolean isBulkImport = FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
 
-        Connection connection = connectionManager.getConnection(this);
+        Connection connection = connectionManager.getConnection(this, queryOptions);
 
         if (isBulkImport) {
             // Drop the SQLite index temporarily...
@@ -501,9 +501,9 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return false;
         }
-        createTableIndexIfNeeded(connectionManager);
+        createTableIndexIfNeeded(connectionManager, queryOptions);
 
-        Connection connection = connectionManager.getConnection(this);
+        Connection connection = connectionManager.getConnection(this, queryOptions);
         Iterable<K> objectKeys = objectKeyIterable(objects, primaryKeyAttribute, queryOptions);
 
         int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
@@ -553,9 +553,9 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return;
         }
-        createTableIndexIfNeeded(connectionManager);
+        createTableIndexIfNeeded(connectionManager, queryOptions);
 
-        Connection connection = connectionManager.getConnection(this);
+        Connection connection = connectionManager.getConnection(this, queryOptions);
         DBQueries.clearIndexTable(tableName, connection);
     }
 
@@ -568,9 +568,10 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * Utility method to create the index table if needed.
      *
      * @param connectionManager The {@link ConnectionManager}.
+     * @param queryOptions The query options for the request.
      */
-    void createTableIndexIfNeeded(final ConnectionManager connectionManager){
-        Connection connection = connectionManager.getConnection(this);
+    void createTableIndexIfNeeded(final ConnectionManager connectionManager, QueryOptions queryOptions){
+        Connection connection = connectionManager.getConnection(this, queryOptions);
         DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
         DBQueries.createIndexOnTable(tableName, connection);
     }
@@ -613,7 +614,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     @Override
     public Integer getCountOfDistinctKeys(QueryOptions queryOptions) {
         final ConnectionManager connectionManager = getConnectionManager(queryOptions);
-        Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+        Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
         return DBQueries.getCountOfDistinctKeys(tableName, connection);
     }
 
@@ -635,7 +636,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             @Override
             public CloseableIterator<KeyStatistics<A>> iterator() {
                 final ConnectionManager connectionManager = getConnectionManager(queryOptions);
-                final Connection connection = connectionManager.getConnection(SQLiteIndex.this);
+                final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                 final java.sql.ResultSet resultSet = DBQueries.getDistinctKeysAndCounts(sortByKeyDescending, tableName, connection);
                 closeableResourceGroup.add(DBUtils.wrapAsCloseable(resultSet));
@@ -678,7 +679,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             @Override
             public CloseableIterator<A> iterator() {
                 final ConnectionManager connectionManager = getConnectionManager(queryOptions);
-                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                 final java.sql.ResultSet searchResultSet = DBQueries.getDistinctKeys(query, descending, tableName, searchConnection);
                 closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));
@@ -738,7 +739,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             @Override
             public CloseableIterator<KeyValue<A, O>> iterator() {
                 final ConnectionManager connectionManager = getConnectionManager(queryOptions);
-                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this);
+                final Connection searchConnection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
                 final java.sql.ResultSet searchResultSet = DBQueries.getKeysAndValues(query, descending, tableName, searchConnection);
                 closeableResourceGroup.add(DBUtils.wrapAsCloseable(searchResultSet));

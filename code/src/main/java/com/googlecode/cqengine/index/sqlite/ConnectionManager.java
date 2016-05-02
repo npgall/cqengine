@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.sql.Connection;
 
@@ -30,9 +31,10 @@ public interface ConnectionManager {
      * Returns a {@link Connection}.
      *
      * @param index The {@link Index} requesting the connection.
+     * @param queryOptions The query options for the request
      * @return The {@link Connection}
      */
-    Connection getConnection(Index<?> index);
+    Connection getConnection(Index<?> index, QueryOptions queryOptions);
 
     /**
      * Informs if index updates should be applied.
