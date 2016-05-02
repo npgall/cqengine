@@ -42,28 +42,14 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * Specifies that a collection or indexes should be persisted to a particular file on disk.
  * <p/>
  * <b>Note on Concurrency</b><br/>
- * Note this disk persistence implementation supports fully concurrent reads and writes, but that <b><i>full
- * concurrency is not enabled by default</i></b>.
+ * Note this disk persistence implementation supports fully concurrent reads and writes by default. This is because
+ * it enables <i><a href="https://www.sqlite.org/wal.html">Write-Ahead Logging</a></i> ("WAL") journal mode in the
+ * underlying SQLite database file by default (see that link for more details).
  * <p/>
- * <i>By default</i> this implementation uses the default configuration of SQLite in which concurrent reads are
- * supported when there are no ongoing writes, but writes are performed sequentially and they block all concurrent
- * reads. Essentially the default concurrency support is equivalent to that afforded by a {@link ReadWriteLock}.
- * <p/>
- * Applications requiring <b><i>full concurrency</i></b> can enable
- * <i><a href="https://www.sqlite.org/wal.html">Write-Ahead Logging</a></i> ("WAL") mode in the persistence as follows:
- * <pre>
- * DiskPersistence.onPrimaryKeyInFileWithProperties(
- *     Car.CAR_ID,
- *     DiskPersistence.createTempFile(),
- *     DiskPersistence.enableWalMode()
- * )
- * </pre>
- * WAL mode supports full concurrency for reads and writes. Note that enabling WAL mode generally has more advantages
- * than disadvantages for applications performing a mix of reads and writes - as discussed on the SQLite page linked
- * above.
- * <p/>
- * The only reason that CQEngine does not enable WAL mode by default is that non-WAL mode is slightly faster for
- * read-centric applications.
+ * Optionally, this class allows the application to override the journal mode or other settings in SQLite by
+ * supplying <i>"override properties"</i> to the {@link #onPrimaryKeyInFileWithProperties(SimpleAttribute, File, Properties)}
+ * method. As WAL mode is suitable for most applications, most applications should work best with the default settings;
+ * the override support is intended for advanced or custom use cases.
  *
  * @author niall.gallagher
  */
@@ -75,11 +61,13 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
 
     static final Properties DEFAULT_PROPERTIES = new Properties();
     static {
-        DEFAULT_PROPERTIES.put("busy_timeout", Integer.MAX_VALUE); // wait indefinitely to acquire locks (technically 68 years)
+        DEFAULT_PROPERTIES.setProperty("busy_timeout", String.valueOf(Integer.MAX_VALUE)); // wait indefinitely to acquire locks (technically 68 years)
+        DEFAULT_PROPERTIES.setProperty("journal_mode", "WAL"); // Use Write-Ahead-Logging which supports concurrent reads and writes
     }
 
     protected DiskPersistence(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {
-        Properties effectiveProperties = new Properties(DEFAULT_PROPERTIES);
+        Properties effectiveProperties = new Properties();
+        effectiveProperties.putAll(DEFAULT_PROPERTIES);
         effectiveProperties.putAll(overrideProperties);
         SQLiteConfig sqLiteConfig = new SQLiteConfig(effectiveProperties);
         SQLiteDataSource sqLiteDataSource = new SQLiteDataSource(sqLiteConfig);
@@ -234,19 +222,6 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
             throw new IllegalStateException("Failed to create temp file for CQEngine disk persistence", e);
         }
         return tempFile;
-    }
-
-    /**
-     * A convenience method which returns a new Properties object containing settings which will enable WAL mode,
-     * which supports concurrent reads and writes in this persistence.
-     *
-     * @return A new properties object containing settings which will enable WAL mode in SQLite for concurrent reads and
-     * writes.
-     */
-    public static Properties enableWalMode() {
-        Properties properties = new Properties();
-        properties.setProperty("journal_mode", "WAL");
-        return properties;
     }
 
     /**
