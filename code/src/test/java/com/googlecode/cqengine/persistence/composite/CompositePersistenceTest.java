@@ -15,16 +15,30 @@
  */
 package com.googlecode.cqengine.persistence.composite;
 
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
+import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.disk.DiskPersistence;
+import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
+import com.googlecode.cqengine.testutil.CarFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -34,6 +48,49 @@ import static org.mockito.Mockito.when;
  * @author niall.gallagher
  */
 public class CompositePersistenceTest {
+
+    /**
+     * Tests a configuration where the collection is stored off-heap, one index is on-disk, and one index is on-heap.
+     */
+    @Test
+    public void testCompositePersistence_EndToEnd() {
+        OffHeapPersistence<Car, Integer> offHeapPersistence = OffHeapPersistence.onPrimaryKey(Car.CAR_ID);
+        DiskPersistence<Car, Integer> diskPersistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>(CompositePersistence.of(
+                offHeapPersistence,
+                diskPersistence,
+                singletonList(OnHeapPersistence.onPrimaryKey(Car.CAR_ID))
+        ));
+
+        collection.addIndex(DiskIndex.onAttribute(Car.MANUFACTURER));
+        collection.addIndex(OffHeapIndex.onAttribute(Car.MODEL));
+        collection.addIndex(NavigableIndex.onAttribute(Car.PRICE));
+
+        collection.addAll(CarFactory.createCollectionOfCars(1000));
+
+        ResultSet<Car> results = null;
+        try {
+            results = collection.retrieve(
+                    and(
+                            or(
+                                    equal(Car.MANUFACTURER, "Ford"),
+                                    equal(Car.MODEL, "Avensis")
+                            ),
+                            lessThan(Car.PRICE, 6000.0)
+                    )
+            );
+            Assert.assertEquals(300, results.size());
+
+            Assert.assertTrue(offHeapPersistence.getBytesUsed() > 4096); // example: 163840
+            Assert.assertTrue(diskPersistence.getBytesUsed() > 4096); // example: 30720
+        }
+        finally {
+            CloseableRequestResources.closeQuietly(results);
+            collection.clear();
+            offHeapPersistence.close();
+            diskPersistence.getFile().delete();
+        }
+    }
 
     @Test
     public void testGetPrimaryKeyAttribute() throws Exception {
@@ -89,7 +146,7 @@ public class CompositePersistenceTest {
         when(persistence2.getPrimaryKeyAttribute()).thenReturn(Car.CAR_ID);
         when(persistence3.getPrimaryKeyAttribute()).thenReturn(Car.CAR_ID);
 
-        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, Collections.singletonList(persistence3));
+        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, singletonList(persistence3));
         compositePersistence.getPersistenceForIndex(index);
     }
 
@@ -104,7 +161,7 @@ public class CompositePersistenceTest {
         when(persistence3.getPrimaryKeyAttribute()).thenReturn(Car.CAR_ID);
         when(persistence1.supportsIndex(index)).thenReturn(true);
 
-        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, Collections.singletonList(persistence3));
+        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, singletonList(persistence3));
         Persistence<Car, Integer> result = compositePersistence.getPersistenceForIndex(index);
         assertEquals(persistence1, result);
     }
@@ -120,7 +177,7 @@ public class CompositePersistenceTest {
         when(persistence3.getPrimaryKeyAttribute()).thenReturn(Car.CAR_ID);
         when(persistence2.supportsIndex(index)).thenReturn(true);
 
-        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, Collections.singletonList(persistence3));
+        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, singletonList(persistence3));
         Persistence<Car, Integer> result = compositePersistence.getPersistenceForIndex(index);
         assertEquals(persistence2, result);
     }
@@ -136,7 +193,7 @@ public class CompositePersistenceTest {
         when(persistence3.getPrimaryKeyAttribute()).thenReturn(Car.CAR_ID);
         when(persistence3.supportsIndex(index)).thenReturn(true);
 
-        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, Collections.singletonList(persistence3));
+        CompositePersistence<Car, Integer> compositePersistence = CompositePersistence.of(persistence1, persistence2, singletonList(persistence3));
         Persistence<Car, Integer> result = compositePersistence.getPersistenceForIndex(index);
         assertEquals(persistence3, result);
     }
