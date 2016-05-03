@@ -382,7 +382,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
         when(connectionContains.prepareStatement("SELECT objectKey FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ? LIMIT 1;")).thenReturn(preparedStatementContains);
         when(connectionDoNotContain.prepareStatement("SELECT objectKey FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ? LIMIT 1;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
