@@ -382,15 +382,13 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSetDoNotContain = mock(java.sql.ResultSet.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
-        when(connectionContains.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementContains);
-        when(connectionDoNotContain.prepareStatement("SELECT COUNT(objectKey) FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ?;")).thenReturn(preparedStatementDoNotContains);
+        when(connectionManager.getConnection(any(SQLiteIndex.class))).thenReturn(connectionContains).thenReturn(connectionDoNotContain);
+        when(connectionContains.prepareStatement("SELECT objectKey FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ? LIMIT 1;")).thenReturn(preparedStatementContains);
+        when(connectionDoNotContain.prepareStatement("SELECT objectKey FROM " + TABLE_NAME + " WHERE value = ? AND objectKey = ? LIMIT 1;")).thenReturn(preparedStatementDoNotContains);
         when(preparedStatementContains.executeQuery()).thenReturn(resultSetContains);
         when(preparedStatementDoNotContains.executeQuery()).thenReturn(resultSetDoNotContain);
         when(resultSetContains.next()).thenReturn(true).thenReturn(false);
-        when(resultSetContains.getInt(1)).thenReturn(1);
-        when(resultSetDoNotContain.next()).thenReturn(true).thenReturn(false);
-        when(resultSetDoNotContain.getInt(1)).thenReturn(0);
+        when(resultSetDoNotContain.next()).thenReturn(false);
 
         // Iterator
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(

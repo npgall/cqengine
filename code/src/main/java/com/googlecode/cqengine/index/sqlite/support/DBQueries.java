@@ -568,18 +568,13 @@ public class DBQueries {
     }
 
     public static <K, O> boolean contains(final K objectKey, final Query<O> query, final String tableName, final Connection connection){
-        final String selectSql = String.format("SELECT COUNT(objectKey) FROM cqtbl_%s", tableName);
+        final String selectSql = String.format("SELECT objectKey FROM cqtbl_%s", tableName);
         PreparedStatement statement = null;
         try{
             List<WhereClause> additionalWhereClauses = Collections.singletonList(new WhereClause("objectKey = ?", objectKey));
-            statement = createAndBindSelectPreparedStatement(selectSql, "", additionalWhereClauses, query, connection);
+            statement = createAndBindSelectPreparedStatement(selectSql, " LIMIT 1", additionalWhereClauses, query, connection);
             java.sql.ResultSet resultSet = statement.executeQuery();
-
-            if (!resultSet.next()){
-                throw new IllegalStateException("Unable to execute contains. The ResultSet returned no row. Query: " + query);
-            }
-
-            return resultSet.getInt(1) > 0;
+            return resultSet.next();
         }catch (SQLException e){
             throw new IllegalStateException("Unable to execute contains. Query: " + query, e);
         }finally{
