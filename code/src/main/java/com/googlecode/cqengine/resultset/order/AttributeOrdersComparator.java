@@ -66,7 +66,30 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
         }
         // No differences found according to ordering specified, but in case this comparator
         // will be used for object equality testing, return 0 only if objects really are equal...
-        return o1.equals(o2) ? 0 : 1;
+        if (o1.equals(o2)) {
+            return 0;
+        }
+
+        // At this point we have run out of attributeSortOrders: they all returned 0, but because the objects are not
+        // equal, we cannot return 0.
+
+        // Example: This might occur when sorting by [color, price] and two or more different items have the same color
+        // and the same price. Because a third - tie-breaking - sort order was not supplied, the sort order of products
+        // which have the same color and price, is unspecified.
+
+        // However although the sort order is now unspecified, we should try to preserve the stability of the comparison
+        // as much as possible: such that
+        //                              if comparator.compare(o1, o2) == -1, then it should be the case that
+        //                                 comparator.compare(o2, o1) == +1.
+        // Thus we cannot simply return the same result in both of those cases. This can be important when objects are
+        // added to collections such as {@link java.util.TreeSet} which depend on the stability of the comparison.
+
+        // As we don't have any other readily available properties of the objects to use as tie-breakers, we will use
+        // the hashcodes of the objects instead. As the hashcodes of unequal objects are unlikely to be the same *most
+        // of the time*, using the hashcodes as a tie-breaker will result in a stable comparison *most of the time*.
+        // In the rare event that the hashcodes of the unequal objects turn out to be the same however, we will return
+        // 1 because it seems more important that the comparator is consistent with equals() than it is to be stable...
+        return o1.hashCode() >= o2.hashCode() ? 1 : -1;
     }
 
     <A extends Comparable<A>> int compareAttributeValues(Attribute<O, A> attribute, O o1, O o2) {
