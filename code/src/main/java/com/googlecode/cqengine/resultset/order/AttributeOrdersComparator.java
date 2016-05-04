@@ -74,7 +74,7 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
         // equal, we cannot return 0.
 
         // Example: This might occur when sorting by [color, price] and two or more different items have the same color
-        // and the same price. Because a third - tie-breaking - sort order was not supplied, the sort order of products
+        // and the same price. Because a third - tie-breaking - sort order was not supplied, the sort order of items
         // which have the same color and price, is unspecified.
 
         // However although the sort order is now unspecified, we should try to preserve the stability of the comparison
