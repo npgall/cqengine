@@ -52,7 +52,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        Persistence<O, K> persistence = getPersistenceFromQueryOptions(queryOptions);
+        Persistence<O, K> persistence = SimplifiedSQLiteIndex.<O, K>getPersistenceFromQueryOptions(queryOptions);
         QueryEngine<O> queryEngine = getQueryEngineFromQueryOptions(queryOptions);
 
         final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
