@@ -30,6 +30,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import de.javakaffee.kryoserializers.ArraysAsListSerializer;
 import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
 import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
+import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -132,6 +133,8 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
         @Override
         protected Kryo initialValue() {
             Kryo kryo = new Kryo();
+            // Instantiate serialized objects via a no-arg constructor when possible, falling back to Objenesis...
+            kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
             // Register the object which this index will persist...
             kryo.register(objectType);
             // Register additional serializers which are not built-in to Kryo 3.0...
