@@ -26,6 +26,7 @@ import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
+import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags.BulkImportExternallyManged;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -45,6 +46,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
+import static com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags.BulkImportExternallyManged.LAST;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
 /**
@@ -123,8 +125,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @param foreignKeyAttribute The {@link SimpleAttribute} to map a query result into the domain object.
      */
     public SQLiteIndex(final Attribute<O, A> attribute,
-                final SimpleAttribute<O, K> primaryKeyAttribute,
-                final SimpleAttribute<K, O> foreignKeyAttribute) {
+                       final SimpleAttribute<O, K> primaryKeyAttribute,
+                       final SimpleAttribute<K, O> foreignKeyAttribute) {
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
@@ -405,34 +407,36 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      */
     @Override
     public boolean addAll(final Collection<O> objects, final QueryOptions queryOptions) {
-
         ConnectionManager connectionManager = getConnectionManager(queryOptions);
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return false;
         }
-        createTableIndexIfNeeded(connectionManager, queryOptions);
 
-        if (objects.isEmpty()) {
-            return false;
-        }
+        final Connection connection = connectionManager.getConnection(this, queryOptions);
 
-        final boolean isBulkImport = FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+        // Create table if it doesn't exists...
+        DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
 
-        Connection connection = connectionManager.getConnection(this, queryOptions);
-
-        if (isBulkImport) {
-            // Drop the SQLite index temporarily...
+        // Handle the SQLite indexes on the table
+        final BulkImportExternallyManged bulkImportExternallyManged = queryOptions.get(BulkImportExternallyManged.class);
+        final boolean isBulkImport = bulkImportExternallyManged == null && FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+        if ((bulkImportExternallyManged != null || isBulkImport) && !objects.isEmpty()) {
+            // Drop the SQLite index temporarily (if any) to speed up bulk import...
             DBQueries.dropIndexOnTable(tableName, connection);
-        }
-        Iterable<Row<K, A>> rows = rowIterable(objects, primaryKeyAttribute, getAttribute(), queryOptions);
-        int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
-
-        if (isBulkImport) {
-            // Recreate the SQLite index...
+        }else {
+            // Not a bulk import, create indexes...
             DBQueries.createIndexOnTable(tableName, connection);
         }
-        return rowsModified > 0;
 
+        Iterable<Row<K, A>> rows = rowIterable(objects, primaryKeyAttribute, getAttribute(), queryOptions);
+        final int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
+
+        if (isBulkImport || (bulkImportExternallyManged != null && LAST.equals(bulkImportExternallyManged))) {
+            // Bulk import finished, recreate the SQLite index...
+            DBQueries.createIndexOnTable(tableName, connection);
+        }
+
+        return rowsModified > 0;
     }
 
     /**
@@ -501,9 +505,17 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return false;
         }
-        createTableIndexIfNeeded(connectionManager, queryOptions);
 
-        Connection connection = connectionManager.getConnection(this, queryOptions);
+        final Connection connection = connectionManager.getConnection(this, queryOptions);
+        final boolean isBulkImport = queryOptions.get(BulkImportExternallyManged.class) != null || FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+        if (isBulkImport){
+            // It's a bulk import, avoid creating the index on the SQLite table...
+            DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
+        }else{
+            // It's NOT a bulk import, create both table and index on the table...
+            createTableIndexIfNeeded(connection);
+        }
+
         Iterable<K> objectKeys = objectKeyIterable(objects, primaryKeyAttribute, queryOptions);
 
         int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
@@ -553,9 +565,9 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
             return;
         }
-        createTableIndexIfNeeded(connectionManager, queryOptions);
 
-        Connection connection = connectionManager.getConnection(this, queryOptions);
+        final Connection connection = connectionManager.getConnection(this, queryOptions);
+        createTableIndexIfNeeded(connection);
         DBQueries.clearIndexTable(tableName, connection);
     }
 
@@ -567,11 +579,9 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     /**
      * Utility method to create the index table if needed.
      *
-     * @param connectionManager The {@link ConnectionManager}.
-     * @param queryOptions The query options for the request.
+     * @param connection The {@link Connection}.
      */
-    void createTableIndexIfNeeded(final ConnectionManager connectionManager, QueryOptions queryOptions){
-        Connection connection = connectionManager.getConnection(this, queryOptions);
+    void createTableIndexIfNeeded(final Connection connection){
         DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
         DBQueries.createIndexOnTable(tableName, connection);
     }

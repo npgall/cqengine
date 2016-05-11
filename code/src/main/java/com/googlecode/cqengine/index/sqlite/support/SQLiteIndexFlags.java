@@ -33,4 +33,19 @@ public class SQLiteIndexFlags {
      * for use when the collection is first being populated or similar, such as at application startup.
      */
     public static String BULK_IMPORT = "BULK_IMPORT";
+
+    /**
+     * <p> A 2-values flag that enables externally managed bulk import and specifies it's status.
+     */
+    public enum BulkImportExternallyManged {
+        /**
+         * <p> Indicates that the batch is not the last and that the SQLiteIndex shouldn't reinstate the index on the table
+         */
+        NOT_LAST,
+
+        /**
+         * <p> Indicates that the batch is the last batch and that the SQLiteIndex needs to reinstate the index on the table
+         */
+        LAST;
+    };
 }
