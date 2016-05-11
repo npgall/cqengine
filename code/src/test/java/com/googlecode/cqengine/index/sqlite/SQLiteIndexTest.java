@@ -108,15 +108,14 @@ public class SQLiteIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
-        Connection connection1 = mock(Connection.class);
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
-        when(connection1.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE objectKey = ?;")).thenReturn(preparedStatement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {1});
 
         // The objects to add
@@ -136,13 +135,13 @@ public class SQLiteIndexTest {
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
-        verify(connection, times(0)).close();
 
         verify(preparedStatement, times(1)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
         verify(preparedStatement, times(2)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
-        verify(connection1, times(0)).close();
+
+        verify(connection, times(0)).close();
     }
 
     @Test
@@ -151,15 +150,14 @@ public class SQLiteIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
-        Connection connection1 = mock(Connection.class);
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
-        when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
+        when(connection.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
         // The objects to add
         Set<Car> addedObjects = new HashSet<Car>(2);
@@ -177,7 +175,6 @@ public class SQLiteIndexTest {
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
-        verify(connection, times(0)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
@@ -186,7 +183,8 @@ public class SQLiteIndexTest {
         verify(preparedStatement, times(1)).setObject(2, "airbags");
         verify(preparedStatement, times(3)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
-        verify(connection1, times(0)).close();
+
+        verify(connection, times(0)).close();
     }
 
     @Test
@@ -195,15 +193,12 @@ public class SQLiteIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
-        Connection connection1 = mock(Connection.class);
         Statement statement = mock(Statement.class);
-        Statement statement1 = mock(Statement.class);
 
         // Behaviour
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
-        when(connection.createStatement()).thenReturn(statement);
-        when(connection1.createStatement()).thenReturn(statement1);
+        when(connection.createStatement()).thenReturn(statement).thenReturn(statement).thenReturn(statement);
 
         @SuppressWarnings({"unchecked", "unused"})
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
@@ -217,10 +212,9 @@ public class SQLiteIndexTest {
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
-        verify(connection, times(0)).close();
+        verify(statement, times(1)).executeUpdate("DELETE FROM " + TABLE_NAME + ";");
 
-        verify(statement1, times(1)).executeUpdate("DELETE FROM " + TABLE_NAME + ";");
-        verify(connection1, times(0)).close();
+        verify(connection, times(0)).close();
     }
 
     @Test
@@ -245,12 +239,11 @@ public class SQLiteIndexTest {
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
-        Connection connection1 = mock(Connection.class);
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
-        when(connection1.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection1);
+        when(connection.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
@@ -272,7 +265,6 @@ public class SQLiteIndexTest {
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
         verify(statement, times(2)).close();
-        verify(connection, times(0)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
@@ -282,7 +274,8 @@ public class SQLiteIndexTest {
         verify(preparedStatement, times(3)).addBatch();
         verify(preparedStatement, times(1)).executeBatch();
         verify(preparedStatement, times(1)).close();
-        verify(connection1, times(0)).close();
+
+        verify(connection, times(0)).close();
     }
 
     @Test
