@@ -1,5 +1,34 @@
 # CQEngine Release Notes #
 
+### Version 2.5.0 - 2016-05-06 ###
+  * Significant improvements in the write performance of disk and off-heap indexes, via IO batching
+    * Previously, when objects were added to the collection, they were added to each index on disk in a separate IO operation per index.
+    * Now, all operations are batched into a single round trip to disk, containing updates to all indexes which share the same type of persistence.
+  * Improved concurrency in DiskIndex
+    * Previously, the DiskIndex was unlike the on-heap indexes in that it did not fully support concurrent reads and writes: it supported concurrent reads, but writes were blocking.
+    * Now, the DiskIndex supports fully concurrent reads and writes, and reads are lock-free using MVCC.
+  * Improved locking support in OffHeapIndex
+    * The OffHeapIndex does not yet support full concurrency: it supports concurrent reads, but writes will block reads.
+      * This is a limitation in SQLite, on which OffHeapIndex depends.
+    * Nonetheless, the locking support in OffHeapIndex has been improved. Previously if this index was in use, a writing thread would receive an exception. Now writes will transparently wait for reads to finish.
+  * CompositePersistence and pluggable persistence implementations
+    * CQEngine now allows custom indexes using arbitrary [Persistence](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/persistence/Persistence.java) implementations to be plugged in seamlessly.
+    * Different types of persistence may be combined using the [CompositePersistence](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/persistence/composite/CompositePersistence.java) class.
+    * A new abstraction called [ObjectStore](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/persistence/support/ObjectStore.java) allows the collection itself to be persisted on top of distributed caches, external databases, and still integrate with existing indexes.
+  * Improved query performance for off-heap and disk persistence
+    * Previously CQEngine would always use indexes to locate the smallest candidate set of objects, and it would then use on-the-fly filtering to reduce the candidate set to the final set of objects which match the query.
+      * This is retrospectively known as the "default merge strategy".
+    * This worked fine when the objects to be filtered were already on-heap, however it was expensive when the collection of objects itself was located off-heap or on disk, because candidate objects would need to be deserialized in order to perform this filtering.
+    * CQEngine can now answer the query without deserializing candidate objects, by performing joins between multiple indexes on-the-fly instead
+      * Only the final set of objects which actually match the query, will be deserialized; and lazily as the application requests them.
+      * This strategy can be requested by supplying query option EngineFlags.PREFER_INDEX_MERGE_STRATEGY.
+      * This requires that indexes are available for all of the attributes referenced in a query. If required indexes are not available, the default merge strategy will be used instead.
+  * Performance improvements for in() queries
+    * Previously in() queries were converted to potentially many equal() queries wrapped in an or() query.
+    * This meant that potentially many index lookups or filtering steps would be performed, to evaluate all of the values provided in the in() query.
+    * Now, all indexes support for in() queries directly, allowing these queries to be evaluated in fewer round trips.
+  * Deployed to Maven Central.
+
 ### Version 2.1.3 - 2016-03-24 ###
   * Maintenance release.
   * Further improvements in index-accelerated ordering strategy.
