@@ -27,7 +27,13 @@
     * Previously in() queries were converted to potentially many equal() queries wrapped in an or() query.
     * This meant that potentially many index lookups or filtering steps would be performed, to evaluate all of the values provided in the in() query.
     * Now, all indexes support for in() queries directly, allowing these queries to be evaluated in fewer round trips.
-  * Deployed to Maven Central.
+  * *Backward compatibility*
+    * The deduplication characteristics of ResultSet.size() has been changed, when ordering is requested but deduplication is not requested:
+      * Previously, if a query requested that the results were to be ordered, but it did not request that they were to be deduplicated as well: the ResultSet.iterator() would return ordered and deduplicated results AND the ResultSet.size() method would reflect the outcome of that deduplication in its calculation of size too.
+      * Now, if a query requested that the results are to be ordered, but it does not request that they are to be deduplicated as well: the ResultSet.iterator() will return ordered and deduplicated results as before BUT the ResultSet.size() method will not reflect the outcome of that deduplication in its calculation of size, and the size returned may count duplicate objects.
+      * This change makes the calculation of size() faster when the application wants results to be ordered, but doesn't care about deduplication per-se, or when the query would not produce duplicates anyway.
+      * The previous behaviour can be reinstated by requesting both ordering and deduplication.
+      * In general, applications which want deduplication should request it explicitly, and they should not rely on the fact that ordering results sometimes provides deduplication as well.
 
 ### Version 2.1.3 - 2016-03-24 ###
   * Maintenance release.
