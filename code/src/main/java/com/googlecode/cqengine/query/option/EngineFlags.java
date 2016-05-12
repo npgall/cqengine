@@ -58,5 +58,24 @@ public enum EngineFlags {
      *     </li>
      * </ol>
      */
-    PREFER_INDEX_MERGE_STRATEGY
+    PREFER_INDEX_MERGE_STRATEGY,
+
+    /**
+     * A performance tuning flag for when the index ordering strategy is used, which configures the strategy to
+     * maximize ordering speed, at the expense of allowing a slightly inexact ordering of objects which have multiple
+     * values for the attribute by which they are being ordered.
+     * <p/>
+     * For example: if object 1 has values ["a"] and object 2 has values ["a", "b"] then technically object 1 should
+     * always be returned before object 2, when results are to be returned in ascending order. The relative ordering
+     * of these objects should also be reversed, when results are to be returned in descending order. That is, to be
+     * consistent with the other ordering strategies in CQEngine.
+     * <p/>
+     * However this technically-correct and deterministic ordering, does not come for free, and requires that the
+     * strategy re-sort the objects in each bucket encountered.
+     * <p/>
+     * If this flag is enabled, the index ordering strategy will avoid re-sorting the buckets in the index used for
+     * ordering. This will improve retrieval speed, at the expense of allowing the relative ordering of objects having
+     * one attribute value in common, and having other differing attribute values, to be slightly inexact.
+     */
+    INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES
 }

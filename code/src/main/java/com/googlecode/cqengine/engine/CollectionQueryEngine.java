@@ -63,6 +63,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.googlecode.cqengine.query.option.EngineFlags.INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES;
 import static com.googlecode.cqengine.query.option.EngineFlags.PREFER_INDEX_MERGE_STRATEGY;
 import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
 import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.concatenate;
@@ -627,7 +628,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // Ensure that at the end of processing the request, that we close any resources we opened...
         final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
-        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering);
+        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForOrdering, queryOptions);
 
         final CloseableIterator<? extends KeyValue<? extends Comparable<?>, O>> keysAndValuesInRange = getKeysAndValuesInRange(indexForOrdering, rangeBoundsFromQuery, primarySortDescending, queryOptions);
 
@@ -667,7 +668,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         // Determine if we need to sort the missing objects...
         Index<O> indexForMissingObjects = standingQueryIndexes.get(missingValuesQuery);
-        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects);
+        final List<AttributeOrder<O>> sortOrdersForBucket = determineAdditionalSortOrdersForIndexOrdering(allSortOrders, attributeCanHaveMoreThanOneValue, indexForMissingObjects, queryOptions);
 
         if (!sortOrdersForBucket.isEmpty()) {
             // We do need to sort the missing objects...
@@ -744,6 +745,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      *     <li>
      *         The attribute can have multiple values (if object 1 values ["a"] and  object 2 has values
      *         ["a", "b"] then objects 1 & 2 will both be in the same bucket, but object 1 should sort first ascending).
+     *         However this case can be suppressed with
+     *         {@link EngineFlags#INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES}.
      *     </li>
      *     <li>
      *         There are additional sort orders after the first one.
@@ -755,8 +758,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @param index The index from which the bucket is accessed
      * @return A list of AttributeOrder objects representing the sort order to apply to objects in the bucket
      */
-    static <O> List<AttributeOrder<O>> determineAdditionalSortOrdersForIndexOrdering(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index) {
-        return (index.isQuantized() || attributeCanHaveMoreThanOneValue)
+    static <O> List<AttributeOrder<O>> determineAdditionalSortOrdersForIndexOrdering(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index, QueryOptions queryOptions) {
+        return (index.isQuantized() || (attributeCanHaveMoreThanOneValue && !isFlagEnabled(queryOptions, INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES)))
                 ? allSortOrders // We must re-sort on all sort orders within each bucket.
                 : allSortOrders.subList(1, allSortOrders.size());
     }
