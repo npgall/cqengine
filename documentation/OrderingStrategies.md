@@ -11,6 +11,42 @@ Essentially, this allows CQEngine to use the most suitable indexes to locate obj
 ## Ordering strategy: _index_ ##
 The _index_ ordering strategy allows CQEngine to use an index on an attribute by which results must be ordered, to drive its search. No other indexes will be used for the search, but results will not need to be sorted afterwards.
 
+This strategy can be enabled by configuring  [EngineThresholds.INDEX_ORDERING_SELECTIVITY](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/query/option/EngineThresholds.java) as discussed in _Best Practices_ below.
+
+Note that the set of indexes required to support the _index_ ordering strategy on any particular attribute, depends on the type of attribute:
+  * For `SimpleAttribute`s (a type of attribute which returns exactly one value for every object in the collection):
+    * An index is required on the attribute which will be used for ordering.
+      * A single index is sufficient, because `SimpleAttribute` guarantees that every object in the collection will have exactly one value for this type of attribute.
+  * For `SimpleNullableAttribute`(s), `MultiValueAttribute`s or `MultiValueNullableAttribute`s:
+    * An index on the attribute which will be used for ordering, **AND**
+    * An index on objects in the collection which are _missing_ values for the attribute which will be used for ordering.
+      * A single index is NOT sufficient, because these types of attributes do not guarantee that every object in the collection will provide at least one value for these types of attributes.
+      * For example, if results are to be ordered by an attribute `Car.FEATURES` but not every car in the collection has special features, then those objects in the collection will be missing from the index on `Car.FEATURES`.
+
+The following is an example of how to enable the _index_ ordering strategy on a `MultiValueAttribute` (full source [here](../code/src/test/java/com/googlecode/cqengine/examples/ordering/IndexOrderingDemo.java)):
+
+```java
+public static void main(String[] args) {
+    IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
+    cars.addIndex(NavigableIndex.onAttribute(Car.FEATURES));
+    cars.addIndex(NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES)));
+    cars.addAll(CarFactory.createCollectionOfCars(100));
+
+    ResultSet<Car> results = cars.retrieve(
+            between(Car.CAR_ID, 40, 50),
+            queryOptions(
+                    orderBy(ascending(missingLast(Car.FEATURES))),
+                    applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0))
+            )
+    );
+    for (Car car : results) {
+        System.out.println(car); // prints cars 40 -> 50, using the index on Car.FEATURES to accelerate ordering
+    }
+}
+```
+
+
+
 ## Best practices ##
 
 The _index_ ordering strategy forces CQEngine to use an index on an attribute by which results must be ordered (when available), to drive its search.
