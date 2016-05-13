@@ -107,6 +107,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine) {
         for (Index<O> index : queryEngine.getIndexes()) {
             if (index instanceof AttributeIndex) {
+                @SuppressWarnings("unchecked")
                 AttributeIndex<K, O> attributeIndex = (AttributeIndex<K, O>) index;
                 if (primaryKeyAttribute.equals(attributeIndex.getAttribute())) {
                     if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null))) {

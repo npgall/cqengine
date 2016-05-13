@@ -119,6 +119,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
         ensureFieldExists(pojoClass, attributeValueType, fieldName, attributeName);
         return generateSimpleAttribute(SimpleAttribute.class, pojoClass, attributeValueType, attributeName, "object." + fieldName);
@@ -140,6 +141,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
         ensureGetterExists(pojoClass, attributeValueType, getterMethodName, attributeName);
         return generateSimpleAttribute(SimpleAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "()");
@@ -162,6 +164,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleAttribute<O, A>> generateSimpleAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
         ensureParameterizedGetterExists(pojoClass, attributeValueType, getterMethodName, getterParameter, attributeName);
         return generateSimpleAttribute(SimpleAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "(\"" + getterParameter + "\")");
@@ -182,6 +185,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
         ensureFieldExists(pojoClass, attributeValueType, fieldName, attributeName);
         return generateSimpleAttribute(SimpleNullableAttribute.class, pojoClass, attributeValueType, attributeName, "object." + fieldName);
@@ -203,6 +207,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
         ensureGetterExists(pojoClass, attributeValueType, getterMethodName, attributeName);
         return generateSimpleAttribute(SimpleNullableAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "()");
@@ -225,6 +230,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends SimpleNullableAttribute<O, A>> generateSimpleNullableAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
         ensureParameterizedGetterExists(pojoClass, attributeValueType, getterMethodName, getterParameter, attributeName);
         return generateSimpleAttribute(SimpleNullableAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "(\"" + getterParameter + "\")");
@@ -246,6 +252,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of values returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, String attributeName) {
         ensureFieldExists(pojoClass, attributeValueType, fieldName, attributeName);
         return generateMultiValueAttribute(MultiValueAttribute.class, pojoClass, attributeValueType, attributeName, "object." + fieldName);
@@ -268,6 +275,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String attributeName) {
         ensureGetterExists(pojoClass, attributeValueType, getterMethodName, attributeName);
         return generateMultiValueAttribute(MultiValueAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "()");
@@ -291,6 +299,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueAttribute<O, A>> generateMultiValueAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, String attributeName) {
         ensureParameterizedGetterExists(pojoClass, attributeValueType, getterMethodName, getterParameter, attributeName);
         return generateMultiValueAttribute(MultiValueAttribute.class, pojoClass, attributeValueType, attributeName, "object." + getterMethodName + "(\"" + getterParameter + "\")");
@@ -312,6 +321,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of values returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForField(Class<O> pojoClass, Class<A> attributeValueType, String fieldName, boolean componentValuesNullable, String attributeName) {
         ensureFieldExists(pojoClass, attributeValueType, fieldName, attributeName);
         return generateMultiValueNullableAttribute(MultiValueNullableAttribute.class, pojoClass, attributeValueType, attributeName, componentValuesNullable, "object." + fieldName);
@@ -334,6 +344,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, boolean componentValuesNullable, String attributeName) {
         ensureGetterExists(pojoClass, attributeValueType, getterMethodName, attributeName);
         return generateMultiValueNullableAttribute(MultiValueNullableAttribute.class, pojoClass, attributeValueType, attributeName, componentValuesNullable, "object." + getterMethodName + "()");
@@ -357,6 +368,7 @@ public class AttributeBytecodeGenerator {
      * @param <A>                The type of value returned by the attribute
      * @return A generated class for an attribute which reads from the POJO as discussed above
      */
+    @SuppressWarnings("unchecked")
     public static <O, A> Class<? extends MultiValueNullableAttribute<O, A>> generateMultiValueNullableAttributeForParameterizedGetter(Class<O> pojoClass, Class<A> attributeValueType, String getterMethodName, String getterParameter, boolean componentValuesNullable, String attributeName) {
         ensureParameterizedGetterExists(pojoClass, attributeValueType, getterMethodName, getterParameter, attributeName);
         return generateMultiValueNullableAttribute(MultiValueNullableAttribute.class, pojoClass, attributeValueType, attributeName, componentValuesNullable, "object." + getterMethodName + "(\"" + getterParameter + "\")");

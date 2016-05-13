@@ -23,7 +23,6 @@ import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
 
-import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.lessThan;
 import static com.googlecode.cqengine.query.QueryFactory.all;
@@ -52,7 +51,7 @@ public class AllTest {
         IndexedCollection<Integer> collection = indexedCollection;
         final And<Integer> query = and(
                 all(Integer.class),
-                lessThan(self(Integer.class), 3)
+                lessThan(selfAttribute(Integer.class), 3)
         );
         ResultSet<Integer> results = collection.retrieve(query);
         assertEquals(2, results.size());
@@ -66,7 +65,7 @@ public class AllTest {
         IndexedCollection<Integer> collection = indexedCollection;
         final Or<Integer> query = or(
                 all(Integer.class),
-                lessThan(self(Integer.class), 3)
+                lessThan(selfAttribute(Integer.class), 3)
         );
         ResultSet<Integer> results = collection.retrieve(query, queryOptions(deduplicate(LOGICAL_ELIMINATION)));
         assertEquals(5, results.size());

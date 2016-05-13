@@ -401,11 +401,13 @@ public class DBQueries {
                 suffix.append(';');
             }
             if (queryClass == Equal.class) {
+                @SuppressWarnings("unchecked")
                 final Equal<O, A> equal = (Equal<O, A>) query;
                 stringBuilder.append("WHERE value = ?").append(suffix);
                 statement = connection.prepareStatement(stringBuilder.toString());
                 DBUtils.setValueToPreparedStatement(bindingIndex++, statement, equal.getValue());
             } else if (queryClass == In.class){
+                @SuppressWarnings("unchecked")
                 final In<O, A> in = (In<O, A>) query;
                 Set<A> values = in.getValues();
                 stringBuilder.append("WHERE value IN ( ");
@@ -419,6 +421,7 @@ public class DBQueries {
                 statement = connection.prepareStatement(stringBuilder.toString());
                 bindingIndex = DBUtils.setValuesToPreparedStatement(bindingIndex, statement, values);
             } else if (queryClass == LessThan.class) {
+                @SuppressWarnings("unchecked")
                 final LessThan<O, ? extends Comparable<A>> lessThan = (LessThan<O, ? extends Comparable<A>>) query;
                 boolean isValueInclusive = lessThan.isValueInclusive();
                 if (isValueInclusive) {
@@ -442,6 +445,7 @@ public class DBQueries {
                 DBUtils.setValueToPreparedStatement(bindingIndex++, statement, upperBoundExclusive);
 
             } else if (queryClass == GreaterThan.class) {
+                @SuppressWarnings("unchecked")
                 final GreaterThan<O, ? extends Comparable<A>> greaterThan = (GreaterThan<O, ? extends Comparable<A>>) query;
                 boolean isValueInclusive = greaterThan.isValueInclusive();
                 if (isValueInclusive) {
@@ -453,6 +457,7 @@ public class DBQueries {
                 DBUtils.setValueToPreparedStatement(bindingIndex++, statement, greaterThan.getValue());
 
             } else if (queryClass == Between.class) {
+                @SuppressWarnings("unchecked")
                 final Between<O, ? extends Comparable<A>> between = (Between<O, ? extends Comparable<A>>) query;
                 if (between.isLowerInclusive()) {
                     stringBuilder.append("WHERE value >= ?");

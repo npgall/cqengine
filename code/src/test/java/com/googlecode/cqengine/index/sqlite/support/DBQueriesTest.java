@@ -26,7 +26,6 @@ import org.sqlite.SQLiteConfig;
 import java.sql.*;
 import java.util.*;
 
-import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryFileDatabase;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
@@ -388,7 +387,7 @@ public class DBQueriesTest {
             initWithTestData(connectionManager);
 
             connection = connectionManager.getConnection(null, noQueryOptions());
-            resultSet = DBQueries.search(has(self(Car.class)), NAME, connection);
+            resultSet = DBQueries.search(has(selfAttribute(Car.class)), NAME, connection);
             assertResultSetObjectKeysOrderAgnostic(resultSet, Arrays.asList(1, 2, 3));
 
         }finally {
@@ -630,7 +629,9 @@ public class DBQueriesTest {
 
             while (resultSet.next()) {
 
+                @SuppressWarnings("unchecked")
                 K key = (K) resultSet.getObject(1);
+                @SuppressWarnings("unchecked")
                 V value = (V) resultSet.getObject(2);
 
                 map.put(key, value);

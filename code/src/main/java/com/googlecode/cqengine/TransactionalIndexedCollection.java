@@ -405,7 +405,9 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
             return new CloseableFilteringResultSet<O>(versionReadingResultSet, query, queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {
-                    return !iterableContains(thisVersion.objectsToExclude, object);
+                    @SuppressWarnings("unchecked")
+                    Iterable<O> objectsToExclude = (Iterable<O>)thisVersion.objectsToExclude;
+                    return !iterableContains(objectsToExclude, object);
                 }
             };
         }

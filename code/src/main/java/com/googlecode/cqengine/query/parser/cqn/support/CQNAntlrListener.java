@@ -82,6 +82,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitLessThanOrEqualToQuery(CQNGrammarParser.LessThanOrEqualToQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -89,6 +90,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitLessThanQuery(CQNGrammarParser.LessThanQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -96,6 +98,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitGreaterThanOrEqualToQuery(CQNGrammarParser.GreaterThanOrEqualToQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -103,6 +106,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitGreaterThanQuery(CQNGrammarParser.GreaterThanQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -110,6 +114,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitVerboseBetweenQuery(CQNGrammarParser.VerboseBetweenQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         List<? extends ParseTree> queryParameters = ctx.queryParameter(), booleanParameters = ctx.BooleanLiteral();
@@ -121,6 +126,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitBetweenQuery(CQNGrammarParser.BetweenQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         List<? extends ParseTree> queryParameters = ctx.queryParameter();
@@ -130,6 +136,7 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitInQuery(CQNGrammarParser.InQueryContext ctx) {
         Attribute<O, Object> attribute = queryParser.getAttribute(ctx.attributeName(), Object.class);
         List<? extends ParseTree> queryParameters = ctx.queryParameter();

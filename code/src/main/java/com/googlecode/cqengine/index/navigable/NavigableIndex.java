@@ -113,15 +113,20 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
         final boolean indexIsQuantized = isQuantized();
         // Process Equal queries in the same was as HashIndex...
         if (queryClass.equals(Equal.class)) {
-            return retrieveEqual((Equal<O, A>) query, queryOptions);
+            @SuppressWarnings("unchecked")
+            Equal<O, A> equal = (Equal<O, A>) query;
+            return retrieveEqual(equal, queryOptions);
         }else if (queryClass.equals(In.class)){
-            return retrieveIn((In<O, A>) query, queryOptions);
+            @SuppressWarnings("unchecked")
+            In<O, A> in = (In<O, A>) query;
+            return retrieveIn(in, queryOptions);
         } else if (queryClass.equals(Has.class)) {
             return deduplicateIfNecessary(indexMap.values(), query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);
         }
         // Process LessThan, GreaterThan and Between queries as follows...
         final IndexRangeLookupFunction<O> lookupFunction;
         if (queryClass.equals(LessThan.class)) {
+            @SuppressWarnings("unchecked")
             final LessThan<O, A> lessThan = (LessThan<O, A>) query;
             lookupFunction = new IndexRangeLookupFunction<O>(query, false, true) {
                 @Override
@@ -134,6 +139,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             };
         }
         else if (queryClass.equals(GreaterThan.class)) {
+            @SuppressWarnings("unchecked")
             final GreaterThan<O, A> greaterThan = (GreaterThan<O, A>) query;
             lookupFunction = new IndexRangeLookupFunction<O>(query, true, false) {
                 @Override
@@ -146,6 +152,7 @@ public class NavigableIndex<A extends Comparable<A>, O> extends AbstractMapBased
             };
         }
         else if (queryClass.equals(Between.class)) {
+            @SuppressWarnings("unchecked")
             final Between<O, A> between = (Between<O, A>) query;
             lookupFunction = new IndexRangeLookupFunction<O>(query, true, true) {
                 @Override

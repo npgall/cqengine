@@ -100,10 +100,14 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
-            return retrieveEqual((Equal<O, A>) query, queryOptions);
+            @SuppressWarnings("unchecked")
+            Equal<O, A> equal = (Equal<O, A>) query;
+            return retrieveEqual(equal, queryOptions);
         }
         else if (queryClass.equals(In.class)) {
-            return retrieveIn((In<O, A>) query, queryOptions);
+            @SuppressWarnings("unchecked")
+            In<O, A> in = (In<O, A>) query;
+            return retrieveIn(in, queryOptions);
         }
         else if (queryClass.equals(Has.class)) {
             return deduplicateIfNecessary(indexMap.values(), query, getAttribute(), queryOptions, INDEX_RETRIEVAL_COST);

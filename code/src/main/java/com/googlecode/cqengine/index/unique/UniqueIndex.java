@@ -130,10 +130,14 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnH
         if (queryClass.equals(Equal.class))
         {
             final ConcurrentMap<A, O> indexMap = this.indexMap;
-            return retrieveEqual((Equal<O, A>) query, queryOptions, indexMap);
+            @SuppressWarnings("unchecked")
+            Equal<O, A> equal = (Equal<O, A>) query;
+            return retrieveEqual(equal, queryOptions, indexMap);
         }
         else if(queryClass.equals(In.class)){
-            return retrieveIn((In<O, A>) query, queryOptions, indexMap);
+            @SuppressWarnings("unchecked")
+            In<O, A> in = (In<O, A>) query;
+            return retrieveIn(in, queryOptions, indexMap);
         }
         throw new IllegalArgumentException("Unsupported query: " + query);
     }

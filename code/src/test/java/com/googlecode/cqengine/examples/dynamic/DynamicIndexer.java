@@ -66,7 +66,9 @@ public class DynamicIndexer {
         IndexedCollection<O> autoIndexedCollection = new ConcurrentIndexedCollection<O>();
         for (Attribute<O, ? extends Comparable> attribute : attributes) {
             // Add a NavigableIndex...
-            autoIndexedCollection.addIndex(NavigableIndex.onAttribute(attribute));
+            @SuppressWarnings("unchecked")
+            NavigableIndex<? extends Comparable, O> index = NavigableIndex.onAttribute(attribute);
+            autoIndexedCollection.addIndex(index);
         }
         return autoIndexedCollection;
     }

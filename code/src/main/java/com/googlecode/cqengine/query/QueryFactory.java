@@ -654,6 +654,7 @@ public class QueryFactory {
      * @param <O> The type of the object containing the attribute
      * @return An {@link OrderMissingLastAttribute} which orders objects with values before those without values
      */
+    @SuppressWarnings("unchecked")
     public static <O> OrderMissingLastAttribute<O> missingLast(Attribute<O, ? extends Comparable> delegateAttribute) {
         return new OrderMissingLastAttribute<O>(delegateAttribute);
     }
@@ -672,6 +673,7 @@ public class QueryFactory {
      * @param <O> The type of the object containing the attribute
      * @return An {@link OrderMissingFirstAttribute} which orders objects without values before those with values
      */
+    @SuppressWarnings("unchecked")
     public static <O> OrderMissingFirstAttribute<O> missingFirst(Attribute<O, ? extends Comparable> delegateAttribute) {
         return new OrderMissingFirstAttribute<O>(delegateAttribute);
     }

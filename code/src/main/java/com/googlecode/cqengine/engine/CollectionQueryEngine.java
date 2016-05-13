@@ -97,7 +97,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public void init(final ObjectStore<O> objectStore, final QueryOptions queryOptions) {
         this.objectStore = objectStore;
-        this.persistence = getPersistenceFromQueryOptions(queryOptions);
+        @SuppressWarnings("unchecked")
+        Persistence<O, ? extends Comparable> persistenceFromQueryOptions = getPersistenceFromQueryOptions(queryOptions);
+        this.persistence = persistenceFromQueryOptions;
         if (objectStore instanceof SQLiteObjectStore) {
             // If the collection is backed by a SQLiteObjectStore, add the backing index of the SQLiteObjectStore
             // so that it can also be used as a regular index to accelerate queries...
@@ -518,6 +520,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final boolean attributeCanHaveZeroValues = !(primarySortAttribute instanceof SimpleAttribute);
         final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof SimpleAttribute || primarySortAttribute instanceof SimpleNullableAttribute);
 
+        @SuppressWarnings("unchecked")
         final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);
 
         return new ResultSet<O>() {

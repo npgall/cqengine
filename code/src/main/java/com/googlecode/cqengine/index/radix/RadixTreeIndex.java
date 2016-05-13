@@ -94,12 +94,17 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
         final RadixTree<StoredResultSet<O>> tree = this.tree;
         Class<?> queryClass = query.getClass();
         if (queryClass.equals(Equal.class)) {
-            return retrieveEqual((Equal<O, A>) query, queryOptions, tree);
+            @SuppressWarnings("unchecked")
+            Equal<O, A> equal = (Equal<O, A>) query;
+            return retrieveEqual(equal, queryOptions, tree);
         }
         else if (queryClass.equals(In.class)){
-            return retrieveIn((In<O, A>) query, queryOptions, tree);
+            @SuppressWarnings("unchecked")
+            In<O, A> in = (In<O, A>) query;
+            return retrieveIn(in, queryOptions, tree);
         }
         else if (queryClass.equals(StringStartsWith.class)) {
+            @SuppressWarnings("unchecked")
             final StringStartsWith<O, A> stringStartsWith = (StringStartsWith<O, A>) query;
             return new ResultSet<O>() {
                 @Override

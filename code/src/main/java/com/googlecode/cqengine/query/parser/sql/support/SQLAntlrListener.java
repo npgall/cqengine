@@ -85,6 +85,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitLessThanOrEqualToQuery(SQLGrammarParser.LessThanOrEqualToQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -92,6 +93,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitLessThanQuery(SQLGrammarParser.LessThanQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -99,6 +101,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitGreaterThanOrEqualToQuery(SQLGrammarParser.GreaterThanOrEqualToQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -106,6 +109,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitGreaterThanQuery(SQLGrammarParser.GreaterThanQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         Comparable value = queryParser.parseValue(attribute, ctx.queryParameter());
@@ -113,6 +117,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitBetweenQuery(SQLGrammarParser.BetweenQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         List<? extends ParseTree> queryParameters = ctx.queryParameter();
@@ -122,6 +127,7 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void exitNotBetweenQuery(SQLGrammarParser.NotBetweenQueryContext ctx) {
         Attribute<O, Comparable> attribute = queryParser.getAttribute(ctx.attributeName(), Comparable.class);
         List<? extends ParseTree> queryParameters = ctx.queryParameter();

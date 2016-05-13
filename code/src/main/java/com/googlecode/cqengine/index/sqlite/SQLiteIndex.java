@@ -176,6 +176,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
 
         if (query instanceof FilterQuery){
+            @SuppressWarnings("unchecked")
             final FilterQuery<O, A> filterQuery =  (FilterQuery<O, A>)query;
             return new ResultSet<O>() {
                 @Override

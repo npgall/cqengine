@@ -24,7 +24,6 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
 
 
-import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -49,7 +48,7 @@ public class NoneTest {
         IndexedCollection<Integer> collection = indexedCollection;
         final And<Integer> query = and(
                 none(Integer.class),
-                lessThan(self(Integer.class), 3)
+                lessThan(selfAttribute(Integer.class), 3)
         );
         ResultSet<Integer> results = collection.retrieve(query);
         assertEquals(0, results.size());
@@ -63,7 +62,7 @@ public class NoneTest {
         IndexedCollection<Integer> collection = indexedCollection;
         final Or<Integer> query = or(
                 none(Integer.class),
-                lessThan(self(Integer.class), 3)
+                lessThan(selfAttribute(Integer.class), 3)
         );
         ResultSet<Integer> results = collection.retrieve(query);
         assertEquals(2, results.size());

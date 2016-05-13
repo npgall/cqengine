@@ -103,6 +103,7 @@ public class OnHeapPersistence<O, A extends Comparable<A>> implements Persistenc
      * @return An {@link OnHeapPersistence} object which persists to the Java heap, and which is not configured with
      * a primary key.
      */
+    @SuppressWarnings("unchecked")
     public static <O> OnHeapPersistence<O, ? extends Comparable> withoutPrimaryKey() {
         return withoutPrimaryKey_Internal();
     }

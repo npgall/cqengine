@@ -22,7 +22,6 @@ import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
 
-import static com.googlecode.cqengine.attribute.SelfAttribute.self;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -32,7 +31,7 @@ public class StringMatchesRegexTest {
 
     @Test
     public void testStringMatchesRegex() {
-        Query<String> query = matchesRegex(self(String.class), "f.*");
+        Query<String> query = matchesRegex(selfAttribute(String.class), "f.*");
         IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
         indexedCollection.addAll(asList("foo1", "foo2", "bar", "baz", "car"));
         IndexedCollection<String> collection = indexedCollection;
@@ -43,7 +42,7 @@ public class StringMatchesRegexTest {
 
     @Test
     public void testStringMatchesRegexWithIndex() {
-        Query<String> query = matchesRegex(self(String.class), "f.*");
+        Query<String> query = matchesRegex(selfAttribute(String.class), "f.*");
         IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
         indexedCollection.addAll(asList("foo1", "foo2", "bar", "baz", "car"));
         IndexedCollection<String> collection = indexedCollection;
@@ -55,7 +54,7 @@ public class StringMatchesRegexTest {
 
     @Test
     public void testStringMatchesRegexNegatedWithIndex() {
-        Query<String> query = not(matchesRegex(self(String.class), "[fb].*"));
+        Query<String> query = not(matchesRegex(selfAttribute(String.class), "[fb].*"));
         IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
         indexedCollection.addAll(asList("foo1", "foo2", "bar", "baz", "car"));
         IndexedCollection<String> collection = indexedCollection;

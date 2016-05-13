@@ -33,6 +33,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  */
 public class DynamicExample {
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         // Generate attributes dynamically for fields in the given POJO...
         Map<String, Attribute<Car, Comparable>> attributes = DynamicIndexer.generateAttributesForPojo(Car.class);
@@ -47,8 +48,8 @@ public class DynamicExample {
 
         Query<Car> query = and(
                 equal(attributes.get("manufacturer"), "ford"),
-                lessThan(attributes.get("doors"), 5),
-                greaterThan(attributes.get("horsepower"), 3000)
+                lessThan(attributes.get("doors"), value(5)),
+                greaterThan(attributes.get("horsepower"), value(3000))
         );
         ResultSet<Car> results = cars.retrieve(query);
 
@@ -62,5 +63,12 @@ public class DynamicExample {
         //    Ford cars with less than 5 doors and horsepower greater than 3000:-
         //    Using NavigableIndex: true
         //    Car{carId=1, manufacturer='ford', model='focus', doors=4, horsepower=9000}
+    }
+
+
+
+    // This method is required for compatibility with Java 8 compiler (not required for Java 6 or 7 compiler)...
+    static Comparable value(Comparable c) {
+        return c;
     }
 }
