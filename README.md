@@ -461,7 +461,7 @@ CQEngine also has support to use an index to accelerate, or eliminate, the overh
 
 Merge strategies are the algorithms CQEngine uses to evaluate queries which have multiple branches.
 
-By default CQEngine will use strategies which should suit most applications, however these strategies can be overridden much like databases typically allow their default algorithms to be overridden. Read more: [MergeStrategies](documentation/MergeStrategies.md)
+By default CQEngine will use strategies which should suit most applications, however these strategies can be overridden to tune performance, much like databases typically allow their default algorithms to be overridden. Read more: [MergeStrategies](documentation/MergeStrategies.md)
 
 ---
 
