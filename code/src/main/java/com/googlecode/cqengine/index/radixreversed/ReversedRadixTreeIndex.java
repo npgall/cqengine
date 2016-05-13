@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.radixreversed;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixreversed.ConcurrentReversedRadixTree;
 import com.googlecode.concurrenttrees.radixreversed.ReversedRadixTree;
@@ -63,20 +64,27 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
 
     private static final int INDEX_RETRIEVAL_COST = 51;
 
-    private volatile ReversedRadixTree<StoredResultSet<O>> tree = new ConcurrentReversedRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
+    final NodeFactory nodeFactory;
+    volatile ReversedRadixTree<StoredResultSet<O>> tree;
 
     /**
-     * Package-private constructor, used by static factory methods. Creates a new RadixTreeIndex initialized to
-     * index the supplied attribute.
-     *
-     * @param attribute The attribute on which the index will be built
+     * Package-private constructor, used by static factory methods.
      */
     protected ReversedRadixTreeIndex(Attribute<O, A> attribute) {
+        this(attribute, new DefaultCharArrayNodeFactory());
+    }
+
+    /**
+     * Package-private constructor, used by static factory methods.
+     */
+    protected ReversedRadixTreeIndex(Attribute<O, A> attribute, NodeFactory nodeFactory) {
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
             add(In.class);
             add(StringEndsWith.class);
         }});
+        this.nodeFactory = nodeFactory;
+        this.tree = new ConcurrentReversedRadixTree<StoredResultSet<O>>(nodeFactory);
     }
 
     @Override
@@ -351,5 +359,17 @@ public class ReversedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      */
     public static <A extends CharSequence, O> ReversedRadixTreeIndex<A, O> onAttribute(Attribute<O, A> attribute) {
         return new ReversedRadixTreeIndex<A, O>(attribute);
+    }
+
+    /**
+     * Creates a new {@link ReversedRadixTreeIndex} on the specified attribute.
+     * <p/>
+     * @param attribute The attribute on which the index will be built
+     * @param nodeFactory The NodeFactory to be used by the tree
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link ReversedRadixTreeIndex} on this attribute
+     */
+    public static <A extends CharSequence, O> ReversedRadixTreeIndex<A, O> onAttributeUsingNodeFactory(Attribute<O, A> attribute, NodeFactory nodeFactory) {
+        return new ReversedRadixTreeIndex<A, O>(attribute, nodeFactory);
     }
 }

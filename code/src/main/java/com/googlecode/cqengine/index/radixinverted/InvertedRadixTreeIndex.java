@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.radixinverted;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
@@ -63,20 +64,27 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
 
     private static final int INDEX_RETRIEVAL_COST = 52;
 
-    private volatile InvertedRadixTree<StoredResultSet<O>> tree = new ConcurrentInvertedRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
+    final NodeFactory nodeFactory;
+    volatile InvertedRadixTree<StoredResultSet<O>> tree;
 
     /**
-     * Package-private constructor, used by static factory methods. Creates a new InvertedRadixTreeIndex initialized to
-     * index the supplied attribute.
-     *
-     * @param attribute The attribute on which the index will be built
+     * Package-private constructor, used by static factory methods.
      */
     protected InvertedRadixTreeIndex(Attribute<O, A> attribute) {
+        this(attribute, new DefaultCharArrayNodeFactory());
+    }
+
+    /**
+     * Package-private constructor, used by static factory methods.
+     */
+    protected InvertedRadixTreeIndex(Attribute<O, A> attribute, NodeFactory nodeFactory) {
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
             add(In.class);
             add(StringIsContainedIn.class);
         }});
+        this.nodeFactory = nodeFactory;
+        this.tree = new ConcurrentInvertedRadixTree<StoredResultSet<O>>(nodeFactory);
     }
 
     @Override
@@ -351,5 +359,17 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      */
     public static <A extends CharSequence, O> InvertedRadixTreeIndex<A, O> onAttribute(Attribute<O, A> attribute) {
         return new InvertedRadixTreeIndex<A, O>(attribute);
+    }
+
+    /**
+     * Creates a new {@link InvertedRadixTreeIndex} on the specified attribute.
+     * <p/>
+     * @param attribute The attribute on which the index will be built
+     * @param nodeFactory The NodeFactory to be used by the tree
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link InvertedRadixTreeIndex} on this attribute
+     */
+    public static <A extends CharSequence, O> InvertedRadixTreeIndex<A, O> onAttributeUsingNodeFactory(Attribute<O, A> attribute, NodeFactory nodeFactory) {
+        return new InvertedRadixTreeIndex<A, O>(attribute, nodeFactory);
     }
 }

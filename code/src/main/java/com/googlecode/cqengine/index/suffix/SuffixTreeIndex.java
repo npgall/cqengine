@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.suffix;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.concurrenttrees.suffix.ConcurrentSuffixTree;
 import com.googlecode.concurrenttrees.suffix.SuffixTree;
@@ -67,20 +68,27 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
 
     private static final int INDEX_RETRIEVAL_COST = 53;
 
-    private volatile SuffixTree<StoredResultSet<O>> tree = new ConcurrentSuffixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
+    final NodeFactory nodeFactory;
+    volatile SuffixTree<StoredResultSet<O>> tree;
 
     /**
-     * Package-private constructor, used by static factory methods. Creates a new SuffixTreeIndex initialized to
-     * index the supplied attribute.
-     *
-     * @param attribute The attribute on which the index will be built
+     * Package-private constructor, used by static factory methods.
      */
     protected SuffixTreeIndex(Attribute<O, A> attribute) {
+        this(attribute, new DefaultCharArrayNodeFactory());
+    }
+
+    /**
+     * Package-private constructor, used by static factory methods.
+     */
+    protected SuffixTreeIndex(Attribute<O, A> attribute, NodeFactory nodeFactory) {
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
             add(StringEndsWith.class);
             add(StringContains.class);
         }});
+        this.nodeFactory = nodeFactory;
+        this.tree = new ConcurrentSuffixTree<StoredResultSet<O>>(nodeFactory);
     }
 
     @Override
@@ -405,5 +413,17 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      */
     public static <A extends CharSequence, O> SuffixTreeIndex<A, O> onAttribute(Attribute<O, A> attribute) {
         return new SuffixTreeIndex<A, O>(attribute);
+    }
+
+    /**
+     * Creates a new {@link SuffixTreeIndex} on the specified attribute.
+     * <p/>
+     * @param attribute The attribute on which the index will be built
+     * @param nodeFactory The NodeFactory to be used by the tree
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link SuffixTreeIndex} on this attribute
+     */
+    public static <A extends CharSequence, O> SuffixTreeIndex<A, O> onAttributeUsingNodeFactory(Attribute<O, A> attribute, NodeFactory nodeFactory) {
+        return new SuffixTreeIndex<A, O>(attribute, nodeFactory);
     }
 }

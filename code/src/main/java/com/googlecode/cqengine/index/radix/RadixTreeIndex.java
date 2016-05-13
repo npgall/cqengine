@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.radix;
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.RadixTree;
+import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
@@ -58,21 +59,29 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
 
     private static final int INDEX_RETRIEVAL_COST = 50;
 
-    private volatile RadixTree<StoredResultSet<O>> tree = new ConcurrentRadixTree<StoredResultSet<O>>(new DefaultCharArrayNodeFactory());
+    final NodeFactory nodeFactory;
+    volatile RadixTree<StoredResultSet<O>> tree;
 
     /**
-     * Package-private constructor, used by static factory methods. Creates a new RadixTreeIndex initialized to
-     * index the supplied attribute.
-     *
-     * @param attribute The attribute on which the index will be built
+     * Package-private constructor, used by static factory methods.
      */
     protected RadixTreeIndex(Attribute<O, A> attribute) {
+        this(attribute, new DefaultCharArrayNodeFactory());
+    }
+
+    /**
+     * Package-private constructor, used by static factory methods.
+     */
+    protected RadixTreeIndex(Attribute<O, A> attribute, NodeFactory nodeFactory) {
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
             add(In.class);
             add(StringStartsWith.class);
         }});
+        this.nodeFactory = nodeFactory;
+        this.tree = new ConcurrentRadixTree<StoredResultSet<O>>(nodeFactory);
     }
+
 
     @Override
     public boolean isMutable() {
@@ -313,5 +322,17 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      */
     public static <A extends CharSequence, O> RadixTreeIndex<A, O> onAttribute(Attribute<O, A> attribute) {
         return new RadixTreeIndex<A, O>(attribute);
+    }
+
+    /**
+     * Creates a new {@link RadixTreeIndex} on the specified attribute, using the specified NodeFactory.
+     * <p/>
+     * @param attribute The attribute on which the index will be built
+     * @param nodeFactory The NodeFactory to be used by the tree
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link RadixTreeIndex} on this attribute
+     */
+    public static <A extends CharSequence, O> RadixTreeIndex<A, O> onAttributeUsingNodeFactory(Attribute<O, A> attribute, NodeFactory nodeFactory) {
+        return new RadixTreeIndex<A, O>(attribute, nodeFactory);
     }
 }
