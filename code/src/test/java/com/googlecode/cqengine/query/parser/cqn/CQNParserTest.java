@@ -70,6 +70,8 @@ public class CQNParserTest {
         assertQueriesEquals(and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("and(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
         assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("or(equal(\"manufacturer\", \"Ford\"), equal(\"model\", \"Focus\"))"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("not(equal(\"manufacturer\", \"Ford\"))"));
+        assertQueriesEquals(equal(Car.CAR_ID, -1), parser.query("equal(\"carId\", -1)"));
+        assertQueriesEquals(equal(Car.PRICE, -1.5), parser.query("equal(\"price\", -1.5)"));
 
         assertQueriesEquals(
                 or(
