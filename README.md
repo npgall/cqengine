@@ -2,7 +2,6 @@
 
 CQEngine – Collection Query Engine – is a high-performance Java collection which can be searched with SQL-like queries, with _extremely_ low latency.
 
-  * Search collections or arbitrary data sources with SQL-like queries
   * Achieve millions of queries per second, with query latencies measured in microseconds
   * Offload query traffic from databases - scale your application tier
   * Outperform databases by a factor of thousands, even on low-end hardware
@@ -465,15 +464,11 @@ By default CQEngine will use strategies which should suit most applications, how
 
 ---
 
-## Index Quantization, Granularity, and Continuous Values ##
+## Index Quantization, Granularity, and tuning index size ##
 
 [Quantization](http://en.wikipedia.org/wiki/Quantization_(signal_processing)) involves converting fine-grained or continuous values, to discrete or coarse-grained values. A Quantizer is a _function_ which takes fine-grained values as input, and maps those values to coarse-grained counterparts as its output, by discarding some precision.
 
-Discrete values (e.g. `Integer`, `Long`, `BigInteger`) are values which have only a finite number of possible values, or which have a fixed spacing between possible values. Continuous values (e.g. `Float`, `Double`, `BigDecimal`) are values which do not have fixed spacing and which therefore can have an arbitrarily high precision.
-
-CQEngine includes several Quantizers for numerical data types which support indexing continuous values efficiently, and allow the granularity of indexes to be controlled (trading a reduction in memory usage, for increases in CPU overhead).
-
-Read more: [Quantization and included Quantizers](documentation/IndexQuantization.md)
+Quantization can be a useful tool to tune the size of indexes, trading a reduction in index size, for increases in CPU overhead and vice-versa. Read more: [Quantization and included Quantizers](documentation/IndexQuantization.md)
 
 
 ---
