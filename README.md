@@ -348,9 +348,22 @@ Or, store the collection in a particular file on disk:
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, new File("cars.dat")));
 ```
 
+**Composite**
+
+`CompositePersistence` configures a combination of persistence types for use within the same collection.
+The collection itself will be persisted in the first persistence provided (the _primary persistence_), and the additional persistences provided will be used by off-heap or disk indexes added to the collection subsequently.
+
+Store the collection on-heap, and also configure DiskPersistence for use by DiskIndexes added to the collection subsequently:
+```java
+IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(CompositePersistence.of(
+    OnHeapPersistence.onPrimaryKey(Car.CAR_ID),
+    DiskPersistence.onPrimaryKey(Car.CAR_ID)
+));
+```
+
 ### Index persistence ###
 
-Indexes can similarly be stored on-heap, off-heap, or on disk. However the persistence used for indexes, depends on the type of index.
+Indexes can similarly be stored on-heap, off-heap, or on disk. It is necessary to configure the collection in advance with an appropriate combination of persistences for use by whichever indexes are added.
 
 It is possible to store the collection on-heap, but to store some indexes off-heap. Similarly it is possible to have a variety of index types on the same collection, each using a different type of persistence. On-heap persistence is by far the fastest, followed by off-heap persistence, and then by disk persistence.
 
