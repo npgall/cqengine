@@ -11,13 +11,13 @@ Essentially, this allows CQEngine to use the most suitable indexes to locate obj
 ## Ordering strategy: _index_ ##
 The _index_ ordering strategy allows CQEngine to use an index on an attribute by which results must be ordered, to drive its search. No other indexes will be used for the search, but results will not need to be sorted afterwards.
 
-This strategy can be enabled by configuring  [EngineThresholds.INDEX_ORDERING_SELECTIVITY](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/query/option/EngineThresholds.java) as discussed in _Best Practices_ below.
+This strategy can be enabled by configuring  [EngineThresholds.INDEX_ORDERING_SELECTIVITY](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/option/EngineThresholds.html#INDEX_ORDERING_SELECTIVITY) as discussed in _Best Practices_ below.
 
 Note that the set of indexes required to support the _index_ ordering strategy on any particular attribute, depends on the type of attribute:
-  * For `SimpleAttribute`s (a type of attribute which returns exactly one value for every object in the collection):
+  * For `SimpleAttribute` (a type of attribute which returns exactly one value for every object in the collection):
     * An index is required on the attribute which will be used for ordering.
       * A single index is sufficient, because `SimpleAttribute` guarantees that every object in the collection will have exactly one value for this type of attribute.
-  * For `SimpleNullableAttribute`(s), `MultiValueAttribute`s or `MultiValueNullableAttribute`s:
+  * For `SimpleNullableAttribute`, `MultiValueAttribute` or `MultiValueNullableAttribute`:
     * An index on the attribute which will be used for ordering, **AND**
     * An index on objects in the collection which are _missing_ values for the attribute which will be used for ordering.
       * A single index is NOT sufficient, because these types of attributes do not guarantee that every object in the collection will provide at least one value for these types of attributes.
