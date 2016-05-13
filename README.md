@@ -513,14 +513,6 @@ CQEngine also supports grouping and aggregation on Java versions prior to Java 8
 ---
 
 
-## CQEngine Performance Evaluation / Benchmark ##
-
-See: [Benchmark](documentation/Benchmark.md) evaluating the performance of CQEngine versus _naive iteration_ and _optimized iteration_.
-
-
----
-
-
 ## Using CQEngine with Hibernate / JPA / ORM Frameworks ##
 
 CQEngine has seamless integration with JPA/ORM frameworks such as Hibernate or EclipseLink.
