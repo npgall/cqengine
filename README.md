@@ -457,7 +457,13 @@ Note that ordering results as above uses the default _materialize_ ordering stra
 CQEngine also has support to use an index to accelerate, or eliminate, the overhead of ordering results. This strategy reduces the latency to access the first object in the sorted results, at the expense of adding more total overhead if the entire ResultSet was iterated. Read more: [OrderingStrategies](documentation/OrderingStrategies.md)
 
 ---
+## Merge Strategies ##
 
+Merge strategies are the algorithms CQEngine uses to evaluate queries which have multiple branches.
+
+By default CQEngine will use strategies which should suit most applications, however these strategies can be overridden much like databases typically allow their default algorithms to be overridden. Read more: [MergeStrategies](documentation/MergeStrategies.md)
+
+---
 
 ## Index Quantization, Granularity, and Continuous Values ##
 
