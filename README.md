@@ -11,7 +11,7 @@ Supports on-heap persistence, off-heap persistence, disk persistence, and suppor
 Interesting reviews of CQEngine:
   * [syntx.io: Comparing search performance of CQEngine with standard Java collections](http://syntx.io/comparing-search-performance-of-cqengine-with-standard-java-collections/)
   * [syntx.io: Getting started with CQEngine: LINQ for Java, only faster](http://syntx.io/getting-started-with-cqengine-linq-for-java-only-faster/)
-  * CQEngine in the wild: [excelian.com](http://www.excelian.com/exposure-and-counterparty-limit-checking) | [gravity4.com](http://gravity4.com/welcome-gravity4-engineering-blog/) | [snapdeal.com](http://engineering.snapdeal.com/how-were-building-a-system-to-scale-for-billions-of-requests-per-day-201512/) (3-5 billion requests/day)
+  * CQEngine in the wild: [excelian.com](http://www.excelian.com/exposure-and-counterparty-limit-checking) | [gravity4.com](http://gravity4.com/welcome-gravity4-engineering-blog/) | [snapdeal.com](http://engineering.snapdeal.com/how-were-building-a-system-to-scale-for-billions-of-requests-per-day-201601/) (3-5 billion requests/day)
 
 ## The Limits of Iteration ##
 The classic way to retrieve objects matching some criteria from a collection, is to iterate through the collection and apply some tests to each object. If the object matches the criteria, then it is added to a result set. This is repeated for every object in the collection.
