@@ -25,7 +25,7 @@ Only the final set of objects which actually match the query, will be deserializ
 
 **Generally speaking, this provides best performance when the objects from which attributes read the values, are not stored on the Java heap. Typically this is the case when the IndexedCollection is located off-heap, or on disk.**
 
-This strategy can be requested by supplying query option [EngineFlags.PREFER_INDEX_MERGE_STRATEGY](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/query/option/EngineFlags.java).
+This strategy can be requested by supplying query option [EngineFlags.PREFER_INDEX_MERGE_STRATEGY](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/option/EngineFlags.html#PREFER_INDEX_MERGE_STRATEGY).
 
 Note this strategy requires that indexes are available for all of the attributes referenced in a query. If required indexes
 are not available, the default merge strategy will be used instead.
