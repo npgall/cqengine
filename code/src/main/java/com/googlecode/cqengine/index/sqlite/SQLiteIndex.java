@@ -39,6 +39,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources.CloseableResourceGroup;
+import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
 import java.util.Collection;
@@ -116,6 +117,10 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     final String tableName;
     final SimpleAttribute<O, K> primaryKeyAttribute;
     final SimpleAttribute<K, O> foreignKeyAttribute;
+
+    SQLiteConfig.SynchronousMode pragmaSynchronous;
+    SQLiteConfig.JournalMode pragmaJournalMode;
+    boolean canSuspendSyncAndJournaling;
 
     /**
      * Package-private constructor. The index should be created via the static factory methods instead.
@@ -420,9 +425,18 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         // Handle the SQLite indexes on the table
         final BulkImportExternallyManged bulkImportExternallyManged = queryOptions.get(BulkImportExternallyManged.class);
         final boolean isBulkImport = bulkImportExternallyManged == null && FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+        final boolean isSuspendSyncAndJournaling = FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING);
         if ((bulkImportExternallyManged != null || isBulkImport) && !objects.isEmpty()) {
             // Drop the SQLite index temporarily (if any) to speed up bulk import...
             DBQueries.dropIndexOnTable(tableName, connection);
+
+            if (isSuspendSyncAndJournaling){
+                if (!canSuspendSyncAndJournaling){
+                    throw new IllegalStateException("Cannot suspend sync and journaling because it was not possible to read the original 'synchronous' and 'journal_mode' pragmas during the index initialization.");
+                }
+                DBQueries.suspendSyncAndJournaling(connection);
+            }
+
         }else {
             // Not a bulk import, create indexes...
             DBQueries.createIndexOnTable(tableName, connection);
@@ -434,6 +448,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         if (isBulkImport || (bulkImportExternallyManged != null && LAST.equals(bulkImportExternallyManged))) {
             // Bulk import finished, recreate the SQLite index...
             DBQueries.createIndexOnTable(tableName, connection);
+
+            if (isSuspendSyncAndJournaling){
+                DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
+            }
+
         }
 
         return rowsModified > 0;
@@ -573,6 +592,13 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
+
+        final ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        final Connection connection = connectionManager.getConnection(this, queryOptions);
+        pragmaJournalMode = DBQueries.getPragmaJournalModeOrNull(connection);
+        pragmaSynchronous = DBQueries.getPragmaSynchronousOrNull(connection);
+        canSuspendSyncAndJournaling = pragmaJournalMode != null && pragmaSynchronous != null;
+
         addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
     }
 

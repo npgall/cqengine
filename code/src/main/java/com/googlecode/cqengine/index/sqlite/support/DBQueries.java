@@ -19,11 +19,9 @@ import com.googlecode.concurrenttrees.common.CharSequences;
 import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.simple.*;
+import org.sqlite.SQLiteConfig;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -116,6 +114,69 @@ public class DBQueries {
         }catch (SQLException e){
             throw new IllegalStateException("Unable to add index on table: " + tableName, e);
         }finally {
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static void suspendSyncAndJournaling(final Connection connection){
+        setSyncAndJournaling(connection, SQLiteConfig.SynchronousMode.OFF, SQLiteConfig.JournalMode.OFF);
+    }
+
+    public static void setSyncAndJournaling(final Connection connection, final SQLiteConfig.SynchronousMode pragmaSynchronous, final SQLiteConfig.JournalMode pragmaJournalMode){
+        Statement statement = null;
+        try {
+            final boolean autoCommit = DBUtils.setAutoCommit(connection, true);
+            statement = connection.createStatement();
+            statement.execute("PRAGMA synchronous = " + pragmaSynchronous.getValue());
+
+            // This little transaction will also cause a wanted fsync on the OS to flush the data still in the OS cache to disc.
+            statement.execute("PRAGMA journal_mode = " + pragmaJournalMode.getValue());
+
+            DBUtils.setAutoCommit(connection, autoCommit);
+        }catch (SQLException e){
+            throw new IllegalStateException("Unable to set the 'synchronous' and 'journal_mode' pragmas", e);
+        }finally{
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static SQLiteConfig.SynchronousMode getPragmaSynchronousOrNull(final Connection connection){
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("PRAGMA synchronous;");
+            if (resultSet.next()){
+                final int syncPragmaId = resultSet.getInt(1);
+                if (!resultSet.wasNull()) {
+                    switch (syncPragmaId){
+                        case 0: return SQLiteConfig.SynchronousMode.OFF;
+                        case 1: return SQLiteConfig.SynchronousMode.NORMAL;
+                        case 2: return SQLiteConfig.SynchronousMode.FULL;
+                        default: return null;
+                    }
+                }
+            }
+            return null;
+        }catch (Exception e){
+            return null;
+        }finally{
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
+    public static SQLiteConfig.JournalMode getPragmaJournalModeOrNull(final Connection connection){
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("PRAGMA journal_mode;");
+            if (resultSet.next()){
+                final String journalMode = resultSet.getString(1);
+                return journalMode != null ? SQLiteConfig.JournalMode.valueOf(journalMode.toUpperCase()) : null;
+            }
+            return null;
+        }catch (Exception e){
+            return null;
+        }finally{
             DBUtils.closeQuietly(statement);
         }
     }

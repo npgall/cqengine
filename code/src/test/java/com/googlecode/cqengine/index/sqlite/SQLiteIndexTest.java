@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -222,6 +223,21 @@ public class SQLiteIndexTest {
 
         // Mock
         ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
+        Statement statement = mock(Statement.class);
+        when(connection.createStatement()).thenReturn(statement);
+
+        java.sql.ResultSet journalModeRs = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet synchronousRs = mock(java.sql.ResultSet.class);
+        when(journalModeRs.next()).thenReturn(true).thenReturn(false);
+        when(synchronousRs.next()).thenReturn(true).thenReturn(false);
+
+        when(journalModeRs.getString(1)).thenReturn("DELETE");
+        when(synchronousRs.getInt(1)).thenReturn(2);
+
+        when(statement.executeQuery("PRAGMA journal_mode;")).thenReturn(journalModeRs);
+        when(statement.executeQuery("PRAGMA synchronous;")).thenReturn(synchronousRs);
 
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
@@ -230,7 +246,15 @@ public class SQLiteIndexTest {
         );
 
         carFeaturesOffHeapIndex.init(emptyObjectStore(), createQueryOptions(connectionManager));
-        verify(connectionManager, times(0)).getConnection(any(SQLiteIndex.class), anyQueryOptions());
+
+        verify(statement, times(1)).executeQuery("PRAGMA journal_mode;");
+        verify(statement, times(1)).executeQuery("PRAGMA synchronous;");
+        verify(statement, times(2)).close();
+
+        Assert.assertEquals(carFeaturesOffHeapIndex.pragmaSynchronous, SQLiteConfig.SynchronousMode.FULL);
+        Assert.assertEquals(carFeaturesOffHeapIndex.pragmaJournalMode, SQLiteConfig.JournalMode.DELETE);
+        Assert.assertTrue(carFeaturesOffHeapIndex.canSuspendSyncAndJournaling);
+
     }
 
     @Test
@@ -241,6 +265,17 @@ public class SQLiteIndexTest {
         Connection connection = mock(Connection.class);
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
+
+        java.sql.ResultSet journalModeRs = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet synchronousRs = mock(java.sql.ResultSet.class);
+        when(journalModeRs.next()).thenReturn(true).thenReturn(false);
+        when(synchronousRs.next()).thenReturn(true).thenReturn(false);
+
+        when(journalModeRs.getString(1)).thenReturn("DELETE");
+        when(synchronousRs.getInt(1)).thenReturn(2);
+
+        when(statement.executeQuery("PRAGMA journal_mode;")).thenReturn(journalModeRs);
+        when(statement.executeQuery("PRAGMA synchronous;")).thenReturn(synchronousRs);
 
         when(connection.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
@@ -262,9 +297,11 @@ public class SQLiteIndexTest {
         carFeaturesOffHeapIndex.init(wrappingObjectStore(initWithObjects), createQueryOptions(connectionManager));
 
         // Verify
+        verify(statement, times(1)).executeQuery("PRAGMA journal_mode;");
+        verify(statement, times(1)).executeQuery("PRAGMA synchronous;");
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
         verify(statement, times(1)).executeUpdate("CREATE INDEX IF NOT EXISTS " + INDEX_NAME + " ON " + TABLE_NAME + " (value);");
-        verify(statement, times(2)).close();
+        verify(statement, times(4)).close();
 
         verify(preparedStatement, times(2)).setObject(1, 1);
         verify(preparedStatement, times(1)).setObject(1, 2);
@@ -276,6 +313,10 @@ public class SQLiteIndexTest {
         verify(preparedStatement, times(1)).close();
 
         verify(connection, times(0)).close();
+
+        Assert.assertEquals(carFeaturesOffHeapIndex.pragmaSynchronous, SQLiteConfig.SynchronousMode.FULL);
+        Assert.assertEquals(carFeaturesOffHeapIndex.pragmaJournalMode, SQLiteConfig.JournalMode.DELETE);
+        Assert.assertTrue(carFeaturesOffHeapIndex.canSuspendSyncAndJournaling);
     }
 
     @Test

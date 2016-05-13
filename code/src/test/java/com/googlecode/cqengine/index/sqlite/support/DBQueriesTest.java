@@ -16,12 +16,12 @@
 package com.googlecode.cqengine.index.sqlite.support;
 
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
-import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.sqlite.SQLiteConfig;
 
 import java.sql.*;
 import java.util.*;
@@ -514,6 +514,38 @@ public class DBQueriesTest {
             connection = connectionManager.getConnection(null, noQueryOptions());
             int countOfDistinctKeys = DBQueries.getCountOfDistinctKeys(NAME, connection);
             assertEquals(3, countOfDistinctKeys);
+
+        }finally {
+            DBUtils.closeQuietly(connection);
+        }
+    }
+
+    @Test
+    public void suspendSyncAndJournaling() throws Exception {
+        Connection connection = null;
+        try {
+
+            ConnectionManager connectionManager = temporaryFileDatabase.getConnectionManager(true);
+            connection = connectionManager.getConnection(null, noQueryOptions());
+
+            final SQLiteConfig.JournalMode journalMode = DBQueries.getPragmaJournalModeOrNull(connection);
+            final SQLiteConfig.SynchronousMode synchronousMode = DBQueries.getPragmaSynchronousOrNull(connection);
+
+            DBQueries.suspendSyncAndJournaling(connection);
+
+            final SQLiteConfig.JournalMode journalModeDisabled = DBQueries.getPragmaJournalModeOrNull(connection);
+            final SQLiteConfig.SynchronousMode synchronousModeDisabled = DBQueries.getPragmaSynchronousOrNull(connection);
+
+            Assert.assertEquals(journalModeDisabled, SQLiteConfig.JournalMode.OFF);
+            Assert.assertEquals(synchronousModeDisabled, SQLiteConfig.SynchronousMode.OFF);
+
+            DBQueries.setSyncAndJournaling(connection, SQLiteConfig.SynchronousMode.FULL, SQLiteConfig.JournalMode.DELETE);
+
+            final SQLiteConfig.JournalMode journalModeReset = DBQueries.getPragmaJournalModeOrNull(connection);
+            final SQLiteConfig.SynchronousMode synchronousModeReset = DBQueries.getPragmaSynchronousOrNull(connection);
+
+            Assert.assertEquals(journalModeReset, journalMode);
+            Assert.assertEquals(synchronousModeReset, synchronousMode);
 
         }finally {
             DBUtils.closeQuietly(connection);

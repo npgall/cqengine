@@ -48,4 +48,12 @@ public class SQLiteIndexFlags {
          */
         LAST;
     };
+
+    /**
+     * <p> Switches off the 'synchronous' and 'journal_mode' pragmas before executing a bulk import.
+     * Executing a bulk import with 'synchronous' and 'journal_mode' OFF can significantly increase the performances of the operation
+     * at a cost of a slightly higher risk of database corruption in case of system crashes or the power loses.
+     * <p> The default values will be re-instated after the import.
+     */
+    public static String BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING = "BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING";
 }
