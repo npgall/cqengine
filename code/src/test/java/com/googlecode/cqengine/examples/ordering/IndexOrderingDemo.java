@@ -26,21 +26,28 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
 
 /**
+ * An example of how to enable the <i>index</i> ordering strategy, to order results by an attribute which does not
+ * provide values for every object. In this example, some Car objects have features, and some do not.
+ *
  * @author Niall Gallagher
  */
 public class IndexOrderingDemo {
 
-    public static void main(String[] args) {
-        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
-        cars.addAll(CarFactory.createCollectionOfCars(100));
+public static void main(String[] args) {
+    IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
+    cars.addIndex(NavigableIndex.onAttribute(Car.FEATURES));
+    cars.addIndex(NavigableIndex.onAttribute(forObjectsMissing(Car.FEATURES)));
+    cars.addAll(CarFactory.createCollectionOfCars(100));
 
-        ResultSet<Car> results = cars.retrieve(
-                between(Car.CAR_ID, 40, 50),
-                queryOptions(orderBy(descending(Car.CAR_ID)), applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)))
-        );
-        for (Car car : results) {
-            System.out.println(car); // prints cars 50 -> 40, using the index for ordering
-        }
+    ResultSet<Car> results = cars.retrieve(
+            between(Car.CAR_ID, 40, 50),
+            queryOptions(
+                    orderBy(ascending(missingLast(Car.FEATURES))),
+                    applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0))
+            )
+    );
+    for (Car car : results) {
+        System.out.println(car); // prints cars 40 -> 50, using the index on Car.FEATURES to accelerate ordering
     }
+}
 }
