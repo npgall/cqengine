@@ -59,6 +59,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
@@ -83,6 +84,10 @@ public class IndexedCollectionFunctionalTest {
     static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "false"));
 
     static final boolean RUN_HIGH_PRIORITY_SCENARIOS_ONLY = false;
+
+    // Print progress of functional tests to the console at this frequncy...
+    final int STATUS_UPDATE_FREQUENCY_MS = 1000;
+    static long lastStatusTimestamp = 0L;
 
     // Macro scenarios specify sets of IndexedCollection implementations,
     // sets of index combinations, and sets of queries. Macro scenarios will be expanded
@@ -1257,7 +1262,10 @@ public class IndexedCollectionFunctionalTest {
 
     public static class Scenario {
         String name = "<unnamed>";
-        int lineNumber = -1;
+        Integer lineNumber;
+        Long startTime;
+        Integer scenarioNumber;
+        AtomicInteger totalScenarioCount;
         Collection<Car> dataSet = Collections.emptySet();
         Collection<Car> removeDataSet = Collections.emptySet();
         Boolean clearDataSet = false;
@@ -1291,6 +1299,8 @@ public class IndexedCollectionFunctionalTest {
     public static List<List<Object>> expandMacroScenarios() {
         List<MacroScenario> macroScenarios = getMacroScenarios();
         List<List<Object>> scenarios = new ArrayList<List<Object>>();
+        final long finalStartTime = System.currentTimeMillis();
+        final AtomicInteger scenarioCount = new AtomicInteger();
         for (int i = 0; i < macroScenarios.size(); i++) {
             final MacroScenario macroScenario = macroScenarios.get(i);
             try {
@@ -1300,6 +1310,9 @@ public class IndexedCollectionFunctionalTest {
                             Scenario scenario = new Scenario() {{
                                 name = macroScenario.name;
                                 lineNumber = currentQueryToEvaluate.lineNumber;
+                                startTime = finalStartTime;
+                                scenarioNumber = scenarioCount.incrementAndGet();
+                                totalScenarioCount = scenarioCount;
                                 dataSet = macroScenario.dataSet;
                                 removeDataSet = macroScenario.removeDataSet;
                                 clearDataSet = macroScenario.clearDataSet;
@@ -1315,6 +1328,9 @@ public class IndexedCollectionFunctionalTest {
                                 Scenario scenarioWithIndexMergeStrategy = new Scenario() {{
                                     name = macroScenario.name;
                                     lineNumber = currentQueryToEvaluate.lineNumber;
+                                    startTime = finalStartTime;
+                                    scenarioNumber = scenarioCount.incrementAndGet();
+                                    totalScenarioCount = scenarioCount;
                                     dataSet = macroScenario.dataSet;
                                     removeDataSet = macroScenario.removeDataSet;
                                     clearDataSet = macroScenario.clearDataSet;
@@ -1431,6 +1447,16 @@ public class IndexedCollectionFunctionalTest {
             throw e;
         }
         finally {
+            int scenarioNumber = scenario.scenarioNumber;
+            int totalScenarioCount = scenario.totalScenarioCount.get();
+            long currentTime = System.currentTimeMillis();
+            if ((currentTime - lastStatusTimestamp) >= STATUS_UPDATE_FREQUENCY_MS || scenarioNumber == totalScenarioCount || scenarioNumber == 1) {
+                double fractionComplete = ((double) scenarioNumber) / totalScenarioCount;
+                long elapsedTime = currentTime - scenario.startTime;
+                System.out.format("    Scenario %d of %d :: %d seconds elapsed :: %d%% complete", scenarioNumber, totalScenarioCount, elapsedTime / 1000, (int)(fractionComplete * 100));
+                System.out.print(scenarioNumber == totalScenarioCount ? "\n" : "\r");
+                lastStatusTimestamp = currentTime;
+            }
             if (persistence instanceof DiskPersistence) {
                 DiskPersistence diskPersistence = (DiskPersistence) persistence;
                 File diskPersistenceFile = diskPersistence.getFile();
