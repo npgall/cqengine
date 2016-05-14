@@ -301,23 +301,50 @@ public class QueryFactory {
      * Creates an {@link And} query, representing a logical AND on child queries, which when evaluated yields the
      * <u>set intersection</u> of the result sets from child queries.
      *
-     * @param queries The child queries to be connected via a logical AND
+     * @param query1 The first child query to be connected via a logical AND
+     * @param query2 The second child query to be connected via a logical AND
      * @param <O> The type of the object containing attributes to which child queries refer
      * @return An {@link And} query, representing a logical AND on child queries
      */
-    public static <O> And<O> and(Query<O>... queries) {
-        return new And<O>(Arrays.asList(queries));
+    public static <O> And<O> and(Query<O> query1, Query<O> query2) {
+        @SuppressWarnings({"unchecked"})
+        Collection<Query<O>> queries = Arrays.asList(query1, query2);
+        return new And<O>(queries);
     }
 
     /**
      * Creates an {@link And} query, representing a logical AND on child queries, which when evaluated yields the
      * <u>set intersection</u> of the result sets from child queries.
      *
-     * @param queries The child queries to be connected via a logical AND
+     * @param query1 The first child query to be connected via a logical AND
+     * @param query2 The second child query to be connected via a logical AND
+     * @param additionalQueries Additional child queries to be connected via a logical AND
      * @param <O> The type of the object containing attributes to which child queries refer
      * @return An {@link And} query, representing a logical AND on child queries
      */
-    public static <O> And<O> and(Collection<Query<O>> queries) {
+    public static <O> And<O> and(Query<O> query1, Query<O> query2, Query<O>... additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.length);
+        queries.add(query1);
+        queries.add(query2);
+        Collections.addAll(queries, additionalQueries);
+        return new And<O>(queries);
+    }
+
+    /**
+     * Creates an {@link And} query, representing a logical AND on child queries, which when evaluated yields the
+     * <u>set intersection</u> of the result sets from child queries.
+     *
+     * @param query1 The first child query to be connected via a logical AND
+     * @param query2 The second child query to be connected via a logical AND
+     * @param additionalQueries Additional child queries to be connected via a logical AND
+     * @param <O> The type of the object containing attributes to which child queries refer
+     * @return An {@link And} query, representing a logical AND on child queries
+     */
+    public static <O> And<O> and(Query<O> query1, Query<O> query2, Collection<Query<O>> additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.size());
+        queries.add(query1);
+        queries.add(query2);
+        queries.addAll(additionalQueries);
         return new And<O>(queries);
     }
 
@@ -325,23 +352,50 @@ public class QueryFactory {
      * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
      * <u>set union</u> of the result sets from child queries.
      *
-     * @param queries The child queries to be connected via a logical OR
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
      * @param <O> The type of the object containing attributes to which child queries refer
      * @return An {@link Or} query, representing a logical OR on child queries
      */
-    public static <O> Or<O> or(Query<O>... queries) {
-        return new Or<O>(Arrays.asList(queries));
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2) {
+        @SuppressWarnings({"unchecked"})
+        Collection<Query<O>> queries = Arrays.asList(query1, query2);
+        return new Or<O>(queries);
     }
 
     /**
      * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
      * <u>set union</u> of the result sets from child queries.
      *
-     * @param queries The child queries to be connected via a logical OR
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
+     * @param additionalQueries Additional child queries to be connected via a logical OR
      * @param <O> The type of the object containing attributes to which child queries refer
      * @return An {@link Or} query, representing a logical OR on child queries
      */
-    public static <O> Or<O> or(Collection<Query<O>> queries) {
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2, Query<O>... additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.length);
+        queries.add(query1);
+        queries.add(query2);
+        Collections.addAll(queries, additionalQueries);
+        return new Or<O>(queries);
+    }
+
+    /**
+     * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
+     * <u>set union</u> of the result sets from child queries.
+     *
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
+     * @param additionalQueries Additional child queries to be connected via a logical OR
+     * @param <O> The type of the object containing attributes to which child queries refer
+     * @return An {@link Or} query, representing a logical OR on child queries
+     */
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2, Collection<Query<O>> additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.size());
+        queries.add(query1);
+        queries.add(query2);
+        queries.addAll(additionalQueries);
         return new Or<O>(queries);
     }
 
@@ -714,35 +768,9 @@ public class QueryFactory {
     // See http://mail.openjdk.java.net/pipermail/coin-dev/2009-March/000217.html - project coin feature
     // in Java 7 which addresses the issue.
     // ***************************************************************************************************************
-    
-    /**
-     * Overloaded variant of {@link #and(Query[])} - see that method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> And<O> and(Query<O> query1) {
-        @SuppressWarnings({"unchecked"})
-        Collection<Query<O>> queries = Collections.singleton(query1);
-        return new And<O>(queries);
-    }
 
     /**
-     * Overloaded variant of {@link #and(Query[])} - see that method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> And<O> and(Query<O> query1, Query<O> query2) {
-        @SuppressWarnings({"unchecked"})
-        Collection<Query<O>> queries = Arrays.asList(query1, query2);
-        return new And<O>(queries);
-    }
-
-    /**
-     * Overloaded variant of {@link #and(Query[])} - see that method for details.
+     * Overloaded variant of {@link #and(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
@@ -755,7 +783,7 @@ public class QueryFactory {
     }
 
     /**
-     * Overloaded variant of {@link #and(Query[])} - see that method for details.
+     * Overloaded variant of {@link #and(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
@@ -768,7 +796,7 @@ public class QueryFactory {
     }
 
     /**
-     * Overloaded variant of {@link #and(Query[])} - see that method for details.
+     * Overloaded variant of {@link #and(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
@@ -783,33 +811,7 @@ public class QueryFactory {
     // ***************************************************************************************************************
 
     /**
-     * Overloaded variant of {@link #or(Query[])} - see that method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> Or<O> or(Query<O> query1) {
-        @SuppressWarnings({"unchecked"})
-        Collection<Query<O>> queries = Collections.singleton(query1);
-        return new Or<O>(queries);
-    }
-
-    /**
-     * Overloaded variant of {@link #or(Query[])} - see that method for details.
-     * <p/>
-     * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
-     * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
-     */
-    @SuppressWarnings({"JavaDoc"})
-    public static <O> Or<O> or(Query<O> query1, Query<O> query2) {
-        @SuppressWarnings({"unchecked"})
-        Collection<Query<O>> queries = Arrays.asList(query1, query2);
-        return new Or<O>(queries);
-    }
-
-    /**
-     * Overloaded variant of {@link #or(Query[])} - see that method for details.
+     * Overloaded variant of {@link #or(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
@@ -822,7 +824,7 @@ public class QueryFactory {
     }
 
     /**
-     * Overloaded variant of {@link #or(Query[])} - see that method for details.
+     * Overloaded variant of {@link #or(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.
@@ -835,7 +837,7 @@ public class QueryFactory {
     }
 
     /**
-     * Overloaded variant of {@link #or(Query[])} - see that method for details.
+     * Overloaded variant of {@link #or(Query, Query, Query[])} - see that method for details.
      * <p/>
      * Note: This method is unnecessary as of Java 7, and is provided only for backward compatibility with Java 6 and
      * earlier, to eliminate generic array creation warnings output by the compiler in those versions.

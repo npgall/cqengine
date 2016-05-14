@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.query.logical.And;
+import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
@@ -57,16 +59,11 @@ public class QueryFactoryTest {
         Query<Car> q3 = has(Car.MODEL);
         Query<Car> q4 = has(Car.FEATURES);
         Query<Car> q5 = has(Car.PRICE);
-        assertEquals(and(q1, q2), and(asList(q1, q2)));
-        assertEquals(and(q1, q2, q3), and(asList(q1, q2, q3)));
-        assertEquals(and(q1, q2, q3, q4), and(asList(q1, q2, q3, q4)));
-        assertEquals(and(q1, q2, q3, q4, q5), and(asList(q1, q2, q3, q4, q5)));
-        assertEquals(and(q1, q2, q3, q4, q5), and(new Query[]{q1, q2, q3, q4, q5}));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testAndMethodOverloading_InvalidArgument() {
-        and(has(Car.CAR_ID));
+        assertEquals(and(q1, q2), new And<Car>(asList(q1, q2)));
+        assertEquals(and(q1, q2, q3), new And<Car>(asList(q1, q2, q3)));
+        assertEquals(and(q1, q2, q3, q4), new And<Car>(asList(q1, q2, q3, q4)));
+        assertEquals(and(q1, q2, q3, q4, q5), new And<Car>(asList(q1, q2, q3, q4, q5)));
+        assertEquals(and(q1, q2, q3, q4, q5), and(q1, q2, new Query[]{q3, q4, q5}));
     }
 
     @Test
@@ -77,16 +74,11 @@ public class QueryFactoryTest {
         Query<Car> q3 = has(Car.MODEL);
         Query<Car> q4 = has(Car.FEATURES);
         Query<Car> q5 = has(Car.PRICE);
-        assertEquals(or(q1, q2), or(asList(q1, q2)));
-        assertEquals(or(q1, q2, q3), or(asList(q1, q2, q3)));
-        assertEquals(or(q1, q2, q3, q4), or(asList(q1, q2, q3, q4)));
-        assertEquals(or(q1, q2, q3, q4, q5), or(asList(q1, q2, q3, q4, q5)));
-        assertEquals(or(q1, q2, q3, q4, q5), or(new Query[]{q1, q2, q3, q4, q5}));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testOrMethodOverloading_InvalidArgument() {
-        or(has(Car.CAR_ID));
+        assertEquals(or(q1, q2), new Or<Car>(asList(q1, q2)));
+        assertEquals(or(q1, q2, q3), new Or<Car>(asList(q1, q2, q3)));
+        assertEquals(or(q1, q2, q3, q4), new Or<Car>(asList(q1, q2, q3, q4)));
+        assertEquals(or(q1, q2, q3, q4, q5), new Or<Car>(asList(q1, q2, q3, q4, q5)));
+        assertEquals(or(q1, q2, q3, q4, q5), or(q1, q2, new Query[]{q3, q4, q5}));
     }
 
     @Test

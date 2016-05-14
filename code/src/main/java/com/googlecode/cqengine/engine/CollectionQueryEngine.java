@@ -1041,7 +1041,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         }
         @SuppressWarnings("unchecked")
         Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
-        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : and(queriesTyped);
+        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new And<O>(queriesTyped);
         // The rest of the algorithm is implemented in ResultSetIntersection...
         return new ResultSetIntersection<O>(resultSets, query, queryOptions, indexMergeStrategyEnabled);
     }
@@ -1092,7 +1092,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         };
         @SuppressWarnings("unchecked")
         Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
-        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : or(queriesTyped);
+        Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new Or<O>(queriesTyped);
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
             boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);

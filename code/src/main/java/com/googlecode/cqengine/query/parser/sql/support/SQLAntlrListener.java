@@ -18,6 +18,8 @@ package com.googlecode.cqengine.query.parser.sql.support;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.logical.And;
+import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.AttributeOrder;
 import com.googlecode.cqengine.query.option.OrderByOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -57,12 +59,12 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
 
     @Override
     public void exitAndQuery(SQLGrammarParser.AndQueryContext ctx) {
-        addParsedQuery(ctx, QueryFactory.and(childQueries.get(ctx)));
+        addParsedQuery(ctx, new And<O>(childQueries.get(ctx)));
     }
 
     @Override
     public void exitOrQuery(SQLGrammarParser.OrQueryContext ctx) {
-        addParsedQuery(ctx, QueryFactory.or(childQueries.get(ctx)));
+        addParsedQuery(ctx, new Or<O>(childQueries.get(ctx)));
     }
 
     @Override
