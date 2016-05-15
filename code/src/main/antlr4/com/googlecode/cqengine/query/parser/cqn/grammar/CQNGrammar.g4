@@ -71,3 +71,46 @@ queryOption: orderByOption ;
 orderByOption: 'orderBy' LPAREN attributeOrder (',' attributeOrder)* RPAREN ;
 attributeOrder : direction LPAREN attributeName RPAREN ;
 direction : 'ascending' | 'descending' ;
+
+
+// --------------------------------
+// In the following section we redefine the definition of Java's IntegerLiteral and FloatingPointLiteral
+// from the imported Java.g4 grammar, to incorporate a sign [+-].
+// The sign is not part of the definition of these literals in Java.g4 because that grammar models the
+// Java Language Specification, and in the JLS the sign is not part of a literal but is part of the
+// outer expression in which the literal is used.
+// For CQN syntax, we do not allow complex expressions, we simply need to be able to parse signed numbers.
+// Therefore this section is not part of CQN grammar pse-se, it is just an implementation detail which
+// allows us to adapt the imported Java.g4 grammar...
+// --------------------------------
+literal
+    :   IntegerLiteral
+    |   FloatingPointLiteral
+    |   CharacterLiteral
+    |   StringLiteral
+    |   BooleanLiteral
+    |   'null'
+    ;
+
+IntegerLiteral
+    :   DecimalIntegerLiteral
+    |   HexIntegerLiteral
+    |   OctalIntegerLiteral
+    |   BinaryIntegerLiteral
+    ;
+
+DecimalIntegerLiteral
+    :   Sign? DecimalNumeral IntegerTypeSuffix?
+    ;
+
+FloatingPointLiteral
+    :   DecimalFloatingPointLiteral
+    |   HexadecimalFloatingPointLiteral
+    ;
+
+DecimalFloatingPointLiteral
+    :   Sign? Digits '.' Digits? ExponentPart? FloatTypeSuffix?
+    |   Sign? '.' Digits ExponentPart? FloatTypeSuffix?
+    |   Sign? Digits ExponentPart FloatTypeSuffix?
+    |   Sign? Digits FloatTypeSuffix
+    ;
