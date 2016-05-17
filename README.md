@@ -9,8 +9,8 @@ CQEngine – Collection Query Engine – is a high-performance Java collection w
 Supports on-heap persistence, off-heap persistence, disk persistence, and supports MVCC transaction isolation.
 
 Interesting reviews of CQEngine:
-  * [syntx.io: Comparing search performance of CQEngine with standard Java collections](http://syntx.io/comparing-search-performance-of-cqengine-with-standard-java-collections/)
-  * [syntx.io: Getting started with CQEngine: LINQ for Java, only faster](http://syntx.io/getting-started-with-cqengine-linq-for-java-only-faster/)
+  * [dzone.com: Comparing the search performance of CQEngine with standard Java collections](https://dzone.com/articles/comparing-search-performance)
+  * [dzone.com: Getting started with CQEngine: LINQ for Java, only faster](https://dzone.com/articles/getting-started-cqengine-linq)
   * CQEngine in the wild: [excelian.com](http://www.excelian.com/exposure-and-counterparty-limit-checking) | [gravity4.com](http://gravity4.com/welcome-gravity4-engineering-blog/) | [snapdeal.com](http://engineering.snapdeal.com/how-were-building-a-system-to-scale-for-billions-of-requests-per-day-201601/) (3-5 billion requests/day)
 
 ## The Limits of Iteration ##
