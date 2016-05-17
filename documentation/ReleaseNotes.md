@@ -1,5 +1,19 @@
 # CQEngine Release Notes #
 
+### Version 2.6.0 - 2016-05-17 ###
+  * Maintenance release.
+  * This version is not radically different from 2.5.0; the minor version was bumped only due to the following minor API change.
+    * Fixed issue #53, which involved removing some methods in QueryFactory which allowed `and()` and `or()` queries to be created programmatically with only a single child query.
+      * `and()` and `or()` queries can only be created with a minimum of two child queries. Previously, calling these methods and supplying a single child resulted in an IllegalStateException at runtime. This change prevents these errors at compile time instead.
+    * In some rare cases, applications might still wish to create `and()` and `or()` queries from a Collection of child queries.
+      * The method which allowed to create these queries from a Collection of child queries has also been removed, because it allowed that collection to be empty or to contain only one child query - which similarly would have resulted in an IllegalStateException.
+      * However applications which still wish to do this, can use the constructor of the And and Or query objects directly, instead of creating these queries via QueryFactory.
+  * Other changes in this release:
+    * Fixed issue #57: CQNParser now supports negative numbers.
+    * Fixed issue #49: The NodeFactory used by the following indexes can now be configured, which can be useful to **tune memory usage**: `RadixTreeIndex`, `InvertedRadixTreeIndex`, `ReversedRadixTreeIndex`, `SuffixTreeIndex`.
+    * Merged Pull Request #61
+      * This adds supports to **reduce the latency of bulk imports** into DiskIndex, or when populating large IndexedCollections which are persisted to disk, by suspending synchronous writes to disk and suspending journaling, while the bulk import is in progress. For details see `SQLiteIndexFlags.BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING`.
+
 ### Version 2.5.0 - 2016-05-06 ###
   * Significant improvements in the write performance of disk and off-heap indexes, via IO batching
     * Previously, when objects were added to the collection, they were added to each index on disk in a separate IO operation per index.
