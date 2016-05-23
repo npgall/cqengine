@@ -30,6 +30,7 @@ import java.util.*;
  */
 public abstract class LogicalQuery<O> implements Query<O> {
 
+    private final Collection<Query<O>> childQueries;
     private final List<LogicalQuery<O>> logicalQueries = new ArrayList<LogicalQuery<O>>();
     private final List<SimpleQuery<O, ?>> simpleQueries = new ArrayList<SimpleQuery<O, ?>>();
     private final boolean hasLogicalQueries;
@@ -58,6 +59,7 @@ public abstract class LogicalQuery<O> implements Query<O> {
         this.hasLogicalQueries = !logicalQueries.isEmpty();
         this.hasSimpleQueries = !simpleQueries.isEmpty();
         this.size = childQueries.size();
+        this.childQueries = childQueries;
     }
 
     /**
@@ -74,6 +76,14 @@ public abstract class LogicalQuery<O> implements Query<O> {
      */
     public List<SimpleQuery<O, ?>> getSimpleQueries() {
         return simpleQueries;
+    }
+
+    /**
+     * The entire collection of child queries, which may be either {@link SimpleQuery}s or {@link LogicalQuery}s.
+     * @return The entire collection of child queries, which may be either {@link SimpleQuery}s or {@link LogicalQuery}s.
+     */
+    public Collection<Query<O>> getChildQueries() {
+        return childQueries;
     }
 
     /**

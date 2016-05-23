@@ -36,7 +36,7 @@ public class DiskIndex<A extends Comparable<A>, O, K extends Comparable<K>> exte
         super(persistenceType, attribute);
     }
 
-    // ---------- Static factory methods to create OffHeapIndex ----------
+    // ---------- Static factory methods to create DiskIndex ----------
 
     /**
      * Creates a new {@link DiskIndex}. This will obtain details of the {@link DiskPersistence} to use from the
