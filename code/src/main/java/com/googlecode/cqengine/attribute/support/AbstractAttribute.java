@@ -108,7 +108,7 @@ public abstract class AbstractAttribute<O, A> implements Attribute<O, A> {
         return cachedHashCode;
     }
 
-    int calcHashCode() {
+    protected int calcHashCode() {
         int result = objectType.hashCode();
         result = 31 * result + attributeType.hashCode();
         result = 31 * result + attributeName.hashCode();

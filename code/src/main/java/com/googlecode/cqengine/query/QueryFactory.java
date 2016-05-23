@@ -695,6 +695,20 @@ public class QueryFactory {
     }
 
     /**
+     * Creates a {@link SimpleNullableMapAttribute} which retrieves the value for the given key from an
+     * {@link IndexedCollection} of {@link Map} objects.
+     *
+     * @param mapKey The map key
+     * @param mapValueType The type of the value stored for the given key
+     * @param <K> The type of the map key
+     * @param <A> The type of the resulting attribute; which is the type of the value stored
+     * @return a {@link SimpleNullableMapAttribute} which retrieves the value for the given key from a map.
+     */
+    public static <K, A> Attribute<Map, A> mapAttribute(K mapKey, Class<A> mapValueType) {
+        return new SimpleNullableMapAttribute<K, A>(mapKey, mapValueType);
+    }
+
+    /**
      * Returns an {@link OrderMissingLastAttribute} which which can be used in an {@link #orderBy(AttributeOrder)}
      * clause to specify that objects which do not have values for the given delegate attribute should be returned after
      * objects which do have values for the attribute.
