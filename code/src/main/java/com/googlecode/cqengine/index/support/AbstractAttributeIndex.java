@@ -19,11 +19,12 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.*;
 
 /**
- * A skeleton implementation of an index which implements the {@link Index#supportsQuery(Query)} method, based on a set
+ * A skeleton implementation of an index which implements the {@link Index#supportsQuery(Query, QueryOptions)} method, based on a set
  * of queries supported by a subclass supplied to the constructor.
  *
  * @author Niall Gallagher
@@ -63,7 +64,7 @@ public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, 
      * {@inheritDoc}
      */
     @Override
-    public boolean supportsQuery(Query<O> query) {
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
         return supportedQueries.contains(query.getClass());
     }
 

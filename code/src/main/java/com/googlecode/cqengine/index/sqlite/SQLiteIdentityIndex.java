@@ -89,8 +89,8 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     }
 
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        return sqLiteIndex.supportsQuery(query);
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return sqLiteIndex.supportsQuery(query, queryOptions);
     }
 
     @Override

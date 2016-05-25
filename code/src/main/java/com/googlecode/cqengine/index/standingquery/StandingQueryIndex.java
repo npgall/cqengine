@@ -86,7 +86,7 @@ public class StandingQueryIndex<O> implements Index<O>, OnHeapTypeIndex {
      * @return true, this index supports all types of query
      */
     @Override
-    public boolean supportsQuery(Query<O> query) {
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
         return standingQuery.equals(query);
     }
 
@@ -101,7 +101,7 @@ public class StandingQueryIndex<O> implements Index<O>, OnHeapTypeIndex {
      */
     @Override
     public ResultSet<O> retrieve(final Query<O> query, QueryOptions queryOptions) {
-        if (!supportsQuery(query)) {
+        if (!supportsQuery(query, queryOptions)) {
             // TODO: check necessary?
             throw new IllegalArgumentException("Unsupported query: " + query);
         }

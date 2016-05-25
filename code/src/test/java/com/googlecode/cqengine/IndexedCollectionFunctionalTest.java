@@ -22,6 +22,7 @@ import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.navigable.PartialNavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
@@ -743,6 +744,25 @@ public class IndexedCollectionFunctionalTest {
                             }}
                     );
                     indexCombinations = indexCombinations(indexCombination(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL)));
+                }},
+                new MacroScenario() {{
+                    name = "retrieval cost with PartialNavigableIndex";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(greaterThan(Car.PRICE, 4000.0), equal(Car.MANUFACTURER, "Ford"));
+                                expectedResults = new ExpectedResults() {{
+                                    retrievalCost = 39;
+                                    mergeCost = 2;
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(0, 2);
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(indexCombination(
+                            PartialNavigableIndex.onAttributeWithFilterQuery(Car.PRICE, equal(Car.MANUFACTURER, "Ford"))
+                    ));
                 }},
                 new MacroScenario() {{
                     name = "string queries 1";

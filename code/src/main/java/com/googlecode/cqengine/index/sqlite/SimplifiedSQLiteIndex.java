@@ -56,7 +56,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         QueryEngine<O> queryEngine = getQueryEngineFromQueryOptions(queryOptions);
 
         final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
-        final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine);
+        final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine, queryOptions);
         final SimpleAttribute<K, O> foreignKeyAttribute = new SimpleAttribute<K, O>(primaryKeyAttribute.getAttributeType(), primaryKeyAttribute.getObjectType()) {
             @Override
             public O getValue(K primaryKeyValue, QueryOptions queryOptions) {
@@ -104,13 +104,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return primaryKey;
     }
 
-    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine) {
+    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine, QueryOptions queryOptions) {
         for (Index<O> index : queryEngine.getIndexes()) {
             if (index instanceof AttributeIndex) {
                 @SuppressWarnings("unchecked")
                 AttributeIndex<K, O> attributeIndex = (AttributeIndex<K, O>) index;
                 if (primaryKeyAttribute.equals(attributeIndex.getAttribute())) {
-                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null))) {
+                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null), queryOptions)) {
                         return attributeIndex;
                     }
                 }
@@ -140,8 +140,8 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     // The following methods were mostly auto-generated using IntelliJ: Code -> Generate -> Delegate Methods...
 
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        return backingIndex().supportsQuery(query);
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return backingIndex().supportsQuery(query, queryOptions);
     }
 
     @Override

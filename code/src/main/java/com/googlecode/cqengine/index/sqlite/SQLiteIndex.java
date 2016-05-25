@@ -150,8 +150,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     }
 
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        return query instanceof FilterQuery || super.supportsQuery(query);
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return query instanceof FilterQuery || super.supportsQuery(query, queryOptions);
     }
 
     @Override

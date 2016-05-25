@@ -81,7 +81,7 @@ public class CompoundIndex<O> extends AbstractMapBasedAttributeIndex<CompoundVal
      * {@link CompoundAttribute} on which this compound index is based, otherwise false
      */
     @Override
-    public boolean supportsQuery(Query<O> query) {
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
         if (query instanceof CompoundQuery) {
             CompoundQuery<O> compoundQuery = (CompoundQuery<O>) query;
             return attribute.equals(compoundQuery.getCompoundAttribute());

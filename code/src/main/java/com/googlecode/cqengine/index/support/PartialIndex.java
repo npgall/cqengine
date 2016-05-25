@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
@@ -26,6 +27,7 @@ import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.common.WrappedResultSet;
 
 import java.util.*;
 
@@ -49,7 +51,7 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
 
     protected final Query<O> filterQuery;
     protected final Attribute<O, A> attribute;
-    protected final AttributeIndex<A, O> backingIndex;
+    protected volatile AttributeIndex<A, O> backingIndex;
 
     /**
      * Protected constructor, called by subclasses.
@@ -60,58 +62,60 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
     protected PartialIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
         this.attribute = attribute;
         this.filterQuery = filterQuery;
-        this.backingIndex = createBackingIndex();
     }
+
+    protected AttributeIndex<A, O> backingIndex() {
+        if (backingIndex == null) {
+            synchronized (this) { // Double-checked locking to prevent duplicate index creation
+                if (backingIndex == null) {
+                    backingIndex = createBackingIndex();
+                }
+            }
+        }
+        return backingIndex;
+    }
+
 
     public Attribute<O, A> getAttribute() {
-        return backingIndex.getAttribute();
+        return backingIndex().getAttribute();
+    }
+
+    public Query<O> getFilterQuery() {
+        return filterQuery;
+    }
+
+    public AttributeIndex<A, O> getBackingIndex() {
+        return backingIndex;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns true if this partial index can answer this branch of the query.
+     * Two conditions must be satisfied:
+     * <ol>
+     *     <li>The backing index must support the given (branch) query.</li>
+     *     <li>The root query (as extracted from query options) must be an And query, and one of its direct children
+     *         must be equal to the filter query with which this partial index was configured.</li>
+     * </ol>
+     * @param query The query supplied by the query engine, which is typically a branch of the overall query being
+     *              evaluated.
      */
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        SimpleQuery<O, A> backingIndexQuery = getBackingIndexQueryOrNull(query);
-        return backingIndexQuery != null
-                && backingIndex.supportsQuery(backingIndexQuery)
-                && backingIndex.getAttribute().equals(backingIndexQuery.getAttribute());
-    }
-
-    /**
-     * Extracts the filter query and the query referring to the backing index from the given query.
-     * <p/>
-     * The partial index only supports 2-branch And queries where one branch is the filterQuery (either a SimpleQuery
-     * or LogicalQuery)
-     * and the other branch is a SimpleQuery on the attribute on which the backingIndex is based.
-     *
-     * @param query The query from which to extract the backing index query.
-     * @return The query referring to the backing index, or null if the given query does not conform as above.
-     */
-    protected SimpleQuery<O, A> getBackingIndexQueryOrNull(Query<O> query) {
-        if (!(query instanceof And)) {
-            return null;
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        // Extract the root query from the query options, and check if it contains the filter query...
+        @SuppressWarnings("unchecked")
+        Query<O> rootQuery = (Query<O>) queryOptions.get(CollectionQueryEngine.ROOT_QUERY);
+        if (!(rootQuery instanceof And)) {
+            return false;
         }
-        And<O> and = (And<O>)query;
-
-        if (and.size() != 2) {
-            return null;
-        }
-
-        boolean filterQueryFound = false;
-        SimpleQuery<O, A> backingIndexQuery = null;
-        for (Query<O> child : and.getChildQueries()) {
-            if (filterQuery.equals(child)) {
-                filterQueryFound = true;
-            }
-            else if (child instanceof SimpleQuery) {
-                backingIndexQuery = (SimpleQuery<O, A>) child;
+        And<O> rootAndQuery = (And<O>)rootQuery;
+        for (Query<O> childOfRoot : rootAndQuery.getChildQueries()) {
+            if (filterQuery.equals(childOfRoot)) {
+                // The filter query is a direct child of the root query.
+                // Now check if the backing index supports the branch query...
+                return backingIndex.supportsQuery(query, queryOptions);
             }
         }
-        if (!filterQueryFound) {
-            return null;
-        }
-        return backingIndexQuery; // might still be null
+        return false;
     }
 
     @Override
@@ -128,33 +132,41 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
         if (!filterQuery.equals(that.filterQuery)) {
             return false;
         }
-        return backingIndex.equals(that.backingIndex);
+        return backingIndex().equals(that.backingIndex());
 
     }
 
     @Override
     public int hashCode() {
         int result = filterQuery.hashCode();
-        result = 31 * result + backingIndex.hashCode();
+        result = 31 * result + backingIndex().hashCode();
         return result;
     }
 
     @Override
     public boolean isMutable() {
-        return backingIndex.isMutable();
+        return backingIndex().isMutable();
     }
 
     @Override
     public boolean isQuantized() {
-        return backingIndex.isQuantized();
+        return backingIndex().isQuantized();
     }
 
     @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
-        SimpleQuery<O, A> backingIndexQuery = getBackingIndexQueryOrNull(query);
-        // ..note we don't need to validate the backingIndexQuery,
-        // as the supportsQuery method should have been invoked earlier to do that already.
-        return backingIndex.retrieve(backingIndexQuery, queryOptions);
+        return new WrappedResultSet<O>(backingIndex().retrieve(query, queryOptions)) {
+            @Override
+            public int getRetrievalCost() {
+                int backingRetrievalCost = super.getRetrievalCost();
+                // Subtract 1 from the retrieval cost of the backing index,
+                // so that given a choice between a regular index and a partial index,
+                // the retrieval cost from the partial index will be lower and so it will be chosen.
+                // This is because partial indexes contain less data which is irrelevant to the query,
+                // and so can incur less filtering...
+                return backingRetrievalCost > 1 ? backingRetrievalCost - 1 : backingRetrievalCost;
+            }
+        };
     }
 
     @Override
@@ -168,24 +180,24 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
             // TODO implement filtering here. In the meantime, throw exception...
             throw new UnsupportedOperationException("Initializing this index with a non-empty collection is not yet supported.");
         }
-        backingIndex.init(objectStore, queryOptions);
+        backingIndex().init(objectStore, queryOptions);
     }
 
     @Override
     public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
         Collection<O> matchingSubset = filter(objects, queryOptions);
-        return backingIndex.addAll(matchingSubset, queryOptions);
+        return backingIndex().addAll(matchingSubset, queryOptions);
     }
 
     @Override
     public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
         Collection<O> matchingSubset = filter(objects, queryOptions);
-        return backingIndex.removeAll(matchingSubset, queryOptions);
+        return backingIndex().removeAll(matchingSubset, queryOptions);
     }
 
     @Override
     public void clear(QueryOptions queryOptions) {
-        backingIndex.clear(queryOptions);
+        backingIndex().clear(queryOptions);
     }
 
     protected Collection<O> filter(Collection<O> objects, QueryOptions queryOptions) {
