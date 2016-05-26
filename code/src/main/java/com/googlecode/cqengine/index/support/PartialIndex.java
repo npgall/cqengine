@@ -49,6 +49,13 @@ import java.util.*;
  */
 public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
 
+    // An integer to add or subtract to the retrieval cost returned by the backing index,
+    // so that given a choice between a regular index and a partial index,
+    // the retrieval cost from the partial index will be lower and so it will be chosen.
+    // This is because partial indexes contain less data which is irrelevant to the query,
+    // and so can incur less filtering...
+    static final int INDEX_RETRIEVAL_COST_DELTA = -5;
+
     protected final Query<O> filterQuery;
     protected final Attribute<O, A> attribute;
     protected volatile AttributeIndex<A, O> backingIndex;
@@ -158,13 +165,7 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
         return new WrappedResultSet<O>(backingIndex().retrieve(query, queryOptions)) {
             @Override
             public int getRetrievalCost() {
-                int backingRetrievalCost = super.getRetrievalCost();
-                // Subtract 1 from the retrieval cost of the backing index,
-                // so that given a choice between a regular index and a partial index,
-                // the retrieval cost from the partial index will be lower and so it will be chosen.
-                // This is because partial indexes contain less data which is irrelevant to the query,
-                // and so can incur less filtering...
-                return backingRetrievalCost > 1 ? backingRetrievalCost - 1 : backingRetrievalCost;
+                return super.getRetrievalCost() + INDEX_RETRIEVAL_COST_DELTA;
             }
         };
     }

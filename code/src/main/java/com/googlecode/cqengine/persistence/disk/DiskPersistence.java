@@ -23,6 +23,7 @@ import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
+import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteDiskIdentityIndex;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
@@ -99,11 +100,11 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
 
     /**
      * @param index The {@link Index} for which a connection is required.
-     * @return True if the given index is a {@link DiskIndex}. Otherwise false.
+     * @return True if the given index is a {@link DiskTypeIndex}. Otherwise false.
      */
     @Override
     public boolean supportsIndex(Index<O> index) {
-        return index instanceof DiskIndex || index instanceof SQLiteDiskIdentityIndex;
+        return index instanceof DiskTypeIndex;
     }
 
     @Override

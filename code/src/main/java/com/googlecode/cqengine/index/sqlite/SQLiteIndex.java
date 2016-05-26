@@ -111,7 +111,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  */
 public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapTypeIndex {
 
-    static final int INDEX_RETRIEVAL_COST = 60;
+    static final int INDEX_RETRIEVAL_COST = 80;
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
 
     final String tableName;
