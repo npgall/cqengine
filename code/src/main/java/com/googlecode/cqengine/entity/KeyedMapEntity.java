@@ -18,7 +18,9 @@ package com.googlecode.cqengine.entity;
 import java.util.Map;
 
 /**
- * Wrapper for Map to allow efficient use in an IndexCollection
+ * Wrapper for Map and its key to allow efficient use in an IndexCollection.
+ * Note changing the key is not supported, but other Map fields can be changed as
+ * long as they are not indexed. Alternatively, remove/re-add Map to collection.
  */
 public class KeyedMapEntity extends MapEntity {
 
@@ -28,15 +30,16 @@ public class KeyedMapEntity extends MapEntity {
     {
         super(mapToWrap);
         primaryKey = mapPrimaryKey;
+        cachedHashCode = get(primaryKey).hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
-//        return super.equals(o);
         if (this == o) return true;
         if (!(o instanceof KeyedMapEntity)) return false;
 
         KeyedMapEntity that = (KeyedMapEntity) o;
+        if (cachedHashCode != that.cachedHashCode) return false;
 
         return this.get(primaryKey).equals(that.get(primaryKey));
     }

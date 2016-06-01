@@ -18,12 +18,15 @@ package com.googlecode.cqengine.entity;
 import java.util.Map;
 
 /**
- * Wrapper for Map to allow efficient use in an IndexCollection
+ * Wrapper for Map to allow efficient use in an IndexCollection.
+ * NOTE it is not safe to modify objects which have already been added to the collection,
+ * because doing so can change their hash codes (which corrupts HashMaps
+ * and HashSets etc.).  Alternatively, remove/re-add the Map to the collection.
  */
 public class MapEntity {
 
     private final Map wrappedMap;
-    private final int cachedHashCode;
+    int cachedHashCode;
 
     public MapEntity(Map mapToWrap)
     {
@@ -36,25 +39,28 @@ public class MapEntity {
         return wrappedMap.get(key);
     }
 
-    // TODO how to access wrappedMap
-    // - make MapEntity implement Map and passthru calls, seems like best option for users
-    // - method to get the wrapped Map, but then makes usage more problematic
-    // - could extend Map but that seems wrong way to go
+    /**
+     * Returns the wrapped map - fine for cases with small result sets.
+     * For large result sets, perhaps we should implement the Map interface, delegating to the wrapped Map.
+     */
+    public Map getMap()
+    {
+        return wrappedMap;
+    }
 
     @Override
     public int hashCode() {
-//        return super.hashCode();
         return cachedHashCode;
     }
 
     @Override
     public boolean equals(Object o) {
-//        return super.equals(o);
         if (this == o) return true;
         if (!(o instanceof MapEntity)) return false;
 
         MapEntity that = (MapEntity) o;
+        if (cachedHashCode != that.cachedHashCode) return false;
 
-        return this.wrappedMap.equals(that.wrappedMap); // TODO will be slow
+        return this.wrappedMap.equals(that.wrappedMap);
     }
 }
