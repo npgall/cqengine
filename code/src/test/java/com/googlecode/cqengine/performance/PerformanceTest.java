@@ -56,36 +56,6 @@ public class PerformanceTest {
         runPerformanceTest(mapWorker, icWorker, WARMUP_LOOPS, 30, TEST_COLLECTION_SIZE);
     }
 
-    private void runPerformanceTest(Worker<Integer, Integer> mapWorker, Worker<Integer, Integer> icWorker, int warmupLoops, double worseCaseFactor, int testsToRun) {
-        double elapsedForIC = -999;
-        double elapsedForMap = -1;
-        double actualPerformanceFactor = elapsedForIC / elapsedForMap;
-        for (int j = 0; j<= warmupLoops; j++) {
-            if (j == warmupLoops) loggingEnabled = true;
-            elapsedForMap = runTests(mapWorker, testsToRun);
-
-            elapsedForIC = runTests(icWorker, testsToRun);
-
-            actualPerformanceFactor = elapsedForIC / elapsedForMap;
-            log("Map vs IndexedCollection timing ratio:"+ actualPerformanceFactor);
-        }
-
-        assertTrue("IC is no worse than "+ worseCaseFactor +" times slower than Map (actual "+actualPerformanceFactor+")", worseCaseFactor > actualPerformanceFactor);
-    }
-
-    private long runTests(Worker<Integer, Integer> mapWorker, int testsToRun) {
-        long elapsedForMap;
-        long startTime = System.nanoTime();
-        int dummyCount = 0;
-        for (int i = 0; i< testsToRun; i++)
-        {
-            dummyCount += mapWorker.run(i);
-        }
-        elapsedForMap = System.nanoTime() - startTime;
-        log("elapsed = " + elapsedForMap + ", dummy count:" + dummyCount);
-        return elapsedForMap;
-    }
-
     @Test
     public void testIndexedCollectionVsHashMapNotOnKey()
     {
@@ -126,26 +96,7 @@ public class PerformanceTest {
             }
         };
 
-        runPerformanceTest(mapWorker, icWorker, WARMUP_LOOPS, 0.15, TEST_COLLECTION_SIZE/10);
-    }
-
-    private void log(String s) {
-        if (loggingEnabled) {
-            System.out.println(s);
-        }
-    }
-
-    private static Car.Color[] COLOURS =
-            {Car.Color.BLACK, Car.Color.RED, Car.Color.BLUE, Car.Color.GREEN,Car.Color.WHITE};
-    private static String[] MAKES = {SELECTED_MANUFACTURER, "Ford", "Honda", "Audi","Chrysler","Jaguar","Porsche","Merecedes","BMW"};
-    private static String[] MODELS = {"A", "B", "C", "D","E","F","G","H","I"};
-
-    private Car randomCar(int i) {
-        return new Car(i, (String)getRandom(MAKES), (String)getRandom(MODELS), (Car.Color)getRandom(COLOURS), (int) (2+Math.random()*4), 5000+10000*Math.random(), new ArrayList<String>());
-    }
-
-    private Object getRandom(Object[] things) {
-        return things[(int) (Math.random() * things.length)];
+        runPerformanceTest(mapWorker, icWorker, WARMUP_LOOPS, 0.3, TEST_COLLECTION_SIZE/10);
     }
 
     @Test
@@ -168,4 +119,54 @@ public class PerformanceTest {
         assertTrue("TODO", 1>2);
 
     }
+
+    private void runPerformanceTest(Worker<Integer, Integer> mapWorker, Worker<Integer, Integer> icWorker, int warmupLoops, double worseCaseFactor, int testsToRun) {
+        double elapsedForIC = -999;
+        double elapsedForMap = -1;
+        double actualPerformanceFactor = elapsedForIC / elapsedForMap;
+        for (int j = 0; j<= warmupLoops; j++) {
+            if (j == warmupLoops) loggingEnabled = true;
+            elapsedForMap = runTests(mapWorker, testsToRun);
+
+            elapsedForIC = runTests(icWorker, testsToRun);
+
+            actualPerformanceFactor = elapsedForIC / elapsedForMap;
+            log("Map vs IndexedCollection timing ratio:"+ actualPerformanceFactor);
+        }
+
+        assertTrue("IC is no worse than "+ worseCaseFactor +" times slower than Map (actual "+actualPerformanceFactor+")", worseCaseFactor > actualPerformanceFactor);
+    }
+
+    private long runTests(Worker<Integer, Integer> mapWorker, int testsToRun) {
+        long elapsedForMap;
+        long startTime = System.nanoTime();
+        int dummyCount = 0;
+        for (int i = 0; i< testsToRun; i++)
+        {
+            dummyCount += mapWorker.run(i);
+        }
+        elapsedForMap = System.nanoTime() - startTime;
+        log("elapsed = " + elapsedForMap + ", dummy count:" + dummyCount);
+        return elapsedForMap;
+    }
+
+    private void log(String s) {
+        if (loggingEnabled) {
+            System.out.println(s);
+        }
+    }
+
+    private static Car.Color[] COLOURS =
+            {Car.Color.BLACK, Car.Color.RED, Car.Color.BLUE, Car.Color.GREEN,Car.Color.WHITE};
+    private static String[] MAKES = {SELECTED_MANUFACTURER, "Ford", "Honda", "Audi","Chrysler","Jaguar","Porsche","Merecedes","BMW"};
+    private static String[] MODELS = {"A", "B", "C", "D","E","F","G","H","I"};
+
+    private Car randomCar(int i) {
+        return new Car(i, (String)getRandom(MAKES), (String)getRandom(MODELS), (Car.Color)getRandom(COLOURS), (int) (2+Math.random()*4), 5000+10000*Math.random(), new ArrayList<String>());
+    }
+
+    private Object getRandom(Object[] things) {
+        return things[(int) (Math.random() * things.length)];
+    }
+
 }
