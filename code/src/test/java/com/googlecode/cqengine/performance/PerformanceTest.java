@@ -96,7 +96,7 @@ public class PerformanceTest {
             }
         };
 
-        runPerformanceTest(mapWorker, icWorker, WARMUP_LOOPS, 0.3, TEST_COLLECTION_SIZE/10);
+        runPerformanceTest(mapWorker, icWorker, WARMUP_LOOPS, 0.5, TEST_COLLECTION_SIZE/10);
     }
 
     @Test
