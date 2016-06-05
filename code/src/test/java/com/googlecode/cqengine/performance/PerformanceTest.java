@@ -60,7 +60,7 @@ public class PerformanceTest {
         };
 
         // TODO - this is very slow, is it really to be expected? Or is there a better query for this?
-        runPerformanceTest(mapFunctionHelper, icFunctionHelper, 15, TEST_COLLECTION_SIZE);
+        runPerformanceTest(mapFunctionHelper, icFunctionHelper, 20, TEST_COLLECTION_SIZE);
     }
 
     @Test
