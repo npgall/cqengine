@@ -23,12 +23,16 @@ import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.query.Query;
 
+import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTableName;
+
 /**
  * A {@link PartialIndex} which uses {@link DiskPersistence}.
  *
  * @author niall.gallagher
  */
 public class PartialDiskIndex<A extends Comparable<A>, O> extends PartialIndex<A, O> implements DiskTypeIndex {
+
+    final String tableNameSuffix;
 
     /**
      * Protected constructor, called by subclasses.
@@ -37,12 +41,13 @@ public class PartialDiskIndex<A extends Comparable<A>, O> extends PartialIndex<A
      */
     protected PartialDiskIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
         super(attribute, filterQuery);
+        this.tableNameSuffix = "_partial_" + sanitizeForTableName(filterQuery.toString());
     }
 
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
     protected AttributeIndex<A, O> createBackingIndex() {
-        return new DiskIndex(DiskPersistence.class, attribute) {
+        return new DiskIndex(DiskPersistence.class, attribute, tableNameSuffix) {
             @Override
             public Index getEffectiveIndex() {
                 return PartialDiskIndex.this.getEffectiveIndex();

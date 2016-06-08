@@ -76,7 +76,7 @@ public class SQLiteIndexTest {
     public TemporaryDatabase.TemporaryInMemoryDatabase temporaryInMemoryDatabase = new TemporaryDatabase.TemporaryInMemoryDatabase();
 
     @Test
-    public void testNew() throws Exception {
+    public void testNew1() throws Exception {
 
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = SQLiteIndex.onAttribute(
                 Car.FEATURES,
@@ -85,6 +85,20 @@ public class SQLiteIndexTest {
         );
 
         assertNotNull(carFeaturesOffHeapIndex);
+    }
+
+    @Test
+    public void testNew2() throws Exception {
+
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                "_tableSuffix"
+        );
+
+        assertNotNull(carFeaturesOffHeapIndex);
+        assertEquals("features_tableSuffix", carFeaturesOffHeapIndex.tableName);
     }
 
     @Test
@@ -97,7 +111,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
 
         assertEquals(connectionManager, carFeaturesOffHeapIndex.getConnectionManager(queryOptions));
@@ -128,7 +143,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
 
         carFeaturesOffHeapIndex.removeAll(removedObjects, createQueryOptions(connectionManager));
@@ -169,7 +185,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
         carFeaturesOffHeapIndex.addAll(addedObjects, createQueryOptions(connectionManager));
 
@@ -205,7 +222,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
 
         carFeaturesOffHeapIndex.clear(createQueryOptions(connectionManager));
@@ -242,7 +260,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
 
         carFeaturesOffHeapIndex.init(emptyObjectStore(), createQueryOptions(connectionManager));
@@ -291,7 +310,8 @@ public class SQLiteIndexTest {
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT
+                ID_TO_OBJECT,
+                ""
         );
 
         carFeaturesOffHeapIndex.init(wrappingObjectStore(initWithObjects), createQueryOptions(connectionManager));
@@ -339,7 +359,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -362,7 +383,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -391,7 +413,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -428,7 +451,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -469,7 +493,8 @@ public class SQLiteIndexTest {
             ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                     Car.FEATURES,
                     OBJECT_TO_ID,
-                    idToObject)
+                    idToObject,
+                    "")
 
                     .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -512,7 +537,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                idToObject)
+                idToObject,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -559,7 +585,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                idToObject)
+                idToObject,
+                "")
 
                 .retrieve(equal(Car.FEATURES, "abs"), createQueryOptions(connectionManager));
 
@@ -1002,7 +1029,8 @@ public class SQLiteIndexTest {
             ResultSet<Car> cars = new SQLiteIndex<String, Car, Integer>(
                     Car.FEATURES,
                     OBJECT_TO_ID,
-                    idToObject)
+                    idToObject,
+                    "")
 
                     .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1047,7 +1075,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                idToObject)
+                idToObject,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1101,7 +1130,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                idToObject)
+                idToObject,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1140,7 +1170,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> cars = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1162,7 +1193,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1210,7 +1242,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 
@@ -1251,7 +1284,8 @@ public class SQLiteIndexTest {
         ResultSet<Car> carsWithAbs = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,
                 OBJECT_TO_ID,
-                ID_TO_OBJECT)
+                ID_TO_OBJECT,
+                "")
 
                 .retrieve(filterQuery, createQueryOptions(connectionManager));
 

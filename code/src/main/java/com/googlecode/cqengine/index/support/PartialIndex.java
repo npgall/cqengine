@@ -21,6 +21,7 @@ import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.persistence.support.FilteredObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
@@ -177,11 +178,7 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        if (!objectStore.isEmpty(queryOptions)) {
-            // TODO implement filtering here. In the meantime, throw exception...
-            throw new UnsupportedOperationException("Initializing this index with a non-empty collection is not yet supported.");
-        }
-        backingIndex().init(objectStore, queryOptions);
+        backingIndex().init(new FilteredObjectStore<O>(objectStore, filterQuery), queryOptions);
     }
 
     @Override

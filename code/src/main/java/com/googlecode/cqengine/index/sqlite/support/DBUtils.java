@@ -210,4 +210,11 @@ public class DBUtils {
         }
     }
 
+    /**
+     * Strips illegal characters so that the given string can be used as a SQLite table name.
+     */
+    public static String sanitizeForTableName(String input) {
+        return input.replaceAll("[^A-Za-z0-9]", "");
+    }
+
 }

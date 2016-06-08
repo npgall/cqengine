@@ -40,8 +40,8 @@ public class OffHeapIndex<A extends Comparable<A>, O, K extends Comparable<K>> e
     // Therefore the retrieval costs for this index will range from 70-79...
     static final int INDEX_RETRIEVAL_COST_DELTA = -10;
 
-    OffHeapIndex(Class<? extends OffHeapPersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
-        super(persistenceType, attribute);
+    OffHeapIndex(Class<? extends OffHeapPersistence<O, A>> persistenceType, Attribute<O, A> attribute, String tableNameSuffix) {
+        super(persistenceType, attribute, tableNameSuffix);
     }
 
     @Override
@@ -66,6 +66,6 @@ public class OffHeapIndex<A extends Comparable<A>, O, K extends Comparable<K>> e
      */
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
     public static <A extends Comparable<A>, O> OffHeapIndex<A, O, ? extends Comparable<?>> onAttribute(final Attribute<O, A> attribute) {
-        return new OffHeapIndex(OffHeapPersistence.class, attribute);
+        return new OffHeapIndex(OffHeapPersistence.class, attribute, "");
     }
 }

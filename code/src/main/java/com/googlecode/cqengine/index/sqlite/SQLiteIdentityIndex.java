@@ -59,7 +59,8 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
         this.sqLiteIndex = new SQLiteIndex<A, O, byte[]>(
                 primaryKeyAttribute,
                 new SerializingAttribute(primaryKeyAttribute.getObjectType(), byte[].class),
-                new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType())) {
+                new DeserializingAttribute(byte[].class, primaryKeyAttribute.getObjectType()),
+                "") {
             // Override getEffectiveIndex() in the SQLiteIndex to return a reference to this index...
             @Override
             public Index<O> getEffectiveIndex() {

@@ -43,11 +43,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     final Class<? extends SQLitePersistence> persistenceType;
     final Attribute<O, A> attribute;
+    final String tableNameSuffix;
     volatile SQLiteIndex<A, O, K> backingIndex;
 
-    protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
+    protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute, String tableNameSuffix) {
         this.persistenceType = persistenceType;
         this.attribute = attribute;
+        this.tableNameSuffix = tableNameSuffix;
     }
 
     @Override
@@ -63,7 +65,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
                 return primaryKeyIndex.retrieve(QueryFactory.equal(primaryKeyAttribute, primaryKeyValue), queryOptions).uniqueResult();
             }
         };
-        backingIndex = new SQLiteIndex<A, O, K>(this.attribute, primaryKeyAttribute, foreignKeyAttribute) {
+        backingIndex = new SQLiteIndex<A, O, K>(this.attribute, primaryKeyAttribute, foreignKeyAttribute, tableNameSuffix) {
             // Override getEffectiveIndex() in the backing index to return a reference to this index...
             @Override
             public Index<O> getEffectiveIndex() {

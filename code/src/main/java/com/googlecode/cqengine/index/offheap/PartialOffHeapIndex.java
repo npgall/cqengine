@@ -23,12 +23,16 @@ import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.query.Query;
 
+import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTableName;
+
 /**
  * A {@link PartialIndex} which uses {@link OffHeapPersistence}.
  *
  * @author niall.gallagher
  */
 public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialIndex<A, O> implements OffHeapTypeIndex {
+
+    final String tableNameSuffix;
 
     /**
      * Protected constructor, called by subclasses.
@@ -37,12 +41,13 @@ public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialInde
      */
     protected PartialOffHeapIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
         super(attribute, filterQuery);
+        this.tableNameSuffix = "_partial_" + sanitizeForTableName(filterQuery.toString());
     }
 
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
     protected AttributeIndex<A, O> createBackingIndex() {
-        return new OffHeapIndex(OffHeapPersistence.class, attribute) {
+        return new OffHeapIndex(OffHeapPersistence.class, attribute, tableNameSuffix) {
             @Override
             public Index getEffectiveIndex() {
                 return PartialOffHeapIndex.this.getEffectiveIndex();
