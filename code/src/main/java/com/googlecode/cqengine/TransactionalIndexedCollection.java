@@ -103,7 +103,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
 
     final AtomicLong versionNumberGenerator = new AtomicLong();
 
-    class Version<O> {
+    class Version {
         // New reading threads acquire read locks from the current Version.
         // Writing threads create a new Version at each step of the MVCC algorithm,
         // then acquire write locks from the previous Version before moving onto the next step.
@@ -144,7 +144,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         super(persistence);
         this.objectType = objectType;
         // Set up initial version...
-        this.currentVersion = new Version<O>(Collections.<O>emptySet());
+        this.currentVersion = new Version(Collections.<O>emptySet());
     }
 
     /**
@@ -156,7 +156,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
      */
     void incrementVersion(Iterable<O> objectsToExcludeFromNextVersion) {
         Version previousVersion = this.currentVersion;
-        this.currentVersion = new Version<O>(objectsToExcludeFromNextVersion);
+        this.currentVersion = new Version(objectsToExcludeFromNextVersion);
         previousVersion.lock.writeLock().lock();
     }
 
