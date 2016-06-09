@@ -71,6 +71,11 @@ public class FilteredObjectStore<O> implements ObjectStore<O> {
             public O next() {
                 return filteringIterator.next();
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Modification not supported");
+            }
         };
     }
 
