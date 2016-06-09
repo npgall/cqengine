@@ -79,7 +79,7 @@ public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialIn
      * @param <K> The type of the object key.
      * @return a new instance of the {@link SQLiteIndex}
      */
-    public static <A extends Comparable<A>, O, K> PartialSQLiteIndex<A, O, K> onAttribute(Attribute<O, A> attribute,
+    public static <A extends Comparable<A>, O, K> PartialSQLiteIndex<A, O, K> onAttributeWithFilterQuery(Attribute<O, A> attribute,
                                                                                    SimpleAttribute<O, K> primaryKeyAttribute,
                                                                                    SimpleAttribute<K, O> foreignKeyAttribute,
                                                                                    Query<O> filterQuery) {
