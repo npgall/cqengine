@@ -27,10 +27,9 @@ import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.IsolationLevel.READ_UNCOMMITTED;
@@ -99,15 +98,24 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
     public static final String STRICT_REPLACEMENT = "STRICT_REPLACEMENT";
 
     final Class<O> objectType;
-    final AtomicLong versionGenerator = new AtomicLong();
-    volatile long currentVersion = 0;
-    final ConcurrentNavigableMap<Long, Version> versions = new ConcurrentSkipListMap<Long, Version>();
+    volatile Version currentVersion;
     final Object writeMutex = new Object();
 
-    static class Version<O> {
-        final AtomicLong readersCount = new AtomicLong();
-        final Semaphore writeLock = new Semaphore(0, true);
+    final AtomicLong versionNumberGenerator = new AtomicLong();
+
+    class Version<O> {
+        // New reading threads acquire read locks from the current Version.
+        // Writing threads create a new Version at each step of the MVCC algorithm,
+        // then acquire write locks from the previous Version before moving onto the next step.
+        // Therefore reading threads always acquire read locks from an uncontended Version,
+        // and writing threads wait for threads reading the previous version to finish before
+        // moving onto the next step.
+        final ReadWriteLock lock = new ReentrantReadWriteLock();
         final Iterable<O> objectsToExclude;
+
+        // versionNumber is not actually used by the MVCC algorithm,
+        // it is only useful when debugging and for unit tests...
+        final long versionNumber = versionNumberGenerator.incrementAndGet();
 
         Version(Iterable<O> objectsToExclude) {
             this.objectsToExclude = objectsToExclude;
@@ -136,7 +144,33 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         super(persistence);
         this.objectType = objectType;
         // Set up initial version...
-        incrementVersion(Collections.<O>emptySet());
+        this.currentVersion = new Version<O>(Collections.<O>emptySet());
+    }
+
+    /**
+     * Creates a new Version and sets it as the current version and configures that version to exclude the given
+     * objects from results returned to threads which will read that version.
+     * Then, acquires the write lock on the previous Version, which will cause this (writing) thread
+     * to block until all threads reading the previous version have finished reading that version.
+     * @param objectsToExcludeFromNextVersion Objects to exclude from the next version
+     */
+    void incrementVersion(Iterable<O> objectsToExcludeFromNextVersion) {
+        Version previousVersion = this.currentVersion;
+        this.currentVersion = new Version<O>(objectsToExcludeFromNextVersion);
+        previousVersion.lock.writeLock().lock();
+    }
+
+    /**
+     * Acquires the (uncontended) read lock for the current version and returns the current Version object,
+     * while handling an edge case that a writing thread might be in the middle of incrementing the version,
+     * in which case this method will refresh the current version until successful.
+     */
+    Version acquireReadLockForCurrentVersion() {
+        Version currentVersion;
+        do {
+            currentVersion = this.currentVersion;
+        } while (!currentVersion.lock.readLock().tryLock());
+        return currentVersion;
     }
 
     /**
@@ -211,31 +245,25 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 }
                 boolean modified = false;
                 if (objectsToAddIterator.hasNext()) {
-                    // Configure new reading threads to exclude the objects we will add...
+                    // Configure new reading threads to exclude the objects we will add,
+                    // and then wait for threads reading previous versions to finish...
                     incrementVersion(objectsToAdd);
-
-                    // Wait for this to take effect across all threads...
-                    waitForReadersOfPreviousVersionsToFinish();
 
                     // Now add the given objects...
                     modified = doAddAll(objectsToAdd, queryOptions);
                 }
                 if (objectsToRemoveIterator.hasNext()) {
-                    // Configure (or reconfigure) new reading threads to (instead) exclude the objects we will remove...
+                    // Configure (or reconfigure) new reading threads to (instead) exclude the objects we will remove,
+                    // and then wait for threads reading previous versions to finish...
                     incrementVersion(objectsToRemove);
-
-                    // Wait for this to take effect across all threads...
-                    waitForReadersOfPreviousVersionsToFinish();
 
                     // Now remove the given objects...
                     modified = doRemoveAll(objectsToRemove, queryOptions) || modified;
                 }
 
-                // Finally, remove the exclusion...
+                // Finally, remove the exclusion,
+                // and then wait for this to take effect across all threads...
                 incrementVersion(Collections.<O>emptySet());
-
-                // Wait for this to take effect across all threads...
-                waitForReadersOfPreviousVersionsToFinish();
 
                 return modified;
             }
@@ -245,29 +273,6 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         }
     }
 
-    void incrementVersion(Iterable<O> objectsToExcludeFromThisVersion) {
-        // Note we add the new Version object to the map before we update currentVersion,
-        // to prevent a race condition where a reader could read the incremented version
-        // but the object would not yet be in the map...
-        long nextVersion = versionGenerator.incrementAndGet();
-        versions.put(nextVersion, new Version<O>(objectsToExcludeFromThisVersion));
-        currentVersion = nextVersion;
-    }
-
-    void waitForReadersOfPreviousVersionsToFinish() {
-        Collection<Version> previousVersions = versions.headMap(versions.lastKey()).values();
-        for (Iterator<Version> previousVersionsIterator = previousVersions.iterator(); previousVersionsIterator.hasNext(); ) {
-            Version previousVersion = previousVersionsIterator.next();
-            // Wait until the last reader (if there is one) of this previous version signals that it has finished...
-            if (previousVersion.readersCount.get() != 0) {
-                previousVersion.writeLock.acquireUninterruptibly();
-            }
-
-            // At this point readers of this previous version have finished.
-            // Remove this version from memory...
-            previousVersionsIterator.remove();
-        }
-    }
 
     @Override
     public boolean add(O o) {
@@ -319,20 +324,16 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                     return false;
                 }
 
-                // Configure new reading threads to exclude the objects we will remove...
+                // Configure new reading threads to exclude the objects we will remove,
+                // then wait for this to take effect across all threads...
                 incrementVersion(objectsToRemove);
-
-                // Wait for this to take effect across all threads...
-                waitForReadersOfPreviousVersionsToFinish();
 
                 // Now remove the given objects...
                 boolean modified = doRemoveAll(objectsToRemove, queryOptions);
 
-                // Finally, remove the exclusion...
+                // Finally, remove the exclusion,
+                // then wait for this to take effect across all threads...
                 incrementVersion(Collections.<O>emptySet());
-
-                // Wait for this to take effect across all threads...
-                waitForReadersOfPreviousVersionsToFinish();
 
                 return modified;
             }
@@ -360,11 +361,8 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         }
         // Otherwise apply READ_COMMITTED isolation...
 
-        // Get the Version object for the current version of the collection...
-        final long thisVersionNumber = currentVersion;
-        final Version thisVersion = versions.get(thisVersionNumber);
-        // Increment the readers count to record that this thread is reading this version...
-        thisVersion.readersCount.incrementAndGet();
+        // Get the current Version and acquire an (uncontended) read lock on it...
+        final Version thisVersion = acquireReadLockForCurrentVersion();
 
         // Return the results matching the query such that:
         // - STEP 1: When the ResultSet.close() method is called, we decrement the readers count
@@ -378,25 +376,8 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
             @Override
             public void close() {
                 super.close();
-                // Decrement the readers count for this version...
-                long decrementedReadersCountForThisVersion = thisVersion.readersCount.decrementAndGet();
-                if (decrementedReadersCountForThisVersion == 0) {
-                    // Readers count is zero so there are no other concurrent readers of this version *right now*.
-                    // If the version of the collection *has not changed* since this thread started reading,
-                    // then this is still the latest version of the collection, and it is possible that
-                    // another thread will start reading from this version and increment the count above zero again
-                    // after this thread finishes.
-                    // OTOH, if the version of the collection *has changed* since this thread started reading,
-                    // then no new threads can ever start reading from this version again, AND this is
-                    // the last thread to finish reading this version.
-
-                    if (thisVersionNumber != currentVersion) {
-                        // This is the last thread to finish reading this version.
-                        // Release the write lock, which notifies writing threads that this last reading thread has
-                        // finished reading this version...
-                        thisVersion.writeLock.release();
-                    }
-                }
+                // Release the read lock for this version when ResultSet.close() is called...
+                thisVersion.lock.readLock().unlock();
             }
         };
         // STEP 2: Apply filtering as necessary...
