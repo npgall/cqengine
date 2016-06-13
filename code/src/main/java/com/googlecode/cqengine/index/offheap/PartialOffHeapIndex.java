@@ -16,9 +16,10 @@
 package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.PartialIndex;
+import com.googlecode.cqengine.index.support.PartialSortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.query.Query;
@@ -30,7 +31,7 @@ import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTa
  *
  * @author niall.gallagher
  */
-public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialIndex<A, O> implements OffHeapTypeIndex {
+public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements OffHeapTypeIndex {
 
     final String tableNameSuffix;
 
@@ -46,7 +47,7 @@ public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialInde
 
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
-    protected AttributeIndex<A, O> createBackingIndex() {
+    protected SortedKeyStatisticsAttributeIndex<A, O> createBackingIndex() {
         return new OffHeapIndex(OffHeapPersistence.class, attribute, tableNameSuffix) {
             @Override
             public Index getEffectiveIndex() {

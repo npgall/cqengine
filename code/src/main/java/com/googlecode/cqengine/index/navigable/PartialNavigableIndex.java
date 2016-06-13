@@ -16,10 +16,11 @@
 package com.googlecode.cqengine.index.navigable;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.support.PartialIndex;
+import com.googlecode.cqengine.index.support.PartialSortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.query.Query;
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentNavigableMap;
  *
  * @author niall.gallagher
  */
-public class PartialNavigableIndex<A extends Comparable<A>, O> extends PartialIndex<A, O> implements OnHeapTypeIndex {
+public class PartialNavigableIndex<A extends Comparable<A>, O> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements OnHeapTypeIndex {
 
     final Factory<ConcurrentNavigableMap<A, StoredResultSet<O>>> indexMapFactory;
     final Factory<StoredResultSet<O>> valueSetFactory;
@@ -50,7 +51,7 @@ public class PartialNavigableIndex<A extends Comparable<A>, O> extends PartialIn
 
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
-    protected AttributeIndex<A, O> createBackingIndex() {
+    protected SortedKeyStatisticsAttributeIndex<A, O> createBackingIndex() {
         return new NavigableIndex<A, O>(indexMapFactory, valueSetFactory, attribute) {
             @Override
             public Index getEffectiveIndex() {

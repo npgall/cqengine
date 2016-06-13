@@ -48,7 +48,7 @@ import java.util.*;
  *
  * @author niall.gallagher
  */
-public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
+public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> implements AttributeIndex<A, O> {
 
     // An integer to add or subtract to the retrieval cost returned by the backing index,
     // so that given a choice between a regular index and a partial index,
@@ -59,12 +59,12 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
 
     protected final Query<O> filterQuery;
     protected final Attribute<O, A> attribute;
-    protected volatile AttributeIndex<A, O> backingIndex;
+    protected volatile I backingIndex;
 
     /**
      * Protected constructor, called by subclasses.
      *
-     * @param attribute
+     * @param attribute The attribute on which the index is built.
      * @param filterQuery The filter query which matches the subset of objects to be stored in this index.
      */
     protected PartialIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
@@ -72,7 +72,7 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
         this.filterQuery = filterQuery;
     }
 
-    protected AttributeIndex<A, O> backingIndex() {
+    protected I backingIndex() {
         if (backingIndex == null) {
             synchronized (this) { // Double-checked locking to prevent duplicate index creation
                 if (backingIndex == null) {
@@ -135,7 +135,7 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
             return false;
         }
 
-        PartialIndex<?, ?> that = (PartialIndex<?, ?>) o;
+        PartialIndex<?, ?, ?> that = (PartialIndex<?, ?, ?>) o;
 
         if (!filterQuery.equals(that.filterQuery)) {
             return false;
@@ -208,6 +208,6 @@ public abstract class PartialIndex<A, O> implements AttributeIndex<A, O> {
         return matchingSubset;
     }
 
-    protected abstract AttributeIndex<A, O> createBackingIndex();
+    protected abstract I createBackingIndex();
 
 }

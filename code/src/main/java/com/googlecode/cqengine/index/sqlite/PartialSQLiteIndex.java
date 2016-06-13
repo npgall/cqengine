@@ -17,9 +17,10 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.PartialIndex;
+import com.googlecode.cqengine.index.support.PartialSortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.query.Query;
 
@@ -30,7 +31,7 @@ import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTa
  *
  * @author niall.gallagher
  */
-public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialIndex<A, O> implements NonHeapTypeIndex {
+public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements NonHeapTypeIndex {
 
     final SimpleAttribute<O, K> primaryKeyAttribute;
     final SimpleAttribute<K, O> foreignKeyAttribute;
@@ -56,7 +57,7 @@ public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialIn
 
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
-    protected AttributeIndex<A, O> createBackingIndex() {
+    protected SortedKeyStatisticsAttributeIndex<A, O> createBackingIndex() {
         return new SQLiteIndex(attribute, primaryKeyAttribute, foreignKeyAttribute, tableNameSuffix) {
             @Override
             public Index getEffectiveIndex() {
