@@ -16,7 +16,6 @@
 package com.googlecode.cqengine.index.fallback;
 
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -79,7 +78,7 @@ public class FallbackIndex<O> implements Index<O> {
      * @return true, this index supports all types of query
      */
     @Override
-    public boolean supportsQuery(Query<O> query) {
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
         return true;
     }
 

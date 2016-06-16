@@ -22,7 +22,10 @@ import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.disk.DiskIndex;
+import com.googlecode.cqengine.index.disk.PartialDiskIndex;
+import com.googlecode.cqengine.index.navigable.PartialNavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.index.offheap.PartialOffHeapIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
@@ -32,6 +35,8 @@ import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
+import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
+import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.composite.CompositePersistence;
@@ -745,6 +750,63 @@ public class IndexedCollectionFunctionalTest {
                     indexCombinations = indexCombinations(indexCombination(CompoundIndex.onAttributes(Car.MANUFACTURER, Car.MODEL)));
                 }},
                 new MacroScenario() {{
+                    name = "retrieval cost with PartialNavigableIndex";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(greaterThan(Car.PRICE, 4000.0), equal(Car.MANUFACTURER, "Ford"));
+                                expectedResults = new ExpectedResults() {{
+                                    retrievalCost = 35; // 40 from NavigableIndex, -5 from PartialIndex
+                                    mergeCost = 2;
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(0, 2);
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(indexCombination(
+                            PartialNavigableIndex.onAttributeWithFilterQuery(Car.PRICE, equal(Car.MANUFACTURER, "Ford"))
+                    ));
+                }},
+                new MacroScenario() {{
+                    name = "retrieval cost with PartialOffHeapIndex";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(greaterThan(Car.PRICE, 4000.0), equal(Car.MANUFACTURER, "Ford"));
+                                expectedResults = new ExpectedResults() {{
+                                    retrievalCost = 65; // 80 from SQLiteIndex, -10 from OffHeapIndex, -5 from PartialIndex
+                                    mergeCost = 2;
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(0, 2);
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(indexCombination(
+                            PartialOffHeapIndex.onAttributeWithFilterQuery(Car.PRICE, equal(Car.MANUFACTURER, "Ford"))
+                    ));
+                }},
+                new MacroScenario() {{
+                    name = "retrieval cost with PartialDiskIndex";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(greaterThan(Car.PRICE, 4000.0), equal(Car.MANUFACTURER, "Ford"));
+                                expectedResults = new ExpectedResults() {{
+                                    retrievalCost = 85; // 80 from SQLiteIndex, +10 from DiskIndex, -5 from PartialIndex
+                                    mergeCost = 2;
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(0, 2);
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(indexCombination(
+                            PartialDiskIndex.onAttributeWithFilterQuery(Car.PRICE, equal(Car.MANUFACTURER, "Ford"))
+                    ));
+                }},
+                new MacroScenario() {{
                     name = "string queries 1";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class, TransactionalIndexedCollection.class);
@@ -1224,7 +1286,7 @@ public class IndexedCollectionFunctionalTest {
                                 query = or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE));
                                 expectedResults = new ExpectedResults() {{
                                     size = 5;
-                                    retrievalCost = 60;
+                                    retrievalCost = 70; // 80 from SQLiteIndex, -10 from OffHeapIndex
                                     mergeCost = 5;
                                 }};
                             }}
@@ -1367,10 +1429,10 @@ public class IndexedCollectionFunctionalTest {
         }
         boolean hasDiskIndex = false, hasOffHeapIndex = false;
         for (Index<Car> index : scenario.indexCombination) {
-            if (index instanceof DiskIndex || index instanceof SQLiteDiskIdentityIndex) {
+            if (index instanceof DiskTypeIndex) {
                 hasDiskIndex = true;
             }
-            else if (index instanceof OffHeapIndex || index instanceof SQLiteOffHeapIdentityIndex) {
+            else if (index instanceof OffHeapTypeIndex) {
                 hasOffHeapIndex = true;
             }
         }
@@ -1393,7 +1455,7 @@ public class IndexedCollectionFunctionalTest {
                 indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Class.class, Persistence.class).newInstance(Car.class, persistence);
             }
             else if (OffHeapConcurrentIndexedCollection.class.isAssignableFrom(scenario.collectionImplementation)) {
-                if (!(persistence instanceof OffHeapPersistence)) {
+                if (!(persistence instanceof OffHeapTypeIndex)) {
                     persistence =  CompositePersistence.of(OffHeapPersistence.onPrimaryKey(Car.CAR_ID), persistence);
                 }
                 indexedCollection = (IndexedCollection<Car>) scenario.collectionImplementation.getConstructor(Persistence.class).newInstance(persistence);
@@ -1411,7 +1473,7 @@ public class IndexedCollectionFunctionalTest {
                     indexedCollection.addIndex(index);
                 }
                 catch (Exception e) {
-                    throw new IllegalStateException("Could not add " + getIndexDescription(index), e);
+                    throw new IllegalStateException("Could not add " + getIndexDescription(index) + " with persistence type: " + persistence, e);
                 }
             }
         }
@@ -1457,13 +1519,31 @@ public class IndexedCollectionFunctionalTest {
                 System.out.print(scenarioNumber == totalScenarioCount ? "\n" : "\r");
                 lastStatusTimestamp = currentTime;
             }
-            if (persistence instanceof DiskPersistence) {
-                DiskPersistence diskPersistence = (DiskPersistence) persistence;
-                File diskPersistenceFile = diskPersistence.getFile();
-                if (!diskPersistenceFile.delete()) {
-                    throw new IllegalStateException("Failed to delete temporary disk persistence file: " + diskPersistenceFile);
+            if (persistence instanceof CompositePersistence) {
+                CompositePersistence compositePersistence = (CompositePersistence) persistence;
+                closePersistenceIfNecessary(compositePersistence.getPrimaryPersistence());
+                closePersistenceIfNecessary(compositePersistence.getSecondaryPersistence());
+                List<? extends Persistence<Car, Integer>> additionalPersistences = compositePersistence.getAdditionalPersistences();
+                for (Persistence<Car, Integer> additionalPersistence : additionalPersistences) {
+                    closePersistenceIfNecessary(additionalPersistence);
                 }
             }
+            else {
+                closePersistenceIfNecessary(persistence);
+            }
+        }
+    }
+
+    static void closePersistenceIfNecessary(Persistence<Car, Integer> persistence) {
+        if (persistence instanceof DiskPersistence) {
+            DiskPersistence diskPersistence = (DiskPersistence) persistence;
+            File diskPersistenceFile = diskPersistence.getFile();
+            if (!diskPersistenceFile.delete()) {
+                throw new IllegalStateException("Failed to delete temporary disk persistence file: " + diskPersistenceFile);
+            }
+        }
+        else if (persistence instanceof OffHeapPersistence) {
+            ((OffHeapPersistence) persistence).close();
         }
     }
 

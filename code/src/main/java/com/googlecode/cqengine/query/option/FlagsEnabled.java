@@ -44,6 +44,11 @@ public class FlagsEnabled {
         return flags.contains(flag);
     }
 
+    @Override
+    public String toString() {
+        return "flagsEnabled=" + flags;
+    }
+
     /**
      * Returns an existing {@link FlagsEnabled} from the QueryOptions, or adds a new
      * instance to the query options and returns that.

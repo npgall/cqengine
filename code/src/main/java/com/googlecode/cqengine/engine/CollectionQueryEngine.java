@@ -77,6 +77,9 @@ import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSo
  */
 public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
+    // A key used to store the root query in the QueryOptions, so it may be accessed by partial indexes...
+    public static final String ROOT_QUERY = "ROOT_QUERY";
+
     private volatile Persistence<O, ? extends Comparable> persistence;
     private volatile ObjectStore<O> objectStore;
 
@@ -301,7 +304,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         ResultSet<O> lowestCostResultSet = null;
         int lowestRetrievalCost = 0;
         for (Index<O> index : indexesOnAttribute) {
-            if (index.supportsQuery(query)) {
+            if (index.supportsQuery(query, queryOptions)) {
                 ResultSet<O> thisIndexResultSet = index.retrieve(query, queryOptions);
                 int thisIndexRetrievalCost = thisIndexResultSet.getRetrievalCost();
                 if (lowestCostResultSet == null || thisIndexRetrievalCost < lowestRetrievalCost) {
@@ -330,6 +333,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
+
+        // Store the root query in the queryOptions, so that when retrieveRecursive() examines child branches, that
+        // both the branch query and the root query will be available to PartialIndexes so they may determine if they
+        // can be used to accelerate the overall query...
+        queryOptions.put(ROOT_QUERY, query);
 
         // Log decisions made to the query log, if provided...
         final QueryLog queryLog = queryOptions.get(QueryLog.class); // might be null
@@ -396,7 +404,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         // Don't bother calculating query selectivity, assign low selectivity so we will use the index...
                         querySelectivity = 0.0;
                     }
-                    else if (!indexForOrdering.supportsQuery(has(firstAttribute))) {
+                    else if (!indexForOrdering.supportsQuery(has(firstAttribute), queryOptions)) {
                         // Index ordering was not requested explicitly, and we cannot calculate the selectivity.
                         // In this case even though we have an index which supports index ordering,
                         // we don't have enough information to say that it would be beneficial.
@@ -893,7 +901,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 CompoundQuery<O> compoundQuery = CompoundQuery.fromAndQueryIfSuitable(and);
                 if (compoundQuery != null) {
                     CompoundIndex<O> compoundIndex = compoundIndexes.get(compoundQuery.getCompoundAttribute());
-                    if (compoundIndex != null && compoundIndex.supportsQuery(compoundQuery)) {
+                    if (compoundIndex != null && compoundIndex.supportsQuery(compoundQuery, queryOptions)) {
                         // No deduplication required for retrievals from compound indexes.
                         return compoundIndex.retrieve(compoundQuery, queryOptions);
                     }

@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.index.disk;
+package com.googlecode.cqengine.index.offheap;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.PartialIndex;
 import com.googlecode.cqengine.index.support.PartialSortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
-import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
-import com.googlecode.cqengine.persistence.disk.DiskPersistence;
+import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
+import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.query.Query;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTableName;
 
 /**
- * A {@link PartialIndex} which uses {@link DiskPersistence}.
+ * A {@link PartialIndex} which uses {@link OffHeapPersistence}.
  *
  * @author niall.gallagher
  */
-public class PartialDiskIndex<A extends Comparable<A>, O> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements DiskTypeIndex {
+public class PartialOffHeapIndex<A extends Comparable<A>, O> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements OffHeapTypeIndex {
 
     final String tableNameSuffix;
 
@@ -40,7 +40,7 @@ public class PartialDiskIndex<A extends Comparable<A>, O> extends PartialSortedK
      *
      * @param filterQuery The filter query which matches the subset of objects to be stored in this index.
      */
-    protected PartialDiskIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
+    protected PartialOffHeapIndex(Attribute<O, A> attribute, Query<O> filterQuery) {
         super(attribute, filterQuery);
         this.tableNameSuffix = "_partial_" + sanitizeForTableName(filterQuery.toString());
     }
@@ -48,28 +48,28 @@ public class PartialDiskIndex<A extends Comparable<A>, O> extends PartialSortedK
     @Override
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
     protected SortedKeyStatisticsAttributeIndex<A, O> createBackingIndex() {
-        return new DiskIndex(DiskPersistence.class, attribute, tableNameSuffix) {
+        return new OffHeapIndex(OffHeapPersistence.class, attribute, tableNameSuffix) {
             @Override
             public Index getEffectiveIndex() {
-                return PartialDiskIndex.this.getEffectiveIndex();
+                return PartialOffHeapIndex.this.getEffectiveIndex();
             }
         };
     }
 
-    // ---------- Static factory methods to create PartialDiskIndex ----------
+    // ---------- Static factory methods to create PartialOffHeapIndex ----------
 
     /**
-     * Creates a new {@link PartialDiskIndex}. This will obtain details of the {@link DiskPersistence} to use from the
+     * Creates a new {@link PartialOffHeapIndex}. This will obtain details of the {@link OffHeapPersistence} to use from the
      * IndexedCollection, throwing an exception if the IndexedCollection has not been configured with a suitable
-     * DiskPersistence.
+     * OffHeapPersistence.
      *
      * @param attribute The {@link Attribute} on which the index will be built.
      * @param filterQuery The filter query which matches the subset of objects to be stored in this index.
      * @param <A> The type of the attribute to be indexed.
      * @param <O> The type of the object containing the attribute.
-     * @return A {@link DiskIndex} on the given attribute.
+     * @return A {@link OffHeapIndex} on the given attribute.
      */
-    public static <A extends Comparable<A>, O> PartialDiskIndex<A, O> onAttributeWithFilterQuery(final Attribute<O, A> attribute, final Query<O> filterQuery) {
-        return new PartialDiskIndex<A, O>(attribute, filterQuery);
+    public static <A extends Comparable<A>, O> PartialOffHeapIndex<A, O> onAttributeWithFilterQuery(final Attribute<O, A> attribute, final Query<O> filterQuery) {
+        return new PartialOffHeapIndex<A, O>(attribute, filterQuery);
     }
 }

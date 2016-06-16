@@ -24,6 +24,8 @@ import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
+ * Specifies that a collection or indexes should be persisted on-heap.
+ *
  * @author niall.gallagher
  */
 public class OnHeapPersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
@@ -49,7 +51,7 @@ public class OnHeapPersistence<O, A extends Comparable<A>> implements Persistenc
     }
 
     /**
-     * Returns true if the given index does NOT implement the {@link OnHeapTypeIndex} marker interface.
+     * Returns true if the given index implements the {@link OnHeapTypeIndex} marker interface.
      */
     @Override
     public boolean supportsIndex(Index<O> index) {

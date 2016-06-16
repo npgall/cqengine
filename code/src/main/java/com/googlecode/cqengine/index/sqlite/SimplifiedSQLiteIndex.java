@@ -43,11 +43,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     final Class<? extends SQLitePersistence> persistenceType;
     final Attribute<O, A> attribute;
+    final String tableNameSuffix;
     volatile SQLiteIndex<A, O, K> backingIndex;
 
-    protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
+    protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute, String tableNameSuffix) {
         this.persistenceType = persistenceType;
         this.attribute = attribute;
+        this.tableNameSuffix = tableNameSuffix;
     }
 
     @Override
@@ -56,14 +58,14 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         QueryEngine<O> queryEngine = getQueryEngineFromQueryOptions(queryOptions);
 
         final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
-        final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine);
+        final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine, queryOptions);
         final SimpleAttribute<K, O> foreignKeyAttribute = new SimpleAttribute<K, O>(primaryKeyAttribute.getAttributeType(), primaryKeyAttribute.getObjectType()) {
             @Override
             public O getValue(K primaryKeyValue, QueryOptions queryOptions) {
                 return primaryKeyIndex.retrieve(QueryFactory.equal(primaryKeyAttribute, primaryKeyValue), queryOptions).uniqueResult();
             }
         };
-        backingIndex = new SQLiteIndex<A, O, K>(this.attribute, primaryKeyAttribute, foreignKeyAttribute) {
+        backingIndex = new SQLiteIndex<A, O, K>(this.attribute, primaryKeyAttribute, foreignKeyAttribute, tableNameSuffix) {
             // Override getEffectiveIndex() in the backing index to return a reference to this index...
             @Override
             public Index<O> getEffectiveIndex() {
@@ -104,13 +106,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return primaryKey;
     }
 
-    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine) {
+    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine, QueryOptions queryOptions) {
         for (Index<O> index : queryEngine.getIndexes()) {
             if (index instanceof AttributeIndex) {
                 @SuppressWarnings("unchecked")
                 AttributeIndex<K, O> attributeIndex = (AttributeIndex<K, O>) index;
                 if (primaryKeyAttribute.equals(attributeIndex.getAttribute())) {
-                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null))) {
+                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null), queryOptions)) {
                         return attributeIndex;
                     }
                 }
@@ -140,8 +142,8 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     // The following methods were mostly auto-generated using IntelliJ: Code -> Generate -> Delegate Methods...
 
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        return backingIndex().supportsQuery(query);
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return backingIndex().supportsQuery(query, queryOptions);
     }
 
     @Override

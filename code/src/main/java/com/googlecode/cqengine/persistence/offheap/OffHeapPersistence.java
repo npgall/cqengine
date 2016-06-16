@@ -18,12 +18,12 @@ package com.googlecode.cqengine.persistence.offheap;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
+import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
@@ -165,11 +165,11 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
 
     /**
      * @param index The {@link Index} for which a connection is required.
-     * @return True if the given index is a {@link OffHeapIndex}. Otherwise false.
+     * @return True if the given index is an {@link OffHeapTypeIndex}. Otherwise false.
      */
     @Override
     public boolean supportsIndex(Index<O> index) {
-        return index instanceof OffHeapIndex || index instanceof SQLiteOffHeapIdentityIndex;
+        return index instanceof OffHeapTypeIndex;
     }
 
     @Override

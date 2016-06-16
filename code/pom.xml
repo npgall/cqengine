@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
-    <version>2.6.1-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>cqengine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>

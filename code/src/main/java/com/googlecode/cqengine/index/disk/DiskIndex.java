@@ -19,6 +19,10 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
 import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
+import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
+import com.googlecode.cqengine.resultset.common.WrappedResultSet;
 
 /**
  * An index persisted in a file on disk.
@@ -32,8 +36,22 @@ import com.googlecode.cqengine.persistence.disk.DiskPersistence;
  */
 public class DiskIndex<A extends Comparable<A>, O, K extends Comparable<K>> extends SimplifiedSQLiteIndex<A, O, K> implements DiskTypeIndex  {
 
-    DiskIndex(Class<? extends DiskPersistence<O, A>> persistenceType, Attribute<O, A> attribute) {
-        super(persistenceType, attribute);
+    // An integer to add or subtract to the retrieval cost returned by SimplifiedSQLiteIndex (which ranges 80-89).
+    // Therefore the retrieval costs for this index will range from 90-99...
+    static final int INDEX_RETRIEVAL_COST_DELTA = +10;
+
+    DiskIndex(Class<? extends DiskPersistence<O, A>> persistenceType, Attribute<O, A> attribute, String tableNameSuffix) {
+        super(persistenceType, attribute, tableNameSuffix);
+    }
+
+    @Override
+    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
+        return new WrappedResultSet<O>(super.retrieve(query, queryOptions)) {
+            @Override
+            public int getRetrievalCost() {
+                return super.getRetrievalCost() + INDEX_RETRIEVAL_COST_DELTA;
+            }
+        };
     }
 
     // ---------- Static factory methods to create DiskIndex ----------
@@ -50,6 +68,6 @@ public class DiskIndex<A extends Comparable<A>, O, K extends Comparable<K>> exte
      */
     @SuppressWarnings("unchecked") // unchecked, because type K will be provided later via the init() method
     public static <A extends Comparable<A>, O> DiskIndex<A, O, ? extends Comparable<?>> onAttribute(final Attribute<O, A> attribute) {
-        return new DiskIndex(DiskPersistence.class, attribute);
+        return new DiskIndex(DiskPersistence.class, attribute, "");
     }
 }

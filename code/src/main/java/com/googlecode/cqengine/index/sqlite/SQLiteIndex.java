@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import static com.googlecode.cqengine.index.sqlite.support.DBQueries.Row;
+import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTableName;
 import static com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags.BulkImportExternallyManged.LAST;
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
@@ -111,7 +112,7 @@ import static com.googlecode.cqengine.query.QueryFactory.*;
  */
 public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttributeIndex<A, O> implements SortedKeyStatisticsAttributeIndex<A, O>, NonHeapTypeIndex {
 
-    static final int INDEX_RETRIEVAL_COST = 60;
+    static final int INDEX_RETRIEVAL_COST = 80;
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
 
     final String tableName;
@@ -123,15 +124,20 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     boolean canSuspendSyncAndJournaling;
 
     /**
-     * Package-private constructor. The index should be created via the static factory methods instead.
+     * Constructor. Note the index should normally be created via the static factory methods instead.
      *
      * @param attribute The {@link Attribute} on which the index will be built.
      * @param primaryKeyAttribute The {@link SimpleAttribute} with which the index will retrieve the object key.
      * @param foreignKeyAttribute The {@link SimpleAttribute} to map a query result into the domain object.
+     * @param tableNameSuffix An optional string to append the end of the table name used by this index;
+     *                        This can be an empty string, but cannot be null; If not an empty string, the string
+     *                        should only contain characters suitable for use in a SQLite table name; therefore see
+     *                        {@link DBUtils#sanitizeForTableName(String)}
      */
     public SQLiteIndex(final Attribute<O, A> attribute,
                        final SimpleAttribute<O, K> primaryKeyAttribute,
-                       final SimpleAttribute<K, O> foreignKeyAttribute) {
+                       final SimpleAttribute<K, O> foreignKeyAttribute,
+                       final String tableNameSuffix) {
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
             add(Equal.class);
@@ -143,15 +149,14 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             add(Has.class);
         }});
 
-        this.tableName = attribute.getAttributeName().replaceAll("[^A-Za-z0-9]", "");
+        this.tableName = sanitizeForTableName(attribute.getAttributeName()) + tableNameSuffix;
         this.primaryKeyAttribute = primaryKeyAttribute;
         this.foreignKeyAttribute = foreignKeyAttribute;
-
     }
 
     @Override
-    public boolean supportsQuery(Query<O> query) {
-        return query instanceof FilterQuery || super.supportsQuery(query);
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return query instanceof FilterQuery || super.supportsQuery(query, queryOptions);
     }
 
     @Override
@@ -867,7 +872,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     public static <A extends Comparable<A>, O, K> SQLiteIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
                                                                                    final SimpleAttribute<O, K> objectKeyAttribute,
                                                                                    final SimpleAttribute<K, O> foreignKeyAttribute) {
-        return new SQLiteIndex<A, O, K>(attribute, objectKeyAttribute, foreignKeyAttribute);
+        return new SQLiteIndex<A, O, K>(attribute, objectKeyAttribute, foreignKeyAttribute, "");
     }
 }
 
