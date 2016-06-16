@@ -33,18 +33,48 @@ import com.googlecode.cqengine.resultset.common.WrappedResultSet;
 import java.util.*;
 
 /**
- * An index which indexes and answers queries only on a subset of the collection; a kind of hybrid between a
+ * An index which indexes and can answer queries on a subset of the collection; a kind of hybrid between a
  * {@link StandingQueryIndex} and a {@link CompoundIndex}.
  * <p/>
  * A partial index wraps a backing index and adds only a subset of objects which match a given <i>filter
- * query</i> to the backing index.
+ * query</i> to the backing index. As such, a partial index accelerates queries on an "interesting subset"
+ * of the collection, without incurring the overhead of indexing the entire collection.
  * <p/>
- * When the partial index is asked if it supports a given query, it will report true only if the query is an {@link And}
- * query with two branches, where one branch is the filter query it was configured with, and the other branch can be
- * handled by the backing index.
+ * Partial indexes require less storage space or memory than non-partial indexes, and they can yield better
+ * query performance as well, because they will contain fewer irrelevant entries not pertaining to the query.
  * <p/>
- * As such, a partial index accelerates queries on an "interesting subset" of the collection, without incurring the
- * overhead of indexing the entire collection.
+ * Partial indexes are also particularly useful when used with index-accelerated ordering. They can store
+ * results which match a given filter query in pre-sorted order of the given attribute, which means that
+ * requesting results for that query and ordered by that attribute at runtime, can be answered quickly by
+ * the partial index without requiring any post-filtering or post-sorting.
+ * <p/>
+ * <b>The conditions under which a partial index will be used are as follows.</b><br/>
+ *
+ * Two conditions must be satisfied:
+ * <ol>
+ *     <li>
+ *         The backing index must support the branch of the query being evaluated.<br/>
+ *         For example if a branch of the query is a <code>between()</code> query on a certain attribute,
+ *         the backing index must support <code>between()</code> queries on that attribute.
+ *     </li>
+ *     <li>
+ *         The root query must be compatible with the configured filter query for this partial index.<br/>
+ *         Let <i>f</i> = the configured filter query, and <i>r</i> = the root query.<br/>
+ *         Both of these may be any type of query (for example simple queries or complex
+ *         <i>and()</i>/<i>or()</i>/<i>not()</i> queries).<br/>
+ *         This partial index will indicate it supports the root query, if the root query satisfies <i>any</i> of
+ *         the following conditions:
+ *         <ul>
+ *             <li><i>r</i> equals <i>f</i></li>
+ *             <li><i>r</i> is an <code>And</code> query, which has <i>f</i> as any one of its direct children:
+ *             <i>and(x, y, f, z)</i></li>
+ *             <li><i>r</i> is an <code>And</code> query and <i>f</i> is an <code>And</code> query,
+ *             and the direct children of <i>f</i> are also the
+ *             direct children of <i>r</i>: <i>f</i> = <i>and(a, b)</i>, <i>r</i> = <i>and(x, a, y, b)</i></li>
+ *         </ul>
+ *     </li>
+ * </ol>
+ * These conditions are implemented by the {@link #supportsQuery(Query, QueryOptions)} method.
  *
  * @author niall.gallagher
  */
@@ -98,12 +128,9 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
 
     /**
      * Returns true if this partial index can answer this branch of the query.
-     * Two conditions must be satisfied:
-     * <ol>
-     *     <li>The backing index must support the given (branch) query.</li>
-     *     <li>The root query (as extracted from query options) must be an And query, and one of its direct children
-     *         must be equal to the filter query with which this partial index was configured.</li>
-     * </ol>
+     * <p/>
+     * See the class JavaDoc for the conditions which must be satisfied for this method to return true.
+     *
      * @param query The query supplied by the query engine, which is typically a branch of the overall query being
      *              evaluated.
      */
@@ -112,18 +139,42 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
         // Extract the root query from the query options, and check if it contains the filter query...
         @SuppressWarnings("unchecked")
         Query<O> rootQuery = (Query<O>) queryOptions.get(CollectionQueryEngine.ROOT_QUERY);
+
+        return supportsQueryInternal(backingIndex(), filterQuery, rootQuery, query, queryOptions);
+    }
+
+    static <A, O, I extends AttributeIndex<A, O>> boolean supportsQueryInternal(I backingIndex,
+                                                                                Query<O> filterQuery,
+                                                                                Query<O> rootQuery,
+                                                                                Query<O> branchQuery,
+                                                                                QueryOptions queryOptions) {
+        if (!backingIndex.supportsQuery(branchQuery, queryOptions)) {
+            return false;
+        }
+
+        // Check: rootQuery equals filterQuery
+        if (filterQuery.equals(rootQuery)) {
+            return true;
+        }
+
         if (!(rootQuery instanceof And)) {
             return false;
         }
+        // Check: rootQuery (r) is an And query, which has filterQuery (f) as any one of its direct children:
+        // r = and(x, y, f, z)
         And<O> rootAndQuery = (And<O>)rootQuery;
-        for (Query<O> childOfRoot : rootAndQuery.getChildQueries()) {
-            if (filterQuery.equals(childOfRoot)) {
-                // The filter query is a direct child of the root query.
-                // Now check if the backing index supports the branch query...
-                return backingIndex.supportsQuery(query, queryOptions);
-            }
+        if (rootAndQuery.getChildQueries().contains(filterQuery)) {
+            return true;
         }
-        return false;
+
+        // Check: rootQuery (r) is an And query and filterQuery (f) is an And query,
+        // and the direct children of f are also the direct children of r:
+        // f = and(a, b), r = and(x, a, y, b)
+        if (!(filterQuery instanceof And)) {
+            return false;
+        }
+        And<O> filterAndQuery = ((And<O>) filterQuery);
+        return rootAndQuery.getChildQueries().containsAll(filterAndQuery.getChildQueries());
     }
 
     @Override

@@ -59,14 +59,14 @@ import java.util.Collection;
  */
 public class WrappingPersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
 
-    final SimpleAttribute<O, A> primaryKeyAttribute;
     final Collection<O> backingCollection;
+    final SimpleAttribute<O, A> primaryKeyAttribute;
 
     public WrappingPersistence(Collection<O> backingCollection) {
-        this(null, backingCollection);
+        this(backingCollection, null);
     }
 
-    public WrappingPersistence(SimpleAttribute<O, A> primaryKeyAttribute, Collection<O> backingCollection) {
+    public WrappingPersistence(Collection<O> backingCollection, SimpleAttribute<O, A> primaryKeyAttribute) {
         this.backingCollection = backingCollection;
         this.primaryKeyAttribute = primaryKeyAttribute;
     }
@@ -111,8 +111,8 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
      * @return A {@link WrappingPersistence} object which persists to the given collection.
      */
-    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> onPrimaryKeyWrappingCollection(SimpleAttribute<O, A> primaryKeyAttribute, Collection<O> collection) {
-        return new WrappingPersistence<O, A>(primaryKeyAttribute, collection);
+    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> aroundCollectionWithPrimaryKey(Collection<O> collection, SimpleAttribute<O, A> primaryKeyAttribute) {
+        return new WrappingPersistence<O, A>(collection, primaryKeyAttribute);
     }
 
     /**
@@ -121,13 +121,13 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * <p/>
      * This persistence will not work with composite persistence configurations, where some indexes are located on heap,
      * and some off-heap etc. To use this persistence in those configurations, it is necessary to specify a primary
-     * key - see: {@link #onPrimaryKeyWrappingCollection(SimpleAttribute, Collection)} (SimpleAttribute)}.
+     * key - see: {@link #aroundCollectionWithPrimaryKey(Collection, SimpleAttribute)}.
      *
      * @return A {@link WrappingPersistence} object which persists to the given collection, and which is not configured
      * with a primary key.
      */
     @SuppressWarnings("unchecked")
-    public static <O> WrappingPersistence<O, ? extends Comparable> withoutPrimaryKeyWrappingCollection(Collection<O> collection) {
+    public static <O> WrappingPersistence<O, ? extends Comparable> aroundCollection(Collection<O> collection) {
         return withoutPrimaryKey_Internal(collection);
     }
 

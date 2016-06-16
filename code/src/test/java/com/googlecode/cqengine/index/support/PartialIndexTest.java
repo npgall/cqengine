@@ -15,20 +15,29 @@
  */
 package com.googlecode.cqengine.index.support;
 
+import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.disk.PartialDiskIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.navigable.PartialNavigableIndex;
 import com.googlecode.cqengine.index.offheap.PartialOffHeapIndex;
+import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.testutil.Car;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
+import org.mockito.Mockito;
 
-import static com.googlecode.cqengine.query.QueryFactory.between;
+import static com.googlecode.cqengine.index.support.PartialIndex.supportsQueryInternal;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
+ * Tests for {@link PartialIndex}.
+ *
  * @author niall.gallagher
  */
 public class PartialIndexTest {
@@ -59,8 +68,119 @@ public class PartialIndexTest {
         PartialIndex partialIndex = PartialNavigableIndex.onAttributeWithFilterQuery(Car.MANUFACTURER, between(Car.CAR_ID, 2, 5));
         assertEquals(Car.MANUFACTURER, partialIndex.getAttribute());
         assertEquals(between(Car.CAR_ID, 2, 5), partialIndex.getFilterQuery());
+        assertFalse(partialIndex.isQuantized());
         assertTrue(partialIndex.getBackingIndex() instanceof NavigableIndex);
         assertTrue(partialIndex.getEffectiveIndex() == partialIndex);
         assertTrue(partialIndex.getBackingIndex().getEffectiveIndex() == partialIndex);
+    }
+
+    @Test
+    public void testClear() {
+        AttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialIndex<Integer, Car, AttributeIndex<Integer, Car>> index = wrapWithPartialIndex(backingIndex);
+
+        index.clear(noQueryOptions());
+        verify(backingIndex, times(1)).clear(noQueryOptions());
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Positive_RootQueryEqualsFilterQuery() {
+        // A partial index on attribute Car.MANUFACTURER, which is filtered to only index Ford and Honda cars.
+        assertTrue(supportsQueryInternal(
+                backingIndexSupportsQuery(in(Car.MANUFACTURER, "Ford", "Honda")),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Positive_RootQueryIsAnAndQueryWithFilterQueryAsChild() {
+        // A partial index on attribute Car.PRICE, which is filtered to only index Ford and Honda cars.
+        assertTrue(supportsQueryInternal(
+                backingIndexSupportsQuery(lessThan(Car.PRICE, 5000.0)),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                and(lessThan(Car.PRICE, 5000.0), in(Car.MANUFACTURER, "Ford", "Honda")),
+                lessThan(Car.PRICE, 5000.0),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Positive_RootAndFilterQueriesAreBothAndQueriesAndChildrenOfFilterQueryAreChildrenOfRootQuery() {
+        // A partial index on attribute Car.PRICE, which is filtered to only index "Blue" Ford and Honda cars.
+        assertTrue(supportsQueryInternal(
+                backingIndexSupportsQuery(lessThan(Car.PRICE, 5000.0)),
+                and(in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.BLUE)),
+                and(lessThan(Car.PRICE, 5000.0), in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.BLUE)),
+                lessThan(Car.PRICE, 5000.0),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Negative_BackingIndexDoesNotSupportQuery() {
+        assertFalse(supportsQueryInternal(
+                backingIndexSupportsQuery(in(Car.MODEL, "Focus", "Civic")),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Negative_RootQueryDoesNotEqualFilterQueryAndRootQueryIsNotAnAndQuery() {
+        assertFalse(supportsQueryInternal(
+                backingIndexSupportsQuery(in(Car.MANUFACTURER, "Ford", "Honda")),
+                or(in(Car.MANUFACTURER, "Ford", "Honda"), in(Car.MODEL, "Focus", "Civic")),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                in(Car.MANUFACTURER, "Ford", "Honda"),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Negative_RootQueryDoesNotEqualFilterQueryAndFilterQueryIsNotAnAndQuery() {
+        assertFalse(supportsQueryInternal(
+                backingIndexSupportsQuery(lessThan(Car.PRICE, 5000.0)),
+                or(in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.BLUE)),
+                and(lessThan(Car.PRICE, 5000.0), in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.BLUE)),
+                lessThan(Car.PRICE, 5000.0),
+                noQueryOptions()
+        ));
+    }
+
+    @Test
+    public <O> void testSupportsQuery_Negative_RootAndQueryDoesNotContainChildrenOfAndFilterQuery() {
+        assertFalse(supportsQueryInternal(
+                backingIndexSupportsQuery(lessThan(Car.PRICE, 5000.0)),
+                and(in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.BLUE)),
+                and(lessThan(Car.PRICE, 5000.0), in(Car.MANUFACTURER, "Ford", "Honda"), equal(Car.COLOR, Car.Color.RED)),
+                lessThan(Car.PRICE, 5000.0),
+                noQueryOptions()
+        ));
+    }
+
+    static PartialIndex<Integer, Car, AttributeIndex<Integer, Car>> wrapWithPartialIndex(final AttributeIndex<Integer, Car> mockedBackingIndex) {
+        return new PartialIndex<Integer, Car, AttributeIndex<Integer, Car>>(Car.CAR_ID, in(Car.MANUFACTURER, "Ford", "Honda")) {
+            @Override
+            protected AttributeIndex<Integer, Car> createBackingIndex() {
+                return mockedBackingIndex;
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    static SortedKeyStatisticsAttributeIndex<Integer, Car> mockBackingIndex() {
+        return mock(SortedKeyStatisticsAttributeIndex.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    static SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndexSupportsQuery(Query<Car> querySupportedByBackingIndex) {
+        SortedKeyStatisticsAttributeIndex attributeIndex = mock(SortedKeyStatisticsAttributeIndex.class);
+        when(attributeIndex.supportsQuery(Mockito.eq(querySupportedByBackingIndex), Mockito.<QueryOptions>any())).thenReturn(true);
+        return attributeIndex;
     }
 }

@@ -31,8 +31,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetDistinctKeys1() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getDistinctKeys(noQueryOptions());
         verify(backingIndex, times(1)).getDistinctKeys(noQueryOptions());
@@ -40,8 +40,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetDistinctKeys2() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getDistinctKeys(1, true, 2, true, noQueryOptions());
         verify(backingIndex, times(1)).getDistinctKeys(1, true, 2, true, noQueryOptions());
@@ -49,8 +49,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetDistinctKeysDescending1() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getDistinctKeysDescending(noQueryOptions());
         verify(backingIndex, times(1)).getDistinctKeysDescending(noQueryOptions());
@@ -58,8 +58,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetDistinctKeysDescending2() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getDistinctKeysDescending(1, true, 2, true, noQueryOptions());
         verify(backingIndex, times(1)).getDistinctKeysDescending(1, true, 2, true, noQueryOptions());
@@ -67,8 +67,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetStatisticsForDistinctKeysDescending() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getStatisticsForDistinctKeysDescending(noQueryOptions());
         verify(backingIndex, times(1)).getStatisticsForDistinctKeysDescending(noQueryOptions());
@@ -76,8 +76,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetKeysAndValues1() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getKeysAndValues(noQueryOptions());
         verify(backingIndex, times(1)).getKeysAndValues(noQueryOptions());
@@ -85,8 +85,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetKeysAndValues2() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getKeysAndValues(1, true, 2, true, noQueryOptions());
         verify(backingIndex, times(1)).getKeysAndValues(1, true, 2, true, noQueryOptions());
@@ -94,8 +94,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetKeysAndValuesDescending() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getKeysAndValuesDescending(noQueryOptions());
         verify(backingIndex, times(1)).getKeysAndValuesDescending(noQueryOptions());
@@ -103,8 +103,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetKeysAndValuesDescending1() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getKeysAndValuesDescending(1, true, 2, true, noQueryOptions());
         verify(backingIndex, times(1)).getKeysAndValuesDescending(1, true, 2, true, noQueryOptions());
@@ -112,8 +112,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetCountForKey() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getCountForKey(1, noQueryOptions());
         verify(backingIndex, times(1)).getCountForKey(1, noQueryOptions());
@@ -121,8 +121,8 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetCountOfDistinctKeys() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getCountOfDistinctKeys(noQueryOptions());
         verify(backingIndex, times(1)).getCountOfDistinctKeys(noQueryOptions());
@@ -130,19 +130,24 @@ public class PartialSortedKeyStatisticsAttributeIndexTest {
 
     @Test
     public void testGetStatisticsForDistinctKeys() {
-        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mock(SortedKeyStatisticsAttributeIndex.class);
-        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = createIndex(backingIndex);
+        SortedKeyStatisticsAttributeIndex<Integer, Car> backingIndex = mockBackingIndex();
+        PartialSortedKeyStatisticsAttributeIndex<Integer, Car> index = wrapWithPartialIndex(backingIndex);
 
         index.getStatisticsForDistinctKeys(noQueryOptions());
         verify(backingIndex, times(1)).getStatisticsForDistinctKeys(noQueryOptions());
     }
 
-    static PartialSortedKeyStatisticsAttributeIndex<Integer, Car> createIndex(final SortedKeyStatisticsAttributeIndex<Integer, Car> mockedBackingIndex) {
+    static PartialSortedKeyStatisticsAttributeIndex<Integer, Car> wrapWithPartialIndex(final SortedKeyStatisticsAttributeIndex<Integer, Car> mockedBackingIndex) {
         return new PartialSortedKeyStatisticsAttributeIndex<Integer, Car>(Car.CAR_ID, QueryFactory.between(Car.CAR_ID, 2, 5)) {
             @Override
             protected SortedKeyStatisticsAttributeIndex<Integer, Car> createBackingIndex() {
                 return mockedBackingIndex;
             }
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    static SortedKeyStatisticsAttributeIndex<Integer, Car> mockBackingIndex() {
+        return mock(SortedKeyStatisticsAttributeIndex.class);
     }
 }

@@ -34,7 +34,7 @@ public class WrappingPersistenceTest {
         backingCollection.addAll(CarFactory.createCollectionOfCars(3)); // CarIds 0, 1, 2
 
         IndexedCollection<Car> indexedCollection = new ConcurrentIndexedCollection<Car>(
-                WrappingPersistence.withoutPrimaryKeyWrappingCollection(backingCollection)
+                WrappingPersistence.aroundCollection(backingCollection)
         );
 
         indexedCollection.addIndex(NavigableIndex.onAttribute(Car.CAR_ID));
@@ -62,7 +62,7 @@ public class WrappingPersistenceTest {
     @Test
     public void testGetPrimaryKeyAttribute() throws Exception {
         WrappingPersistence<Car, Integer> wrappingPersistence =
-                WrappingPersistence.onPrimaryKeyWrappingCollection(Car.CAR_ID, new HashSet<Car>());
+                WrappingPersistence.aroundCollectionWithPrimaryKey(new HashSet<Car>(), Car.CAR_ID);
 
         assertEquals(Car.CAR_ID, wrappingPersistence.getPrimaryKeyAttribute());
     }
@@ -71,7 +71,7 @@ public class WrappingPersistenceTest {
     @Test
     public void testSupportsIndex() throws Exception {
         WrappingPersistence<Car, Integer> wrappingPersistence =
-                WrappingPersistence.onPrimaryKeyWrappingCollection(Car.CAR_ID, new HashSet<Car>());
+                WrappingPersistence.aroundCollectionWithPrimaryKey(new HashSet<Car>(), Car.CAR_ID);
 
         assertTrue(wrappingPersistence.supportsIndex(NavigableIndex.onAttribute(Car.MANUFACTURER)));
         assertFalse(wrappingPersistence.supportsIndex(DiskIndex.onAttribute(Car.MANUFACTURER)));
@@ -82,7 +82,7 @@ public class WrappingPersistenceTest {
         HashSet<Car> backingCollection = new HashSet<Car>();
 
         WrappingPersistence<Car, Integer> wrappingPersistence =
-                WrappingPersistence.onPrimaryKeyWrappingCollection(Car.CAR_ID, backingCollection);
+                WrappingPersistence.aroundCollectionWithPrimaryKey(backingCollection, Car.CAR_ID);
 
         ObjectStore<Car> objectStore = wrappingPersistence.createObjectStore();
 
