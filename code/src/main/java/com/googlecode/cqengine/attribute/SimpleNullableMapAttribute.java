@@ -15,11 +15,20 @@
  */
 package com.googlecode.cqengine.attribute;
 
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Map;
 
 /**
+ * An attribute which reads the value from an entry in a map given the map key. This can be used when Map objects
+ * are stored in the IndexedCollection.
+ * <p/>
+ * These attributes can be created via {@link QueryFactory#mapAttribute(Object, Class)}.
+ * <p/>
+ * Also see {@link QueryFactory#mapEntity(Map)} as a way to improve the performance when working with collections
+ * of Maps.
+ *
  * Created by npgall on 23/05/2016.
  */
 public class SimpleNullableMapAttribute<K, A> extends SimpleNullableAttribute<Map, A> {
