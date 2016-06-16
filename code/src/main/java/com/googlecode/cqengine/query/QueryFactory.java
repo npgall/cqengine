@@ -18,7 +18,7 @@ package com.googlecode.cqengine.query;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.entity.MapEntity;
-import com.googlecode.cqengine.entity.KeyedMapEntity;
+import com.googlecode.cqengine.entity.PrimaryKeyedMapEntity;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
@@ -711,51 +711,27 @@ public class QueryFactory {
     }
 
     /**
-     * Creates a {@link SimpleNullableMapEntityAttribute} which retrieves the value for the given key from an
-     * {@link IndexedCollection} of {@link Map} objects.
+     * Wraps the given Map in a {@link MapEntity}, which can improve its performance when used in an IndexedCollection.
+     * If the given Map already is a {@link MapEntity}, the same object will be returned.
      *
-     * @param mapKey The map key
-     * @param mapValueType The type of the value stored for the given key
-     * @param <K> The type of the map key
-     * @param <A> The type of the resulting attribute; which is the type of the value stored
-     * @return a {@link SimpleNullableMapEntityAttribute} which retrieves the value for the given key from a map.
+     * @param map The map to wrap.
+     * @return a {@link MapEntity} wrapping the given map.
      */
-    public static <K, A> Attribute<MapEntity, A> mapEntityAttribute(K mapKey, Class<A> mapValueType) {
-        return new SimpleNullableMapEntityAttribute<K, A>(mapKey, mapValueType);
+    public static Map mapEntity(Map map) {
+        return map instanceof MapEntity ? map : new MapEntity(map);
     }
 
     /**
-     * Creates a {@link SimpleNullableKeyedMapEntityAttribute} which retrieves the value for the given key from an
-     * {@link IndexedCollection} of {@link Map} objects.
+     * Wraps the given Map in a {@link PrimaryKeyedMapEntity}, which can improve its performance when used in an
+     * IndexedCollection.
+     * If the given Map already is a {@link PrimaryKeyedMapEntity}, the same object will be returned.
      *
-     * @param mapKey The map key
-     * @param mapValueType The type of the value stored for the given key
-     * @param <K> The type of the map key
-     * @param <A> The type of the resulting attribute; which is the type of the value stored
-     * @return a {@link SimpleNullableKeyedMapEntityAttribute} which retrieves the value for the given key from a map.
+     * @param map The map to wrap.
+     * @param primaryKey The key of the entry in the map to be used as a primary key.
+     * @return a {@link PrimaryKeyedMapEntity} wrapping the given map.
      */
-    public static <K, A> Attribute<KeyedMapEntity, A> keyedMapEntityAttribute(K mapKey, Class<A> mapValueType) {
-        return new SimpleNullableKeyedMapEntityAttribute<K, A>(mapKey, mapValueType);
-    }
-
-    /**
-     * Creates a {@link MapEntity} to wrap a Map in an {@link IndexedCollection} friendly way
-     *
-     * @param map The map to wrap
-     * @return a {@link MapEntity} which retrieves the value for the given key from a map.
-     */
-    public static MapEntity mapEntity(Map map) {
-        return new MapEntity(map);
-    }
-
-    /**
-     * Creates a {@link KeyedMapEntity} to wrap a Map in an {@link IndexedCollection} friendly way
-     *
-     * @param map The map to wrap
-     * @return a {@link KeyedMapEntity} which retrieves the value for the given key from a map.
-     */
-    public static KeyedMapEntity keyedMapEntity(Map map, Object keyField) {
-        return new KeyedMapEntity(map, keyField);
+    public static Map primaryKeyedMapEntity(Map map, Object primaryKey) {
+        return map instanceof PrimaryKeyedMapEntity ? map : new PrimaryKeyedMapEntity(map, primaryKey);
     }
 
     /**

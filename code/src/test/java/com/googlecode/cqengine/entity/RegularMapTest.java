@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.cqengine.functional;
+package com.googlecode.cqengine.entity;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author Niall Gallagher
  */
-public class GeneralFunctionalMapTest {
+public class RegularMapTest {
 
     private static final Attribute<Map, String> MODEL_ATTR = mapAttribute("MODEL", String.class);
     private static final Attribute<Map, Integer> DOORS_ATTR = mapAttribute("DOORS", Integer.class);
@@ -53,7 +53,7 @@ public class GeneralFunctionalMapTest {
     private static final Attribute<Map, Integer> CAR_ID_ATTR = mapAttribute("CAR_ID", Integer.class);
 
     @Test
-    public void testGeneralFunctionality() {
+    public void testMapFunctionality() {
         IndexedCollection<Map> cars = new ConcurrentIndexedCollection<Map>();
 
         cars.addIndex(HashIndex.onAttribute(COLOR_ATTR));
@@ -129,7 +129,12 @@ public class GeneralFunctionalMapTest {
         return valuesOf(CAR_ID_ATTR, resultSet);
     }
 
-    Map buildNewCar(int carId, String manufacturer, String model, Car.Color color, int doors, double price, List<String> features) {
+    protected Map buildNewCar(int carId, String manufacturer, String model, Car.Color color, int doors, double price, List<String> features) {
+        return createMap(carId, manufacturer, model, color, doors, price, features);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Map createMap(int carId, String manufacturer, String model, Car.Color color, int doors, double price, List<String> features) {
         Map map = new HashMap();
         map.put("CAR_ID", carId);
         map.put("MANUFACTURER", manufacturer);
