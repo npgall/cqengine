@@ -111,7 +111,7 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
      * @return A {@link WrappingPersistence} object which persists to the given collection.
      */
-    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> aroundCollectionWithPrimaryKey(Collection<O> collection, SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> aroundCollectionOnPrimaryKey(Collection<O> collection, SimpleAttribute<O, A> primaryKeyAttribute) {
         return new WrappingPersistence<O, A>(collection, primaryKeyAttribute);
     }
 
@@ -121,7 +121,7 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * <p/>
      * This persistence will not work with composite persistence configurations, where some indexes are located on heap,
      * and some off-heap etc. To use this persistence in those configurations, it is necessary to specify a primary
-     * key - see: {@link #aroundCollectionWithPrimaryKey(Collection, SimpleAttribute)}.
+     * key - see: {@link #aroundCollectionOnPrimaryKey(Collection, SimpleAttribute)}.
      *
      * @return A {@link WrappingPersistence} object which persists to the given collection, and which is not configured
      * with a primary key.
