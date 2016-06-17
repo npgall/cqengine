@@ -1,402 +1,407 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.googlecode.cqengine</groupId>
-	<artifactId>cqengine</artifactId>
-	<version>2.7.0-SNAPSHOT</version>
-	<packaging>bundle</packaging>
-	<name>cqengine</name>
-	<description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
-	<url>http://code.google.com/p/cqengine/</url>
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
-	<licenses>
-		<license>
-			<name>The Apache Software License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<scm>
-		<url>https://github.com/npgall/${project.artifactId}.git</url>
-		<connection>scm:git:https://github.com/npgall/${project.artifactId}.git</connection>
-		<developerConnection>scm:git:git@github.com:npgall/${project.artifactId}.git</developerConnection>
-		<tag>HEAD</tag>
-	</scm>
-	<developers>
-		<developer>
-			<id>npgall</id>
-			<name>Niall Gallagher</name>
-			<email>niall@npgall.com</email>
-			<url>http://www.npgall.com</url>
-			<roles>
-				<role>owner</role>
-			</roles>
-		</developer>
-	</developers>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-	<build>
-		<plugins>
-			<plugin>
-				<!-- Configure javac compiler for Java 6 compatibility. Note that actually 
-					the library might also be compatible with Java 5, but this has not been tested. -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<!-- Deploy a "-sources.jar" along with build -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Add the OSGi headers to MANIFEST.MF -->
-			<plugin>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.googlecode.cqengine</groupId>
+    <artifactId>cqengine</artifactId>
+    <version>2.7.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <name>cqengine</name>
+    <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
+    <url>http://code.google.com/p/cqengine/</url>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/npgall/${project.artifactId}.git</url>
+        <connection>scm:git:https://github.com/npgall/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:npgall/${project.artifactId}.git</developerConnection>
+      <tag>HEAD</tag>
+  </scm>
+    <developers>
+        <developer>
+            <id>npgall</id>
+            <name>Niall Gallagher</name>
+            <email>niall@npgall.com</email>
+            <url>http://www.npgall.com</url>
+            <roles>
+                <role>owner</role>
+            </roles>
+        </developer>
+    </developers>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <!--
+                    Configure javac compiler for Java 6 compatibility.
+                    Note that actually the library might also be compatible with Java 5, but this has not been tested.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- Deploy a "-sources.jar" along with build -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+             	<!-- Add OSGi headers to MANIFEST.MF -->
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<version>3.0.1</version>
 				<extensions>true</extensions>
 			</plugin>
-			<plugin>
-				<!-- Deploy a "-javadoc.jar" along with build -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>javadoc-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<!-- Build a jar containing all dependencies, by copying classes from 
-					all dependency jars directly into the main jar. The resulting jar can be 
-					used as a library in other applications (without requiring any transitive 
-					dependencies of its own). If used as a library in another application, in 
-					case the other application also shares any of the same dependencies, to avoid 
-					duplicate class issues resulting from copying dependency classes into this 
-					jar, we relocate classes which are dependencies of this library into a new 
-					package within this jar: com.googlecode.cqengine.lib.*. We then update the 
-					bytecode in all classes in this jar to refer to dependency classes in their 
-					new package. Also we configure some transformers to merge open source licences 
-					present in any of the jars. -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>all</shadedClassifierName>
-							<relocations>
-								<relocation>
-									<pattern>com.googlecode.concurrenttrees</pattern>
-									<shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.esotericsoftware</pattern>
-									<shadedPattern>com.googlecode.cqengine.lib.com.esotericsoftware</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org</pattern>
-									<shadedPattern>com.googlecode.cqengine.lib.org</shadedPattern>
-									<excludes>
-										<!-- Don't relocate SQLite as it will be unable to load its native 
-											library... -->
-										<exclude>org.sqlite.**</exclude>
-									</excludes>
-								</relocation>
-								<relocation>
-									<pattern>de</pattern>
-									<shadedPattern>com.googlecode.cqengine.lib.de</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>javassist</pattern>
-									<shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
-								</relocation>
-							</relocations>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-									<addHeader>false</addHeader>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <!-- Deploy a "-javadoc.jar" along with build -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>javadoc-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
+                    Build a jar containing all dependencies, by copying classes from all dependency jars directly into
+                    the main jar.
 
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.2.201409121644</version>
-				<executions>
-					<execution>
-						<id>default-prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-check</id>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<excludes>
-						<!-- Exclude classes generated by Antlr... -->
-						<exclude>com/googlecode/cqengine/query/parser/*/grammar/*</exclude>
-						<!-- Exclude third-party classes... -->
-						<exclude>com/googlecode/cqengine/query/parser/cqn/support/ApacheSolrDataMathParser.*</exclude>
-					</excludes>
-					<rules />
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.antlr</groupId>
-				<artifactId>antlr4-maven-plugin</artifactId>
-				<version>4.5</version>
-				<executions>
-					<execution>
-						<id>antlr</id>
-						<goals>
-							<goal>antlr4</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+                    The resulting jar can be used as a library in other applications (without requiring any transitive
+                    dependencies of its own).
 
-		</plugins>
-	</build>
-	<dependencies>
-		<dependency>
-			<groupId>com.googlecode.concurrent-trees</groupId>
-			<artifactId>concurrent-trees</artifactId>
-			<version>2.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.18.2-GA</version>
-		</dependency>
+                    If used as a library in another application, in case the other application also shares any of the
+                    same dependencies, to avoid duplicate class issues resulting from copying dependency classes into
+                    this jar, we relocate classes which are dependencies of this library into a new package within this
+                    jar: com.googlecode.cqengine.lib.*. We then update the bytecode in all classes in this jar to
+                    refer to dependency classes in their new package.
 
-		<dependency>
-			<groupId>org.xerial</groupId>
-			<artifactId>sqlite-jdbc</artifactId>
-			<version>3.8.11.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.esotericsoftware</groupId>
-			<artifactId>kryo</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>de.javakaffee</groupId>
-			<artifactId>kryo-serializers</artifactId>
-			<version>0.37</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.esotericsoftware.kryo</groupId>
-					<artifactId>kryo</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.antlr</groupId>
-			<artifactId>antlr4-runtime</artifactId>
-			<version>4.5</version>
-			<exclusions>
-				<exclusion>
-					<!-- The antlr4-runtime jar version 4.5 contains the classes from this 
-						dependency internally AND it erroneously references them as a dependency 
-						as well. We exclude the dependency to avoid duplicate classes on the classpath. 
-						If we update our dependency on antlr4-runtime in future, we need to confirm 
-						if the duplication issue has been fixed by then, or this exclusion is still 
-						required. -->
-					<groupId>org.abego.treelayout</groupId>
-					<artifactId>org.abego.treelayout.core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+                    Also we configure some transformers to merge open source licences present in any of the jars.
+                 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>all</shadedClassifierName>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.googlecode.concurrenttrees</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.esotericsoftware</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.esotericsoftware</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.org</shadedPattern>
+                                    <excludes>
+                                        <!-- Don't relocate SQLite as it will be unable to load its native library... -->
+                                        <exclude>org.sqlite.**</exclude>
+                                    </excludes>
+                                </relocation>
+                                <relocation>
+                                    <pattern>de</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.de</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>javassist</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                                    <addHeader>false</addHeader>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-		<!-- Test-scope dependencies... -->
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<version>1.9.5</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>hamcrest-core</artifactId>
-					<groupId>org.hamcrest</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.tngtech.java</groupId>
-			<artifactId>junit-dataprovider</artifactId>
-			<version>1.9.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava-testlib</artifactId>
-			<version>18.0</version>
-			<scope>test</scope>
-		</dependency>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.2.201409121644</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>default-report</id>
+                        <phase>prepare-package</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>default-check</id>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <!-- Exclude classes generated by Antlr... -->
+                        <exclude>com/googlecode/cqengine/query/parser/*/grammar/*</exclude>
+                        <!-- Exclude third-party classes... -->
+                        <exclude>com/googlecode/cqengine/query/parser/cqn/support/ApacheSolrDataMathParser.*</exclude>
+                    </excludes>
+                    <rules />
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.5</version>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.googlecode.concurrent-trees</groupId>
+            <artifactId>concurrent-trees</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.18.2-GA</version>
+        </dependency>
 
-		<dependency>
-			<groupId>nl.jqno.equalsverifier</groupId>
-			<artifactId>equalsverifier</artifactId>
-			<version>1.7.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.8.11.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>de.javakaffee</groupId>
+            <artifactId>kryo-serializers</artifactId>
+            <version>0.37</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.esotericsoftware.kryo</groupId>
+                    <artifactId>kryo</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+        	<groupId>org.antlr</groupId>
+        	<artifactId>antlr4-runtime</artifactId>
+        	<version>4.5</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                        The antlr4-runtime jar version 4.5 contains the classes from this dependency internally
+                        AND it erroneously references them as a dependency as well.
+                        We exclude the dependency to avoid duplicate classes on the classpath.
+                        If we update our dependency on antlr4-runtime in future, we need to confirm if
+                        the duplication issue has been fixed by then, or this exclusion is still required.
+                     -->
+                    <groupId>org.abego.treelayout</groupId>
+                    <artifactId>org.abego.treelayout.core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-	</dependencies>
-	<profiles>
-		<profile>
-			<!-- This profile should be enabled when deploying a release to Maven 
-				central, to: - validate that open-source license headers are present on all 
-				files, and - GPG-signs the jars -->
-			<id>release-sign-artifacts</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<property>
-					<name>performRelease</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<!-- Plugin to PGP-sign all artifacts automatically when running mvn 
-							deploy, as required for deployment to the Sonatype/Maven Central repo. This 
-							requires GnuPG (aka GPG) to be installed and configured on the machine on 
-							which this is run, and for the public key to be uploaded to key servers (e.g. 
-							pool.sks-keyservers.net). See: https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<!--suppress MavenModelInspection -->
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<!-- Plugin to check that all source files have the appropriate open 
-							source license header. This will fail the build if any source files don't 
-							have the open source license header. To actually apply the header to new 
-							source files, run: mvn license:format -->
-						<groupId>com.mycila.maven-license-plugin</groupId>
-						<artifactId>maven-license-plugin</artifactId>
-						<version>1.10.b1</version>
-						<configuration>
-							<header>src/etc/header.txt</header>
-							<excludes>
-								<exclude>src/test/resources/**</exclude>
-								<exclude>src/main/antlr4/imports/**</exclude>
-							</excludes>
-							<strictCheck>true</strictCheck>
-							<mapping>
-								<g4>JAVADOC_STYLE</g4>
-							</mapping>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>deploy</phase>
-								<goals>
-									<goal>check</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-release-plugin</artifactId>
-						<version>2.5.3</version>
-						<executions>
-							<execution>
-								<id>default</id>
-								<goals>
-									<goal>perform</goal>
-								</goals>
-								<configuration>
-									<pomFileName>code/pom.xml</pomFileName>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<!-- Prevent JavaDoc warnings from failing the build under Java 8... -->
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<configuration>
-							<additionalparam>-Xdoclint:none</additionalparam>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
+        <!-- Test-scope dependencies... -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hamcrest-core</artifactId>
+                    <groupId>org.hamcrest</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.java</groupId>
+            <artifactId>junit-dataprovider</artifactId>
+            <version>1.9.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-testlib</artifactId>
+            <version>18.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
+            <version>1.7.2</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+    <profiles>
+        <profile>
+            <!-- This profile should be enabled when deploying a release to Maven central, to:
+                 - validate that open-source license headers are present on all files, and
+                 - GPG-signs the jars
+            -->
+            <id>release-sign-artifacts</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>performRelease</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!--
+                            Plugin to PGP-sign all artifacts automatically when running mvn deploy,
+                            as required for deployment to the Sonatype/Maven Central repo.
+
+                            This requires GnuPG (aka GPG) to be installed and configured on the machine on which this is run,
+                            and for the public key to be uploaded to key servers (e.g. pool.sks-keyservers.net).
+
+                            See: https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven
+                         -->
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <!--suppress MavenModelInspection -->
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <!--
+                            Plugin to check that all source files have the appropriate open source license header.
+
+                            This will fail the build if any source files don't have the open source license header.
+
+                            To actually apply the header to new source files, run: mvn license:format
+                        -->
+                        <groupId>com.mycila.maven-license-plugin</groupId>
+                        <artifactId>maven-license-plugin</artifactId>
+                        <version>1.10.b1</version>
+                        <configuration>
+                            <header>src/etc/header.txt</header>
+                            <excludes>
+                                <exclude>src/test/resources/**</exclude>
+                                <exclude>src/main/antlr4/imports/**</exclude>
+                            </excludes>
+                            <strictCheck>true</strictCheck>
+                            <mapping>
+                                <g4>JAVADOC_STYLE</g4>
+                            </mapping>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>2.5.3</version>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>perform</goal>
+                                </goals>
+                                <configuration>
+                                    <pomFileName>code/pom.xml</pomFileName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- Prevent JavaDoc warnings from failing the build under Java 8... -->
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+        	<!-- Build an OSGi all-in-one JAR with all third party libraries in the Bundle-Classpath-->
 			<id>all-in-one-osgi</id>
 			<build>
 				<plugins>
@@ -443,5 +448,5 @@
 				</plugins>
 			</build>
 		</profile>
-	</profiles>
+    </profiles>
 </project>
