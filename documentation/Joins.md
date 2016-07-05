@@ -1,3 +1,5 @@
+#Performing Joins with CQEngine#
+
 Although it is often easier and more performant to de-normalize data, it is possible with CQEngine to perform JOINs and SQL EXISTS-type queries between `IndexedCollection`s at runtime with reasonable performance (at least, outperforming external databases).
 
 
