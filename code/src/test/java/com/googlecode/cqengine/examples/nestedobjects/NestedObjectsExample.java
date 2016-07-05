@@ -16,12 +16,12 @@
 package com.googlecode.cqengine.examples.nestedobjects;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.googlecode.cqengine.*;
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import java.util.*;
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static com.google.common.collect.Iterables.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -47,9 +47,9 @@ public class NestedObjectsExample {
     // For Java 6: A multi-value attribute which returns the names of products ordered by a user
     static final Attribute<User, String> PRODUCT_NAMES_ORDERED = new MultiValueAttribute<User, String>() {
         public Iterable<String> getValues(User user, QueryOptions queryOptions) {
-            return Iterables.concat(Iterables.transform(user.orders, new Function<Order, Iterable<String>>() {
+            return concat(transform(user.orders, new Function<Order, Iterable<String>>() {
                 public Iterable<String> apply(Order order) {
-                    return Iterables.transform(order.products, new Function<Product, String>() {
+                    return transform(order.products, new Function<Product, String>() {
                         public String apply(Product product) {
                             return product.name;
                         }
