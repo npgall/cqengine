@@ -53,8 +53,8 @@ public class SqlExists {
 
 The example above prints:
 <pre>
-Ford Focus has a sunroof or is convertible, and can be serviced in Dublin<br>
-BMW M3 has a sunroof or is convertible, and can be serviced in Dublin<br>
+Ford Focus has a sunroof or is convertible, and can be serviced in Dublin
+BMW M3 has a sunroof or is convertible, and can be serviced in Dublin
 </pre>
 
 ## SQL EXISTS-based JOIN ##
@@ -119,10 +119,10 @@ public class SqlExistsBasedJoin {
 
 The example above prints:
 <pre>
-Ford Focus has a sunroof or is convertible, and can be serviced in Dublin at the following garages:-<br>
----> Garage{garageId=4, name='Jill's garage', location='Dublin', brandsServiced=[Ford Focus]}<br>
----> Garage{garageId=3, name='John's garage', location='Dublin', brandsServiced=[Ford Focus, Ford Taurus]}<br>
+Ford Focus has a sunroof or is convertible, and can be serviced in Dublin at the following garages:-
+---> Garage{garageId=4, name='Jill's garage', location='Dublin', brandsServiced=[Ford Focus]}
+---> Garage{garageId=3, name='John's garage', location='Dublin', brandsServiced=[Ford Focus, Ford Taurus]}
 <br>
-BMW M3 has a sunroof or is convertible, and can be serviced in Dublin at the following garages:-<br>
----> Garage{garageId=2, name='Jane's garage', location='Dublin', brandsServiced=[BMW M3]}<br>
+BMW M3 has a sunroof or is convertible, and can be serviced in Dublin at the following garages:-
+---> Garage{garageId=2, name='Jane's garage', location='Dublin', brandsServiced=[BMW M3]}
 </pre>
