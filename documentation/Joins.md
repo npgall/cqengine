@@ -8,7 +8,7 @@ Although it is often easier and more performant to de-normalize data, it is poss
 Given a collection of Cars, and a collections of Garages, find cars which are convertible or which have a sunroof, which can be serviced by garages in a particular city.
 Source code of this example [here](../code/src/test/java/com/googlecode/cqengine/examples/join/SqlExists.java).
 
-```
+```java
 package com.googlecode.cqengine.examples.join;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
@@ -61,7 +61,7 @@ BMW M3 has a sunroof or is convertible, and can be serviced in Dublin
 Given a collection of Cars, and a collections of Garages, find cars which are convertible or which have a sunroof, which can be serviced by garages in a particular city, along with the names of those garages.
 Source code of this example [here](../code/src/test/java/com/googlecode/cqengine/examples/join/SqlExistsBasedJoin.java).
 
-```
+```java
 package com.googlecode.cqengine.examples.join;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
