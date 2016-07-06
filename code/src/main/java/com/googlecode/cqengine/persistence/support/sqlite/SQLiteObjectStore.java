@@ -19,7 +19,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.support.CloseableIterator;
-import com.googlecode.cqengine.persistence.disk.DiskPersistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -103,14 +103,14 @@ public class SQLiteObjectStore<O, A extends Comparable<A>> implements ObjectStor
 
     @Override
     public boolean add(O object, QueryOptions queryOptions) {
-        return backingIndex.addAll(Collections.singleton(object), queryOptions);
+        return backingIndex.addAll(ObjectSet.fromCollection(Collections.singleton(object)), queryOptions);
     }
 
     @Override
     public boolean remove(Object o, QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         O object = (O) o;
-        return backingIndex.removeAll(Collections.singleton(object), queryOptions);
+        return backingIndex.removeAll(ObjectSet.fromCollection(Collections.singleton(object)), queryOptions);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class SQLiteObjectStore<O, A extends Comparable<A>> implements ObjectStor
     public boolean addAll(Collection<? extends O> c, QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        return backingIndex.addAll(objects, queryOptions);
+        return backingIndex.addAll(ObjectSet.fromCollection(objects), queryOptions);
     }
 
     @Override
@@ -145,14 +145,14 @@ public class SQLiteObjectStore<O, A extends Comparable<A>> implements ObjectStor
         finally {
             allObjects.close();
         }
-        return backingIndex.removeAll(objectsToRemove, queryOptions);
+        return backingIndex.removeAll(ObjectSet.fromCollection(objectsToRemove), queryOptions);
     }
 
     @Override
     public boolean removeAll(Collection<?> c, QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
         Collection<O> objects = (Collection<O>) c;
-        return backingIndex.removeAll(objects, queryOptions);
+        return backingIndex.removeAll(ObjectSet.fromCollection(objects), queryOptions);
     }
 
     @Override

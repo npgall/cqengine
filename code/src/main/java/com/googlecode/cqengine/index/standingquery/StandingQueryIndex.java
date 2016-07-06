@@ -17,15 +17,14 @@ package com.googlecode.cqengine.index.standingquery;
 
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -114,35 +113,45 @@ public class StandingQueryIndex<O> implements Index<O>, OnHeapTypeIndex {
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         storedResultSet.clear();
-        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        for (O object : objects) {
-            if (standingQuery.matches(object, queryOptions)) {
-                modified |= storedResultSet.add(object);
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            for (O object : objectSet) {
+                if (standingQuery.matches(object, queryOptions)) {
+                    modified |= storedResultSet.add(object);
+                }
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        for (O object : objects) {
-            if (standingQuery.matches(object, queryOptions)) {
-                modified |= storedResultSet.remove(object);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            for (O object : objectSet) {
+                if (standingQuery.matches(object, queryOptions)) {
+                    modified |= storedResultSet.remove(object);
+                }
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**

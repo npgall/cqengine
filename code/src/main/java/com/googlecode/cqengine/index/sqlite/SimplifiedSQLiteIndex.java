@@ -23,13 +23,12 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
-
-import java.util.Collection;
 
 /**
  * An abstract class which wraps a {@link SQLiteIndex}, and simplifies some of its configuration options to make it
@@ -157,13 +156,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     }
 
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        return backingIndex().addAll(objects, queryOptions);
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        return backingIndex().addAll(objectSet, queryOptions);
     }
 
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        return backingIndex().removeAll(objects, queryOptions);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        return backingIndex().removeAll(objectSet, queryOptions);
     }
 
     @Override

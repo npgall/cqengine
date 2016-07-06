@@ -24,8 +24,8 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
@@ -246,52 +246,62 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        final RadixTree<StoredResultSet<O>> tree = this.tree;
-        for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
-            for (A attributeValue : attributeValues) {
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            final RadixTree<StoredResultSet<O>> tree = this.tree;
+            for (O object : objectSet) {
+                Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
+                for (A attributeValue : attributeValues) {
 
-                // Look up StoredResultSet for the value...
-                StoredResultSet<O> valueSet = tree.getValueForExactKey(attributeValue);
-                if (valueSet == null) {
-                    // No StoredResultSet, create and add one...
-                    valueSet = createValueSet();
-                    StoredResultSet<O> existingValueSet = tree.putIfAbsent(attributeValue, valueSet);
-                    if (existingValueSet != null) {
-                        // Another thread won race to add new value set, use that one...
-                        valueSet = existingValueSet;
+                    // Look up StoredResultSet for the value...
+                    StoredResultSet<O> valueSet = tree.getValueForExactKey(attributeValue);
+                    if (valueSet == null) {
+                        // No StoredResultSet, create and add one...
+                        valueSet = createValueSet();
+                        StoredResultSet<O> existingValueSet = tree.putIfAbsent(attributeValue, valueSet);
+                        if (existingValueSet != null) {
+                            // Another thread won race to add new value set, use that one...
+                            valueSet = existingValueSet;
+                        }
                     }
+                    // Add the object to the StoredResultSet for this value...
+                    modified |= valueSet.add(object);
                 }
-                // Add the object to the StoredResultSet for this value...
-                modified |= valueSet.add(object);
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        final RadixTree<StoredResultSet<O>> tree = this.tree;
-        for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
-            for (A attributeValue : attributeValues) {
-                StoredResultSet<O> valueSet = tree.getValueForExactKey(attributeValue);
-                if (valueSet == null) {
-                    continue;
-                }
-                modified |= valueSet.remove(object);
-                if (valueSet.isEmpty()) {
-                    tree.remove(attributeValue);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            final RadixTree<StoredResultSet<O>> tree = this.tree;
+            for (O object : objectSet) {
+                Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
+                for (A attributeValue : attributeValues) {
+                    StoredResultSet<O> valueSet = tree.getValueForExactKey(attributeValue);
+                    if (valueSet == null) {
+                        continue;
+                    }
+                    modified |= valueSet.remove(object);
+                    if (valueSet.isEmpty()) {
+                        tree.remove(attributeValue);
+                    }
                 }
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**
@@ -299,7 +309,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions);
     }
 
     /**

@@ -17,6 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.ArgumentValidationOption;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
@@ -239,7 +240,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                     return false;
                 }
                 if (FlagsEnabled.isFlagEnabled(queryOptions, STRICT_REPLACEMENT)) {
-                    if (!collectionContainsAllIterable(getObjectStoreAsSet(queryOptions), objectsToRemove)) {
+                    if (!objectStoreContainsAllIterable(objectStore, objectsToRemove, queryOptions)) {
                         return false;
                     }
                 }
@@ -410,12 +411,12 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
         }
     }
 
-    static <O> boolean collectionContainsAllIterable(Collection<O> collection, Iterable<O> candidates) {
+    static <O> boolean objectStoreContainsAllIterable(ObjectStore<O> objectStore, Iterable<O> candidates, QueryOptions queryOptions) {
         if (candidates instanceof Collection) {
-            return collection.containsAll((Collection<?>) candidates);
+            return objectStore.containsAll((Collection<?>) candidates, queryOptions);
         }
         for (O candidate : candidates) {
-            if (!collection.contains(candidate)) {
+            if (!objectStore.contains(candidate, queryOptions)) {
                 return false;
             }
         }

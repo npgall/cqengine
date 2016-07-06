@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.fallback;
 
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -92,17 +93,18 @@ public class FallbackIndex<O> implements Index<O> {
      */
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
+        final ObjectSet<O> objectSet = ObjectSet.fromObjectStore(objectStore, queryOptions);
         return new ResultSet<O>() {
             @Override
             public Iterator<O> iterator() {
                 if (query instanceof All) {
-                    return IteratorUtil.wrapAsUnmodifiable(objectStore.iterator(queryOptions));
+                    return IteratorUtil.wrapAsUnmodifiable(objectSet.iterator());
                 }
                 else if (query instanceof None) {
                     return Collections.<O>emptyList().iterator();
                 }
                 else {
-                    return new FilteringIterator<O>(objectStore.iterator(queryOptions), queryOptions) {
+                    return new FilteringIterator<O>(objectSet.iterator(), queryOptions) {
                         @Override
                         public boolean isValid(O object, QueryOptions queryOptions) {
                             return query.matches(object, queryOptions);
@@ -134,7 +136,7 @@ public class FallbackIndex<O> implements Index<O> {
             }
             @Override
             public void close() {
-                // No op.
+                objectSet.close();
             }
             @Override
             public Query<O> getQuery() {
@@ -153,7 +155,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
         // No need to take any action
         return false;
     }
@@ -164,7 +166,7 @@ public class FallbackIndex<O> implements Index<O> {
      * <b>In this implementation, does nothing.</b>
      */
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
         // No need to take any action
         return false;
     }

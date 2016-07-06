@@ -23,6 +23,7 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -110,13 +111,13 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     }
 
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        return sqLiteIndex.addAll(objects, queryOptions);
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        return sqLiteIndex.addAll(objectSet, queryOptions);
     }
 
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        return sqLiteIndex.removeAll(objects, queryOptions);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        return sqLiteIndex.removeAll(objectSet, queryOptions);
     }
 
     @Override

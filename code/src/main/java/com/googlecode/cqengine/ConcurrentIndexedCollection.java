@@ -22,6 +22,7 @@ import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.persistence.support.PersistenceFlags;
@@ -313,7 +314,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @Override
             public void remove() {
                 collectionIterator.remove();
-                indexEngine.removeAll(singleton(currentObject), queryOptions);
+                indexEngine.removeAll(ObjectSet.fromCollection(singleton(currentObject)), queryOptions);
             }
 
             @Override
@@ -334,7 +335,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             // Add the object to the index.
             // Indexes handle gracefully the case that the objects supplied already exist in the index...
             boolean modified = objectStore.add(o, queryOptions);
-            indexEngine.addAll(singleton(o), queryOptions);
+            indexEngine.addAll(ObjectSet.fromCollection(singleton(o)), queryOptions);
             return modified;
         }
         finally {
@@ -352,7 +353,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @SuppressWarnings({"unchecked"})
             O o = (O) object;
             boolean modified = objectStore.remove(o, queryOptions);
-            indexEngine.removeAll(singleton(o), queryOptions);
+            indexEngine.removeAll(ObjectSet.fromCollection(singleton(o)), queryOptions);
             return modified;
         }
         finally {
@@ -370,7 +371,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @SuppressWarnings({"unchecked"})
             Collection<O> objects = (Collection<O>) c;
             boolean modified = objectStore.addAll(objects, queryOptions);
-            indexEngine.addAll(objects, queryOptions);
+            indexEngine.addAll(ObjectSet.fromCollection(objects), queryOptions);
             return modified;
         }
         finally {
@@ -388,7 +389,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             @SuppressWarnings({"unchecked"})
             Collection<O> objects = (Collection<O>) c;
             boolean modified = objectStore.removeAll(objects, queryOptions);
-            indexEngine.removeAll(objects, queryOptions);
+            indexEngine.removeAll(ObjectSet.fromCollection(objects), queryOptions);
             return modified;
         }
         finally {
@@ -440,14 +441,14 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (objects instanceof Collection) {
             Collection<O> c = (Collection<O>) objects;
             boolean modified = objectStore.addAll(c, queryOptions);
-            indexEngine.addAll(c, queryOptions);
+            indexEngine.addAll(ObjectSet.fromCollection(c), queryOptions);
             return modified;
         }
         else {
             boolean modified = false;
             for (O object : objects) {
                 boolean added = objectStore.add(object, queryOptions);
-                indexEngine.addAll(singleton(object), queryOptions);
+                indexEngine.addAll(ObjectSet.fromCollection(singleton(object)), queryOptions);
                 modified = added || modified;
             }
             return modified;
@@ -458,13 +459,13 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (objects instanceof Collection) {
             Collection<O> c = (Collection<O>) objects;
             boolean modified = objectStore.removeAll(c, queryOptions);
-            indexEngine.removeAll(c, queryOptions);
+            indexEngine.removeAll(ObjectSet.fromCollection(c), queryOptions);
             return modified;
         } else {
             boolean modified = false;
             for (O object : objects) {
                 boolean removed = objectStore.remove(object, queryOptions);
-                indexEngine.removeAll(singleton(object), queryOptions);
+                indexEngine.removeAll(ObjectSet.fromCollection(singleton(object)), queryOptions);
                 modified = removed || modified;
             }
             return modified;

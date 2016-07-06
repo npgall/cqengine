@@ -22,8 +22,8 @@ import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.Factory;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
@@ -31,7 +31,6 @@ import com.googlecode.cqengine.query.simple.In;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.UnmodifiableIterator;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -222,43 +221,53 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnH
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        ConcurrentMap<A, O> indexMap = this.indexMap;
-        for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
-            for (A attributeValue : attributeValues) {
-                O existingValue = indexMap.put(attributeValue, object);
-                if (existingValue != null && !existingValue.equals(object)) {
-                    throw new UniqueConstraintViolatedException(
-                            "The application has attempted to add a duplicate object to the UniqueIndex on attribute '"
-                                    + attribute.getAttributeName() +
-                                    "', potentially causing inconsistencies between indexes. " +
-                                    "UniqueIndex should not be used with attributes which do not uniquely identify objects. " +
-                                    "Problematic attribute value: '" + attributeValue + "', " +
-                                    "problematic duplicate object: " + object);
-                }
-                modified = true;
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            ConcurrentMap<A, O> indexMap = this.indexMap;
+            for (O object : objectSet) {
+                Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
+                for (A attributeValue : attributeValues) {
+                    O existingValue = indexMap.put(attributeValue, object);
+                    if (existingValue != null && !existingValue.equals(object)) {
+                        throw new UniqueConstraintViolatedException(
+                                "The application has attempted to add a duplicate object to the UniqueIndex on attribute '"
+                                        + attribute.getAttributeName() +
+                                        "', potentially causing inconsistencies between indexes. " +
+                                        "UniqueIndex should not be used with attributes which do not uniquely identify objects. " +
+                                        "Problematic attribute value: '" + attributeValue + "', " +
+                                        "problematic duplicate object: " + object);
+                    }
+                    modified = true;
 
+                }
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        boolean modified = false;
-        ConcurrentMap<A, O> indexMap = this.indexMap;
-        for (O object : objects) {
-            Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
-            for (A attributeValue : attributeValues) {
-                modified |= (indexMap.remove(attributeValue) != null);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        try {
+            boolean modified = false;
+            ConcurrentMap<A, O> indexMap = this.indexMap;
+            for (O object : objectSet) {
+                Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
+                for (A attributeValue : attributeValues) {
+                    modified |= (indexMap.remove(attributeValue) != null);
+                }
             }
+            return modified;
         }
-        return modified;
+        finally {
+            objectSet.close();
+        }
     }
 
     /**
@@ -266,7 +275,7 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnH
      */
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        addAll(new ObjectStoreAsSet<O>(objectStore, queryOptions), queryOptions);
+        addAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions);
     }
 
     /**

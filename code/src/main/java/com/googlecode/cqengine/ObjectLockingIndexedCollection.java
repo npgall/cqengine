@@ -19,6 +19,7 @@ import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collection;
@@ -160,7 +161,7 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 lock.lock();
                 try {
                     collectionIterator.remove();
-                    indexEngine.removeAll(Collections.singleton(currentObject), queryOptions);
+                    indexEngine.removeAll(ObjectSet.fromCollection(Collections.singleton(currentObject)), queryOptions);
                 }
                 finally {
                     lock.unlock();

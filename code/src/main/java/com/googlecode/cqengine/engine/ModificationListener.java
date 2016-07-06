@@ -15,13 +15,9 @@
  */
 package com.googlecode.cqengine.engine;
 
-import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Niall Gallagher
@@ -31,20 +27,18 @@ public interface ModificationListener<O> {
     /**
      * Notifies the listener that the specified objects are being added to the collection, and so it can take action
      * and update its internal data structures.
-     *
-     * @param objects The objects being added
+     *  @param objectSet The objects being added
      * @param queryOptions Optional parameters for the update
      */
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions);
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that the specified objects are being removed from the collection, and so it can take action
      * and update its internal data structures.
-     *
-     * @param objects The objects being removed
+     *  @param objectSet The objects being removed
      * @param queryOptions Optional parameters for the update
      */
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions);
 
     /**
      * Notifies the listener that all objects have been removed from the collection, and so it can take action

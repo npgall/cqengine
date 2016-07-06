@@ -22,11 +22,11 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.persistence.support.FilteredObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.option.QueryOptions;
-import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.common.WrappedResultSet;
 
@@ -233,15 +233,15 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
     }
 
     @Override
-    public boolean addAll(Collection<O> objects, QueryOptions queryOptions) {
-        Collection<O> matchingSubset = filter(objects, queryOptions);
-        return backingIndex().addAll(matchingSubset, queryOptions);
+    public boolean addAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        Collection<O> matchingSubset = filter(objectSet, queryOptions);
+        return backingIndex().addAll(ObjectSet.fromCollection(matchingSubset), queryOptions);
     }
 
     @Override
-    public boolean removeAll(Collection<O> objects, QueryOptions queryOptions) {
-        Collection<O> matchingSubset = filter(objects, queryOptions);
-        return backingIndex().removeAll(matchingSubset, queryOptions);
+    public boolean removeAll(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        Collection<O> matchingSubset = filter(objectSet, queryOptions);
+        return backingIndex().removeAll(ObjectSet.fromCollection(matchingSubset), queryOptions);
     }
 
     @Override
@@ -249,14 +249,21 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
         backingIndex().clear(queryOptions);
     }
 
-    protected Collection<O> filter(Collection<O> objects, QueryOptions queryOptions) {
-        Collection<O> matchingSubset = new HashSet<O>(objects.size());
-        for (O candidate : objects) {
-            if (filterQuery.matches(candidate, queryOptions)) {
-                matchingSubset.add(candidate);
+    protected Collection<O> filter(ObjectSet<O> objects, QueryOptions queryOptions) {
+        CloseableIterator<O> objectsIterator = objects.iterator();
+        try {
+            Collection<O> matchingSubset = new HashSet<O>();
+            while (objectsIterator.hasNext()) {
+                O candidate = objectsIterator.next();
+                if (filterQuery.matches(candidate, queryOptions)) {
+                    matchingSubset.add(candidate);
+                }
             }
+            return matchingSubset;
         }
-        return matchingSubset;
+        finally {
+            objectsIterator.close();
+        }
     }
 
     protected abstract I createBackingIndex();

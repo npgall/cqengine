@@ -29,6 +29,7 @@ import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.persistence.Persistence;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreResultSet;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
@@ -1115,13 +1116,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean addAll(final ObjectSet<O> objectSet, final QueryOptions queryOptions) {
         ensureMutable();
         final FlagHolder modified = new FlagHolder();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                modified.value |= index.addAll(objects, queryOptions);
+                modified.value |= index.addAll(objectSet, queryOptions);
                 return true;
             }
         });
@@ -1132,13 +1133,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * {@inheritDoc}
      */
     @Override
-    public boolean removeAll(final Collection<O> objects, final QueryOptions queryOptions) {
+    public boolean removeAll(final ObjectSet<O> objectSet, final QueryOptions queryOptions) {
         ensureMutable();
         final FlagHolder modified = new FlagHolder();
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                modified.value |= index.removeAll(objects, queryOptions);
+                modified.value |= index.removeAll(objectSet, queryOptions);
                 return true;
             }
         });

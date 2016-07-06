@@ -22,6 +22,7 @@ import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.index.support.KeyValue;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.FilterQuery;
@@ -147,7 +148,7 @@ public class SQLiteIndexTest {
                 ""
         );
 
-        carFeaturesOffHeapIndex.removeAll(removedObjects, createQueryOptions(connectionManager));
+        carFeaturesOffHeapIndex.removeAll(objectSet(removedObjects), createQueryOptions(connectionManager));
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -188,7 +189,7 @@ public class SQLiteIndexTest {
                 ID_TO_OBJECT,
                 ""
         );
-        carFeaturesOffHeapIndex.addAll(addedObjects, createQueryOptions(connectionManager));
+        carFeaturesOffHeapIndex.addAll(objectSet(addedObjects), createQueryOptions(connectionManager));
 
         // Verify
         verify(statement, times(1)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
@@ -658,7 +659,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
 
         List<String> expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
         List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeys(createQueryOptions(connectionManager)));
@@ -678,7 +679,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
 
         List<String> expected = Arrays.asList("Taurus", "Prius", "M6", "Insight", "Hilux", "Fusion", "Focus", "Civic", "Avensis", "Accord");
         List<String> actual = Lists.newArrayList(offHeapIndex.getDistinctKeysDescending(createQueryOptions(connectionManager)));
@@ -698,7 +699,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
@@ -727,7 +728,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius", "Taurus");
@@ -748,7 +749,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList();
@@ -777,7 +778,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Accord", "Avensis", "Civic", "Focus", "Fusion", "Hilux", "Insight", "M6", "Prius");
@@ -798,7 +799,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Focus", "Fusion", "Hilux");
@@ -819,7 +820,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Civic", "Focus", "Fusion", "Hilux", "Insight");
@@ -840,7 +841,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
         List<String> expected, actual;
 
         expected = Arrays.asList("Insight", "Hilux", "Fusion", "Focus", "Civic");
@@ -861,7 +862,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
 
         Multimap<String, Car> expected = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
         expected.put("BMW", CarFactory.createCar(9));
@@ -904,7 +905,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(10), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(10), createQueryOptions(connectionManager));
 
         Multimap<String, Car> expected = MultimapBuilder.SetMultimapBuilder.linkedHashKeys().hashSetValues().build();
         expected.put("Toyota", CarFactory.createCar(6));
@@ -946,7 +947,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(20), createQueryOptions(connectionManager));
 
         Assert.assertEquals(Integer.valueOf(4), offHeapIndex.getCountOfDistinctKeys(createQueryOptions(connectionManager)));
     }
@@ -964,7 +965,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(20), createQueryOptions(connectionManager));
 
         Set<KeyStatistics<String>> keyStatistics = setOf(offHeapIndex.getStatisticsForDistinctKeys(createQueryOptions(connectionManager)));
         Assert.assertEquals(setOf(
@@ -990,7 +991,7 @@ public class SQLiteIndexTest {
                     }
                 }
         );
-        offHeapIndex.addAll(CarFactory.createCollectionOfCars(20), createQueryOptions(connectionManager));
+        offHeapIndex.addAll(createObjectSetOfCars(20), createQueryOptions(connectionManager));
 
         Set<KeyStatistics<String>> keyStatistics = setOf(offHeapIndex.getStatisticsForDistinctKeysDescending(createQueryOptions(connectionManager)));
         Assert.assertEquals(setOf(
@@ -1333,6 +1334,14 @@ public class SQLiteIndexTest {
 
     static QueryOptions anyQueryOptions() {
         return Mockito.any();
+    }
+
+    static ObjectSet<Car> createObjectSetOfCars(int numCars) {
+        return ObjectSet.fromCollection(CarFactory.createCollectionOfCars(numCars));
+    }
+
+    static ObjectSet<Car> objectSet(Collection<Car> collection) {
+        return ObjectSet.fromCollection(collection);
     }
 
 }

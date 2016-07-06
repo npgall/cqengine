@@ -22,6 +22,7 @@ import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
@@ -100,7 +101,7 @@ public class CollectionQueryEngineTest {
         queryEngine.init(emptyObjectStore(), noQueryOptions());
 
         queryEngine.addIndex(createImmutableIndex(), noQueryOptions());
-        queryEngine.addAll(Collections.singleton(CarFactory.createCar(1)), noQueryOptions());
+        queryEngine.addAll(ObjectSet.fromCollection(Collections.singleton(CarFactory.createCar(1))), noQueryOptions());
     }
 
     @Test(expected = IllegalStateException.class)

@@ -30,17 +30,19 @@ public class ObjectStoreResultSet<O> extends ResultSet<O> {
     final Query<O> query;
     final QueryOptions queryOptions;
     final int retrievalCost;
+    final ObjectSet<O> objectSet;
 
     public ObjectStoreResultSet(ObjectStore<O> objectStore, Query<O> query, QueryOptions queryOptions, int retrievalCost) {
         this.objectStore = objectStore;
         this.query = query;
         this.queryOptions = queryOptions;
         this.retrievalCost = retrievalCost;
+        this.objectSet = ObjectSet.fromObjectStore(objectStore, queryOptions);
     }
 
     @Override
     public Iterator<O> iterator() {
-        return objectStore.iterator(queryOptions);
+        return objectSet.iterator();
     }
 
     @Override
@@ -80,6 +82,6 @@ public class ObjectStoreResultSet<O> extends ResultSet<O> {
 
     @Override
     public void close() {
-        // No op.
+        objectSet.close();
     }
 }

@@ -19,8 +19,9 @@ import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
-import com.googlecode.cqengine.index.support.DefaultConcurrentSetFactory;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
+import com.googlecode.cqengine.persistence.support.CollectionWrappingObjectStore;
+import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -249,17 +250,17 @@ public class TransactionalIndexedCollectionTest extends TestCase {
         assertFalse(TransactionalIndexedCollection.iterableContains(iterable, 4));
     }
 
-    public void testCollectionContainsAllIterable() {
-        final Set<Integer> collection = asSet(1, 2, 3);
+    public void testObjectStoreContainsAllIterable() {
+        final ObjectStore<Integer> objectStore = new CollectionWrappingObjectStore<Integer>(asSet(1, 2, 3));
 
-        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 2, 3)));
-        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 2, 3))));
-        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 4, 3)));
-        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 4, 3))));
-        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asSet(1, 2, 3, 4)));
-        assertFalse(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(asSet(1, 2, 3, 4))));
-        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, Collections.<Integer>emptySet()));
-        assertTrue(TransactionalIndexedCollection.collectionContainsAllIterable(collection, asIterable(Collections.<Integer>emptySet())));
+        assertTrue(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asSet(1, 2, 3), noQueryOptions()));
+        assertTrue(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asIterable(asSet(1, 2, 3)), noQueryOptions()));
+        assertFalse(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asSet(1, 4, 3), noQueryOptions()));
+        assertFalse(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asIterable(asSet(1, 4, 3)), noQueryOptions()));
+        assertFalse(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asSet(1, 2, 3, 4), noQueryOptions()));
+        assertFalse(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asIterable(asSet(1, 2, 3, 4)), noQueryOptions()));
+        assertTrue(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, Collections.<Integer>emptySet(), noQueryOptions()));
+        assertTrue(TransactionalIndexedCollection.objectStoreContainsAllIterable(objectStore, asIterable(Collections.<Integer>emptySet()), noQueryOptions()));
     }
 
     static <O> Iterable<O> asIterable(final Collection<O> collection) {
