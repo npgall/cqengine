@@ -3,7 +3,7 @@
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
     <version>2.7.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <name>cqengine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
     <url>http://code.google.com/p/cqengine/</url>
@@ -69,6 +69,13 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+             	<!-- Add OSGi headers to MANIFEST.MF -->
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>3.0.1</version>
+				<extensions>true</extensions>
+			</plugin>
             <plugin>
                 <!-- Deploy a "-javadoc.jar" along with build -->
                 <groupId>org.apache.maven.plugins</groupId>
@@ -393,5 +400,53 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+        	<!-- Build an OSGi all-in-one JAR with all third party libraries in the Bundle-Classpath-->
+			<id>all-in-one-osgi</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.8</version>
+						<executions>
+							<execution>
+								<id>copy-dependencies</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
+									<overWriteReleases>true</overWriteReleases>
+									<overWriteSnapshots>true</overWriteSnapshots>
+									<overWriteIfNewer>true</overWriteIfNewer>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<version>3.0.1</version>
+						<extensions>true</extensions>
+						<configuration>
+							<instructions>
+								<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+								<Bundle-Version>${project.version}</Bundle-Version>
+								<Export-Package>com.googlecode.cqengine.*</Export-Package>
+								<Import-Package>!*</Import-Package>
+								<Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
+								<Embed-Dependency>*;scope=compile|runtime|provided;inline=false</Embed-Dependency>
+								<Embed-Directory>lib</Embed-Directory>
+								<Embed-Transitive>true</Embed-Transitive>
+								<Embed-StripGroup>true</Embed-StripGroup>
+								<_noee>true</_noee>
+							</instructions>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
     </profiles>
 </project>
