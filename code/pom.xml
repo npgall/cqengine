@@ -3,7 +3,7 @@
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
     <version>2.7.0-SNAPSHOT</version>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
     <name>cqengine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
     <url>http://code.google.com/p/cqengine/</url>
@@ -23,8 +23,8 @@
         <url>https://github.com/npgall/${project.artifactId}.git</url>
         <connection>scm:git:https://github.com/npgall/${project.artifactId}.git</connection>
         <developerConnection>scm:git:git@github.com:npgall/${project.artifactId}.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <developers>
         <developer>
             <id>npgall</id>
@@ -55,6 +55,31 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!-- Add OSGi entries to jar manifest -->
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <bnd><![CDATA[-exportcontents:com.googlecode.cqengine.*]]></bnd>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals><goal>bnd-process</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <!-- This is required by bnd-maven-plugin -->
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
                 <!-- Deploy a "-sources.jar" along with build -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -69,13 +94,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-             	<!-- Add OSGi headers to MANIFEST.MF -->
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>3.0.1</version>
-				<extensions>true</extensions>
-			</plugin>
             <plugin>
                 <!-- Deploy a "-javadoc.jar" along with build -->
                 <groupId>org.apache.maven.plugins</groupId>
@@ -205,7 +223,7 @@
         <dependency>
             <groupId>com.googlecode.concurrent-trees</groupId>
             <artifactId>concurrent-trees</artifactId>
-            <version>2.4.0</version>
+            <version>2.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
@@ -235,9 +253,9 @@
             </exclusions>
         </dependency>
         <dependency>
-        	<groupId>org.antlr</groupId>
-        	<artifactId>antlr4-runtime</artifactId>
-        	<version>4.5</version>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.5</version>
             <exclusions>
                 <exclusion>
                     <!--
@@ -400,53 +418,5 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-        	<!-- Build an OSGi all-in-one JAR with all third party libraries in the Bundle-Classpath-->
-			<id>all-in-one-osgi</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-dependency-plugin</artifactId>
-						<version>2.8</version>
-						<executions>
-							<execution>
-								<id>copy-dependencies</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>copy-dependencies</goal>
-								</goals>
-								<configuration>
-									<outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
-									<overWriteReleases>true</overWriteReleases>
-									<overWriteSnapshots>true</overWriteSnapshots>
-									<overWriteIfNewer>true</overWriteIfNewer>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.felix</groupId>
-						<artifactId>maven-bundle-plugin</artifactId>
-						<version>3.0.1</version>
-						<extensions>true</extensions>
-						<configuration>
-							<instructions>
-								<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-								<Bundle-Version>${project.version}</Bundle-Version>
-								<Export-Package>com.googlecode.cqengine.*</Export-Package>
-								<Import-Package>!*</Import-Package>
-								<Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
-								<Embed-Dependency>*;scope=compile|runtime|provided;inline=false</Embed-Dependency>
-								<Embed-Directory>lib</Embed-Directory>
-								<Embed-Transitive>true</Embed-Transitive>
-								<Embed-StripGroup>true</Embed-StripGroup>
-								<_noee>true</_noee>
-							</instructions>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
     </profiles>
 </project>
