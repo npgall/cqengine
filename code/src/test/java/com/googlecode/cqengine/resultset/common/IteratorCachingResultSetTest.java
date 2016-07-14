@@ -37,7 +37,7 @@ public class IteratorCachingResultSetTest {
     @SuppressWarnings("unchecked")
     public void testIteratorCaching() {
         ResultSet<Car> backingResultSet = mock(ResultSet.class);
-        when(backingResultSet.iterator()).thenReturn(mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class));
+        when(backingResultSet.iterator()).thenReturn(mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class), mock(Iterator.class));
         IteratorCachingResultSet<Car> iteratorCachingResultSet = new IteratorCachingResultSet<Car>(backingResultSet);
 
         Iterator<Car> i1 = iteratorCachingResultSet.iterator();
@@ -61,6 +61,11 @@ public class IteratorCachingResultSetTest {
         i5.hasNext();
         Iterator<Car> i6 = iteratorCachingResultSet.iterator();
         assertSame(i5, i6);
+
+        iteratorCachingResultSet.isEmpty();
+        iteratorCachingResultSet.isNotEmpty();
+        Iterator<Car> i7 = iteratorCachingResultSet.iterator();
+        assertSame(i6, i7);
     }
 
     @Test
