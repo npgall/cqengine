@@ -4,6 +4,7 @@ com.googlecode.cqengine.attribute.support
 com.googlecode.cqengine.codegen
 com.googlecode.cqengine.codegen.support
 com.googlecode.cqengine.engine
+com.googlecode.cqengine.entity
 com.googlecode.cqengine.index
 com.googlecode.cqengine.index.compound
 com.googlecode.cqengine.index.compound.support
@@ -29,6 +30,7 @@ com.googlecode.cqengine.persistence.offheap
 com.googlecode.cqengine.persistence.onheap
 com.googlecode.cqengine.persistence.support
 com.googlecode.cqengine.persistence.support.sqlite
+com.googlecode.cqengine.persistence.wrapping
 com.googlecode.cqengine.quantizer
 com.googlecode.cqengine.query
 com.googlecode.cqengine.query.logical
