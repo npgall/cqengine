@@ -353,7 +353,7 @@ IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersisten
 
 **Wrapping**
 
-WrappingPersistence can wrap any Java collection, in a CQEngine IndexedCollection without any copying of objects.
+Wrap any Java collection, in a CQEngine IndexedCollection without any copying of objects.
  * This can be a convenient way to run queries or build indexes on existing collections.
  * However some caveats relating to concurrency support and the performance of the underlying collection apply, see [WrappingPersistence](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/persistence/wrapping/WrappingPersistence.html) for details.
 
