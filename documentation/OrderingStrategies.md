@@ -51,6 +51,7 @@ public static void main(String[] args) {
 
 The _index_ ordering strategy forces CQEngine to use an index on an attribute by which results must be ordered (when available), to drive its search.
 * This strategy can be useful when results must be ordered in time series (most recent first, for example), and the objects which match the query will be stored consecutively in the index used for ordering.
+  * Therefore **[Partial Indexes](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/support/PartialIndex.html) can be extremely useful for index-accelerated ordering** as _they can be configured to store only the objects which match any query_.
 * It also makes sense to use this strategy, when a query matches a large fraction of the collection - because it avoids the need to sort a large fraction of the collection afterwards.
 
 The _materialize_ ordering strategy allows CQEngine to use other indexes to locate objects matching the query, and then to sort those results afterwards.
@@ -59,12 +60,12 @@ The _materialize_ ordering strategy allows CQEngine to use other indexes to loca
 
 The application can enable the index ordering strategy by setting a threshold value  via query options: `applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0))`
 
-Selectivity thresholds:
+**Selectivity thresholds:**
 * Threshold 1.0 tells CQEngine to always use the index ordering strategy, if the required indexes are available.
 * Threshold 0.0 (the default for now) tells CQEngine to never use the _index_ ordering strategy, and to always use the regular _materialize_ strategy instead.
 * Setting a threshold between 0.0 and 1.0, such as 0.5, causes CQEngine to choose between the _index_ strategy and the _materialize_ strategy automatically, based on the selectivity of the query.
 
-What is selectivity?
+**What is selectivity?**
 * The selectivity of the query is a measure of how "selective" (or "specific") the query is, or in other words how big the fraction of the collection it matches is.
 * A query with high selectivity (approaching 1.0) is specific: it matches a small fraction of the collection.
 * A query with a low selectivity (approaching 0.0) is vague: it matches a large fraction of the collection.
@@ -72,6 +73,8 @@ What is selectivity?
 If a threshold between 0.0 and 1.0 is specified, then CQEngine will compute the selectivity of the query automatically.
 It will then automatically use the _index_ strategy if the selectivity is below the given threshold, and the _materialize_ strategy if the selectivity is above the given threshold.
 
-However there is a computation tradeoff:
+**Tradeoffs**
+
+However note that there is a computation tradeoff:
 * Computing the selectivity of the query, itself introduces computation overhead.
 * Performance can sometimes be better, by forcing use of a particular strategy for certain types of query, than to incur the overhead to try to compute the best strategy on-the-fly.
