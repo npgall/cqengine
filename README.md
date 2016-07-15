@@ -348,6 +348,20 @@ Or, store the collection in a particular file on disk:
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, new File("cars.dat")));
 ```
 
+**Wrapping**
+
+WrappingPersistence can wrap any Java collection, in a CQEngine IndexedCollection without any copying of objects.
+ * This can be a convenient way to run queries or build indexes on existing collections.
+ * However some caveats relating to concurrency support and the performance of the underlying collection apply, see [WrappingPersistence](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/persistence/wrapping/WrappingPersistence.html) for details.
+
+```java
+Collection<Car> collection = // obtain any Java collection
+
+IndexedCollection<Car> indexedCollection = new ConcurrentIndexedCollection<Car>(
+        WrappingPersistence.aroundCollection(collection)
+);
+```
+
 **Composite**
 
 `CompositePersistence` configures a combination of persistence types for use within the same collection.
@@ -560,7 +574,7 @@ For non-Maven projects, a version built with [maven-shade-plugin](http://maven.a
 
 ## Project Status ##
 
-  * CQEngine 2.6.0 is the current release as of writing (May 2016), and is in Maven central
+  * CQEngine 2.7.0 is the current release as of writing (July 2016), and is in Maven central
   * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
