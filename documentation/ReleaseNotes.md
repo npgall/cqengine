@@ -3,26 +3,26 @@
 ### Version 2.7.0 - 2016-07-13 ###
   * CQEngine now supports Partial Indexes.
     * The following new indexes are provided:
-      * `PartialDiskIndex`
-      * `PartialOffHeapIndex`
-      * `PartialNavigableIndex`
+      * [PartialDiskIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/disk/PartialDiskIndex.html)
+      * [PartialOffHeapIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/offheap/PartialOffHeapIndex.html)
+      * [PartialNavigableIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/navigable/PartialNavigableIndex.html)
     * Partial Indexes are similar to regular indexes and provide the same features, but they are also configured with an arbitrary _filter query_ which restricts the objects which will be stored in the index to those which match the _filter query_.
-    * CQEngine will then use a partial index to accelerate a query, when it finds that a partial index on an attribute referenced in the query is available, *and* the set of objects which would match the query are logically a subset of objects which would match the _filter query_ of the partial index. See `PartialIndex` for details.
+    * CQEngine will then use a partial index to accelerate a query, when it finds that a partial index on an attribute referenced in the query is available, *and* the set of objects which would match the query are logically a subset of objects which would match the _filter query_ of the partial index. See [PartialIndex](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/index/support/PartialIndex.html) for details.
     * As such, a partial index accelerates queries on an "interesting subset" of the collection, without incurring the overhead of indexing the entire collection.
     * Partial indexes require less storage space or memory than non-partial indexes, and they can yield better query performance as well, because they will contain fewer irrelevant entries not pertaining to the query.
-    * Partial indexes are also particularly useful when used with **_index-accelerated ordering_**. They can store results which match a given filter query in pre-sorted order of the given attribute, which means that requesting results for that query and ordered by that attribute at runtime, can be answered quickly by the partial index without requiring any post-filtering or post-sorting.
+    * Partial indexes are also particularly useful when used with [index-accelerated ordering](OrderingStrategies.md). They can store results which match a given filter query in pre-sorted order of the given attribute, which means that requesting results for that query and ordered by that attribute at runtime, can be answered quickly by the partial index without requiring any post-filtering or post-sorting.
   * A new type of persistence: WrappingPersistence
     * WrappingPersistence can wrap any Java collection, in a CQEngine IndexedCollection without any copying of objects.
     * This can be a convenient way to run queries or build indexes on existing collections.
-    * However some caveats related to concurrency support and the performance of the the underlying collection apply, see `WrappingPersistence` for details.
+    * However some caveats related to concurrency support and the performance of the the underlying collection apply, see [WrappingPersistence](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/persistence/wrapping/WrappingPersistence.html) for details.
   * New support for `IndexedCollection<Map>` (IndexedCollections where dynamic Maps are used instead of POJOs)
-    * `QueryFactory.mapAttribute()` can dynamically create an attribute which will read the value of an entry in these maps.
-    * `QueryFactory.mapEntity()` and `QueryFactory.primaryKeyedMapEntity()` and can wrap these maps in optimized maps which accelerate equality and hashCode calculations improving query performance beyond what regular maps would allow.
+    * [QueryFactory.mapAttribute()](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/QueryFactory.html#mapAttribute-K-java.lang.Class-) can dynamically create an attribute which will read the value of an entry in these maps.
+    * [QueryFactory.mapEntity()](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/QueryFactory.html#mapEntity-java.util.Map-) and [QueryFactory.primaryKeyedMapEntity()](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/QueryFactory.html#primaryKeyedMapEntity-java.util.Map-java.lang.Object-) and can wrap these maps in optimized maps which accelerate equality and hashCode calculations improving query performance beyond what regular maps would allow.
     * Many thanks to Chris Kimpton for this contribution via pull request #68.
   * CQEngine is now OSGi compatible
     * Many thanks to Eduardo Fernández León for this contribution via pull request #72.
   * The MVCC algorithm in `TransactionalIndexedCollection` has been improved to prevent race conditions on the write path (issue #69).
-  * The internal interface which indexes implement has been updated slightly, to introduce an `ObjectSet` abstraction, which allows iterators and resources used by indexes to be released sooner during indexing operations, instead of as batches when indexing is complete.
+  * The internal interface which indexes implement has been updated slightly, to introduce an [ObjectSet](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/persistence/support/ObjectSet.html) abstraction, which allows iterators and resources used by indexes to be released sooner during indexing operations, instead of as batches when indexing is complete.
 
 ### Version 2.6.0 - 2016-05-17 ###
   * Maintenance release.
