@@ -28,7 +28,7 @@ import java.util.Iterator;
  */
 public class WrappedResultSet<O> extends ResultSet<O> {
 
-    final ResultSet<O> wrappedResultSet;
+    protected final ResultSet<O> wrappedResultSet;
 
     public WrappedResultSet(ResultSet<O> wrappedResultSet) {
         this.wrappedResultSet = wrappedResultSet;

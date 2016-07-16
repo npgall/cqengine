@@ -36,12 +36,10 @@ import java.util.Iterator;
  *
  * @author niall.gallagher
  */
-public class IteratorCachingResultSet<O> extends ResultSet<O> {
-
-    final ResultSet<O> backingResultSet;
+public class IteratorCachingResultSet<O> extends WrappedResultSet<O> {
 
     public IteratorCachingResultSet(ResultSet<O> backingResultSet) {
-        this.backingResultSet = backingResultSet;
+        super(backingResultSet);
     }
 
     Iterator<O> cachedIterator = null;
@@ -52,7 +50,7 @@ public class IteratorCachingResultSet<O> extends ResultSet<O> {
         if (cachedIterator != null) {
             return cachedIterator;
         }
-        final Iterator<O> backingIterator = backingResultSet.iterator();
+        final Iterator<O> backingIterator = wrappedResultSet.iterator();
         Iterator<O> wrappingIterator = new Iterator<O>() {
 
             @Override
@@ -74,45 +72,5 @@ public class IteratorCachingResultSet<O> extends ResultSet<O> {
         };
         this.cachedIterator = wrappingIterator;
         return wrappingIterator;
-    }
-
-    @Override
-    public boolean contains(O object) {
-        return backingResultSet.contains(object);
-    }
-
-    @Override
-    public boolean matches(O object) {
-        return backingResultSet.matches(object);
-    }
-
-    @Override
-    public Query<O> getQuery() {
-        return backingResultSet.getQuery();
-    }
-
-    @Override
-    public QueryOptions getQueryOptions() {
-        return backingResultSet.getQueryOptions();
-    }
-
-    @Override
-    public int getRetrievalCost() {
-        return backingResultSet.getRetrievalCost();
-    }
-
-    @Override
-    public int getMergeCost() {
-        return backingResultSet.getMergeCost();
-    }
-
-    @Override
-    public int size() {
-        return backingResultSet.size();
-    }
-
-    @Override
-    public void close() {
-        backingResultSet.close();
     }
 }

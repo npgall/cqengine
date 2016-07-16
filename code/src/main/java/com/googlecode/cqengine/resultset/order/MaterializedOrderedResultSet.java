@@ -99,4 +99,28 @@ public class MaterializedOrderedResultSet<O> extends WrappedResultSet<O> {
     public int size() {
         return deduplicateSize ? IteratorUtil.countElements(this) : super.size();
     }
+
+    /**
+     * @return the result of calling this method on the wrapped ResultSet
+     */
+    @Override
+    public O uniqueResult() {
+        return wrappedResultSet.uniqueResult();
+    }
+
+    /**
+     * @return the result of calling this method on the wrapped ResultSet
+     */
+    @Override
+    public boolean isEmpty() {
+        return wrappedResultSet.isEmpty();
+    }
+
+    /**
+     * @return the result of calling this method on the wrapped ResultSet
+     */
+    @Override
+    public boolean isNotEmpty() {
+        return wrappedResultSet.isNotEmpty();
+    }
 }
