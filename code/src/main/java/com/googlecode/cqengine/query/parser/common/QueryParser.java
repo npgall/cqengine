@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * A service provider interface for parsers which can convert string queries to CQEngine native queries.
  * <p/>
- * Subclasses can implement this to common string-based queries in various dialects,
+ * Subclasses can implement this to support string-based queries in various dialects,
  * such as SQL or a string representation of a CQEngine native query.
  *
  * @author Niall Gallagher

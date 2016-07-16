@@ -40,7 +40,7 @@ public interface Index<O> extends ModificationListener<O> {
      * @param query A query to check
      * @param queryOptions Optional parameters for the query
      * @return True if the index can perform retrievals for the type of query supplied, false if it does not
-     * common this type of query
+     * support this type of query
      */
     public boolean supportsQuery(Query<O> query, QueryOptions queryOptions);
 
@@ -61,7 +61,7 @@ public interface Index<O> extends ModificationListener<O> {
      * @param query An object which specifies some restriction on an attribute of an object
      * @param queryOptions Optional parameters for the query
      * @return A set of objects with attributes matching the restriction imposed by the query
-     * @throws IllegalArgumentException if the index does not common the given query
+     * @throws IllegalArgumentException if the index does not support the given query
      * @see #supportsQuery(Query, QueryOptions)
      */
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions);
