@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.index.unique;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.cqengine.TransactionalIndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.hash.HashIndex;
@@ -64,6 +65,14 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  *     </li>
  *     <li>
  *         It is important that {@code UniqueIndex} only be used with attributes which uniquely identify objects
+ *     </li>
+ *     <li>
+ *         A {@code UniqueIndex} on a primary key-type attribute might not be compatible with the MVCC algorithm
+ *         implemented by {@link TransactionalIndexedCollection}.
+ *         <ul><li>
+ *             However to reduce memory overhead in those situations, as an alternative option see:
+ *             {@link HashIndex#onSemiUniqueAttribute(Attribute)}
+ *         </li></ul>
  *     </li>
  * </ul>
  * <p/>
