@@ -16,10 +16,12 @@
 package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.cqengine.TransactionalIndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
+import com.googlecode.cqengine.index.unique.UniqueIndex;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -242,6 +244,27 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     }
 
     /**
+     * Creates a new {@link HashIndex} on the specified attribute, where the attribute is expected to uniquely identify
+     * an object in the collection <i>most of the time</i>.
+     * <p/>
+     * This can be used as a less-strict alternative to {@link UniqueIndex}, especially when used with a
+     * {@link TransactionalIndexedCollection} which implements an MVCC algorithm. The MVCC algorithm sometimes needs
+     * to store multiple versions of the same object in the collection at the same time, which would violate the
+     * constraints of that index.
+     * <p/>
+     * This configures the {@link HashIndex} with {@link CompactValueSetFactory}, and as such it will use less memory
+     * than the default configuration of {@link HashIndex}. However it will use somewhat more memory than
+     * {@link UniqueIndex}.
+     *
+     * @param attribute The attribute on which the index will be built
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link HashIndex} on this attribute
+     */
+    public static <A, O> HashIndex<A, O> onSemiUniqueAttribute(Attribute<O, A> attribute) {
+        return onAttribute(new DefaultIndexMapFactory<A, O>(), new CompactValueSetFactory<O>(), attribute);
+    }
+
+    /**
      * Creates a new {@link HashIndex} on the specified attribute.
      * <p/>
      * @param indexMapFactory A factory used to create the main map-based data structure used by the index
@@ -315,6 +338,20 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
         @Override
         public StoredResultSet<O> create() {
             return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>()));
+        }
+    }
+
+    /**
+     * Creates a value set which is tuned to reduce memory overhead, with an expectation that only a single or
+     * a very small number of object(s) will be stored in each bucket.
+     * <p/>
+     * Additionally, this is tuned with the <b>expectation of low concurrency for writes</b>. Concurrent writes are
+     * safe, but they might block each other.
+     */
+    public static class CompactValueSetFactory<O> implements Factory<StoredResultSet<O>> {
+        @Override
+        public StoredResultSet<O> create() {
+            return new StoredSetBasedResultSet<O>(Collections.<O>newSetFromMap(new ConcurrentHashMap<O, Boolean>( 1, 1.0F, 1)));
         }
     }
 }

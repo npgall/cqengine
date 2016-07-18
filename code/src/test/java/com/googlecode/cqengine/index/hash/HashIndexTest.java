@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.hash;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.support.KeyStatistics;
 import com.googlecode.cqengine.index.support.KeyStatisticsIndex;
 import com.googlecode.cqengine.testutil.Car;
@@ -24,6 +25,7 @@ import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.Set;
 
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
@@ -77,5 +79,18 @@ public class HashIndexTest {
 
                 ),
                 keyStatistics);
+    }
+
+    @Test
+    public void testOnSemiUniqueAttribute() throws Exception{
+        HashIndex<Integer, Car> hashIndex = HashIndex.onSemiUniqueAttribute(Car.CAR_ID);
+        // Validate that the HashIndex was configured with CompactValueSetFactory.
+        // We have to use reflection to do this
+        // because the valueSetFactory has protected access in AbstractMapBasedAttributeIndex.
+        // This is a bit hacky, but OTOH we should not break encapsulation of AbstractMapBasedAttributeIndex...
+        Field valueSetFactoryField = AbstractMapBasedAttributeIndex.class.getDeclaredField("valueSetFactory");
+        valueSetFactoryField.setAccessible(true);
+        Assert.assertTrue("HashIndex should be configured with CompactValueSetFactory",
+                valueSetFactoryField.get(hashIndex) instanceof HashIndex.CompactValueSetFactory);
     }
 }
