@@ -17,7 +17,7 @@ package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SelfAttribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
@@ -37,7 +37,7 @@ public class None<O> extends SimpleQuery<O, O> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, O> attribute, O object, QueryOptions queryOptions) {
+    protected boolean matchesSimpleAttribute(ISimpleAttribute<O,O> attribute, O object, QueryOptions queryOptions) {
         return false;
     }
 

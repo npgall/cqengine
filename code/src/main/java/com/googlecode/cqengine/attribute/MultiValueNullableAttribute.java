@@ -33,7 +33,7 @@ import java.util.Iterator;
  *
  * @author Niall Gallagher
  */
-public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribute<O, A> {
+public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribute<O, A> implements IMultiValueNullableAttribute<O, A> {
 
     final boolean componentValuesNullable;
 
@@ -98,14 +98,6 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
         this.componentValuesNullable = componentValuesNullable;
     }
 
-    /**
-     * Returns the values of the attribute from the object, omitting any null values.
-     * <p/>
-     * @param object The object from which the values of the attribute are required
-     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
-     * this attribute to be invoked (either a query, or an update to the collection)
-     * @return The values for the attribute
-     */
     @Override
     public Iterable<A> getValues(O object, QueryOptions queryOptions) {
         Iterable<A> values = getNullableValues(object, queryOptions);
@@ -126,14 +118,4 @@ public abstract class MultiValueNullableAttribute<O, A> extends AbstractAttribut
         };
     }
 
-    /**
-     * Returns the values of the attribute from the object, some of which can be null.
-     * The actual list returned can also be null.
-     * <p/>
-     * @param object The object from which the values of the attribute are required
-     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
-     * this attribute to be invoked (either a query, or an update to the collection)
-     * @return The values for the attribute, some of which might be null
-     */
-    public abstract Iterable<A> getNullableValues(O object, QueryOptions queryOptions);
 }

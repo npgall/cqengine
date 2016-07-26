@@ -20,9 +20,7 @@ import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 import com.googlecode.concurrenttrees.suffix.ConcurrentSuffixTree;
 import com.googlecode.concurrenttrees.suffix.SuffixTree;
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
@@ -306,7 +304,7 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
      */
     ResultSet<O> unionResultSets(Iterable<? extends ResultSet<O>> results, Query<O> query, QueryOptions queryOptions) {
         if (DeduplicationOption.isLogicalElimination(queryOptions)
-                && !(getAttribute() instanceof SimpleAttribute || getAttribute() instanceof SimpleNullableAttribute)) {
+                && !(getAttribute() instanceof ISimpleAttribute || getAttribute() instanceof ISimpleNullableAttribute)) {
             return new ResultSetUnion<O>(results, query, queryOptions) {
                 @Override
                 public int getRetrievalCost() {

@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.google.common.collect.*;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.support.CloseableIterable;
 import com.googlecode.cqengine.index.support.KeyStatistics;
@@ -59,9 +60,9 @@ public class SQLiteIndexTest {
     private static final String TABLE_NAME = "cqtbl_features";
     private static final String INDEX_NAME = "cqidx_features_value";
 
-    public static final SimpleAttribute<Car, Integer> OBJECT_TO_ID = Car.CAR_ID;
+    public static final ISimpleAttribute<Car,Integer> OBJECT_TO_ID = Car.CAR_ID;
 
-    public static final SimpleAttribute<Integer, Car> ID_TO_OBJECT = new SimpleAttribute<Integer, Car>("carFromId") {
+    public static final ISimpleAttribute<Integer,Car> ID_TO_OBJECT = new SimpleAttribute<Integer, Car>("carFromId") {
         public Car getValue(Integer carId, QueryOptions queryOptions) { return null; }
     };
 
@@ -478,7 +479,7 @@ public class SQLiteIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
@@ -522,7 +523,7 @@ public class SQLiteIndexTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
@@ -570,7 +571,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
@@ -1014,7 +1015,7 @@ public class SQLiteIndexTest {
         Statement statement = mock(PreparedStatement.class);
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
@@ -1058,7 +1059,7 @@ public class SQLiteIndexTest {
         Statement statement = mock(PreparedStatement.class);
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
@@ -1113,7 +1114,7 @@ public class SQLiteIndexTest {
         java.sql.ResultSet resultSet = mock(java.sql.ResultSet.class);
 
         @SuppressWarnings("unchecked")
-        SimpleAttribute<Integer, Car> idToObject = (SimpleAttribute<Integer, Car>)mock(SimpleAttribute.class);
+        ISimpleAttribute<Integer,Car> idToObject = (ISimpleAttribute<Integer,Car>)mock(SimpleAttribute.class);
 
         // Behaviour
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);

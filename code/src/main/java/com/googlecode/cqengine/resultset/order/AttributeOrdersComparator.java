@@ -46,8 +46,8 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
         for (AttributeOrder<O> attributeOrder : attributeSortOrders) {
             Attribute<O, ? extends Comparable> attribute = attributeOrder.getAttribute();
             int comparison;
-            if (attribute instanceof OrderControlAttribute) {
-                OrderControlAttribute<O> orderControl = (OrderControlAttribute<O>)(OrderControlAttribute)(attribute);
+            if (attribute instanceof IOrderControlAttribute) {
+                IOrderControlAttribute<O> orderControl = (IOrderControlAttribute)(attribute);
                 comparison = orderControl.getValue(o1, queryOptions).compareTo(orderControl.getValue(o2, queryOptions));
                 if (comparison != 0) {
                     // One of the objects has values for the delegate attribute encapsulated in OrderControlAttribute,
@@ -93,9 +93,9 @@ public class AttributeOrdersComparator<O> implements Comparator<O> {
     }
 
     <A extends Comparable<A>> int compareAttributeValues(Attribute<O, A> attribute, O o1, O o2) {
-        if (attribute instanceof SimpleAttribute) {
+        if (attribute instanceof ISimpleAttribute) {
             // Fast code path...
-            SimpleAttribute<O, A> simpleAttribute = (SimpleAttribute<O, A>)attribute;
+            ISimpleAttribute<O,A> simpleAttribute = (ISimpleAttribute<O,A>)attribute;
             return simpleAttribute.getValue(o1, queryOptions).compareTo(simpleAttribute.getValue(o2, queryOptions));
         }
         else {

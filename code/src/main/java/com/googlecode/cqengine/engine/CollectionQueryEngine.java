@@ -148,9 +148,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
-            if (indexedAttribute instanceof StandingQueryAttribute) {
+            if (indexedAttribute instanceof IStandingQueryAttribute) {
                 @SuppressWarnings("unchecked")
-                StandingQueryAttribute<O> standingQueryAttribute = (StandingQueryAttribute<O>) indexedAttribute;
+                IStandingQueryAttribute<O> standingQueryAttribute = (IStandingQueryAttribute<O>) indexedAttribute;
                 Query<O> standingQuery = standingQueryAttribute.getQuery();
                 addStandingQueryIndex(index, standingQuery, queryOptions);
             }
@@ -359,9 +359,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 AttributeOrder<O> firstOrder = allSortOrders.iterator().next();
                 @SuppressWarnings("unchecked")
                 Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
-                if (firstAttribute instanceof OrderControlAttribute) {
+                if (firstAttribute instanceof IOrderControlAttribute) {
                     @SuppressWarnings("unchecked")
-                    Attribute<O, Comparable> firstAttributeDelegate = ((OrderControlAttribute)firstAttribute).getDelegateAttribute();
+                    Attribute<O, Comparable> firstAttributeDelegate = ((IOrderControlAttribute)firstAttribute).getDelegateAttribute();
                     firstAttribute = firstAttributeDelegate;
                 }
 
@@ -379,7 +379,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // ordering results, we must return those objects either before or after the objects which are found in
                 // the index. Here we proceed to locate a suitable index to use for ordering results, only if we will
                 // also be able to retrieve the objects missing from that index efficiently as well...
-                if (firstAttribute instanceof SimpleAttribute || standingQueryIndexes.get(not(has(firstAttribute))) != null) {
+                if (firstAttribute instanceof ISimpleAttribute || standingQueryIndexes.get(not(has(firstAttribute))) != null) {
                     // Either we are sorting by a SimpleAttribute, or we are sorting by a non-SimpleAttribute and we
                     // also will be able to retrieve objects which do not have values for the non-SimpleAttribute
                     // efficiently. Now check if an index exists which would allow index ordering...
@@ -513,9 +513,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // If the client wrapped the first attribute by which results should be ordered in an OrderControlAttribute,
         // assign it here...
         @SuppressWarnings("unchecked")
-        final OrderControlAttribute<O> orderControlAttribute =
-                (primarySortOrder.getAttribute() instanceof OrderControlAttribute)
-                        ? (OrderControlAttribute<O>)primarySortOrder.getAttribute() : null;
+        final IOrderControlAttribute<O> orderControlAttribute =
+                (primarySortOrder.getAttribute() instanceof IOrderControlAttribute)
+                        ? (IOrderControlAttribute<O>)primarySortOrder.getAttribute() : null;
 
         // If the first attribute by which results should be ordered was wrapped, unwrap it, and assign it here...
         @SuppressWarnings("unchecked")
@@ -526,8 +526,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         final boolean primarySortDescending = primarySortOrder.isDescending();
 
-        final boolean attributeCanHaveZeroValues = !(primarySortAttribute instanceof SimpleAttribute);
-        final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof SimpleAttribute || primarySortAttribute instanceof SimpleNullableAttribute);
+        final boolean attributeCanHaveZeroValues = !(primarySortAttribute instanceof ISimpleAttribute);
+        final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof ISimpleAttribute || primarySortAttribute instanceof ISimpleNullableAttribute);
 
         @SuppressWarnings("unchecked")
         final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);

@@ -18,6 +18,7 @@ package com.googlecode.cqengine.persistence;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
@@ -61,7 +62,7 @@ public class PersistenceIndexingBenchmark {
         }
     }
 
-    static final SimpleAttribute<Car, String> CAR_ID_STRING = new SimpleAttribute<Car, String>("carIdString") {
+    static final ISimpleAttribute<Car,String> CAR_ID_STRING = new SimpleAttribute<Car, String>("carIdString") {
         @Override
         public String getValue(Car car, QueryOptions queryOptions) {
             return String.valueOf(car.getCarId());

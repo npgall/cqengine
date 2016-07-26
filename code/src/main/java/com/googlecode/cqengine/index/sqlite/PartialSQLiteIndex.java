@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.PartialIndex;
 import com.googlecode.cqengine.index.support.PartialSortedKeyStatisticsAttributeIndex;
@@ -33,8 +34,8 @@ import static com.googlecode.cqengine.index.sqlite.support.DBUtils.sanitizeForTa
  */
 public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialSortedKeyStatisticsAttributeIndex<A, O> implements NonHeapTypeIndex {
 
-    final SimpleAttribute<O, K> primaryKeyAttribute;
-    final SimpleAttribute<K, O> foreignKeyAttribute;
+    final ISimpleAttribute<O,K> primaryKeyAttribute;
+    final ISimpleAttribute<K,O> foreignKeyAttribute;
     final String tableNameSuffix;
 
     /**
@@ -46,8 +47,8 @@ public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialSo
      * @param filterQuery The filter query which matches the subset of objects to be stored in this index.
      */
     protected PartialSQLiteIndex(Attribute<O, A> attribute,
-                                 SimpleAttribute<O, K> primaryKeyAttribute,
-                                 SimpleAttribute<K, O> foreignKeyAttribute,
+                                 ISimpleAttribute<O,K> primaryKeyAttribute,
+                                 ISimpleAttribute<K,O> foreignKeyAttribute,
                                  Query<O> filterQuery) {
         super(attribute, filterQuery);
         this.primaryKeyAttribute = primaryKeyAttribute;
@@ -81,8 +82,8 @@ public class PartialSQLiteIndex<A extends Comparable<A>, O, K> extends PartialSo
      * @return a new instance of the {@link SQLiteIndex}
      */
     public static <A extends Comparable<A>, O, K> PartialSQLiteIndex<A, O, K> onAttributeWithFilterQuery(Attribute<O, A> attribute,
-                                                                                   SimpleAttribute<O, K> primaryKeyAttribute,
-                                                                                   SimpleAttribute<K, O> foreignKeyAttribute,
+                                                                                   ISimpleAttribute<O,K> primaryKeyAttribute,
+                                                                                   ISimpleAttribute<K,O> foreignKeyAttribute,
                                                                                    Query<O> filterQuery) {
         return new PartialSQLiteIndex<A, O, K>(attribute, primaryKeyAttribute, foreignKeyAttribute, filterQuery);
     }

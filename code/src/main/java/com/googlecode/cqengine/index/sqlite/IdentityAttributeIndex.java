@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.index.sqlite;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 
 /**
@@ -30,5 +30,5 @@ public interface IdentityAttributeIndex<A, O> extends AttributeIndex<A, O> {
      * object from the identity index. This is called a foreign key attribute, because typically those keys will
      * be stored in other indexes, referring to the primary keys of this index.
      */
-    SimpleAttribute<A, O> getForeignKeyAttribute();
+    ISimpleAttribute<A,O> getForeignKeyAttribute();
 }

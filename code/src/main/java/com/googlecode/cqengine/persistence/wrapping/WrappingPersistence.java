@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.persistence.wrapping;
 
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.indextype.OnHeapTypeIndex;
 import com.googlecode.cqengine.persistence.Persistence;
@@ -60,13 +60,13 @@ import java.util.Collection;
 public class WrappingPersistence<O, A extends Comparable<A>> implements Persistence<O, A> {
 
     final Collection<O> backingCollection;
-    final SimpleAttribute<O, A> primaryKeyAttribute;
+    final ISimpleAttribute<O,A> primaryKeyAttribute;
 
     public WrappingPersistence(Collection<O> backingCollection) {
         this(backingCollection, null);
     }
 
-    public WrappingPersistence(Collection<O> backingCollection, SimpleAttribute<O, A> primaryKeyAttribute) {
+    public WrappingPersistence(Collection<O> backingCollection, ISimpleAttribute<O,A> primaryKeyAttribute) {
         this.backingCollection = backingCollection;
         this.primaryKeyAttribute = primaryKeyAttribute;
     }
@@ -101,7 +101,7 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
     }
 
     @Override
-    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
+    public ISimpleAttribute<O,A> getPrimaryKeyAttribute() {
         return primaryKeyAttribute;
     }
 
@@ -111,7 +111,7 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
      * @return A {@link WrappingPersistence} object which persists to the given collection.
      */
-    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> aroundCollectionOnPrimaryKey(Collection<O> collection, SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <O, A extends Comparable<A>> WrappingPersistence<O, A> aroundCollectionOnPrimaryKey(Collection<O> collection, ISimpleAttribute<O,A> primaryKeyAttribute) {
         return new WrappingPersistence<O, A>(collection, primaryKeyAttribute);
     }
 
@@ -121,7 +121,7 @@ public class WrappingPersistence<O, A extends Comparable<A>> implements Persiste
      * <p/>
      * This persistence will not work with composite persistence configurations, where some indexes are located on heap,
      * and some off-heap etc. To use this persistence in those configurations, it is necessary to specify a primary
-     * key - see: {@link #aroundCollectionOnPrimaryKey(Collection, SimpleAttribute)}.
+     * key - see: {@link #aroundCollectionOnPrimaryKey(Collection, ISimpleAttribute)}.
      *
      * @return A {@link WrappingPersistence} object which persists to the given collection, and which is not configured
      * with a primary key.

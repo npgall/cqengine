@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
@@ -32,7 +32,7 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
 
     protected final boolean attributeIsSimple;
     protected final Attribute<O, A> attribute;
-    protected final SimpleAttribute<O, A> simpleAttribute;
+    protected final ISimpleAttribute<O,A> simpleAttribute;
     // Lazy calculate and cache hash code...
     private transient int cachedHashCode = 0;
 
@@ -45,9 +45,9 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
             throw new IllegalArgumentException("The attribute argument was null.");
         }
         this.attribute = attribute;
-        if (attribute instanceof SimpleAttribute) {
+        if (attribute instanceof ISimpleAttribute) {
             this.attributeIsSimple = true;
-            this.simpleAttribute = (SimpleAttribute<O, A>) attribute;
+            this.simpleAttribute = (ISimpleAttribute<O,A>) attribute;
         }
         else {
             this.attributeIsSimple = false;
@@ -91,7 +91,7 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
         }
     }
 
-    protected abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions);
+    protected abstract boolean matchesSimpleAttribute(ISimpleAttribute<O,A> attribute, O object, QueryOptions queryOptions);
 
     protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions);
 

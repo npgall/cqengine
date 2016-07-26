@@ -16,6 +16,7 @@
 package com.googlecode.cqengine.persistence.support.sqlite;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
@@ -29,7 +30,7 @@ import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
  */
 public class SQLiteOffHeapIdentityIndex<A extends Comparable<A>, O> extends SQLiteIdentityIndex<A, O> implements OffHeapTypeIndex {
 
-    public SQLiteOffHeapIdentityIndex(SimpleAttribute<O, A> primaryKeyAttribute) {
+    public SQLiteOffHeapIdentityIndex(ISimpleAttribute<O,A> primaryKeyAttribute) {
         super(primaryKeyAttribute);
     }
 
@@ -46,7 +47,7 @@ public class SQLiteOffHeapIdentityIndex<A extends Comparable<A>, O> extends SQLi
      * @param <O> The type of the object containing the attributes.
      * @return a new instance of {@link SQLiteOffHeapIdentityIndex}
      */
-    public static <A extends Comparable<A>, O> SQLiteOffHeapIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <A extends Comparable<A>, O> SQLiteOffHeapIdentityIndex<A, O> onAttribute(final ISimpleAttribute<O,A> primaryKeyAttribute) {
         return new SQLiteOffHeapIdentityIndex<A, O>(primaryKeyAttribute);
     }
 }

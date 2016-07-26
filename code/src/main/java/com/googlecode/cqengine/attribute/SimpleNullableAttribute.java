@@ -28,7 +28,7 @@ import java.util.*;
  * @see SimpleAttribute
  * @author Niall Gallagher
  */
-public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O, A> {
+public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O, A> implements ISimpleNullableAttribute<O, A> {
 
     /**
      * Creates an attribute with the given name.
@@ -87,13 +87,4 @@ public abstract class SimpleNullableAttribute<O, A> extends AbstractAttribute<O,
         return value == null ? Collections.<A>emptyList() : Collections.singletonList(value);
     }
 
-    /**
-     * Returns the (possibly null) value of the attribute from the object.
-     * <p/>
-     * @param object The object from which the value of the attribute is required
-     * @param queryOptions Optional parameters supplied by the application along with the operation which is causing
-     * this attribute to be invoked (either a query, or an update to the collection)
-     * @return The value for the attribute, which can be null
-     */
-    public abstract A getValue(O object, QueryOptions queryOptions);
 }

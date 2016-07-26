@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
@@ -56,9 +57,9 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         Persistence<O, K> persistence = SimplifiedSQLiteIndex.<O, K>getPersistenceFromQueryOptions(queryOptions);
         QueryEngine<O> queryEngine = getQueryEngineFromQueryOptions(queryOptions);
 
-        final SimpleAttribute<O, K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
+        final ISimpleAttribute<O,K> primaryKeyAttribute = getPrimaryKeyFromPersistence(persistence);
         final AttributeIndex<K, O> primaryKeyIndex = getPrimaryKeyIndexFromQueryEngine(primaryKeyAttribute, queryEngine, queryOptions);
-        final SimpleAttribute<K, O> foreignKeyAttribute = new SimpleAttribute<K, O>(primaryKeyAttribute.getAttributeType(), primaryKeyAttribute.getObjectType()) {
+        final ISimpleAttribute<K,O> foreignKeyAttribute = new SimpleAttribute<K, O>(primaryKeyAttribute.getAttributeType(), primaryKeyAttribute.getObjectType()) {
             @Override
             public O getValue(K primaryKeyValue, QueryOptions queryOptions) {
                 return primaryKeyIndex.retrieve(QueryFactory.equal(primaryKeyAttribute, primaryKeyValue), queryOptions).uniqueResult();
@@ -97,15 +98,15 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         return queryEngine;
     }
 
-    SimpleAttribute<O, K> getPrimaryKeyFromPersistence(Persistence<O, K> persistence) {
-        SimpleAttribute<O, K> primaryKey = persistence.getPrimaryKeyAttribute();
+    ISimpleAttribute<O,K> getPrimaryKeyFromPersistence(Persistence<O, K> persistence) {
+        ISimpleAttribute<O,K> primaryKey = persistence.getPrimaryKeyAttribute();
         if (primaryKey == null) {
             throw new IllegalStateException("This index " + getClass().getSimpleName() + " on attribute '" + attribute.getAttributeName() + "' cannot be added to the IndexedCollection, because the configured persistence was not configured with a primary key attribute.");
         }
         return primaryKey;
     }
 
-    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(SimpleAttribute<O, K> primaryKeyAttribute, QueryEngine<O> queryEngine, QueryOptions queryOptions) {
+    AttributeIndex<K, O> getPrimaryKeyIndexFromQueryEngine(ISimpleAttribute<O,K> primaryKeyAttribute, QueryEngine<O> queryEngine, QueryOptions queryOptions) {
         for (Index<O> index : queryEngine.getIndexes()) {
             if (index instanceof AttributeIndex) {
                 @SuppressWarnings("unchecked")

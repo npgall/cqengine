@@ -16,7 +16,9 @@
 package com.googlecode.cqengine.testutil;
 
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
+import com.googlecode.cqengine.attribute.IMultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.List;
@@ -26,31 +28,31 @@ import java.util.List;
  */
 public class Car {
 
-    public static final SimpleAttribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
+    public static final ISimpleAttribute<Car,Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
         public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
     };
 
-    public static final SimpleAttribute<Car, String> MANUFACTURER = new SimpleAttribute<Car, String>("manufacturer") {
+    public static final ISimpleAttribute<Car,String> MANUFACTURER = new SimpleAttribute<Car, String>("manufacturer") {
         public String getValue(Car car, QueryOptions queryOptions) { return car.manufacturer; }
     };
 
-    public static final SimpleAttribute<Car, String> MODEL = new SimpleAttribute<Car, String>("model") {
+    public static final ISimpleAttribute<Car,String> MODEL = new SimpleAttribute<Car, String>("model") {
         public String getValue(Car car, QueryOptions queryOptions) { return car.model; }
     };
 
-    public static final SimpleAttribute<Car, Color> COLOR = new SimpleAttribute<Car, Color>("color") {
+    public static final ISimpleAttribute<Car,Color> COLOR = new SimpleAttribute<Car, Color>("color") {
         public Color getValue(Car car, QueryOptions queryOptions) { return car.color; }
     };
 
-    public static final SimpleAttribute<Car, Integer> DOORS = new SimpleAttribute<Car, Integer>("doors") {
+    public static final ISimpleAttribute<Car,Integer> DOORS = new SimpleAttribute<Car, Integer>("doors") {
         public Integer getValue(Car car, QueryOptions queryOptions) { return car.doors; }
     };
 
-    public static final SimpleAttribute<Car, Double> PRICE = new SimpleAttribute<Car, Double>("price") {
+    public static final ISimpleAttribute<Car,Double> PRICE = new SimpleAttribute<Car, Double>("price") {
         public Double getValue(Car car, QueryOptions queryOptions) { return car.price; }
     };
 
-    public static final MultiValueAttribute<Car, String> FEATURES = new MultiValueAttribute<Car, String>("features") {
+    public static final IMultiValueAttribute<Car,String> FEATURES = new MultiValueAttribute<Car, String>("features") {
         public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
     };
 

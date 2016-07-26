@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.persistence.composite;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
@@ -62,7 +62,7 @@ public class CompositePersistence<O, A extends Comparable<A>> implements Persist
     }
 
     @Override
-    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
+    public ISimpleAttribute<O,A> getPrimaryKeyAttribute() {
         return primaryPersistence.getPrimaryKeyAttribute();
     }
 
@@ -135,7 +135,7 @@ public class CompositePersistence<O, A extends Comparable<A>> implements Persist
      * @param additionalPersistences Zero or more Persistence objects to be validated
      */
     static <O, A extends Comparable<A>> void validatePersistenceArguments(Persistence<O, A> primaryPersistence, Persistence<O, A> secondaryPersistence, List<? extends Persistence<O, A>> additionalPersistences) {
-        SimpleAttribute<O, A> primaryKeyAttribute;
+        ISimpleAttribute<O,A> primaryKeyAttribute;
         primaryKeyAttribute = validatePersistenceArgument(primaryPersistence, null);
         primaryKeyAttribute = validatePersistenceArgument(secondaryPersistence, primaryKeyAttribute);
         for (Persistence<O, A> additionalPersistence : additionalPersistences) {
@@ -147,7 +147,7 @@ public class CompositePersistence<O, A extends Comparable<A>> implements Persist
      * Helper method for {@link #validatePersistenceArguments(Persistence, Persistence, List)}. See documentation of
      * that method for details.
      */
-    static <O, A extends Comparable<A>> SimpleAttribute<O, A> validatePersistenceArgument(Persistence<O, A> persistence, SimpleAttribute<O, A> primaryKeyAttribute) {
+    static <O, A extends Comparable<A>> ISimpleAttribute<O,A> validatePersistenceArgument(Persistence<O, A> persistence, ISimpleAttribute<O,A> primaryKeyAttribute) {
         if (persistence == null) {
             throw new NullPointerException("The Persistence argument cannot be null.");
         }

@@ -31,7 +31,7 @@ import java.util.Collections;
  *
  * @author niall.gallagher
  */
-public class StandingQueryAttribute<O> extends MultiValueAttribute<O, Boolean> {
+public class StandingQueryAttribute<O> extends MultiValueAttribute<O, Boolean> implements IStandingQueryAttribute<O> {
 
     final Query<O> standingQuery;
 
@@ -46,7 +46,7 @@ public class StandingQueryAttribute<O> extends MultiValueAttribute<O, Boolean> {
         throw new UnsupportedOperationException("Unsupported use of StandingQueryAttribute");
     }
 
-    public Query<O> getQuery() {
+    @Override public Query<O> getQuery() {
         return standingQuery;
     }
 

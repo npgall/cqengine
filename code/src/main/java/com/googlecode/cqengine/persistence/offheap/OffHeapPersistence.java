@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.persistence.offheap;
 
 import com.googlecode.cqengine.IndexedCollection;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
@@ -95,7 +95,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
 
     static final AtomicInteger INSTANCE_ID_GENERATOR = new AtomicInteger();
 
-    final SimpleAttribute<O, A> primaryKeyAttribute;
+    final ISimpleAttribute<O,A> primaryKeyAttribute;
     final String instanceName;
     final SQLiteDataSource sqLiteDataSource;
 
@@ -107,7 +107,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     volatile Connection persistentConnection;
     volatile boolean closed = false;
 
-    protected OffHeapPersistence(SimpleAttribute<O, A> primaryKeyAttribute, Properties overrideProperties) {
+    protected OffHeapPersistence(ISimpleAttribute<O,A> primaryKeyAttribute, Properties overrideProperties) {
         Properties effectiveProperties = new Properties(DEFAULT_PROPERTIES);
         effectiveProperties.putAll(overrideProperties);
         SQLiteConfig sqLiteConfig = new SQLiteConfig(effectiveProperties);
@@ -122,7 +122,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     }
 
     @Override
-    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
+    public ISimpleAttribute<O,A> getPrimaryKeyAttribute() {
         return primaryKeyAttribute;
     }
 
@@ -329,7 +329,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
      * @return An {@link OffHeapPersistence} object which persists to native memory
      */
-    public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKey(ISimpleAttribute<O,A> primaryKeyAttribute) {
         return OffHeapPersistence.onPrimaryKeyWithProperties(primaryKeyAttribute, new Properties());
     }
 
@@ -342,7 +342,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      *                           settings, but cannot be null)
      * @return An {@link OffHeapPersistence} object which persists to native memory
      */
-    public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKeyWithProperties(SimpleAttribute<O, A> primaryKeyAttribute, Properties overrideProperties) {
+    public static <O, A extends Comparable<A>> OffHeapPersistence<O, A> onPrimaryKeyWithProperties(ISimpleAttribute<O,A> primaryKeyAttribute, Properties overrideProperties) {
         return new OffHeapPersistence<O, A>(primaryKeyAttribute, overrideProperties);
     }
 
