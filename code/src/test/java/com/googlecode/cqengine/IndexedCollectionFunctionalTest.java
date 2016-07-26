@@ -15,9 +15,7 @@
  */
 package com.googlecode.cqengine;
 
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.StandingQueryAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
@@ -43,8 +41,6 @@ import com.googlecode.cqengine.persistence.composite.CompositePersistence;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLiteDiskIdentityIndex;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -1301,7 +1297,7 @@ public class IndexedCollectionFunctionalTest {
         );
     }
 
-    private static SimpleAttribute<Integer, Car> createForeignKeyAttribute() {
+    private static ISimpleAttribute<Integer,Car> createForeignKeyAttribute() {
         return new SimpleAttribute<Integer, Car>() {
             @Override
             public Car getValue(final Integer carId, final QueryOptions queryOptions) {
@@ -1776,7 +1772,7 @@ public class IndexedCollectionFunctionalTest {
         }
         else if (index instanceof AttributeIndex) {
             Attribute attribute = ((AttributeIndex) index).getAttribute();
-            if (attribute instanceof StandingQueryAttribute) {
+            if (attribute instanceof IStandingQueryAttribute) {
                 description += ".onAttribute(" + attribute.getAttributeName() + ")";
             }
             else {

@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.persistence.support.sqlite;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
 import com.googlecode.cqengine.index.support.CloseableIterator;
@@ -37,7 +37,7 @@ public class SQLiteObjectStore<O, A extends Comparable<A>> implements ObjectStor
 
     final SQLitePersistence<O, A> persistence;
     final SQLiteIdentityIndex<A, O> backingIndex;
-    final SimpleAttribute<O, A> primaryKeyAttribute;
+    final ISimpleAttribute<O,A> primaryKeyAttribute;
     final Class<O> objectType;
 
     public SQLiteObjectStore(final SQLitePersistence<O, A> persistence) {

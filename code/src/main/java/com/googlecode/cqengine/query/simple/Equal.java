@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
@@ -45,7 +45,7 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
     }
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+    protected boolean matchesSimpleAttribute(ISimpleAttribute<O,A> attribute, O object, QueryOptions queryOptions) {
         return value.equals(attribute.getValue(object, queryOptions));
     }
 

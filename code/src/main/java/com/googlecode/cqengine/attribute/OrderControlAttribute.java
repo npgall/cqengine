@@ -44,19 +44,19 @@ import com.googlecode.cqengine.query.simple.Has;
  *
  * @author niall.gallagher
  */
-public abstract class OrderControlAttribute<O> extends SimpleAttribute<O, Integer> {
+public abstract class OrderControlAttribute<O> extends SimpleAttribute<O, Integer> implements IOrderControlAttribute<O> {
 
     protected final Attribute<O, ? extends Comparable> delegateAttribute;
 
     protected OrderControlAttribute(Attribute<O, ? extends Comparable> delegateAttribute, String delegateAttributeName) {
         super(delegateAttribute.getObjectType(), Integer.class, delegateAttributeName);
-        if (delegateAttribute instanceof OrderControlAttribute) {
+        if (delegateAttribute instanceof IOrderControlAttribute) {
             throw new IllegalArgumentException("Delegate attribute cannot also be an OrderControlAttribute: " + delegateAttribute);
         }
         this.delegateAttribute = delegateAttribute;
     }
 
-    public Attribute<O, ?> getDelegateAttribute() {
+    @Override public Attribute<O, ?> getDelegateAttribute() {
         return delegateAttribute;
     }
 }

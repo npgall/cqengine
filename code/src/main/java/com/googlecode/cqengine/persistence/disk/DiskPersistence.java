@@ -15,9 +15,8 @@
  */
 package com.googlecode.cqengine.persistence.disk;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.sqlite.ConnectionManager;
 import com.googlecode.cqengine.index.sqlite.RequestScopeConnectionManager;
 import com.googlecode.cqengine.index.sqlite.SQLitePersistence;
@@ -35,7 +34,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 
@@ -48,7 +46,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  * underlying SQLite database file by default (see that link for more details).
  * <p/>
  * Optionally, this class allows the application to override the journal mode or other settings in SQLite by
- * supplying <i>"override properties"</i> to the {@link #onPrimaryKeyInFileWithProperties(SimpleAttribute, File, Properties)}
+ * supplying <i>"override properties"</i> to the {@link #onPrimaryKeyInFileWithProperties(ISimpleAttribute, File, Properties)}
  * method. As WAL mode is suitable for most applications, most applications should work best with the default settings;
  * the override support is intended for advanced or custom use cases.
  *
@@ -56,7 +54,7 @@ import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
  */
 public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersistence<O, A> {
 
-    final SimpleAttribute<O, A> primaryKeyAttribute;
+    final ISimpleAttribute<O,A> primaryKeyAttribute;
     final File file;
     final SQLiteDataSource sqLiteDataSource;
 
@@ -66,7 +64,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
         DEFAULT_PROPERTIES.setProperty("journal_mode", "WAL"); // Use Write-Ahead-Logging which supports concurrent reads and writes
     }
 
-    protected DiskPersistence(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {
+    protected DiskPersistence(ISimpleAttribute<O,A> primaryKeyAttribute, File file, Properties overrideProperties) {
         Properties effectiveProperties = new Properties();
         effectiveProperties.putAll(DEFAULT_PROPERTIES);
         effectiveProperties.putAll(overrideProperties);
@@ -80,7 +78,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     }
 
     @Override
-    public SimpleAttribute<O, A> getPrimaryKeyAttribute() {
+    public ISimpleAttribute<O,A> getPrimaryKeyAttribute() {
         return primaryKeyAttribute;
     }
 
@@ -231,9 +229,9 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      *
      * @param primaryKeyAttribute An attribute which returns the primary key of objects in the collection
      * @return A {@link DiskPersistence} object which persists to a temp file on disk
-     * @see #onPrimaryKeyInFile(SimpleAttribute, File)
+     * @see #onPrimaryKeyInFile(ISimpleAttribute, File)
      */
-    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKey(SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKey(ISimpleAttribute<O,A> primaryKeyAttribute) {
         return DiskPersistence.onPrimaryKeyInFile(primaryKeyAttribute, createTempFile());
     }
 
@@ -244,7 +242,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      * @param file The file on disk to which data should be persisted
      * @return A {@link DiskPersistence} object which persists to the given file on disk
      */
-    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFile(SimpleAttribute<O, A> primaryKeyAttribute, File file) {
+    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFile(ISimpleAttribute<O,A> primaryKeyAttribute, File file) {
         return DiskPersistence.onPrimaryKeyInFileWithProperties(primaryKeyAttribute, file, new Properties());
     }
 
@@ -257,7 +255,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      *                           settings, but cannot be null)
      * @return A {@link DiskPersistence} object which persists to the given file on disk
      */
-    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFileWithProperties(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {
+    public static <O, A extends Comparable<A>> DiskPersistence<O, A> onPrimaryKeyInFileWithProperties(ISimpleAttribute<O,A> primaryKeyAttribute, File file, Properties overrideProperties) {
         return new DiskPersistence<O, A>(primaryKeyAttribute, file, overrideProperties);
     }
 }

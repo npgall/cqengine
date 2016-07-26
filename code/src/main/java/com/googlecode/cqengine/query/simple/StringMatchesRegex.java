@@ -16,7 +16,7 @@
 package com.googlecode.cqengine.query.simple;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.regex.Pattern;
@@ -48,7 +48,7 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
 
 
     @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+    protected boolean matchesSimpleAttribute(ISimpleAttribute<O,A> attribute, O object, QueryOptions queryOptions) {
         A attributeValue = attribute.getValue(object, queryOptions);
         return matchesValue(attributeValue, queryOptions);
     }

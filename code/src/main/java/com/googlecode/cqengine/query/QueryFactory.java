@@ -169,7 +169,7 @@ public class QueryFactory {
      * @return An {@link In} query
      */
     public static <O, A> Query<O> in(Attribute<O, A> attribute, Collection<A> attributeValues) {
-        return in(attribute, attribute instanceof SimpleAttribute, attributeValues);
+        return in(attribute, attribute instanceof ISimpleAttribute, attributeValues);
     }
 
     /**
@@ -779,7 +779,7 @@ public class QueryFactory {
      * @param standingQuery The standing query to encapsulate
      * @return a {@link StandingQueryAttribute} encapsulating the given query
      */
-    public static <O> StandingQueryAttribute<O> forStandingQuery(Query<O> standingQuery) {
+    public static <O> IStandingQueryAttribute<O> forStandingQuery(Query<O> standingQuery) {
         return new StandingQueryAttribute<O>(standingQuery);
     }
 
@@ -794,7 +794,7 @@ public class QueryFactory {
      * @return a {@link StandingQueryAttribute} which returns true if the given attribute does not have values for
      * an object
      */
-    public static <O, A> StandingQueryAttribute<O> forObjectsMissing(Attribute<O, A> attribute) {
+    public static <O, A> IStandingQueryAttribute<O> forObjectsMissing(Attribute<O, A> attribute) {
         return forStandingQuery(not(has(attribute)));
     }
 

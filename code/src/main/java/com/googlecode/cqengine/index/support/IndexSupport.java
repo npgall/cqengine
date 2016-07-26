@@ -15,9 +15,7 @@
  */
 package com.googlecode.cqengine.index.support;
 
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -61,7 +59,7 @@ public class IndexSupport {
                                                              final QueryOptions queryOptions,
                                                              final int retrievalCost) {
         boolean logicalElimination = DeduplicationOption.isLogicalElimination(queryOptions);
-        boolean attributeHasAtMostOneValue = (attribute instanceof SimpleAttribute || attribute instanceof SimpleNullableAttribute);
+        boolean attributeHasAtMostOneValue = (attribute instanceof ISimpleAttribute || attribute instanceof ISimpleNullableAttribute);
         boolean queryIsADisjointInQuery = query instanceof In && ((In) query).isDisjoint();
         if (!logicalElimination || attributeHasAtMostOneValue || queryIsADisjointInQuery) {
             // No need to deduplicate...

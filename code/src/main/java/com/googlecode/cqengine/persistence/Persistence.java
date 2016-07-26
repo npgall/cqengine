@@ -15,12 +15,10 @@
  */
 package com.googlecode.cqengine.persistence;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.option.QueryOptions;
-
-import java.util.Set;
 
 /**
  * An interface with multiple implementations, which provide details on how a collection or indexes should be persisted
@@ -76,5 +74,5 @@ public interface Persistence<O, A extends Comparable<A>> {
      * @return the primary key attribute, if configured. This may be null for some persistence implementations
      * especially on-heap persistence.
      */
-    SimpleAttribute<O, A> getPrimaryKeyAttribute();
+    ISimpleAttribute<O,A> getPrimaryKeyAttribute();
 }

@@ -16,10 +16,7 @@
 package com.googlecode.cqengine.index.sqlite;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
-import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.attribute.MultiValueAttribute;
-import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
@@ -115,8 +112,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
 
     final String tableName;
-    final SimpleAttribute<O, K> primaryKeyAttribute;
-    final SimpleAttribute<K, O> foreignKeyAttribute;
+    final ISimpleAttribute<O,K> primaryKeyAttribute;
+    final ISimpleAttribute<K,O> foreignKeyAttribute;
 
     SQLiteConfig.SynchronousMode pragmaSynchronous;
     SQLiteConfig.JournalMode pragmaJournalMode;
@@ -134,8 +131,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      *                        {@link DBUtils#sanitizeForTableName(String)}
      */
     public SQLiteIndex(final Attribute<O, A> attribute,
-                       final SimpleAttribute<O, K> primaryKeyAttribute,
-                       final SimpleAttribute<K, O> foreignKeyAttribute,
+                       final ISimpleAttribute<O,K> primaryKeyAttribute,
+                       final ISimpleAttribute<K,O> foreignKeyAttribute,
                        final String tableNameSuffix) {
 
         super(attribute, new HashSet<Class<? extends Query>>() {{
@@ -381,7 +378,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 public int size() {
                     final Connection connection = connectionManager.getConnection(SQLiteIndex.this, queryOptions);
 
-                    boolean attributeHasAtMostOneValue = (attribute instanceof SimpleAttribute || attribute instanceof SimpleNullableAttribute);
+                    boolean attributeHasAtMostOneValue = (attribute instanceof ISimpleAttribute || attribute instanceof ISimpleNullableAttribute);
                     boolean queryIsADisjointInQuery = query instanceof In && ((In) query).isDisjoint();
 
                     if (queryIsADisjointInQuery || attributeHasAtMostOneValue) {
@@ -479,7 +476,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @return {@link Iterable} of {@link Row}s.
      */
     static <O, K, A> Iterable<Row< K, A>> rowIterable(final Iterable<O> objects,
-                                                      final SimpleAttribute<O, K> primaryKeyAttribute,
+                                                      final ISimpleAttribute<O,K> primaryKeyAttribute,
                                                       final Attribute<O, A> indexAttribute,
                                                       final QueryOptions queryOptions){
         return new Iterable<Row<K, A>>() {
@@ -566,7 +563,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @return {@link Iterable} over the objects ids.
      */
     static <O, K> Iterable<K> objectKeyIterable(final Iterable<O> objects,
-                                                final SimpleAttribute<O, K> primaryKeyAttribute,
+                                                final ISimpleAttribute<O,K> primaryKeyAttribute,
                                                 final QueryOptions queryOptions){
         return new Iterable<K>() {
 
@@ -880,8 +877,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @return a new instance of the {@link SQLiteIndex}
      */
     public static <A extends Comparable<A>, O, K> SQLiteIndex<A, O, K> onAttribute(final Attribute<O, A> attribute,
-                                                                                   final SimpleAttribute<O, K> objectKeyAttribute,
-                                                                                   final SimpleAttribute<K, O> foreignKeyAttribute) {
+                                                                                   final ISimpleAttribute<O,K> objectKeyAttribute,
+                                                                                   final ISimpleAttribute<K,O> foreignKeyAttribute) {
         return new SQLiteIndex<A, O, K>(attribute, objectKeyAttribute, foreignKeyAttribute, "");
     }
 }

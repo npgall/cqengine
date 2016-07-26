@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
@@ -53,10 +54,10 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
 
     final SQLiteIndex<A, O, byte[]> sqLiteIndex;
     final Class<O> objectType;
-    final SimpleAttribute<O, A> primaryKeyAttribute;
-    final SimpleAttribute<A, O> foreignKeyAttribute;
+    final ISimpleAttribute<O,A> primaryKeyAttribute;
+    final ISimpleAttribute<A,O> foreignKeyAttribute;
 
-    public SQLiteIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute) {
+    public SQLiteIdentityIndex(final ISimpleAttribute<O,A> primaryKeyAttribute) {
         this.sqLiteIndex = new SQLiteIndex<A, O, byte[]>(
                 primaryKeyAttribute,
                 new SerializingAttribute(primaryKeyAttribute.getObjectType(), byte[].class),
@@ -73,7 +74,7 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
         this.foreignKeyAttribute = new ForeignKeyAttribute();
     }
 
-    public SimpleAttribute<A, O> getForeignKeyAttribute() {
+    public ISimpleAttribute<A,O> getForeignKeyAttribute() {
         return foreignKeyAttribute;
     }
 
@@ -296,7 +297,7 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
      * @param <O> The type of the object containing the attributes.
      * @return a new instance of a standalone {@link SQLiteIdentityIndex}
      */
-    public static <A extends Comparable<A>, O> SQLiteIdentityIndex<A, O> onAttribute(final SimpleAttribute<O, A> primaryKeyAttribute) {
+    public static <A extends Comparable<A>, O> SQLiteIdentityIndex<A, O> onAttribute(final ISimpleAttribute<O,A> primaryKeyAttribute) {
         return new SQLiteIdentityIndex<A, O>(primaryKeyAttribute);
     }
 }

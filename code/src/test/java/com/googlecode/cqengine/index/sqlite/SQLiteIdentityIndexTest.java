@@ -15,7 +15,7 @@
  */
 package com.googlecode.cqengine.index.sqlite;
 
-import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.ISimpleAttribute;
 import com.googlecode.cqengine.index.sqlite.TemporaryDatabase.TemporaryInMemoryDatabase;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -36,8 +36,8 @@ public class SQLiteIdentityIndexTest {
                 Car.CAR_ID
         );
 
-        SimpleAttribute<Car, byte[]> serializingAttribute = index.new SerializingAttribute(Car.class, byte[].class);
-        SimpleAttribute<byte[], Car> deserializingAttribute = index.new DeserializingAttribute(byte[].class, Car.class);
+        ISimpleAttribute<Car,byte[]> serializingAttribute = index.new SerializingAttribute(Car.class, byte[].class);
+        ISimpleAttribute<byte[],Car> deserializingAttribute = index.new DeserializingAttribute(byte[].class, Car.class);
 
         Car c1 = CarFactory.createCar(1);
         byte[] s1 = serializingAttribute.getValue(c1, noQueryOptions());
