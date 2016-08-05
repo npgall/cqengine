@@ -85,6 +85,9 @@ public class CompoundQuery<O> implements Query<O> {
         }
         List<Attribute<O, ?>> attributeList = new ArrayList<Attribute<O, ?>>(andQuery.getSimpleQueries().size());
         for (SimpleQuery<O, ?> simpleQuery : andQuery.getSimpleQueries()) {
+            if (!(simpleQuery instanceof Equal)) {
+                return null;
+            }
             attributeList.add(simpleQuery.getAttribute());
         }
         CompoundAttribute<O> compoundAttribute = new CompoundAttribute<O>(attributeList);
