@@ -67,10 +67,10 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  *         It is important that {@code UniqueIndex} only be used with attributes which uniquely identify objects
  *     </li>
  *     <li>
- *         A {@code UniqueIndex} on a primary key-type attribute might not be compatible with the MVCC algorithm
- *         implemented by {@link TransactionalIndexedCollection}.
+ *         <b>A {@code UniqueIndex} on a primary key-type attribute might not be compatible with the MVCC algorithm
+ *         implemented by {@link TransactionalIndexedCollection}.</b>
  *         <ul><li>
- *             However to reduce memory overhead in those situations, as an alternative option see:
+ *             However, as an alternative option to reduce memory overhead in those situations see:
  *             {@link HashIndex#onSemiUniqueAttribute(Attribute)}
  *         </li></ul>
  *     </li>
