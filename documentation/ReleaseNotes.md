@@ -1,5 +1,14 @@
 # CQEngine Release Notes #
 
+### Version 2.7.1 - 2016-08-12 ###
+  * Maintenance release.
+  * Improved performance of `ResultSet.isEmpty()`/`isNotEmpty()` when results are to be ordered (issue #78).
+  * Added `HashIndex.onSemiUniqueAttribute()` as a way to reduce memory overhead of a `HashIndex` (issue #67).
+  * Fixed potential ClassCastException with combinations of certain queries with `CompoundIndex` (issue #85).
+  * Improved `IndexedCollection.retainAll()` to avoid opening two connections to non-heap persistence and to reuse a single connection instead.
+  * Improved `IndexedCollection.iterator().remove()` to integrate better with how resources are closed.
+
+
 ### Version 2.7.0 - 2016-07-13 ###
   * CQEngine now supports Partial Indexes.
     * The following new indexes are provided:
