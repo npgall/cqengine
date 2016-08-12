@@ -577,7 +577,7 @@ For non-Maven projects, a version built with [maven-shade-plugin](http://maven.a
 
 ## Project Status ##
 
-  * CQEngine 2.7.0 is the current release as of writing (July 2016), and is in Maven central
+  * CQEngine 2.7.1 is the current release as of writing (August 2016), and is in Maven central
   * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
