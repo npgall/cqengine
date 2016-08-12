@@ -19,9 +19,11 @@ import com.google.common.collect.testing.SetTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSetGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
+import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.CollectionWrappingObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -42,7 +44,7 @@ import static java.util.Arrays.asList;
  * which applies to all implementations of {@link IndexedCollection} can be found in
  * {@link com.googlecode.cqengine.IndexedCollectionFunctionalTest}.
  * <p/>
- * In addition to the unit tests in this class, this class also runs a further 197 unit tests in
+ * In addition to the unit tests in this class, this class also runs a further several hundred unit tests in
  * <a href="https://code.google.com/p/guava-libraries/source/browse/guava-testlib">guava-testlib</a> on the
  * IndexedCollection to validate its compliance with the API specifications of java.util.Set.
  *
@@ -52,18 +54,32 @@ public class TransactionalIndexedCollectionTest extends TestCase {
 
     public static junit.framework.Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(SetTestSuiteBuilder.using(indexedCollectionGenerator())
+        suite.addTest(SetTestSuiteBuilder.using(onHeapIndexedCollectionGenerator())
                 .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE)
-                .named("TransactionalIndexedCollectionAPICompliance")
+                .named("OnHeap_TransactionalIndexedCollectionAPICompliance")
+                .createTestSuite());
+        suite.addTest(SetTestSuiteBuilder.using(offHeapIndexedCollectionGenerator())
+                .withFeatures(CollectionSize.ANY, CollectionFeature.GENERAL_PURPOSE)
+                .named("OffHeap_TransactionalIndexedCollectionAPICompliance")
                 .createTestSuite());
         suite.addTestSuite(TransactionalIndexedCollectionTest.class);
         return suite;
     }
 
-    private static TestStringSetGenerator indexedCollectionGenerator() {
+    private static TestStringSetGenerator onHeapIndexedCollectionGenerator() {
         return new TestStringSetGenerator() {
             @Override protected Set<String> create(String[] elements) {
-                IndexedCollection<String> indexedCollection = new TransactionalIndexedCollection<String>(String.class);
+                IndexedCollection<String> indexedCollection = new TransactionalIndexedCollection<String>(String.class, OnHeapPersistence.onPrimaryKey(QueryFactory.selfAttribute(String.class)));
+                indexedCollection.addAll(Arrays.asList(elements));
+                return indexedCollection;
+            }
+        };
+    }
+
+    private static TestStringSetGenerator offHeapIndexedCollectionGenerator() {
+        return new TestStringSetGenerator() {
+            @Override protected Set<String> create(String[] elements) {
+                IndexedCollection<String> indexedCollection = new TransactionalIndexedCollection<String>(String.class, OffHeapPersistence.onPrimaryKey(QueryFactory.selfAttribute(String.class)));
                 indexedCollection.addAll(Arrays.asList(elements));
                 return indexedCollection;
             }

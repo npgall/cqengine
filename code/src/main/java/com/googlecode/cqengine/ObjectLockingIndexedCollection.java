@@ -135,11 +135,14 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
             final QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
 
             private final CloseableIterator<O> collectionIterator = objectStore.iterator(queryOptions);
+            boolean autoClosed = false;
+
             @Override
             public boolean hasNext() {
                 boolean hasNext = collectionIterator.hasNext();
                 if (!hasNext) {
                     close();
+                    autoClosed = true;
                 }
                 return hasNext;
             }
@@ -160,8 +163,16 @@ public class ObjectLockingIndexedCollection<O> extends ConcurrentIndexedCollecti
                 Lock lock = stripedLock.getLockForObject(currentObject);
                 lock.lock();
                 try {
-                    collectionIterator.remove();
-                    indexEngine.removeAll(ObjectSet.fromCollection(Collections.singleton(currentObject)), queryOptions);
+                    // Handle an edge case where we might have retrieved the last object and called close() automatically,
+                    // but then the application calls remove() so we have to reopen request-scope resources temporarily
+                    // to remove the last object...
+                    if (autoClosed) {
+                        ObjectLockingIndexedCollection.this.remove(currentObject); // reopens resources temporarily
+                    }
+                    else {
+                        doRemoveAll(Collections.singleton(currentObject), queryOptions); // uses existing resources
+                    }
+                    currentObject = null;
                 }
                 finally {
                     lock.unlock();

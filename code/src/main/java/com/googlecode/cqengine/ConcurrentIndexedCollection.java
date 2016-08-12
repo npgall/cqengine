@@ -294,11 +294,13 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             final QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
 
             private final CloseableIterator<O> collectionIterator = objectStore.iterator(queryOptions);
+            boolean autoClosed = false;
             @Override
             public boolean hasNext() {
                 boolean hasNext = collectionIterator.hasNext();
                 if (!hasNext) {
                     close();
+                    autoClosed = true;
                 }
                 return hasNext;
             }
@@ -313,8 +315,19 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
 
             @Override
             public void remove() {
-                collectionIterator.remove();
-                indexEngine.removeAll(ObjectSet.fromCollection(singleton(currentObject)), queryOptions);
+                if (currentObject == null) {
+                    throw new IllegalStateException();
+                }
+                // Handle an edge case where we might have retrieved the last object and called close() automatically,
+                // but then the application calls remove() so we have to reopen request-scope resources temporarily
+                // to remove the last object...
+                if (autoClosed) {
+                    ConcurrentIndexedCollection.this.remove(currentObject); // reopens resources temporarily
+                }
+                else {
+                    doRemoveAll(Collections.singleton(currentObject), queryOptions); // uses existing resources
+                }
+                currentObject = null;
             }
 
             @Override
@@ -406,11 +419,11 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         CloseableIterator<O> iterator = null;
         try {
             boolean modified = false;
-            iterator = iterator();
+            iterator = objectStore.iterator(queryOptions);
             while (iterator.hasNext()) {
                 O next = iterator.next();
                 if (!c.contains(next)) {
-                    iterator.remove(); // Delegates to Iterator returned by iterator() above
+                    doRemoveAll(Collections.singleton(next), queryOptions);
                     modified = true;
                 }
             }
