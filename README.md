@@ -423,7 +423,12 @@ finally {
     results.close(); // ..close the ResultSet when finished reading!
 }
 ```
-
+...or alternatively, if you are using Java 8:
+```java
+try (ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))) {
+    results.iterator().forEachRemaining(System.out::println);
+}
+```
 ---
 
 ## Result Sets ##
