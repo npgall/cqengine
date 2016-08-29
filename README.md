@@ -243,9 +243,9 @@ The [Benchmark](documentation/Benchmark.md) page contains examples of how to add
 
 CQEngine needs to access fields inside objects, so that it can build indexes on fields, and retrieve the value of a certain field from any given object.
 
-CQEngine does not use reflection to do this; instead it uses **attributes**, which is a more powerful concept. An attribute is an object which can read the value of a certain field given an object.
+CQEngine does not use reflection to do this; instead it uses **attributes**, which is a more powerful concept. An attribute is an accessor object which can read the value of a certain field in a POJO.
 
-Here's how to define an attribute for a Car object, which reads the `Car.carId` field:
+Here's how to define an attribute for a Car object (a POJO), which reads the `Car.carId` field:
 ```java
 public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, Integer>("carId") {
     public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
