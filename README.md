@@ -251,7 +251,7 @@ public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, In
     public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
 };
 ```
-Usually attributes are defined as anonymous `static` `final` objects like this. Supplying the `"carId"` string parameter to the constructor is actually optional, it is not used by the query engine per-se, except it will lead to more informative exception messages.
+Usually attributes are defined as anonymous `static` `final` objects like this. Supplying the `"carId"` string parameter to the constructor is actually optional, but it is recommended as it will appear in query `toString`s.
 
 Since this attribute reads a field from a `Car` object, the usual place to put the attribute is inside the `Car` class - and this makes queries more readable. However it could really be defined in any class, such as in a `CarAttributes` class or similar. The example above is for a **[SimpleAttribute](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/attribute/SimpleAttribute.html)**, which is designed for fields containing only one value.
 
