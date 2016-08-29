@@ -426,7 +426,7 @@ finally {
 ...or alternatively, if you are using Java 8:
 ```java
 try (ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))) {
-    results.iterator().forEachRemaining(System.out::println);
+    results.forEach(System.out::println);
 }
 ```
 ---
