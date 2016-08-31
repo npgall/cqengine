@@ -51,7 +51,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalSimpleAttribute() {
-        SimpleAttribute<Car, Integer> CAR_ID = QueryFactory.simpleAttribute(carIdFunction);
+        SimpleAttribute<Car, Integer> CAR_ID = QueryFactory.attribute(carIdFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(Integer.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -59,7 +59,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalSimpleNullableAttribute() {
-        SimpleNullableAttribute<Car, Integer> CAR_ID = QueryFactory.simpleNullableAttribute(carIdFunction);
+        SimpleNullableAttribute<Car, Integer> CAR_ID = QueryFactory.nullableAttribute(carIdFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(Integer.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -67,7 +67,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalMultiValueAttribute() {
-        MultiValueAttribute<Car, String> CAR_ID = QueryFactory.multiValueAttribute(String.class, featuresFunction);
+        MultiValueAttribute<Car, String> CAR_ID = QueryFactory.attribute(String.class, featuresFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(String.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -75,7 +75,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalMultiValueNullableAttribute() {
-        MultiValueNullableAttribute<Car, String> CAR_ID = QueryFactory.multiValueNullableAttribute(String.class, featuresFunction);
+        MultiValueNullableAttribute<Car, String> CAR_ID = QueryFactory.nullableAttribute(String.class, featuresFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(String.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));

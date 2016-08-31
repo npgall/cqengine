@@ -23,7 +23,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  * A {@link SimpleNullableAttribute} which wraps a {@link SimpleFunction}, for the purpose of allowing
  * attributes to be created from lambda expressions.
  * <p/>
- * These attributes can be created via {@link QueryFactory#simpleNullableAttribute(SimpleFunction)}.
+ * These attributes can be created via {@link QueryFactory#nullableAttribute(SimpleFunction)}.
  *
  * @author npgall
  */

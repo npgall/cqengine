@@ -814,7 +814,7 @@ public class QueryFactory {
      * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
      * which allows the types to be specified explicitly.
      * <p/>
-     * This is a convenience method, which delegates to {@link #simpleAttribute(String, SimpleFunction)},
+     * This is a convenience method, which delegates to {@link #attribute(String, SimpleFunction)},
      * supplying {@code function.getClass().getName()} as the name of the attribute.
      *
      * @param function A function or lambda expression
@@ -822,8 +822,8 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleAttribute<O, A> simpleAttribute(SimpleFunction<O, A> function) {
-        return simpleAttribute(function.getClass().getName(), function);
+    public static <O, A> SimpleAttribute<O, A> attribute(SimpleFunction<O, A> function) {
+        return attribute(function.getClass().getName(), function);
     }
 
     /**
@@ -843,9 +843,9 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleAttribute<O, A> simpleAttribute(String attributeName, SimpleFunction<O, A> function) {
+    public static <O, A> SimpleAttribute<O, A> attribute(String attributeName, SimpleFunction<O, A> function) {
         FunctionGenericTypes<O, A> resolved = resolveSimpleFunctionGenericTypes(function.getClass());
-        return simpleAttribute(resolved.objectType, resolved.attributeType, attributeName, function);
+        return attribute(resolved.objectType, resolved.attributeType, attributeName, function);
     }
 
     /**
@@ -860,7 +860,7 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleAttribute<O, A> simpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
+    public static <O, A> SimpleAttribute<O, A> attribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
         return new FunctionalSimpleAttribute<O, A>(objectType, attributeType, attributeName, function);
     }
 
@@ -875,7 +875,7 @@ public class QueryFactory {
      * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
      * which allows the types to be specified explicitly.
      * <p/>
-     * This is a convenience method, which delegates to {@link #simpleNullableAttribute(String, SimpleFunction)},
+     * This is a convenience method, which delegates to {@link #nullableAttribute(String, SimpleFunction)},
      * supplying {@code function.getClass().getName()} as the name of the attribute.
      *
      * @param function A function or lambda expression
@@ -883,8 +883,8 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(SimpleFunction<O, A> function) {
-        return simpleNullableAttribute(function.getClass().getName(), function);
+    public static <O, A> SimpleNullableAttribute<O, A> nullableAttribute(SimpleFunction<O, A> function) {
+        return nullableAttribute(function.getClass().getName(), function);
     }
 
     /**
@@ -904,9 +904,9 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(String attributeName, SimpleFunction<O, A> function) {
+    public static <O, A> SimpleNullableAttribute<O, A> nullableAttribute(String attributeName, SimpleFunction<O, A> function) {
         FunctionGenericTypes<O, A> resolved = resolveSimpleFunctionGenericTypes(function.getClass());
-        return simpleNullableAttribute(resolved.objectType, resolved.attributeType, attributeName, function);
+        return nullableAttribute(resolved.objectType, resolved.attributeType, attributeName, function);
     }
 
     /**
@@ -921,7 +921,7 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
+    public static <O, A> SimpleNullableAttribute<O, A> nullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
         return new FunctionalSimpleNullableAttribute<O, A>(objectType, attributeType, attributeName, function);
     }
 
@@ -936,7 +936,7 @@ public class QueryFactory {
      * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
      * which allows the types to be specified explicitly.
      * <p/>
-     * This is a convenience method, which delegates to {@link #multiValueAttribute(Class, String, MultiValueFunction)},
+     * This is a convenience method, which delegates to {@link #attribute(Class, String, MultiValueFunction)},
      * supplying {@code function.getClass().getName()} as the name of the attribute.
      *
      * @param attributeType The type of the attribute
@@ -945,8 +945,8 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
-        return multiValueAttribute(attributeType, function.getClass().getName(), function);
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> attribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
+        return attribute(attributeType, function.getClass().getName(), function);
     }
 
     /**
@@ -967,9 +967,9 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> attribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
         Class<O> resolvedObjectType = resolveMultiValueFunctionGenericObjectType(function.getClass());
-        return multiValueAttribute(resolvedObjectType, attributeType, attributeName, function);
+        return attribute(resolvedObjectType, attributeType, attributeName, function);
     }
 
     /**
@@ -984,7 +984,7 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> attribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
         return new FunctionalMultiValueAttribute<O, A, I>(objectType, attributeType, attributeName, function);
     }
 
@@ -999,7 +999,7 @@ public class QueryFactory {
      * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
      * which allows the types to be specified explicitly.
      * <p/>
-     * This is a convenience method, which delegates to {@link #multiValueNullableAttribute(Class, String, MultiValueFunction)},
+     * This is a convenience method, which delegates to {@link #nullableAttribute(Class, String, MultiValueFunction)},
      * supplying {@code function.getClass().getName()} as the name of the attribute.
      *
      * @param attributeType The type of the attribute
@@ -1008,8 +1008,8 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
-        return multiValueNullableAttribute(attributeType, function.getClass().getName(), function);
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> nullableAttribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
+        return nullableAttribute(attributeType, function.getClass().getName(), function);
     }
 
     /**
@@ -1030,9 +1030,9 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> nullableAttribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
         Class<O> resolvedObjectType = resolveMultiValueFunctionGenericObjectType(function.getClass());
-        return multiValueNullableAttribute(resolvedObjectType, attributeType, attributeName, function);
+        return nullableAttribute(resolvedObjectType, attributeType, attributeName, function);
     }
 
     /**
@@ -1047,7 +1047,7 @@ public class QueryFactory {
      * @param <A> The type of the attribute
      * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
      */
-    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> nullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
         return new FunctionalMultiValueNullableAttribute<O, A, I>(objectType, attributeType, attributeName, true, function);
     }
 
