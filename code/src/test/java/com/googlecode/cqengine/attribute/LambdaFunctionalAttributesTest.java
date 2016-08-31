@@ -17,16 +17,17 @@ package com.googlecode.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.support.MultiValueFunction;
 import com.googlecode.cqengine.attribute.support.SimpleFunction;
-import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.googlecode.cqengine.query.QueryFactory.*;
+import static org.junit.Assert.*;
 
 /**
+ * Tests creation of CQEngine attributes from lambda expressions.
+ *
  * @author npgall
  */
 public class LambdaFunctionalAttributesTest {
@@ -51,7 +52,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalSimpleAttribute() {
-        SimpleAttribute<Car, Integer> CAR_ID = QueryFactory.attribute(carIdFunction);
+        SimpleAttribute<Car, Integer> CAR_ID = attribute(carIdFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(Integer.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -59,7 +60,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalSimpleNullableAttribute() {
-        SimpleNullableAttribute<Car, Integer> CAR_ID = QueryFactory.nullableAttribute(carIdFunction);
+        SimpleNullableAttribute<Car, Integer> CAR_ID = nullableAttribute(carIdFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(Integer.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -67,7 +68,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalMultiValueAttribute() {
-        MultiValueAttribute<Car, String> CAR_ID = QueryFactory.attribute(String.class, featuresFunction);
+        MultiValueAttribute<Car, String> CAR_ID = attribute(String.class, featuresFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(String.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
@@ -75,7 +76,7 @@ public class LambdaFunctionalAttributesTest {
 
     @Test
     public void testFunctionalMultiValueNullableAttribute() {
-        MultiValueNullableAttribute<Car, String> CAR_ID = QueryFactory.nullableAttribute(String.class, featuresFunction);
+        MultiValueNullableAttribute<Car, String> CAR_ID = nullableAttribute(String.class, featuresFunction);
         assertEquals(Car.class, CAR_ID.getObjectType());
         assertEquals(String.class, CAR_ID.getAttributeType());
         assertTrue(CAR_ID.getAttributeName().startsWith(this.getClass().getName() + "$"));
