@@ -97,6 +97,10 @@ public class Car {
         return price;
     }
 
+    public List<String> getFeatures() {
+        return features;
+    }
+
     @Override
     public String toString() {
         return "Car{" +

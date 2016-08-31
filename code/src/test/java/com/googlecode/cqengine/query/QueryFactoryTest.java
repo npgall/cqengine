@@ -15,12 +15,16 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.attribute.support.MultiValueFunction;
+import com.googlecode.cqengine.attribute.support.SimpleFunction;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.testutil.Car;
+import net.jodah.typetools.TypeResolver;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
@@ -98,5 +102,61 @@ public class QueryFactoryTest {
     @Test
     public void testConstructor() {
         assertNotNull(new QueryFactory());
+    }
+
+    // ===== Tests for validateSimpleFunctionGenericTypes()... =====
+
+    @Test
+    public void testValidateSimpleFunctionGenericTypes_Success() {
+        Class<?>[] typeArgs = new Class<?>[] {Car.class, Integer.class};
+        validateSimpleFunctionGenericTypes(typeArgs, SimpleFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateSimpleFunctionGenericTypes_NullTypeArgs() {
+        validateSimpleFunctionGenericTypes(null, SimpleFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateSimpleFunctionGenericTypes_IncorrectNumberOfTypeArgs() {
+        Class<?>[] typeArgs = new Class<?>[] {Car.class, Integer.class, Integer.class};
+        validateSimpleFunctionGenericTypes(typeArgs, SimpleFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateSimpleFunctionGenericTypes_InvalidTypeArgs1() {
+        Class<?>[] typeArgs = new Class<?>[] {TypeResolver.Unknown.class, Integer.class};
+        validateSimpleFunctionGenericTypes(typeArgs, SimpleFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateSimpleFunctionGenericTypes_InvalidTypeArgs2() {
+        Class<?>[] typeArgs = new Class<?>[] {Car.class, TypeResolver.Unknown.class};
+        validateSimpleFunctionGenericTypes(typeArgs, SimpleFunction.class);
+    }
+
+    // ===== Tests for validateMultiValueFunctionGenericTypes()... =====
+
+    @Test
+    public void testValidateMultiValueFunctionGenericTypes_Success() {
+        Class<?>[] typeArgs = new Class<?>[] {Car.class, Integer.class, List.class};
+        validateMultiValueFunctionGenericTypes(typeArgs, MultiValueFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateMultiValueFunctionGenericTypes_NullTypeArgs() {
+        validateMultiValueFunctionGenericTypes(null, MultiValueFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateMultiValueFunctionGenericTypes_IncorrectNumberOfTypeArgs() {
+        Class<?>[] typeArgs = new Class<?>[] {Car.class, Integer.class};
+        validateMultiValueFunctionGenericTypes(typeArgs, MultiValueFunction.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateMultiValueFunctionGenericTypes_InvalidTypeArgs() {
+        Class<?>[] typeArgs = new Class<?>[] {TypeResolver.Unknown.class, Integer.class, List.class};
+        validateMultiValueFunctionGenericTypes(typeArgs, MultiValueFunction.class);
     }
 }

@@ -270,6 +270,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>typetools</artifactId>
+            <version>0.4.7</version>
+        </dependency>
 
         <!-- Test-scope dependencies... -->
         <dependency>

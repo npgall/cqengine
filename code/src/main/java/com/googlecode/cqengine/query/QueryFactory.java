@@ -17,14 +17,15 @@ package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.*;
+import com.googlecode.cqengine.attribute.support.*;
 import com.googlecode.cqengine.entity.MapEntity;
 import com.googlecode.cqengine.entity.PrimaryKeyedMapEntity;
-import com.googlecode.cqengine.query.option.*;
-import com.googlecode.cqengine.query.simple.*;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
-import com.googlecode.cqengine.query.option.AttributeOrder;
+import com.googlecode.cqengine.query.option.*;
+import com.googlecode.cqengine.query.simple.*;
+import net.jodah.typetools.TypeResolver;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -704,7 +705,7 @@ public class QueryFactory {
      * @param mapValueType The type of the value stored for the given key
      * @param <K> The type of the map key
      * @param <A> The type of the resulting attribute; which is the type of the value stored
-     * @return a {@link SimpleNullableMapAttribute} which retrieves the value for the given key from a map.
+     * @return a {@link SimpleNullableMapAttribute} which retrieves the value for the given key from a map
      */
     public static <K, A> Attribute<Map, A> mapAttribute(K mapKey, Class<A> mapValueType) {
         return new SimpleNullableMapAttribute<K, A>(mapKey, mapValueType);
@@ -714,8 +715,8 @@ public class QueryFactory {
      * Wraps the given Map in a {@link MapEntity}, which can improve its performance when used in an IndexedCollection.
      * If the given Map already is a {@link MapEntity}, the same object will be returned.
      *
-     * @param map The map to wrap.
-     * @return a {@link MapEntity} wrapping the given map.
+     * @param map The map to wrap
+     * @return a {@link MapEntity} wrapping the given map
      */
     public static Map mapEntity(Map map) {
         return map instanceof MapEntity ? map : new MapEntity(map);
@@ -726,9 +727,9 @@ public class QueryFactory {
      * IndexedCollection.
      * If the given Map already is a {@link PrimaryKeyedMapEntity}, the same object will be returned.
      *
-     * @param map The map to wrap.
-     * @param primaryKey The key of the entry in the map to be used as a primary key.
-     * @return a {@link PrimaryKeyedMapEntity} wrapping the given map.
+     * @param map The map to wrap
+     * @param primaryKey The key of the entry in the map to be used as a primary key
+     * @return a {@link PrimaryKeyedMapEntity} wrapping the given map
      */
     public static Map primaryKeyedMapEntity(Map map, Object primaryKey) {
         return map instanceof PrimaryKeyedMapEntity ? map : new PrimaryKeyedMapEntity(map, primaryKey);
@@ -797,6 +798,325 @@ public class QueryFactory {
     public static <O, A> StandingQueryAttribute<O> forObjectsMissing(Attribute<O, A> attribute) {
         return forStandingQuery(not(has(attribute)));
     }
+
+    // ***************************************************************************************************************
+    // Factory methods to create attributes from lambda expressions...
+    // ***************************************************************************************************************
+
+    /**
+     * Creates a {@link SimpleAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     * <p/>
+     * This is a convenience method, which delegates to {@link #simpleAttribute(String, SimpleFunction)},
+     * supplying {@code function.getClass().getName()} as the name of the attribute.
+     *
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleAttribute<O, A> simpleAttribute(SimpleFunction<O, A> function) {
+        return simpleAttribute(function.getClass().getName(), function);
+    }
+
+    /**
+     * Creates a {@link SimpleAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     *
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleAttribute<O, A> simpleAttribute(String attributeName, SimpleFunction<O, A> function) {
+        FunctionGenericTypes<O, A> resolved = resolveSimpleFunctionGenericTypes(function.getClass());
+        return simpleAttribute(resolved.objectType, resolved.attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link SimpleAttribute} from the given function or lambda expression,
+     * allowing the generic types of the attribute to be specified explicitly.
+     *
+     * @param objectType The type of the object containing the attribute
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleAttribute<O, A> simpleAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
+        return new FunctionalSimpleAttribute<O, A>(objectType, attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link SimpleNullableAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     * <p/>
+     * This is a convenience method, which delegates to {@link #simpleNullableAttribute(String, SimpleFunction)},
+     * supplying {@code function.getClass().getName()} as the name of the attribute.
+     *
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(SimpleFunction<O, A> function) {
+        return simpleNullableAttribute(function.getClass().getName(), function);
+    }
+
+    /**
+     * Creates a {@link SimpleNullableAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     *
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(String attributeName, SimpleFunction<O, A> function) {
+        FunctionGenericTypes<O, A> resolved = resolveSimpleFunctionGenericTypes(function.getClass());
+        return simpleNullableAttribute(resolved.objectType, resolved.attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link SimpleNullableAttribute} from the given function or lambda expression,
+     * allowing the generic types of the attribute to be specified explicitly.
+     *
+     * @param objectType The type of the object containing the attribute
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link SimpleNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A> SimpleNullableAttribute<O, A> simpleNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, SimpleFunction<O, A> function) {
+        return new FunctionalSimpleNullableAttribute<O, A>(objectType, attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link MultiValueAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     * <p/>
+     * This is a convenience method, which delegates to {@link #multiValueAttribute(Class, String, MultiValueFunction)},
+     * supplying {@code function.getClass().getName()} as the name of the attribute.
+     *
+     * @param attributeType The type of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
+        return multiValueAttribute(attributeType, function.getClass().getName(), function);
+    }
+
+    /**
+     * Creates a {@link MultiValueAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     *
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+        Class<O> resolvedObjectType = resolveMultiValueFunctionGenericObjectType(function.getClass());
+        return multiValueAttribute(resolvedObjectType, attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link MultiValueAttribute} from the given function or lambda expression,
+     * allowing the generic types of the attribute to be specified explicitly.
+     *
+     * @param objectType The type of the object containing the attribute
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueAttribute<O, A> multiValueAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+        return new FunctionalMultiValueAttribute<O, A, I>(objectType, attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link MultiValueNullableAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     * <p/>
+     * This is a convenience method, which delegates to {@link #multiValueNullableAttribute(Class, String, MultiValueFunction)},
+     * supplying {@code function.getClass().getName()} as the name of the attribute.
+     *
+     * @param attributeType The type of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<A> attributeType, MultiValueFunction<O, A, I> function) {
+        return multiValueNullableAttribute(attributeType, function.getClass().getName(), function);
+    }
+
+    /**
+     * Creates a {@link MultiValueNullableAttribute} from the given function or lambda expression,
+     * while attempting to infer generic type information for the attribute automatically.
+     * <p/>
+     * <b>Limitations of type inference</b><br/>
+     * As of Java 8, there are limitations of this type inference.
+     * CQEngine uses <a href="https://github.com/jhalterman/typetools">TypeTools</a> to infer generic types.
+     * See documentation of that library for details.
+     * If generic type information cannot be inferred, as a workaround you may use the overloaded variant of this method
+     * which allows the types to be specified explicitly.
+     *
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+        Class<O> resolvedObjectType = resolveMultiValueFunctionGenericObjectType(function.getClass());
+        return multiValueNullableAttribute(resolvedObjectType, attributeType, attributeName, function);
+    }
+
+    /**
+     * Creates a {@link MultiValueNullableAttribute} from the given function or lambda expression,
+     * allowing the generic types of the attribute to be specified explicitly.
+     *
+     * @param objectType The type of the object containing the attribute
+     * @param attributeType The type of the attribute
+     * @param attributeName The name of the attribute
+     * @param function A function or lambda expression
+     * @param <O> The type of the object containing the attribute
+     * @param <A> The type of the attribute
+     * @return A {@link MultiValueNullableAttribute} created from the given function or lambda expression
+     */
+    public static <O, A, I extends Iterable<A>> MultiValueNullableAttribute<O, A> multiValueNullableAttribute(Class<O> objectType, Class<A> attributeType, String attributeName, MultiValueFunction<O, A, I> function) {
+        return new FunctionalMultiValueNullableAttribute<O, A, I>(objectType, attributeType, attributeName, true, function);
+    }
+
+    // ***************************************************************************************************************
+    // Helper methods for creating attributes from lambda expressions...
+    // ***************************************************************************************************************
+
+    static final String GENERIC_TYPE_RESOLUTION_FAILURE_MESSAGE =
+            "If the function you supplied was created from a lambda expression, then it's likely " +
+                    "that the host JVM does not allow the generic type information to be read from lambda expressions. " +
+                    "Alternatively, if you supplied a class-based implementation of the function, then you must ensure " +
+                    "that you specified the generic types of the function when it was compiled. " +
+                    "Either way, CQEngine was unable to determine the generic type information " +
+                    "from the function as required. " +
+                    "As a workaround, you can use the counterpart methods in QueryFactory " +
+                    "which allow the generic types to be specified explicitly. ";
+
+    static <O, A, F> FunctionGenericTypes<O, A> resolveSimpleFunctionGenericTypes(Class<?> subType) {
+        Class<?>[] typeArgs = TypeResolver.resolveRawArguments(SimpleFunction.class, subType);
+
+        validateSimpleFunctionGenericTypes(typeArgs, subType);
+
+        @SuppressWarnings("unchecked") Class<O> objectType = (Class<O>) typeArgs[0];
+        @SuppressWarnings("unchecked") Class<A> attributeType = (Class<A>) typeArgs[1];
+        return new FunctionGenericTypes<O, A>(objectType, attributeType);
+    }
+
+    static void validateSimpleFunctionGenericTypes(Class<?>[] typeArgs, Class<?> subType) {
+        if (typeArgs == null) {
+            throw new IllegalStateException("Could not resolve any generic type information from the given " +
+                    "function of type: " + subType.getName() + ". " + GENERIC_TYPE_RESOLUTION_FAILURE_MESSAGE);
+        }
+        if (typeArgs.length != 2 || typeArgs[0] == TypeResolver.Unknown.class || typeArgs[1] == TypeResolver.Unknown.class) {
+            throw new IllegalStateException("Could not resolve sufficient generic type information from the given " +
+                    "function of type: " + subType.getName() + ", resolved: " + Arrays.toString(typeArgs) + ". " +
+                    GENERIC_TYPE_RESOLUTION_FAILURE_MESSAGE);
+        }
+    }
+
+    static <O> Class<O> resolveMultiValueFunctionGenericObjectType(Class<?> subType) {
+        Class<?>[] typeArgs = TypeResolver.resolveRawArguments(MultiValueFunction.class, subType);
+
+        @SuppressWarnings("unchecked") Class<O> objectType = (Class<O>) typeArgs[0];
+        return objectType;
+    }
+
+    static void validateMultiValueFunctionGenericTypes(Class<?>[] typeArgs, Class<?> subType) {
+        if (typeArgs == null) {
+            throw new IllegalStateException("Could not resolve any generic type information from the given " +
+                    "function of type: " + subType.getName() + ". " + GENERIC_TYPE_RESOLUTION_FAILURE_MESSAGE);
+        }
+        if (typeArgs.length != 3 || typeArgs[0] == TypeResolver.Unknown.class) {
+            throw new IllegalStateException("Could not resolve sufficient generic type information from the given " +
+                    "function of type: " + subType.getName() + ", resolved: " + Arrays.toString(typeArgs) + ". " +
+                    GENERIC_TYPE_RESOLUTION_FAILURE_MESSAGE);
+        }
+    }
+
+
+        static class FunctionGenericTypes<O, A> {
+        final Class<O> objectType;
+        final Class<A> attributeType;
+
+        FunctionGenericTypes(Class<O> objectType, Class<A> attributeType) {
+            this.objectType = objectType;
+            this.attributeType = attributeType;
+        }
+    }
+
 
     // ***************************************************************************************************************
     // The following methods are just overloaded vararg variants of existing methods above.
