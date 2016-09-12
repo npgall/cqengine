@@ -22,8 +22,19 @@ import com.googlecode.cqengine.query.parser.common.ValueParser;
  */
 public class BooleanParser extends ValueParser<Boolean> {
 
+    static final String TRUE_STR = Boolean.TRUE.toString();
+    static final String FALSE_STR = Boolean.FALSE.toString();
+
     @Override
     public Boolean parse(Class<? extends Boolean> valueType, String stringValue) {
-        return Boolean.valueOf(stringValue);
+        if (TRUE_STR.equalsIgnoreCase(stringValue)) {
+            return true;
+        }
+        else if (FALSE_STR.equalsIgnoreCase(stringValue)) {
+            return false;
+        }
+        else {
+            throw new IllegalStateException("Could not parse value as boolean: " + stringValue);
+        }
     }
 }

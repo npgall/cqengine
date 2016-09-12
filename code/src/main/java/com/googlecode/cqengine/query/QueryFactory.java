@@ -1060,10 +1060,8 @@ public class QueryFactory {
                     "that the host JVM does not allow the generic type information to be read from lambda expressions. " +
                     "Alternatively, if you supplied a class-based implementation of the function, then you must ensure " +
                     "that you specified the generic types of the function when it was compiled. " +
-                    "Either way, CQEngine was unable to determine the generic type information " +
-                    "from the function as required. " +
                     "As a workaround, you can use the counterpart methods in QueryFactory " +
-                    "which allow the generic types to be specified explicitly. ";
+                    "which allow the generic types to be specified explicitly.";
 
     static <O, A, F> FunctionGenericTypes<O, A> resolveSimpleFunctionGenericTypes(Class<?> subType) {
         Class<?>[] typeArgs = TypeResolver.resolveRawArguments(SimpleFunction.class, subType);
@@ -1089,6 +1087,8 @@ public class QueryFactory {
 
     static <O> Class<O> resolveMultiValueFunctionGenericObjectType(Class<?> subType) {
         Class<?>[] typeArgs = TypeResolver.resolveRawArguments(MultiValueFunction.class, subType);
+
+        validateMultiValueFunctionGenericTypes(typeArgs, subType);
 
         @SuppressWarnings("unchecked") Class<O> objectType = (Class<O>) typeArgs[0];
         return objectType;

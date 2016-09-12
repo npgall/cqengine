@@ -17,7 +17,10 @@ package com.googlecode.cqengine.query.parser.sql;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.ParseResult;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -35,6 +38,14 @@ import static com.googlecode.cqengine.query.QueryFactory.or;
 import static java.util.Arrays.asList;
 
 public class SQLParserTest {
+
+    static final Attribute<Car, Boolean> IS_BLUE = new SimpleAttribute<Car, Boolean>("is_blue") {
+        @Override
+        public Boolean getValue(Car object, QueryOptions queryOptions) {
+            return object.getColor().equals(Car.Color.BLUE);
+        }
+    };
+
     final SQLParser<Car> parser = new SQLParser<Car>(Car.class){{
         registerAttribute(Car.CAR_ID);
         registerAttribute(Car.MANUFACTURER);
@@ -43,6 +54,7 @@ public class SQLParserTest {
         registerAttribute(Car.DOORS);
         registerAttribute(Car.PRICE);
         registerAttribute(Car.FEATURES);
+        registerAttribute(IS_BLUE);
     }};
 
     @Test
@@ -65,6 +77,8 @@ public class SQLParserTest {
         assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("SELECT * FROM cars WHERE ('manufacturer' = 'Ford' OR 'model' = 'Focus')"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE 'manufacturer' <> 'Ford'"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE NOT ('manufacturer' = 'Ford')"));
+        assertQueriesEquals(equal(IS_BLUE, true), parser.query("SELECT * FROM cars WHERE (is_blue = true)"));
+        assertQueriesEquals(equal(IS_BLUE, false), parser.query("SELECT * FROM cars WHERE (is_blue = false)"));
 
         assertQueriesEquals(
                 or(

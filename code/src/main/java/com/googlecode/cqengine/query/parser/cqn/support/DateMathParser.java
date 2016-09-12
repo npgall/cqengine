@@ -77,10 +77,14 @@ public class DateMathParser extends ValueParser<Date> {
             if (now != null) {
                 solrParser.setNow(now);
             }
-            return solrParser.parseMath(StringParser.stripQuotes(stringValue));
+            return solrParser.parseMath(stripQuotes(stringValue));
         }
         catch (Exception e) {
             throw new IllegalStateException("Failed to parse date math expression: " + stringValue, e);
         }
+    }
+
+    protected String stripQuotes(String stringValue) {
+        return StringParser.stripQuotes(stringValue);
     }
 }
