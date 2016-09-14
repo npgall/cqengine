@@ -162,6 +162,14 @@
                                     <pattern>javassist</pattern>
                                     <shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.google</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.jodah</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.net.jodah</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
@@ -274,6 +282,11 @@
             <groupId>net.jodah</groupId>
             <artifactId>typetools</artifactId>
             <version>0.4.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.cqengine</groupId>
+            <artifactId>cqengine-stream-support</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- Test-scope dependencies... -->
