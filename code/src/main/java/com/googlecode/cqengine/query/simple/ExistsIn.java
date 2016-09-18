@@ -20,6 +20,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 
@@ -54,15 +55,15 @@ final IndexedCollection<F> foreignCollection;
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
         A localValue = attribute.getValue(object, queryOptions);
         return foreignRestrictions == null
-                ? foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty()
-                : foreignCollection.retrieve(and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
+                ? foreignCollectionContains(foreignCollection, equal(foreignKeyAttribute, localValue))
+                : foreignCollectionContains(foreignCollection, and(equal(foreignKeyAttribute, localValue), foreignRestrictions));
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
         if (foreignRestrictions == null) {
             for (A localValue : attribute.getValues(object, queryOptions)) {
-                boolean contained = foreignCollection.retrieve(equal(foreignKeyAttribute, localValue)).isNotEmpty();
+                boolean contained = foreignCollectionContains(foreignCollection, equal(foreignKeyAttribute, localValue));
                 if (contained) {
                     return true;
                 }
@@ -71,7 +72,7 @@ final IndexedCollection<F> foreignCollection;
         }
         else {
             for (A localValue : attribute.getValues(object, queryOptions)) {
-                boolean contained = foreignCollection.retrieve(and(equal(foreignKeyAttribute, localValue), foreignRestrictions)).isNotEmpty();
+                boolean contained = foreignCollectionContains(foreignCollection, and(equal(foreignKeyAttribute, localValue), foreignRestrictions));
                 if (contained) {
                     return true;
                 }
@@ -80,6 +81,7 @@ final IndexedCollection<F> foreignCollection;
         }
 
     }
+
 
     @Override
     public String toString() {
@@ -123,5 +125,21 @@ final IndexedCollection<F> foreignCollection;
         result = 31 * result + foreignKeyAttribute.hashCode();
         result = 31 * result + (foreignRestrictions != null ? foreignRestrictions.hashCode() : 0);
         return result;
+    }
+
+    /**
+     * Checks if the given foreign collection contains objects which match the given query.
+     * @param foreignCollection The foreign collection to check
+     * @param query The query to check
+     * @return True if the foreign collection contains one or more objects which match the query, otherwise false
+     */
+    static <F> boolean foreignCollectionContains(IndexedCollection<F> foreignCollection, Query<F> query) {
+        ResultSet<F> resultSet = foreignCollection.retrieve(query);
+        try {
+            return resultSet.isNotEmpty();
+        }
+        finally {
+            resultSet.close();
+        }
     }
 }
