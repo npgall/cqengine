@@ -12,7 +12,7 @@ CQEngine attributes can be created from lambda expressions via the static factor
  
 *Limitations*
   * Some of the methods in `QueryFactory` allow attributes to be created from lambda expressions, without the need to specify the generic types of the attributes. CQEngine attempts to dynamically detect the generic types of these lambda expressions at runtime.
-  * However, note that as of Java 8, there are limitations on the ability to detect the generic types of lambda expressions at runtime in general, and so this might not always work correctly on all platforms. CQEngine uses [TypeTools](https://github.com/jhalterman/typetools) to infer generic types; see that library for details.
+  * However, note that as of Java 8, there are limitations on the ability to detect the generic types of lambda expressions at runtime in general, and so this might not always work correctly on all platforms. The support is somewhat JVM-specific, although at least OpenJDK and Oracle JDK are supported. CQEngine uses [TypeTools](https://github.com/jhalterman/typetools) to infer generic types; see that library for details.
   * If generic type information cannot be inferred from lambda expressions on a particular platform at runtime, CQEngine will throw an exception explaining the problem.
   * Additional overloaded variants of the static factory methods in QueryFactory are provided, which allow the application to work around the problem by specifying the generic types explicitly.
   * See the JavaDocs of [QueryFactory](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/QueryFactory.html#attribute-com.googlecode.cqengine.attribute.support.SimpleFunction-) for more details.
