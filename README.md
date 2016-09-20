@@ -532,7 +532,7 @@ CQEngine has been designed with support for grouping and aggregation in mind, bu
 
 When CQEngine is run on Java 8, a CQEngine `ResultSet` can be converted into a Java 8 `Stream`, which will allow CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
 
-Thus on Java 8 CQEngine can provide efficient query evaluation, and then lambda expressions can be used to group or aggregate results. This would dramatically outperform a lambda expression alone, which simply filtered the collection.
+Thus on Java 8 CQEngine can provide efficient query evaluation leveraging indexes, and then lambda expressions can be used to group or aggregate results. This would dramatically outperform a lambda expression alone, which simply filtered the collection.
 
 Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query. For the complete example and more details, see [Streams](documentation/Streams.md).
 ```java
