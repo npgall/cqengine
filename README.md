@@ -536,20 +536,20 @@ Thus on Java 8 CQEngine can provide efficient query evaluation leveraging indexe
 
 Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query. For the complete example and more details, see [Streams](documentation/Streams.md).
 ```java
-    public static void main(String[] args) {
-        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
-        cars.addAll(CarFactory.createCollectionOfCars(10));
-        cars.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
+public static void main(String[] args) {
+    IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
+    cars.addAll(CarFactory.createCollectionOfCars(10));
+    cars.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
 
-        Set<Car.Color> distinctColorsOfFordCars =
-                streamOf(cars.retrieve(equal(Car.MANUFACTURER, "Ford")))
-                .map(Car::getColor)
-                .distinct()
-                .collect(Collectors.toSet());
+    Set<Car.Color> distinctColorsOfFordCars =
+            streamOf(cars.retrieve(equal(Car.MANUFACTURER, "Ford")))
+            .map(Car::getColor)
+            .distinct()
+            .collect(Collectors.toSet());
 
-        System.out.println(distinctColorsOfFordCars);
-        // prints: [GREEN, RED]
-    }
+    System.out.println(distinctColorsOfFordCars);
+    // prints: [GREEN, RED]
+}
 ```
 
 **Performance Note**
