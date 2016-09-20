@@ -251,6 +251,12 @@ public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, In
     public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
 };
 ```
+...or alternatively, if you are using Java 8, from a lambda expression or method reference:
+```java
+public static final Attribute<Car, Double> PRICE = attribute("price", Car::getPrice);
+```
+(For Java 8, please read [LambdaAttributes](documentation/LambdaAttributes.md) for more details.)
+
 Usually attributes are defined as anonymous `static` `final` objects like this. Supplying the `"carId"` string parameter to the constructor is actually optional, but it is recommended as it will appear in query `toString`s.
 
 Since this attribute reads a field from a `Car` object, the usual place to put the attribute is inside the `Car` class - and this makes queries more readable. However it could really be defined in any class, such as in a `CarAttributes` class or similar. The example above is for a **[SimpleAttribute](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/attribute/SimpleAttribute.html)**, which is designed for fields containing only one value.
@@ -263,6 +269,11 @@ public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Ca
     public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
 };
 ```
+...or alternatively, if you are using Java 8:
+```java
+public static final Attribute<Car, String> FEATURES = attribute(String.class, "features", Car::getFeatures);
+```
+
 
 For nullable fields, CQEngine also includes **[SimpleNullableAttribute](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/attribute/SimpleNullableAttribute.html)** and **[MultiValueNullableAttribute](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/attribute/MultiValueNullableAttribute.html)**. These also allow CQEngine to work with object inheritance, where some objects in the collection might have some fields (e.g. subclasses) while others do not.
 
@@ -582,7 +593,7 @@ For non-Maven projects, a version built with [maven-shade-plugin](http://maven.a
 
 ## Project Status ##
 
-  * CQEngine 2.7.1 is the current release as of writing (August 2016), and is in Maven central
+  * CQEngine 2.8.0 is the current release as of writing (September 2016), and is in Maven central
   * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
