@@ -1,5 +1,16 @@
 # CQEngine Release Notes #
 
+### Version 2.8.0 - 2016-09-19 ###
+  * CQEngine attributes can now be created from Java 8 lambda expressions and method references:
+    * `Attribute<Car, Double> PRICE = attribute(Car::getPrice);`
+    * `Attribute<Car, Boolean> IS_CHEAP = attribute(car -> car.getPrice() < 4000);`
+      * See [LambdaAttributes](LambdaAttributes.md) for more details
+  * Improved support for Java 8 Streams
+      * A `StreamFactory` class is now provided to convert CQEngine ResultSets to Java 8 Streams
+        * See [Streams](Streams.md) for more details
+  * Support for DateMath queries (via DateMathParser), and support for SQL boolean literals has been added to the SQL query dialect (issue #88)
+  * Despite these Java 8 features, CQEngine remains fully compatible with Java 6 & 7
+
 ### Version 2.7.1 - 2016-08-12 ###
   * Maintenance release.
   * Improved performance of `ResultSet.isEmpty()`/`isNotEmpty()` when results are to be ordered (issue #78).
@@ -7,7 +18,6 @@
   * Fixed potential ClassCastException with combinations of certain queries with `CompoundIndex` (issue #85).
   * Improved `IndexedCollection.retainAll()` to avoid opening two connections to non-heap persistence and to reuse a single connection instead.
   * Improved `IndexedCollection.iterator().remove()` to integrate better with how resources are closed.
-
 
 ### Version 2.7.0 - 2016-07-13 ###
   * CQEngine now supports Partial Indexes.
