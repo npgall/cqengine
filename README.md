@@ -304,6 +304,10 @@ public static final Attribute<Car, Boolean> IS_DIRTY = new SimpleAttribute<Car, 
     public Boolean getValue(Car car, QueryOptions queryOptions) { return car.description.contains("dirty"); }
 };
 ```
+Or, if using Java 8:
+```java
+public static final Attribute<Car, Boolean> IS_DIRTY = attribute("dirty", car -> car.description.contains("dirty"));
+```
 
 A `HashIndex` could be built on the virtual attribute above, enabling fast retrievals of cars which are either dirty or not dirty, without needing to scan the collection.
 
