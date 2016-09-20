@@ -526,19 +526,30 @@ Quantization can be a useful tool to tune the size of indexes, trading a reducti
 
 ## Grouping and Aggregation (GROUP BY, SUM...) ##
 
-CQEngine has been designed with support for grouping and aggregation in mind, but note that this is not built into the CQEngine library itself, because CQEngine is designed to integrate with Java 8 lambda expressions. So the best approach for grouping or aggregating results, depends on the version of Java in use.
+CQEngine has been designed with support for grouping and aggregation in mind, but note that this is not built into the CQEngine library itself, because CQEngine is designed to integrate with Java 8 `Stream`s and lambda expressions. So the best approach for grouping or aggregating results, depends on the version of Java in use.
 
-### Java version 8 or later - lambda expressions ###
+### Java version 8 or later - streams and lambda expressions ###
 
-When CQEngine is run on Java 8, additional methods will appear on CQEngine `ResultSet`s (inherited from the `Iterable` interface) which will allow CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
+When CQEngine is run on Java 8, a CQEngine `ResultSet` can be converted into a Java 8 `Stream`, which will allow CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
 
-Thus on Java 8 CQEngine can provide efficient query evaluation, and then lambda expressions can be used to group or aggregate results.
+Thus on Java 8 CQEngine can provide efficient query evaluation, and then lambda expressions can be used to group or aggregate results. This would dramatically outperform a lambda expression alone, which simply filtered the collection.
 
-Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream` which can be grouped and aggregated using lambda expressions:
+Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query. For the complete example and more details, see [Streams](documentation/Streams.md).
 ```java
-public static <O> Stream<O> asStream(ResultSet<O> rs) {
-    return StreamSupport.stream(rs.spliterator(), false);
-}
+    public static void main(String[] args) {
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
+        cars.addAll(CarFactory.createCollectionOfCars(10));
+        cars.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
+
+        Set<Car.Color> distinctColorsOfFordCars =
+                streamOf(cars.retrieve(equal(Car.MANUFACTURER, "Ford")))
+                .map(Car::getColor)
+                .distinct()
+                .collect(Collectors.toSet());
+
+        System.out.println(distinctColorsOfFordCars);
+        // prints: [GREEN, RED]
+    }
 ```
 
 **Performance Note**
