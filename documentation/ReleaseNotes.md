@@ -4,12 +4,13 @@
   * CQEngine attributes can now be created from Java 8 lambda expressions and method references:
     * `Attribute<Car, Double> PRICE = attribute(Car::getPrice);`
     * `Attribute<Car, Boolean> IS_CHEAP = attribute(car -> car.getPrice() < 4000);`
-      * See [LambdaAttributes](LambdaAttributes.md) for more details
-  * Improved support for Java 8 Streams
-      * A `StreamFactory` class is now provided to convert CQEngine ResultSets to Java 8 Streams
-        * See [Streams](Streams.md) for more details
-  * Support for DateMath queries (via DateMathParser), and support for SQL boolean literals has been added to the SQL query dialect (issue #88)
-  * Despite these Java 8 features, CQEngine remains fully compatible with Java 6 & 7
+      * See [LambdaAttributes](LambdaAttributes.md) for more details.
+  * Improved support for Java 8 Streams:
+      * A `StreamFactory` class is now provided to convert CQEngine ResultSets to Java 8 Streams.
+        * See [Streams](Streams.md) for more details.
+      * Note: despite these Java 8 features, CQEngine remains fully compatible with Java 6 & 7.
+  * Support for DateMath queries (via DateMathParser), and support for SQL boolean literals has been added to the SQL query dialect (issue #88).
+  * Fixed issue where JOINs to a TransactionalIndexedCollection did not release read locks (issue #89).
 
 ### Version 2.7.1 - 2016-08-12 ###
   * Maintenance release.
