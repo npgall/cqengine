@@ -253,7 +253,7 @@ public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, In
 ```
 ...or alternatively, if you are using Java 8, from a lambda expression or method reference:
 ```java
-public static final Attribute<Car, Double> PRICE = attribute("price", Car::getPrice);
+public static final Attribute<Car, Integer> Car_ID = attribute("carId", Car::getCarId);
 ```
 (For Java 8, please read [LambdaAttributes](documentation/LambdaAttributes.md) for more details.)
 
