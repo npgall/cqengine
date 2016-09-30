@@ -20,11 +20,15 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -108,6 +112,21 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
             boolean modified = false;
             ConcurrentMap<A, StoredResultSet<O>> indexMap = this.indexMap;
             for (O object : objectSet) {
+              DeduplicationOption deduplicationOption = queryOptions.get(DeduplicationOption.class);
+              if (deduplicationOption != null) {
+                List<A> emptyAttributeValues = new ArrayList<A>();
+                for (Map.Entry<A, StoredResultSet<O>> entry : indexMap.entrySet()) {
+                  A attributeValue = entry.getKey();
+                  StoredResultSet<O> valueSet  = entry.getValue();
+                   modified |= valueSet.remove(object);
+                   if (valueSet.isEmpty()) {
+                    emptyAttributeValues.add(attributeValue);
+                   }
+                }
+                for (A attributeValue : emptyAttributeValues) {
+                  indexMap.remove(attributeValue);
+                }
+              } else {
                 Iterable<A> attributeValues = getAttribute().getValues(object, queryOptions);
                 for (A attributeValue : attributeValues) {
 
@@ -123,6 +142,7 @@ public abstract class AbstractMapBasedAttributeIndex<A, O, MapType extends Concu
                         indexMap.remove(attributeValue);
                     }
                 }
+              }
             }
             return modified;
         }
