@@ -2,7 +2,7 @@
 
 ### Version 2.9.0 - 2016-11-02 ###
   * Maintenance release. The minor version has been bumped only because of the following minor API change.
-  * The `StreamFactory` class has been moved from package `com.googlecode.cqengine.query` to package `com.googlecode.cqengine.stream.`.
+  * The `StreamFactory` class has been moved from package `com.googlecode.cqengine.query` to package `com.googlecode.cqengine.stream`.
   * This fixes an OSGi packaging problem, discussed in issue #96.
   
 ### Version 2.8.0 - 2016-09-19 ###
