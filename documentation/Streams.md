@@ -2,7 +2,7 @@
 
 Examples of how to create Java 8 Streams from CQEngine [ResultSet](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html)s.
 
-* To convert a CQEngine ResultSet to a Java 8 Stream, add import statement to your class: `import static com.googlecode.cqengine.query.StreamFactory.*`.
+* To convert a CQEngine ResultSet to a Java 8 Stream, add import statement to your class: `import static com.googlecode.cqengine.stream.StreamFactory.*`.
 * Then, you can convert a ResultSet to a Stream by wrapping it in the `streamOf` method.
 
 ## Example ##
@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.StreamFactory.*;
+import static com.googlecode.cqengine.stream.StreamFactory.*;
 
 public class StreamExample {
 
