@@ -126,3 +126,39 @@ Ford Focus has a sunroof or is convertible, and can be serviced in Dublin at the
 BMW M3 has a sunroof or is convertible, and can be serviced in Dublin at the following garages:-
 ---> Garage{garageId=2, name='Jane's garage', location='Dublin', brandsServiced=[BMW M3]}
 </pre>
+
+## JOINs between an arbitrary number of IndexedCollections ##
+
+The following shows an approach to perform a JOIN between three IndexedCollections.
+
+However, the approach to do so involves nesting `existsIn()` queries, and this can be done to any depth, allowing JOINs between any number of collections.
+
+The full source code for this example can be found [here](../code/src/test/java/com/googlecode/cqengine/examples/join/ThreeWayJoin.java).
+```java
+public static void main(String[] args) {
+    IndexedCollection<User> users = new ConcurrentIndexedCollection<User>();
+    users.add(new User(1, "Joe"));
+    users.add(new User(2, "Jane"));
+    users.add(new User(3, "Jesse"));
+
+    IndexedCollection<Role> roles = new ConcurrentIndexedCollection<Role>();
+    roles.add(new Role(1, "CEO"));
+    roles.add(new Role(2, "Manager"));
+    roles.add(new Role(3, "Employee"));
+
+    IndexedCollection<UserRole> userRoles = new ConcurrentIndexedCollection<UserRole>();
+    userRoles.add(new UserRole(1, 3)); // Joe is an Employee
+    userRoles.add(new UserRole(2, 2)); // Jane is a Manager
+    userRoles.add(new UserRole(3, 2)); // Jesse is a Manager
+
+    // Retrieve Users who are managers...
+    Query<User> usersWhoAreManagers =
+            existsIn(userRoles, User.USER_ID, UserRole.USER_ID,
+                    existsIn(roles, UserRole.ROLE_ID, Role.ROLE_ID, equal(Role.ROLE_NAME, "Manager")));
+
+    for (User u : users.retrieve(usersWhoAreManagers)) {
+        System.out.println(u.userName);
+    }
+    // ..prints: Jane, Jesse
+}
+```
