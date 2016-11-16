@@ -876,16 +876,17 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
 
         // Check if we can process this query from a standing query index...
-        Index<O> standingQueryIndex = standingQueryIndexes.get(query);
-        if (standingQueryIndex != null) {
-            // No deduplication required for standing queries.
-            if (standingQueryIndex instanceof StandingQueryIndex) {
-                return standingQueryIndex.retrieve(query, queryOptions);
-            }
-            else {
-                return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
-            }
-        } // else no suitable standing query index exists, process the query normally...
+        if(!standingQueryIndexes.isEmpty()) {
+            Index<O> standingQueryIndex = standingQueryIndexes.get(query);
+            if (standingQueryIndex != null) {
+                // No deduplication required for standing queries.
+                if (standingQueryIndex instanceof StandingQueryIndex) {
+                    return standingQueryIndex.retrieve(query, queryOptions);
+                } else {
+                    return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
+                }
+            } // else no suitable standing query index exists, process the query normally...
+        }
 
         if (query instanceof SimpleQuery) {
             // No deduplication required for a single SimpleQuery.

@@ -120,7 +120,7 @@ final IndexedCollection<F> foreignCollection;
 
     @Override
     protected int calcHashCode() {
-        int result = foreignCollection.hashCode();
+        int result = System.identityHashCode(foreignCollection);
         result = 31 * result + localKeyAttribute.hashCode();
         result = 31 * result + foreignKeyAttribute.hashCode();
         result = 31 * result + (foreignRestrictions != null ? foreignRestrictions.hashCode() : 0);
