@@ -176,9 +176,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (indexesOnThisAttribute == null) {
             indexesOnThisAttribute = Collections.newSetFromMap(new ConcurrentHashMap<Index<O>, Boolean>());
             attributeIndexes.put(attribute, indexesOnThisAttribute);
-            if(attributeIndex instanceof UniqueIndex) {
-                uniqueIndexes.put(attribute, attributeIndex);
-            }
         }
         if (attributeIndex instanceof SimplifiedSQLiteIndex) {
             // Ensure there is not already an identity index added for this attribute...
@@ -191,6 +188,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         // Add the index...
         if (!indexesOnThisAttribute.add(attributeIndex)) {
             throw new IllegalStateException("An equivalent index has already been added for attribute: " + attribute);
+        }
+        if (attributeIndex instanceof UniqueIndex) {
+            // We put UniqueIndexes in a separate map too, to access directly...
+            uniqueIndexes.put(attribute, attributeIndex);
         }
         queryOptions.put(QueryEngine.class, this);
         queryOptions.put(Persistence.class, persistence);
@@ -304,13 +305,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
     <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
-        if(query instanceof Equal || query instanceof In) {
-            Index<O> unique = uniqueIndexes.get(query.getAttribute());
-            // unique indices definitely has better cost
-            if(unique!= null){
-                return unique.retrieve(query, queryOptions);
-            }
+        // First check if a UniqueIndex is available, as this will have the lowest cost...
+        Index<O> uniqueIndex = uniqueIndexes.get(query.getAttribute());
+        if (uniqueIndex!= null && uniqueIndex.supportsQuery(query, queryOptions)){
+            return uniqueIndex.retrieve(query, queryOptions);
         }
+
+        // Examine other (non-unique) indexes...
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
@@ -344,13 +345,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     // to the #retrieveRecursive() method.
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
-
-        if (query instanceof Equal || query instanceof In) {
-            Index<O> index = uniqueIndexes.get(((SimpleQuery) query).getAttribute());
-            if (index != null) {
-                return index.retrieve(query, queryOptions);
-            }
-        }
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 

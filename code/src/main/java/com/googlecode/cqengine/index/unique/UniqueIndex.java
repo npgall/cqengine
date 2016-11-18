@@ -110,6 +110,11 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnH
         this.indexMap = indexMapFactory.create();
     }
 
+    @Override
+    public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
+        return query instanceof Equal || query instanceof In;
+    }
+
     /**
      * {@inheritDoc}
      * <p/>
