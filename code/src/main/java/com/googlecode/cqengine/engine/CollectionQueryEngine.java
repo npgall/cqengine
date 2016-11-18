@@ -28,6 +28,7 @@ import com.googlecode.cqengine.index.compound.support.CompoundAttribute;
 import com.googlecode.cqengine.index.compound.support.CompoundQuery;
 import com.googlecode.cqengine.index.fallback.FallbackIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.index.unique.UniqueIndex;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -86,6 +87,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     // Map of attributes to set of indexes on that attribute...
     private final ConcurrentMap<Attribute<O, ?>, Set<Index<O>>> attributeIndexes = new ConcurrentHashMap<Attribute<O, ?>, Set<Index<O>>>();
+    private final ConcurrentMap<Attribute<O, ?>, Index<O>> uniqueIndexes = new ConcurrentHashMap<Attribute<O, ?>, Index<O>>();
     // Map of CompoundAttributes to compound index on that compound attribute...
     private final ConcurrentMap<CompoundAttribute<O>, CompoundIndex<O>> compoundIndexes = new ConcurrentHashMap<CompoundAttribute<O>, CompoundIndex<O>>();
     // Map of queries to standing query index on that query...
@@ -174,6 +176,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (indexesOnThisAttribute == null) {
             indexesOnThisAttribute = Collections.newSetFromMap(new ConcurrentHashMap<Index<O>, Boolean>());
             attributeIndexes.put(attribute, indexesOnThisAttribute);
+            if(attributeIndex instanceof UniqueIndex) {
+                uniqueIndexes.put(attribute, attributeIndex);
+            }
         }
         if (attributeIndex instanceof SimplifiedSQLiteIndex) {
             // Ensure there is not already an identity index added for this attribute...
@@ -299,6 +304,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
     <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
+        if(query instanceof Equal || query instanceof In) {
+            Index<O> unique = uniqueIndexes.get(query.getAttribute());
+            // unique indices definitely has better cost
+            if(unique!= null){
+                return unique.retrieve(query, queryOptions);
+            }
+        }
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
@@ -332,6 +344,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     // to the #retrieveRecursive() method.
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
+
+        if (query instanceof Equal || query instanceof In) {
+            Index<O> index = uniqueIndexes.get(((SimpleQuery) query).getAttribute());
+            if (index != null) {
+                return index.retrieve(query, queryOptions);
+            }
+        }
         @SuppressWarnings("unchecked")
         OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
 
