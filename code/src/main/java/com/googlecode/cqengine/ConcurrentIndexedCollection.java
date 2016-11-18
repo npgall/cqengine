@@ -68,7 +68,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     protected final Persistence<O, ?> persistence;
     protected final ObjectStore<O> objectStore;
     protected final QueryEngineInternal<O> indexEngine;
-
+    protected final QueryOptions defaultOptions;
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings, using {@link OnHeapPersistence}.
      */
@@ -86,6 +86,9 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     public ConcurrentIndexedCollection(Persistence<O, ? extends Comparable> persistence) {
         this.persistence = persistence;
+        this.defaultOptions = new QueryOptions();
+        this.defaultOptions.put(Persistence.class, persistence);
+        FlagsEnabled.forQueryOptions(this.defaultOptions).add(PersistenceFlags.READ_REQUEST);
         this.objectStore = persistence.createObjectStore();
         QueryEngineInternal<O> queryEngine = new CollectionQueryEngine<O>();
         QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
@@ -106,7 +109,6 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public ResultSet<O> retrieve(Query<O> query) {
         final QueryOptions queryOptions = openRequestScopeResourcesIfNecessary(null);
-        flagAsReadRequest(queryOptions);
         ResultSet<O> results = indexEngine.retrieve(query, queryOptions);
         return new CloseableResultSet<O>(results, query, queryOptions) {
             @Override
@@ -487,12 +489,13 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
 
     protected QueryOptions openRequestScopeResourcesIfNecessary(QueryOptions queryOptions) {
         if (queryOptions == null) {
-            queryOptions = new QueryOptions();
+            queryOptions = defaultOptions;
+        } else {
+            queryOptions.put(Persistence.class, persistence);
         }
         if (!(persistence instanceof OnHeapPersistence)) {
             persistence.openRequestScopeResources(queryOptions);
         }
-        queryOptions.put(Persistence.class, persistence);
         return queryOptions;
     }
 
