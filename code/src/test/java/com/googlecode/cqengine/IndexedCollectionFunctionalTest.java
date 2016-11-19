@@ -251,7 +251,6 @@ public class IndexedCollectionFunctionalTest {
                             new QueryToEvaluate() {{
                                 query = or(between(Car.CAR_ID, 400, 500), between(Car.CAR_ID, 450, 550));
                                 expectedResults = new ExpectedResults() {{
-                                    size = 202;
                                     containsCarIds = integersBetween(400, 550);
                                     doesNotContainCarIds = asSet(399, 551);
                                 }};
