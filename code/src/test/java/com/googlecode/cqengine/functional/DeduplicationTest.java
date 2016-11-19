@@ -17,6 +17,7 @@ package com.googlecode.cqengine.functional;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.DeduplicationStrategy;
@@ -40,6 +41,8 @@ public class DeduplicationTest {
     public void testDeduplication_Materialize() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
+        cars.addIndex(HashIndex.onAttribute(Car.COLOR));
+        cars.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
 
         Query<Car> query = or(
                 equal(COLOR, BLUE),
@@ -58,6 +61,8 @@ public class DeduplicationTest {
     public void testDeduplication_Logical() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
+        cars.addIndex(HashIndex.onAttribute(Car.COLOR));
+        cars.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
 
         Query<Car> query = or(
                 equal(COLOR, BLUE),
