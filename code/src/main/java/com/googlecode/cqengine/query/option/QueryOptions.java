@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.query.option;
 
+import com.googlecode.cqengine.persistence.Persistence;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,5 +83,9 @@ public class QueryOptions {
     @Override
     public int hashCode() {
         return options.hashCode();
+    }
+
+    public boolean contains(Object key) {
+        return options.containsKey(key);
     }
 }

@@ -344,11 +344,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     // to the #retrieveRecursive() method.
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
-
-        if (query instanceof Equal || query instanceof In) {
-            Index<O> index = uniqueIndexes.get(((SimpleQuery) query).getAttribute());
-            if (index != null) {
-                return index.retrieve(query, queryOptions);
+        if(query instanceof Equal) {
+            Index<O> uniqueIndex = uniqueIndexes.get(((Equal)query).getAttribute());
+            if (uniqueIndex != null && uniqueIndex.supportsQuery(query, queryOptions)) {
+                return uniqueIndex.retrieve(query, queryOptions);
             }
         }
         @SuppressWarnings("unchecked")

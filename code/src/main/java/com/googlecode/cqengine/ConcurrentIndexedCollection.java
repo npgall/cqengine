@@ -492,7 +492,9 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (!(persistence instanceof OnHeapPersistence)) {
             persistence.openRequestScopeResources(queryOptions);
         }
-        queryOptions.put(Persistence.class, persistence);
+        if(!queryOptions.contains(Persistence.class)) {
+            queryOptions.put(Persistence.class, persistence);
+        }
         return queryOptions;
     }
 
@@ -554,6 +556,9 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      * @param queryOptions The query options for the request
      */
     protected static void flagAsReadRequest(QueryOptions queryOptions) {
-        FlagsEnabled.forQueryOptions(queryOptions).add(PersistenceFlags.READ_REQUEST);
+        FlagsEnabled flagsEnabled = FlagsEnabled.forQueryOptions(queryOptions);
+        if(!flagsEnabled.isFlagEnabled(PersistenceFlags.READ_REQUEST)) {
+            flagsEnabled.add(PersistenceFlags.READ_REQUEST);
+        }
     }
 }
