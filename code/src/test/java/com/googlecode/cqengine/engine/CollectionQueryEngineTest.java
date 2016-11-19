@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.engine;
 
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
@@ -24,17 +26,20 @@ import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ConcurrentOnHeapObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.persistence.wrapping.WrappingPersistence;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+import com.googlecode.cqengine.testutil.IterationCountingSet;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
 
-import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.*;
 
 public class CollectionQueryEngineTest {
 
@@ -122,6 +127,23 @@ public class CollectionQueryEngineTest {
 
         queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
         queryEngine.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());
+    }
+
+    @Test
+    @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "StatementWithEmptyBody"})
+    public void testOrQueryCollectionScan() {
+        IterationCountingSet<Car> iterationCountingSet = new IterationCountingSet<Car>(CarFactory.createCollectionOfCars(10));
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>(WrappingPersistence.aroundCollection(iterationCountingSet));
+
+        Query<Car> query = or(equal(Car.COLOR, Car.Color.BLUE), equal(Car.MANUFACTURER, "Honda"));
+        ResultSet<Car> resultSet = collection.retrieve(query);
+
+        for (Car car : resultSet) {
+            // No op
+        }
+
+        // The two-branch or() query should have been evaluated by scanning the collection only once...
+        Assert.assertEquals(iterationCountingSet.size(), iterationCountingSet.getItemsIteratedCount());
     }
 
     static ObjectStore<Car> emptyObjectStore() {

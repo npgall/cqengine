@@ -43,8 +43,6 @@ import com.googlecode.cqengine.persistence.composite.CompositePersistence;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLiteDiskIdentityIndex;
-import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
@@ -85,8 +83,8 @@ public class IndexedCollectionFunctionalTest {
 
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
-    // Set this true to skip the slow tests *during development only!*...
-    static final boolean SKIP_SLOW_TESTS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.tests", "false"));
+    // Set this true to skip the slow scenarios *during development only!*...
+    static final boolean SKIP_SLOW_SCENARIOS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.scenarios", "false"));
 
     static final boolean RUN_HIGH_PRIORITY_SCENARIOS_ONLY = false;
 
@@ -105,7 +103,7 @@ public class IndexedCollectionFunctionalTest {
                     name = "typical queries";
                     dataSet = REGULAR_DATASET;
                     alsoEvaluateWithIndexMergeStrategy = true; // runs each of these scenarios twice to test with both the default merge strategy and with the index merge strategy
-                    collectionImplementations = SKIP_SLOW_TESTS
+                    collectionImplementations = SKIP_SLOW_SCENARIOS
                             ? classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class)
                             : classes(ConcurrentIndexedCollection.class, TransactionalIndexedCollection.class, OffHeapConcurrentIndexedCollection.class, ObjectLockingIndexedCollection.class);
                     queriesToEvaluate = asList(
@@ -251,7 +249,6 @@ public class IndexedCollectionFunctionalTest {
                             new QueryToEvaluate() {{
                                 query = or(between(Car.CAR_ID, 400, 500), between(Car.CAR_ID, 450, 550));
                                 expectedResults = new ExpectedResults() {{
-                                    size = 202;
                                     containsCarIds = integersBetween(400, 550);
                                     doesNotContainCarIds = asSet(399, 551);
                                 }};
@@ -1412,6 +1409,11 @@ public class IndexedCollectionFunctionalTest {
             } catch (Exception e) {
                 throw new IllegalStateException("Configuration issue for MacroScenario " + i + " in the list: " + macroScenario.name, e);
             }
+        }
+        if (SKIP_SLOW_SCENARIOS) {
+            System.out.println("    === Note: slow scenarios in the functional test are disabled ===");
+        } else {
+            System.out.println("    === Note: all scenarios in the functional test are enabled ===\n    To skip slow scenarios, run with: -Dcqengine.skip.slow.scenarios=true");
         }
         return scenarios;
     }

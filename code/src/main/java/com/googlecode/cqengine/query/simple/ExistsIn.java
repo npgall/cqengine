@@ -109,18 +109,21 @@ final IndexedCollection<F> foreignCollection;
 
         ExistsIn existsIn = (ExistsIn) o;
 
-        if (!foreignCollection.equals(existsIn.foreignCollection)) return false;
         if (!foreignKeyAttribute.equals(existsIn.foreignKeyAttribute)) return false;
         if (foreignRestrictions != null ? !foreignRestrictions.equals(existsIn.foreignRestrictions) : existsIn.foreignRestrictions != null)
             return false;
         if (!localKeyAttribute.equals(existsIn.localKeyAttribute)) return false;
+
+        // Evaluate equals() on the foreignCollection last, to avoid performance hit if possible...
+        if (!foreignCollection.equals(existsIn.foreignCollection)) return false;
 
         return true;
     }
 
     @Override
     protected int calcHashCode() {
-        int result = foreignCollection.hashCode();
+        // Use identityHashCode() to avoid expensive hashCode computation in case the foreignCollection is large...
+        int result = System.identityHashCode(foreignCollection);
         result = 31 * result + localKeyAttribute.hashCode();
         result = 31 * result + foreignKeyAttribute.hashCode();
         result = 31 * result + (foreignRestrictions != null ? foreignRestrictions.hashCode() : 0);

@@ -192,6 +192,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (!indexesOnThisAttribute.add(attributeIndex)) {
             throw new IllegalStateException("An equivalent index has already been added for attribute: " + attribute);
         }
+        if (attributeIndex instanceof UniqueIndex) {
+            // We put UniqueIndexes in a separate map too, to access directly...
+            uniqueIndexes.put(attribute, attributeIndex);
+        }
         queryOptions.put(QueryEngine.class, this);
         queryOptions.put(Persistence.class, persistence);
         attributeIndex.init(objectStore, queryOptions);
@@ -304,13 +308,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
     <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
-        if(query instanceof Equal || query instanceof In) {
-            Index<O> unique = uniqueIndexes.get(query.getAttribute());
-            // unique indices definitely has better cost
-            if(unique!= null){
-                return unique.retrieve(query, queryOptions);
-            }
-        }
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
@@ -1002,13 +999,33 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     };
                 }
             };
+            ResultSet<O> union;
             // *** Deduplication can be required for unions... ***
             if (DeduplicationOption.isLogicalElimination(queryOptionsForOrUnion)) {
-                return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, indexMergeStrategyEnabled);
+                union = new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, indexMergeStrategyEnabled);
             }
             else {
-                return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
+                union = new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
             }
+
+            if (union.getRetrievalCost() == Integer.MAX_VALUE) {
+                // Either no indexes are available for any branches of the or() query, or indexes are only available
+                // for some of the branches.
+                // If we were to delegate to the FallbackIndex to retrieve results for any of the branches which
+                // don't have indexes, then the FallbackIndex would scan the entire collection to locate results.
+                // This would happen for *each* of the branches which don't have indexes - so the entire collection
+                // could be scanned multiple times.
+                // So to avoid that, here we will scan the entire collection once, to find all objects which match
+                // all of the child branches in a single scan.
+                // Note: there is no need to deduplicate results which were fetched this way.
+                union = new FilteringResultSet<O>(getEntireCollectionAsResultSet(query, queryOptions), or, queryOptions) {
+                    @Override
+                    public boolean isValid(O object, QueryOptions queryOptions) {
+                        return or.matches(object, queryOptions);
+                    }
+                };
+            }
+            return union;
         }
         else if (query instanceof Not) {
             final Not<O> not = (Not<O>) query;
