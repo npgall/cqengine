@@ -49,6 +49,50 @@ public class QueryOptions {
     protected Query rootQueryOption = null;
     protected Map<Object, Object> extraOptions = null;
 
+    public Persistence getPersistence() {
+        return persistenceOption;
+    }
+
+    public ConnectionManager getConnectionManager() {
+        return connectionManagerOption;
+    }
+
+    public QueryEngine getQueryEngine() {
+        return queryEngineOption;
+    }
+
+    public DeduplicationOption getDeduplicationOption() {
+        return deduplicationOption;
+    }
+
+    public IsolationOption getIsolationOption() {
+        return isolationOption;
+    }
+
+    public FlagsEnabled getFlagsEnabled() {
+        return flagsEnabledOption;
+    }
+
+    public FlagsDisabled getFlagsDisabled() {
+        return flagsDisabledOption;
+    }
+
+    public Thresholds getThresholds() {
+        return thresholdsOption;
+    }
+
+    public CloseableRequestResources getCloseableRequestResources() {
+        return closeableRequestResourcesOption;
+    }
+
+    public OrderByOption getOrderByOption() {
+        return orderByOption;
+    }
+
+    public Query getRootQuery() {
+        return rootQueryOption;
+    }
+
     public <T> T get(Class<T> optionType) {
         @SuppressWarnings("unchecked")
         T optionValue = (T) get((Object)optionType);

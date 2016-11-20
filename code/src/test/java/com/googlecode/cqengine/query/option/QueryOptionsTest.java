@@ -23,7 +23,7 @@ public class QueryOptionsTest {
     @Test
     public void testEqualsAndHashCode() {
         EqualsVerifier.forClass(QueryOptions.class)
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
                 .verify();
     }
 }

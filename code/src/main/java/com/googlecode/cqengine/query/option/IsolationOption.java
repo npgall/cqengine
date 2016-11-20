@@ -44,7 +44,7 @@ public class IsolationOption {
      * @return True if {@link IsolationOption} object is contained in those provided and its level matches that given
      */
     public static boolean isIsolationLevel(QueryOptions queryOptions, IsolationLevel level) {
-        IsolationOption option = queryOptions.get(IsolationOption.class);
+        IsolationOption option = queryOptions.getIsolationOption();
         return option != null && level.equals(option.getIsolationLevel());
     }
 }

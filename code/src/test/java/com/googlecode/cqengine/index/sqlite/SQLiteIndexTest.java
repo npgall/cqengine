@@ -107,7 +107,7 @@ public class SQLiteIndexTest {
 
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         QueryOptions queryOptions = mock(QueryOptions.class);
-        when(queryOptions.get(ConnectionManager.class)).thenReturn(connectionManager);
+        when(queryOptions.getConnectionManager()).thenReturn(connectionManager);
 
         SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
                 Car.FEATURES,

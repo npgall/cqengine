@@ -88,8 +88,8 @@ public class QueryFactoryTest {
     @Test
     public void testQueryOptionsMethodOverloading() {
         QueryOptions queryOptions = queryOptions(orderBy(descending(Car.CAR_ID)), deduplicate(DeduplicationStrategy.MATERIALIZE));
-        assertEquals(orderBy(descending(Car.CAR_ID)), queryOptions.get(OrderByOption.class));
-        assertEquals(deduplicate(DeduplicationStrategy.MATERIALIZE), queryOptions.get(DeduplicationOption.class));
+        assertEquals(orderBy(descending(Car.CAR_ID)), queryOptions.getOrderByOption());
+        assertEquals(deduplicate(DeduplicationStrategy.MATERIALIZE), queryOptions.getDeduplicationOption());
 
         assertEquals(queryOptions(new Object[] {"foo", "bar"}), queryOptions("foo", "bar"));
     }

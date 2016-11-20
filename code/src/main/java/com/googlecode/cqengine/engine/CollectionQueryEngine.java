@@ -346,7 +346,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
+        OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.getOrderByOption();
 
         // Store the root query in the queryOptions, so that when retrieveRecursive() examines child branches, that
         // both the branch query and the root query will be available to PartialIndexes so they may determine if they
@@ -750,7 +750,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.get(Persistence.class);
+        Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.getPersistence();
         if (persistence == null) {
             throw new IllegalStateException("A required Persistence object was not supplied in query options");
         }

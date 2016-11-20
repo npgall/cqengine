@@ -66,7 +66,7 @@ public class Thresholds {
     }
 
     public static Double getThreshold(QueryOptions queryOptions, Object key) {
-        Thresholds thresholds = queryOptions.get(Thresholds.class);
+        Thresholds thresholds = queryOptions.getThresholds();
         return thresholds == null ? null : thresholds.getThreshold(key);
     }
 }

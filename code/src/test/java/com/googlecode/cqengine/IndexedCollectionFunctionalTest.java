@@ -1487,7 +1487,7 @@ public class IndexedCollectionFunctionalTest {
             indexedCollection.clear();
         }
 
-        FlagsEnabled flagsEnabled = scenario.queryOptions.get(FlagsEnabled.class);
+        FlagsEnabled flagsEnabled = scenario.queryOptions.getFlagsEnabled();
         if (flagsEnabled == null) {
             flagsEnabled = new FlagsEnabled();
         }

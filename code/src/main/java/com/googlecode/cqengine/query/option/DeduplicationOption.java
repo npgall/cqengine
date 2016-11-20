@@ -41,7 +41,7 @@ public class DeduplicationOption {
      * {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      */
     public static <O> boolean isLogicalElimination(QueryOptions queryOptions) {
-        DeduplicationOption option = queryOptions.get(DeduplicationOption.class);
+        DeduplicationOption option = queryOptions.getDeduplicationOption();
         return option != null && DeduplicationStrategy.LOGICAL_ELIMINATION.equals(option.getStrategy());
     }
 
@@ -54,7 +54,7 @@ public class DeduplicationOption {
      * {@link DeduplicationStrategy#MATERIALIZE}
      */
     public static <O> boolean isMaterialize(QueryOptions queryOptions) {
-        DeduplicationOption option = queryOptions.get(DeduplicationOption.class);
+        DeduplicationOption option = queryOptions.getDeduplicationOption();
         return option != null && DeduplicationStrategy.MATERIALIZE.equals(option.getStrategy());
     }
 

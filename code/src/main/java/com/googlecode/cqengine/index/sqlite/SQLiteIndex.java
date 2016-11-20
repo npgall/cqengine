@@ -637,7 +637,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @throws IllegalStateException if the ConnectionManager is not found.
      */
     ConnectionManager getConnectionManager(final QueryOptions queryOptions){
-        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        ConnectionManager connectionManager = queryOptions.getConnectionManager();
         if (connectionManager == null)
             throw new IllegalStateException("A ConnectionManager is required but was not provided in the QueryOptions.");
         return connectionManager;

@@ -268,7 +268,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      */
     @Override
     public void openRequestScopeResources(QueryOptions queryOptions) {
-        if (queryOptions.get(ConnectionManager.class) == null) {
+        if (queryOptions.getConnectionManager() == null) {
             queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
         }
     }
@@ -281,7 +281,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      */
     @Override
     public void closeRequestScopeResources(QueryOptions queryOptions) {
-        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        ConnectionManager connectionManager = queryOptions.getConnectionManager();
         if (connectionManager instanceof RequestScopeConnectionManager) {
             ((RequestScopeConnectionManager) connectionManager).close();
             queryOptions.remove(ConnectionManager.class);

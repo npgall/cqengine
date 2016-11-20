@@ -57,7 +57,7 @@ public class FlagsEnabled {
      * @return The existing QueryOptions's FlagsEnabled or a new instance.
      */
     public static FlagsEnabled forQueryOptions(final QueryOptions queryOptions) {
-        FlagsEnabled flags = queryOptions.get(FlagsEnabled.class);
+        FlagsEnabled flags = queryOptions.getFlagsEnabled();
         if (flags == null) {
             flags = new FlagsEnabled();
             queryOptions.put(FlagsEnabled.class, flags);
@@ -66,7 +66,7 @@ public class FlagsEnabled {
     }
 
     public static boolean isFlagEnabled(QueryOptions queryOptions, Object flag) {
-        FlagsEnabled flagsDisabled = queryOptions.get(FlagsEnabled.class);
+        FlagsEnabled flagsDisabled = queryOptions.getFlagsEnabled();
         return flagsDisabled != null && flagsDisabled.isFlagEnabled(flag);
     }
 }
