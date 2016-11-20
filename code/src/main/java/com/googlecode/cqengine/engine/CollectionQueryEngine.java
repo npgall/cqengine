@@ -117,7 +117,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                queryOptions.put(QueryEngine.class, this);
+                queryOptions.put(QueryEngine.class, CollectionQueryEngine.this);
                 queryOptions.put(Persistence.class, persistence);
                 index.init(objectStore, queryOptions);
                 return true;
@@ -959,12 +959,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // The Or query is disjoint, so there is no need to perform deduplication on its results.
                 // Wrap the QueryOptions object in another which omits the DeduplicationOption if it is requested
                 // when evaluating this Or statement...
-                queryOptionsForOrUnion = new QueryOptions(queryOptions.getOptions()) {
-                    @Override
-                    public Object get(Object key) {
-                        return DeduplicationOption.class.equals(key) ? null : super.get(key);
-                    }
-                };
+                queryOptionsForOrUnion = new SuppressedQueryOptions(queryOptions, Collections.<Object>singleton(DeduplicationOption.class));
             }
             else {
                 // Use the supplied queryOptions...
