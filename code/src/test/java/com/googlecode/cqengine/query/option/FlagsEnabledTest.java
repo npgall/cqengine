@@ -29,9 +29,9 @@ public class FlagsEnabledTest {
 
     @Test
     public void testFlagsEnabled() {
-        QueryOptions queryOptions = queryOptions(enableFlags("a", "b"));
-        assertTrue(isFlagEnabled(queryOptions, "a"));
-        assertTrue(isFlagEnabled(queryOptions, "b"));
-        assertFalse(isFlagEnabled(queryOptions, "c"));
+        QueryOptions queryOptions = queryOptions(enableFlags(EngineFlags.BULK_IMPORT, EngineFlags.READ_REQUEST));
+        assertTrue(isFlagEnabled(queryOptions, EngineFlags.READ_REQUEST));
+        assertTrue(isFlagEnabled(queryOptions, EngineFlags.BULK_IMPORT));
+        assertFalse(isFlagEnabled(queryOptions, EngineFlags.STRICT_REPLACEMENT));
     }
 }

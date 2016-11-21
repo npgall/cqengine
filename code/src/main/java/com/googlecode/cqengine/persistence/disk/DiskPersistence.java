@@ -190,8 +190,8 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      */
     @Override
     public void openRequestScopeResources(QueryOptions queryOptions) {
-        if (queryOptions.get(ConnectionManager.class) == null) {
-            queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
+        if (queryOptions.getConnectionManager() == null) {
+            queryOptions.setConnectionManager(new RequestScopeConnectionManager(this));
         }
     }
 
@@ -203,7 +203,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
      */
     @Override
     public void closeRequestScopeResources(QueryOptions queryOptions) {
-        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        ConnectionManager connectionManager = queryOptions.getConnectionManager();
         if (connectionManager instanceof RequestScopeConnectionManager) {
             ((RequestScopeConnectionManager) connectionManager).close();
             queryOptions.remove(ConnectionManager.class);

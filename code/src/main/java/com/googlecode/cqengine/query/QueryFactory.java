@@ -638,9 +638,9 @@ public class QueryFactory {
      * @param flags Arbitrary objects which represent flags which may be interpreted by indexes etc.
      * @return A populated {@link FlagsEnabled} object which may be added to query options
      */
-    public static FlagsEnabled enableFlags(Object... flags) {
+    public static FlagsEnabled enableFlags(EngineFlags... flags) {
         FlagsEnabled result = new FlagsEnabled();
-        for (Object flag: flags) {
+        for (EngineFlags flag: flags) {
             result.add(flag);
         }
         return result;

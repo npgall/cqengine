@@ -117,8 +117,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         forEachIndexDo(new IndexOperation<O>() {
             @Override
             public boolean perform(Index<O> index) {
-                queryOptions.put(QueryEngine.class, this);
-                queryOptions.put(Persistence.class, persistence);
+                queryOptions.setQueryEngine(CollectionQueryEngine.this);
+                queryOptions.setPersistence(persistence);
                 index.init(objectStore, queryOptions);
                 return true;
             }
@@ -193,8 +193,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // We put UniqueIndexes in a separate map too, to access directly...
             uniqueIndexes.put(attribute, attributeIndex);
         }
-        queryOptions.put(QueryEngine.class, this);
-        queryOptions.put(Persistence.class, persistence);
+        queryOptions.setQueryEngine(this);
+        queryOptions.setPersistence(persistence);
         attributeIndex.init(objectStore, queryOptions);
     }
 
@@ -210,8 +210,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for standing query: " + standingQuery);
         }
-        queryOptions.put(QueryEngine.class, this);
-        queryOptions.put(Persistence.class, persistence);
+        queryOptions.setQueryEngine(this);
+        queryOptions.setPersistence(persistence);
         standingQueryIndex.init(objectStore, queryOptions);
     }
 
@@ -225,8 +225,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (existingIndex != null) {
             throw new IllegalStateException("An index has already been added for compound attribute: " + compoundAttribute);
         }
-        queryOptions.put(QueryEngine.class, this);
-        queryOptions.put(Persistence.class, persistence);
+        queryOptions.setQueryEngine(this);
+        queryOptions.setPersistence(persistence);
         compoundIndex.init(objectStore, queryOptions);
     }
 
@@ -352,15 +352,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
         }
         @SuppressWarnings("unchecked")
-        OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.get(OrderByOption.class);
+        OrderByOption<O> orderByOption = (OrderByOption<O>) queryOptions.getOrderByOption();
 
         // Store the root query in the queryOptions, so that when retrieveRecursive() examines child branches, that
         // both the branch query and the root query will be available to PartialIndexes so they may determine if they
         // can be used to accelerate the overall query...
-        queryOptions.put(ROOT_QUERY, query);
+        queryOptions.setRootQuery(query);
 
         // Log decisions made to the query log, if provided...
-        final QueryLog queryLog = queryOptions.get(QueryLog.class); // might be null
+        final QueryLog queryLog = queryOptions.getQueryLog(); // might be null
 
         SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering = null;
         if (orderByOption != null) {
@@ -756,7 +756,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     static <O, A extends Comparable<A>> Persistence<O, A> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.get(Persistence.class);
+        Persistence<O, A> persistence = (Persistence<O, A>) queryOptions.getPersistence();
         if (persistence == null) {
             throw new IllegalStateException("A required Persistence object was not supplied in query options");
         }
@@ -965,10 +965,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // The Or query is disjoint, so there is no need to perform deduplication on its results.
                 // Wrap the QueryOptions object in another which omits the DeduplicationOption if it is requested
                 // when evaluating this Or statement...
-                queryOptionsForOrUnion = new QueryOptions(queryOptions.getOptions()) {
+                queryOptionsForOrUnion = new QueryOptions(queryOptions) {
                     @Override
                     public Object get(Object key) {
                         return DeduplicationOption.class.equals(key) ? null : super.get(key);
+                    }
+                    @Override
+                    public DeduplicationOption getDeduplicationOption() {
+                        return null;
                     }
                 };
             }

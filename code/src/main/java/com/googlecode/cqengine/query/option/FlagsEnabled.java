@@ -1,12 +1,12 @@
 /**
  * Copyright 2012-2015 Niall Gallagher
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,23 +30,51 @@ import java.util.Set;
  */
 public class FlagsEnabled {
 
-    final Set<Object> flags = new HashSet<Object>();
+    private Set<Object> flags;
+    private boolean readRequest;
 
-    public void add(Object flag) {
-        flags.add(flag);
+    public void add(EngineFlags flag) {
+        switch (flag) {
+            case READ_REQUEST:
+                readRequest = true;
+                return;
+            default:
+                if (flags == null) {
+                    flags = new HashSet();
+                }
+                flags.add(flag);
+        }
     }
 
-    public void remove(Object flag) {
-        flags.remove(flag);
+    public void remove(EngineFlags flag) {
+        switch (flag) {
+            case READ_REQUEST:
+                readRequest = false;
+                return;
+            default:
+                if (flags != null) {
+                    flags.remove(flag);
+                }
+                flags.add(flag);
+        }
     }
 
-    public boolean isFlagEnabled(Object flag) {
-        return flags.contains(flag);
+    public boolean isFlagEnabled(EngineFlags flag) {
+        switch (flag) {
+            case READ_REQUEST:
+                return readRequest;
+            default:
+                if (flags == null) {
+                    return false;
+                } else {
+                    return flags.contains(flag);
+                }
+        }
     }
 
     @Override
     public String toString() {
-        return "flagsEnabled=" + flags;
+        return "flagsEnabled=" + flags + ",readRequest=" + readRequest;
     }
 
     /**
@@ -57,16 +85,16 @@ public class FlagsEnabled {
      * @return The existing QueryOptions's FlagsEnabled or a new instance.
      */
     public static FlagsEnabled forQueryOptions(final QueryOptions queryOptions) {
-        FlagsEnabled flags = queryOptions.get(FlagsEnabled.class);
+        FlagsEnabled flags = queryOptions.getFlagsEnabled();
         if (flags == null) {
             flags = new FlagsEnabled();
-            queryOptions.put(FlagsEnabled.class, flags);
+            queryOptions.setFlagsEnabled(flags);
         }
         return flags;
     }
 
-    public static boolean isFlagEnabled(QueryOptions queryOptions, Object flag) {
-        FlagsEnabled flagsDisabled = queryOptions.get(FlagsEnabled.class);
+    public static boolean isFlagEnabled(QueryOptions queryOptions, EngineFlags flag) {
+        FlagsEnabled flagsDisabled = queryOptions.getFlagsEnabled();
         return flagsDisabled != null && flagsDisabled.isFlagEnabled(flag);
     }
 }

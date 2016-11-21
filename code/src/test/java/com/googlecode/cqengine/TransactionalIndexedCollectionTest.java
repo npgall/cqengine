@@ -24,6 +24,7 @@ import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.CollectionWrappingObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 import com.googlecode.cqengine.testutil.Car;
@@ -234,7 +235,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
             // Verify that with STRICT_REPLACEMENT, when some objects to be replaced are not stored, collection is not modified...
             TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
             indexedCollection.addAll(asSet(1, 2, 3));
-            assertFalse(indexedCollection.update(asSet(3, 4), asSet(5, 6), queryOptions(enableFlags(TransactionalIndexedCollection.STRICT_REPLACEMENT))));
+            assertFalse(indexedCollection.update(asSet(3, 4), asSet(5, 6), queryOptions(enableFlags(EngineFlags.STRICT_REPLACEMENT))));
             assertEquals(indexedCollection, asSet(1, 2, 3));
         }
         {
@@ -248,7 +249,7 @@ public class TransactionalIndexedCollectionTest extends TestCase {
             // Verify that with STRICT_REPLACEMENT, when no objects are to be replaced, collection is modified...
             TransactionalIndexedCollection<Integer> indexedCollection = new TransactionalIndexedCollection<Integer>(Integer.class);
             indexedCollection.addAll(asSet(1, 2, 3));
-            assertTrue(indexedCollection.update(Collections.<Integer>emptySet(), asSet(4, 5), queryOptions(enableFlags(TransactionalIndexedCollection.STRICT_REPLACEMENT))));
+            assertTrue(indexedCollection.update(Collections.<Integer>emptySet(), asSet(4, 5), queryOptions(enableFlags(EngineFlags.STRICT_REPLACEMENT))));
             assertEquals(indexedCollection, asSet(1, 2, 3, 4, 5));
         }
     }

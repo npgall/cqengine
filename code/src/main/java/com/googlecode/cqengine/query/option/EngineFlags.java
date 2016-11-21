@@ -77,5 +77,33 @@ public enum EngineFlags {
      * ordering. This will improve retrieval speed, at the expense of allowing the relative ordering of objects having
      * one attribute value in common, and having other differing attribute values, to be slightly inexact.
      */
-    INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES
+    INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES,
+
+    /**
+     * A flag which if enabled causes the SQLiteIndex to temporarily drop the index on a table prior to adding objects,
+     * then to restore the index after objects have been added.
+     * <p/>
+     * This should not be used if other concurrent operations might also be ongoing on the collection. It is intended
+     * for use when the collection is first being populated or similar, such as at application startup.
+     */
+
+    BULK_IMPORT,
+
+    /**
+     * <p> Switches off the 'synchronous' and 'journal_mode' pragmas before executing a bulk import.
+     * Executing a bulk import with 'synchronous' and 'journal_mode' OFF can significantly increase the performances of the operation
+     * at a cost of a slightly higher risk of database corruption in case of system crashes or the power loses.
+     * <p> The default values will be re-instated after the import.
+     */
+    BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING,
+
+    /**
+     * PersistenceFlags
+     */
+    READ_REQUEST,
+
+    /**
+     * A query option flag which can be supplied to the update method to control the replacement behaviour.
+     */
+    STRICT_REPLACEMENT;
 }

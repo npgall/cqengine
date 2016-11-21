@@ -25,8 +25,8 @@ import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
-import com.googlecode.cqengine.persistence.support.PersistenceFlags;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -492,9 +492,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         if (!(persistence instanceof OnHeapPersistence)) {
             persistence.openRequestScopeResources(queryOptions);
         }
-        if(!queryOptions.contains(Persistence.class)) {
-            queryOptions.put(Persistence.class, persistence);
-        }
+        queryOptions.setPersistence(persistence);
         return queryOptions;
     }
 
@@ -557,8 +555,6 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     protected static void flagAsReadRequest(QueryOptions queryOptions) {
         FlagsEnabled flagsEnabled = FlagsEnabled.forQueryOptions(queryOptions);
-        if(!flagsEnabled.isFlagEnabled(PersistenceFlags.READ_REQUEST)) {
-            flagsEnabled.add(PersistenceFlags.READ_REQUEST);
-        }
+        flagsEnabled.add(EngineFlags.READ_REQUEST);
     }
 }

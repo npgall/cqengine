@@ -20,6 +20,7 @@ import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.ArgumentValidationOption;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -92,11 +93,6 @@ import static com.googlecode.cqengine.query.option.IsolationOption.isIsolationLe
  * @author Niall Gallagher
  */
 public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollection<O> {
-
-    /**
-     * A query option flag which can be supplied to the update method to control the replacement behaviour.
-     */
-    public static final String STRICT_REPLACEMENT = "STRICT_REPLACEMENT";
 
     final Class<O> objectType;
     volatile Version currentVersion;
@@ -239,7 +235,7 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
                 if (!objectsToRemoveIterator.hasNext() && !objectsToAddIterator.hasNext()) {
                     return false;
                 }
-                if (FlagsEnabled.isFlagEnabled(queryOptions, STRICT_REPLACEMENT)) {
+                if (FlagsEnabled.isFlagEnabled(queryOptions, EngineFlags.STRICT_REPLACEMENT)) {
                     if (!objectStoreContainsAllIterable(objectStore, objectsToRemove, queryOptions)) {
                         return false;
                     }
