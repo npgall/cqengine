@@ -176,9 +176,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (indexesOnThisAttribute == null) {
             indexesOnThisAttribute = Collections.newSetFromMap(new ConcurrentHashMap<Index<O>, Boolean>());
             attributeIndexes.put(attribute, indexesOnThisAttribute);
-            if(attributeIndex instanceof UniqueIndex) {
-                uniqueIndexes.put(attribute, attributeIndex);
-            }
         }
         if (attributeIndex instanceof SimplifiedSQLiteIndex) {
             // Ensure there is not already an identity index added for this attribute...
@@ -308,6 +305,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
     <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
+        // First check if a UniqueIndex is available, as this will have the lowest cost...
+        Index<O> uniqueIndex = uniqueIndexes.get(query.getAttribute());
+        if (uniqueIndex!= null && uniqueIndex.supportsQuery(query, queryOptions)){
+            return uniqueIndex.retrieve(query, queryOptions);
+        }
+
+        // Examine other (non-unique) indexes...
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
