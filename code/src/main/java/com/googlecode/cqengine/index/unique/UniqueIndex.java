@@ -112,7 +112,8 @@ public class UniqueIndex<A,O> extends AbstractAttributeIndex<A,O> implements OnH
 
     @Override
     public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
-        return query instanceof Equal || query instanceof In;
+        Class<?> queryClass = query.getClass();
+        return queryClass.equals(Equal.class) || queryClass.equals(In.class);
     }
 
     /**
