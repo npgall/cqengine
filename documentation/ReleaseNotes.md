@@ -1,5 +1,11 @@
 # CQEngine Release Notes #
 
+### Version 2.9.1 - 2016-11-29 ###
+  * Maintenance release. Performance improvements.
+  * Improved performance of `or()` queries, by avoiding use of indexes entirely for all child branches if one or more of the child branches do not have suitable indexes. This incurs a single collection scan for outer `or()` queries, instead potentially more than one scan, when no suitable indexes are available for some of the child branches (Thanks to Simon McDuff for suggestions).
+  * Improved performance of `existsIn()` query used in JOINs, to avoid calculating the hashCode of the foreign collection (Thanks to uujava for suggestions, issue #102).
+  * Improved performance of queries which can be accelerated by `UniqueIndex` (Thanks to uujava for pull request, issue #105).
+
 ### Version 2.9.0 - 2016-11-02 ###
   * Maintenance release. The minor version has been bumped only because of the following minor API change.
   * The `StreamFactory` class has been moved from package `com.googlecode.cqengine.query` to package `com.googlecode.cqengine.stream`.
