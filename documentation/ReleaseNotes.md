@@ -1,5 +1,9 @@
 # CQEngine Release Notes #
 
+### Version 2.9.2 - 2016-11-30 ###
+  * Maintenance release.
+  * Minor change to UniqueIndex to examine query types consistently (issue #109).
+  
 ### Version 2.9.1 - 2016-11-29 ###
   * Maintenance release. Performance improvements.
   * Improved performance of `or()` queries, by avoiding use of indexes entirely for all child branches if one or more of the child branches do not have suitable indexes. This incurs a single collection scan for outer `or()` queries, instead potentially more than one scan, when no suitable indexes are available for some of the child branches (Thanks to Simon McDuff for suggestions).
