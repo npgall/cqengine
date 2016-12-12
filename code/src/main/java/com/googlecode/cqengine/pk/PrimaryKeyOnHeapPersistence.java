@@ -8,7 +8,7 @@ import com.googlecode.cqengine.persistence.support.ObjectStore;
  * ObjectStore with direct access to pk map
  */
 public class PrimaryKeyOnHeapPersistence<O, A extends Comparable<A>> extends OnHeapPersistence<O, A> {
-    private final SimpleAttribute<O, A> primaryKeyAttribute;
+
     private final int initialCapacity;
     private final float loadFactor;
     private final int concurrencyLevel;
@@ -22,7 +22,7 @@ public class PrimaryKeyOnHeapPersistence<O, A extends Comparable<A>> extends OnH
     }
 
     public PrimaryKeyOnHeapPersistence(SimpleAttribute<O, A> primaryKeyAttribute, int initialCapacity, float loadFactor, int concurrencyLevel) {
-        this.primaryKeyAttribute = primaryKeyAttribute;
+        super(primaryKeyAttribute, initialCapacity, loadFactor, concurrencyLevel);
         this.initialCapacity = initialCapacity;
         this.loadFactor = loadFactor;
         this.concurrencyLevel = concurrencyLevel;
@@ -30,6 +30,6 @@ public class PrimaryKeyOnHeapPersistence<O, A extends Comparable<A>> extends OnH
 
     @Override
     public ObjectStore<O> createObjectStore() {
-        return new PrimaryKeyOnHeapObjectStore<>(initialCapacity, loadFactor, concurrencyLevel, primaryKeyAttribute);
+        return new PrimaryKeyOnHeapObjectStore<>(initialCapacity, loadFactor, concurrencyLevel, getPrimaryKeyAttribute());
     }
 }
