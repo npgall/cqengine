@@ -8,9 +8,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * ObjectStore backed by index
@@ -117,32 +114,6 @@ public class PrimaryKeyOnHeapObjectStore<O, A extends Comparable<A>> extends Col
         }
 
         // retainAll and addAll is are inherited implementation
-
-        // Override default methods in Collection
-        @Override
-        public void forEach(Consumer<? super O> action) {
-            values.forEach(action);
-        }
-
-        @Override
-        public boolean removeIf(Predicate<? super O> filter) {
-            return values.removeIf(filter);
-        }
-
-        @Override
-        public Spliterator<O> spliterator() {
-            return values.spliterator();
-        }
-
-        @Override
-        public Stream<O> stream() {
-            return values.stream();
-        }
-
-        @Override
-        public Stream<O> parallelStream() {
-            return values.parallelStream();
-        }
 
         ConcurrentMap<A, O> getMap(){
             return map;
