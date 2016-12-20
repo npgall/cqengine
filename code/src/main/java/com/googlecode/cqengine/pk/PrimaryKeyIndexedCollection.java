@@ -15,14 +15,14 @@ public class PrimaryKeyIndexedCollection<O, A extends Comparable<A>> extends Con
     private SimpleAttribute<O, A> primaryKeyAttribute;
 
     public PrimaryKeyIndexedCollection(SimpleAttribute<O, A> attribute) {
-        this(new PrimaryKeyOnHeapPersistence<>(attribute));
+        this(new PrimaryKeyOnHeapPersistence<O, A>(attribute));
     }
 
     public PrimaryKeyIndexedCollection(PrimaryKeyOnHeapPersistence<O, A> persistence) {
         super(persistence);
         pkMap = ((PrimaryKeyOnHeapObjectStore) objectStore).getPkMap();
         primaryKeyAttribute = persistence.getPrimaryKeyAttribute();
-        UniqueIndex<A, O> pkIndex = new PrimaryKeyIndex<>(pkMap, primaryKeyAttribute);
+        UniqueIndex<A, O> pkIndex = new PrimaryKeyIndex<A, O>(pkMap, primaryKeyAttribute);
         addIndex(pkIndex);
     }
 

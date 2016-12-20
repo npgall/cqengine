@@ -30,6 +30,6 @@ public class PrimaryKeyOnHeapPersistence<O, A extends Comparable<A>> extends OnH
 
     @Override
     public ObjectStore<O> createObjectStore() {
-        return new PrimaryKeyOnHeapObjectStore<>(initialCapacity, loadFactor, concurrencyLevel, getPrimaryKeyAttribute());
+        return new PrimaryKeyOnHeapObjectStore<O, A>(initialCapacity, loadFactor, concurrencyLevel, getPrimaryKeyAttribute());
     }
 }
