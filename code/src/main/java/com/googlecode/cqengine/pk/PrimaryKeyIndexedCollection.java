@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 public class PrimaryKeyIndexedCollection<O, A extends Comparable<A>> extends ConcurrentIndexedCollection<O> {
 
     private ConcurrentMap<A, O> pkMap;
+    private SimpleAttribute<O, A> primaryKeyAttribute;
 
     public PrimaryKeyIndexedCollection(SimpleAttribute<O, A> attribute) {
         this(new PrimaryKeyOnHeapPersistence<>(attribute));
@@ -20,17 +21,19 @@ public class PrimaryKeyIndexedCollection<O, A extends Comparable<A>> extends Con
     public PrimaryKeyIndexedCollection(PrimaryKeyOnHeapPersistence<O, A> persistence) {
         super(persistence);
         pkMap = ((PrimaryKeyOnHeapObjectStore) objectStore).getPkMap();
-        UniqueIndex<A, O> pkIndex = UniqueIndex.onAttribute(persistence.getPrimaryKeyAttribute());
+        primaryKeyAttribute = persistence.getPrimaryKeyAttribute();
+        UniqueIndex<A, O> pkIndex = new PrimaryKeyIndex<>(pkMap, primaryKeyAttribute);
         addIndex(pkIndex);
-
     }
 
     /**
      * Fast access to entry by Key
+     *
      * @param key
      * @return
      */
-    public O get(A key){
+    public O get(A key) {
         return pkMap.get(key);
     }
+
 }
