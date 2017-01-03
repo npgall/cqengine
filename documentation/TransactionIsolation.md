@@ -7,7 +7,7 @@ A transaction is composed of a set of objects to be added to the collection, and
 Reading threads are guaranteed to see a consistent version of the collection where transactions have been applied in their entirety. Reads are lock-free, however writes are serialized. When using this feature it is also necessary to call close() on ResultSets.
 
 Example usage (source code [here](../code/src/test/java/com/googlecode/cqengine/examples/transactions/TransactionalIndexedCollectionDemo.java)):
-```
+```java
 // Create example Car objects...
 Car car1 = CarFactory.createCar(1); // "Ford Fusion"
 Car car2 = CarFactory.createCar(2); // "Ford Taurus"
