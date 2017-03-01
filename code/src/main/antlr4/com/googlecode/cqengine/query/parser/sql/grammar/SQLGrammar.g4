@@ -28,7 +28,7 @@ logicalQuery : andQuery | orQuery | notQuery ;
 
 andQuery : OPEN_PAR query K_AND query (K_AND query)* CLOSE_PAR ;
 orQuery : OPEN_PAR query K_OR query (K_OR query)* CLOSE_PAR ;
-notQuery : K_NOT query ;
+notQuery : K_NOT query | OPEN_PAR K_NOT query CLOSE_PAR;
 
 simpleQuery : equalQuery
             | notEqualQuery

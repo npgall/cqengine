@@ -77,6 +77,7 @@ public class SQLParserTest {
         assertQueriesEquals(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("SELECT * FROM cars WHERE ('manufacturer' = 'Ford' OR 'model' = 'Focus')"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE 'manufacturer' <> 'Ford'"));
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE NOT ('manufacturer' = 'Ford')"));
+        assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE (NOT ('manufacturer' = 'Ford'))"));
         assertQueriesEquals(equal(IS_BLUE, true), parser.query("SELECT * FROM cars WHERE (is_blue = true)"));
         assertQueriesEquals(equal(IS_BLUE, false), parser.query("SELECT * FROM cars WHERE (is_blue = false)"));
 
