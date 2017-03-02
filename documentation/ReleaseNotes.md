@@ -1,5 +1,9 @@
 # CQEngine Release Notes #
 
+### Version 2.9.3 - 2017-03-02 ###
+  * Maintenance release.
+  * Updated the SQL grammar to allow NOT queries to be embedded in parentheses (Thanks to jarey for suggestions, issue #119).
+  
 ### Version 2.9.2 - 2016-11-30 ###
   * Maintenance release.
   * Minor change to UniqueIndex to examine query types consistently (issue #109).
