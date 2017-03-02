@@ -11,6 +11,9 @@ branches:
   only:
   - master
 
+env:
+- JAVA_TOOL_OPTIONS="-Xmx=2048m"
+
 script:
 - cd code
 - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --batch-mode --show-version
