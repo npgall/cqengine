@@ -1,0 +1,17 @@
+language: java
+jdk:
+- openjdk7
+- oraclejdk7
+- oraclejdk8
+# `openjdk8` not available
+
+install: /bin/true
+
+branches:
+  only:
+  - master
+
+script:
+- cd code
+- mvn install -DskipTests=true -Dmaven.javadoc.skip=true --batch-mode --show-version
+- mvn test verify --batch-mode
