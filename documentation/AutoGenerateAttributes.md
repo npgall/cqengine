@@ -6,7 +6,7 @@ CQEngine provides two methods for generating attributes automatically: **bytecod
 
 The following example uses [AttributeBytecodeGenerator](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/codegen/AttributeBytecodeGenerator.html) to generate attribute bytecode automatically, and then uses the generated attribute in a query at runtime.
 
-```
+```java
 package com.googlecode.cqengine.examples.codegen;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
@@ -52,7 +52,7 @@ CQEngine also provides an [AttributeSourceGenerator](http://htmlpreview.github.i
 The source code for attributes can either be generated for the purpose of copy & pasting into the target  class, or attributes can be generated into a separate companion class.
 
 The examples below generate attributes for a class `Car`. Note some fields are primitives, and others are objects, arrays or lists. The type of field determines the type of attribute that AttributesGenerator will generate. Also note that AttributesGenerator will generate comments in the source code for each attribute, providing guidance on how performance could be tuned for each field, depending on its nullability.
-```
+```java
 public class Car {
     final int carId;
     final String manufacturer;
@@ -73,7 +73,7 @@ public class Car {
 ```
 ## Option 1: Generate attributes only, for copy & paste ##
 Usage:
-```
+```java
 package com.googlecode.cqengine.examples.codegen;
 import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
@@ -84,7 +84,7 @@ public class GenerateAttributesForCopyPaste {
 }
 ```
 Outputs source code for attributes, which can be copy & pasted directly into the Car class:
-```
+```java
     /**
      * CQEngine attribute for accessing field {@code Car.carId}.
      */
@@ -149,7 +149,7 @@ Outputs source code for attributes, which can be copy & pasted directly into the
 ```
 ## Option 2: Generate a companion class ##
 Usage:
-```
+```java
 package com.googlecode.cqengine.examples.codegen;
 import com.googlecode.cqengine.codegen.AttributeSourceGenerator;
 
@@ -161,7 +161,7 @@ public class GenerateSeparateAttributesClass {
 }
 ```
 Outputs source code for a companion class containing the generated attributes:
-```
+```java
 package com.googlecode.cqengine.examples.codegen;
 
 import com.googlecode.cqengine.attribute.*;
