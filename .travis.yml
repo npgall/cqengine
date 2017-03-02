@@ -12,7 +12,7 @@ branches:
   - master
 
 env:
-- JAVA_TOOL_OPTIONS="-Xmx=2048m"
+- JAVA_TOOL_OPTIONS="-Xmx2048m"
 
 script:
 - cd code
