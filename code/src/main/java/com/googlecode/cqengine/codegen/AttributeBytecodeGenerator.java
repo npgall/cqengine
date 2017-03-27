@@ -133,7 +133,7 @@ public class AttributeBytecodeGenerator {
                     int modifiers = method.getModifiers();
                     Class<? extends Attribute<O, ?>> attributeClass;
                     if (!Modifier.isStatic(modifiers) && !Modifier.isPrivate(modifiers)) {
-                        if (method.getParameterCount() > 0) {
+                        if (method.getParameterTypes().length > 0) {
                             // only parameterless methods
                             continue;
                         }
