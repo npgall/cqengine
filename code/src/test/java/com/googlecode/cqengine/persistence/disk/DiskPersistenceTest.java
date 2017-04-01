@@ -51,10 +51,10 @@ public class DiskPersistenceTest {
         DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
         @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
-        cars.addAll(CarFactory.createCollectionOfCars(50));
+        cars.addAll(CarFactory.createCollectionOfCars(100));
         long bytesUsedWhenFullyPopulated = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used when fully populated should be greater than zero: " + bytesUsedWhenFullyPopulated, bytesUsedWhenFullyPopulated > 0);
-        cars.removeAll(CarFactory.createCollectionOfCars(50));
+        cars.removeAll(CarFactory.createCollectionOfCars(100));
         long bytesUsedWhenObjectsRemoved = persistence.getBytesUsed();
         Assert.assertTrue("Bytes used when objects removed (" + bytesUsedWhenObjectsRemoved + ") should remain the same as when fully populated (" + bytesUsedWhenFullyPopulated + ")", bytesUsedWhenObjectsRemoved == bytesUsedWhenFullyPopulated);
         persistence.compact(); // Truncates size of the database, but not to zero as the tables which were created remain (although empty)
