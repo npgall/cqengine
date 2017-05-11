@@ -174,7 +174,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      */
     <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, QueryOptions queryOptions) {
         Object dirtyCheck = queryOptions.get(DISABLE_DIRTY_CHECK_OPTION);
-        if (dirtyCheck == null || !(Boolean) dirtyCheck) {
+        if (dirtyCheck != null && (Boolean) dirtyCheck) {
             attributeIndex.checkDirty();
         }
         Attribute<O, A> attribute = attributeIndex.getAttribute();
