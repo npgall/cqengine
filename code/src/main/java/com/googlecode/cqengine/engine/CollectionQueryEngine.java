@@ -82,6 +82,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     // A key used to store the root query in the QueryOptions, so it may be accessed by partial indexes...
     public static final String ROOT_QUERY = "ROOT_QUERY";
 
+    public static final String DISABLE_DIRTY_CHECK_OPTION = "DISABLE_DIRTY_CHECK";
+
     private volatile Persistence<O, ? extends Comparable> persistence;
     private volatile ObjectStore<O> objectStore;
 
@@ -171,6 +173,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @param <A> The type of objects indexed
      */
     <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, QueryOptions queryOptions) {
+        Object dirtyCheck = queryOptions.get(DISABLE_DIRTY_CHECK_OPTION);
+        if (dirtyCheck == null || !(Boolean) dirtyCheck) {
+            attributeIndex.checkDirty();
+        }
         Attribute<O, A> attribute = attributeIndex.getAttribute();
         Set<Index<O>> indexesOnThisAttribute = attributeIndexes.get(attribute);
         if (indexesOnThisAttribute == null) {

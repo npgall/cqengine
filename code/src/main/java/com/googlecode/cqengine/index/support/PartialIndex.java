@@ -90,6 +90,7 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
     protected final Query<O> filterQuery;
     protected final Attribute<O, A> attribute;
     protected volatile I backingIndex;
+    private boolean dirty = false;
 
     /**
      * Protected constructor, called by subclasses.
@@ -113,6 +114,13 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
         return backingIndex;
     }
 
+    @Override
+    public void checkDirty() {
+        if (dirty) {
+            throw new AbstractAttributeIndex.DirtyIndexException("Index of attribute: " + attribute.getAttributeName() + " - is in use.");
+        }
+        dirty = true;
+    }
 
     public Attribute<O, A> getAttribute() {
         return backingIndex().getAttribute();

@@ -44,6 +44,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
     final Attribute<O, A> attribute;
     final String tableNameSuffix;
     volatile SQLiteIndex<A, O, K> backingIndex;
+    private boolean dirty = false;
 
     protected SimplifiedSQLiteIndex(Class<? extends SQLitePersistence<O, A>> persistenceType, Attribute<O, A> attribute, String tableNameSuffix) {
         this.persistenceType = persistenceType;
@@ -247,5 +248,13 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         int result = getClass().hashCode();
         result = 31 * result + attribute.hashCode();
         return result;
+    }
+
+    @Override
+    public void checkDirty() {
+        if (dirty) {
+            throw new AbstractAttributeIndex.DirtyIndexException("Index of attribute: " + attribute.getAttributeName() + " - is in use.");
+        }
+        dirty = true;
     }
 }
