@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
-    <version>2.9.4-SNAPSHOT</version>
+    <version>2.10.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>CQEngine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
@@ -165,6 +165,10 @@
                                 <relocation>
                                     <pattern>com.google</pattern>
                                     <shadedPattern>com.googlecode.cqengine.lib.com.google</shadedPattern>
+                                    <excludes>
+                                        <!-- Don't relocate CQEngine's own classes... -->
+                                        <exclude>com.googlecode.cqengine.**</exclude>
+                                    </excludes>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.jodah</pattern>
