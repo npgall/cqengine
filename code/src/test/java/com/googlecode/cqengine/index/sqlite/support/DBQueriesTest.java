@@ -551,6 +551,27 @@ public class DBQueriesTest {
         }
     }
 
+    @Test
+    public void testIndexTableExists_ExceptionHandling() throws SQLException {
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(Statement.class);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name='cqtbl_foo';"))
+                .thenThrow(new SQLException("expected_exception"));
+
+        IllegalStateException expected = null;
+        try {
+            DBQueries.indexTableExists("foo", connection);
+        }
+        catch (IllegalStateException e) {
+            expected = e;
+        }
+        assertNotNull(expected);
+        assertEquals("Unable to determine if table exists: foo", expected.getMessage());
+        assertNotNull(expected.getCause());
+        assertEquals("expected_exception", expected.getCause().getMessage());
+    }
+
     void createSchema(final ConnectionManager connectionManager){
         Connection connection = null;
         Statement statement = null;

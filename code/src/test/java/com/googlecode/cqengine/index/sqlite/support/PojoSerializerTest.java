@@ -19,6 +19,16 @@ public class PojoSerializerTest {
         PojoSerializer.validateObjectIsRoundTripSerializable(new NonKryoSerializablePojo(1));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testValidateObjectEquality() {
+        PojoSerializer.validateObjectEquality(1, 2);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateHashCodeEquality() {
+        PojoSerializer.validateHashCodeEquality(1, 2);
+    }
+
     @SuppressWarnings("unused")
     static class KryoSerializablePojo {
         int i;
@@ -26,6 +36,21 @@ public class PojoSerializerTest {
         }
         KryoSerializablePojo(int i) {
             this.i = i;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof KryoSerializablePojo)) return false;
+
+            KryoSerializablePojo that = (KryoSerializablePojo) o;
+
+            return i == that.i;
+        }
+
+        @Override
+        public int hashCode() {
+            return i;
         }
     }
 

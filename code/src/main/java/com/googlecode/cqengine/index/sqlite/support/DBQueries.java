@@ -101,6 +101,21 @@ public class DBQueries {
         }
     }
 
+    public static boolean indexTableExists(final String tableName, final Connection connection) {
+        final String selectSql = String.format("SELECT 1 FROM sqlite_master WHERE type='table' AND name='cqtbl_%s';", tableName);
+        Statement statement = null;
+        try{
+            statement = connection.createStatement();
+            java.sql.ResultSet resultSet = statement.executeQuery(selectSql);
+            return resultSet.next();
+        }catch(Exception e){
+            throw new IllegalStateException("Unable to determine if table exists: " + tableName, e);
+        }
+        finally {
+            DBUtils.closeQuietly(statement);
+        }
+    }
+
     public static void createIndexOnTable(final String tableName, final Connection connection){
         final String sqlCreateIndex = String.format(
                 "CREATE INDEX IF NOT EXISTS cqidx_%s_value ON cqtbl_%s (value);",

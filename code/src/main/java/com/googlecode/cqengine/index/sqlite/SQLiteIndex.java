@@ -114,6 +114,11 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     static final int INDEX_RETRIEVAL_COST = 80;
     static final int INDEX_RETRIEVAL_COST_FILTERING = INDEX_RETRIEVAL_COST + 1;
 
+    // System property to force preexisting disk/off-heap indexes to be re-initialized (re-synced with the collection)
+    // at startup.
+    // The recommended and default setting is false. Setting this true forces old behavior of CQEngine <= 2.10.0.
+    static final boolean FORCE_REINIT_OF_PREEXISTING_INDEXES = Boolean.getBoolean("cqengine.reinit.preexisting.indexes");
+
     final String tableName;
     final SimpleAttribute<O, K> primaryKeyAttribute;
     final SimpleAttribute<K, O> foreignKeyAttribute;
@@ -417,6 +422,10 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      */
     @Override
     public boolean addAll(final ObjectSet<O> objectSet, final QueryOptions queryOptions) {
+        return doAddAll(objectSet, queryOptions, false);
+    }
+
+    boolean doAddAll(final ObjectSet<O> objectSet, final QueryOptions queryOptions, boolean isInit) {
         try {
             ConnectionManager connectionManager = getConnectionManager(queryOptions);
             if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
@@ -424,6 +433,13 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             final Connection connection = connectionManager.getConnection(this, queryOptions);
+
+            if (!FORCE_REINIT_OF_PREEXISTING_INDEXES) {
+                if (isInit && DBQueries.indexTableExists(tableName, connection)) {
+                    // init() was called, but index table already exists. Skip initializing it...
+                    return false;
+                }
+            }
 
             // Create table if it doesn't exists...
             DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
@@ -615,7 +631,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         pragmaSynchronous = DBQueries.getPragmaSynchronousOrNull(connection);
         canSuspendSyncAndJournaling = pragmaJournalMode != null && pragmaSynchronous != null;
 
-        addAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions);
+        doAddAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions, true);
     }
 
     /**

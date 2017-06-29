@@ -111,10 +111,24 @@ public class PojoSerializer {
             objectType = (Class<O>) candidatePojo.getClass();
             Kryo kryo = createKryo(objectType);
             byte[] serialized = serialize(kryo, objectType, candidatePojo);
-            deserialize(kryo, objectType, serialized);
+            O deserializedPojo = deserialize(kryo, objectType, serialized);
+            validateObjectEquality(candidatePojo, deserializedPojo);
+            validateHashCodeEquality(candidatePojo, deserializedPojo);
         }
         catch (Exception e) {
             throw new IllegalStateException("POJO object failed round trip serialization-deserialization test, object type: " + objectType + ", object: " + candidatePojo, e);
+        }
+    }
+
+    static void validateObjectEquality(Object candidate, Object deserializedPojo) {
+        if (!(deserializedPojo.equals(candidate))) {
+            throw new IllegalStateException("The POJO after round trip serialization is not equal to the original POJO");
+        }
+    }
+
+    static void validateHashCodeEquality(Object candidate, Object deserializedPojo) {
+        if (!(deserializedPojo.hashCode() == candidate.hashCode())) {
+            throw new IllegalStateException("The POJO's hashCode after round trip serialization differs from its original hashCode");
         }
     }
 }

@@ -237,13 +237,18 @@ public class SQLiteIndexTest {
         verify(connection, times(0)).close();
     }
 
+    /**
+     * Verifies that if connectionManager.isApplyUpdateForIndexEnabled() returns false,
+     * init() will do nothing.
+     */
     @Test
-    public void testInit_EmptyCollection() throws Exception{
-
-        // Mock
+    public void testInit_ApplyUpdateForIndexIsFalse() throws Exception{
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
         when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
+        // Simulate isApplyUpdateForIndexEnabled == false...
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(false);
+
         Statement statement = mock(Statement.class);
         when(connection.createStatement()).thenReturn(statement);
 
@@ -277,28 +282,86 @@ public class SQLiteIndexTest {
 
     }
 
+    /**
+     * Verifies that if connectionManager.isApplyUpdateForIndexEnabled() returns true,
+     * and the index table already exists, init() will do nothing.
+     */
     @Test
-    public void testInit_NonEmptyCollection() throws Exception{
-
-        // Mock
+    public void testInit_IndexTableExists() throws Exception{
         ConnectionManager connectionManager = mock(ConnectionManager.class);
         Connection connection = mock(Connection.class);
         Statement statement = mock(Statement.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
 
+        java.sql.ResultSet tableCheckRs = mock(java.sql.ResultSet.class);
         java.sql.ResultSet journalModeRs = mock(java.sql.ResultSet.class);
         java.sql.ResultSet synchronousRs = mock(java.sql.ResultSet.class);
+        when(tableCheckRs.next()).thenReturn(true); // <- simulates a preexisting table
         when(journalModeRs.next()).thenReturn(true).thenReturn(false);
         when(synchronousRs.next()).thenReturn(true).thenReturn(false);
 
         when(journalModeRs.getString(1)).thenReturn("DELETE");
         when(synchronousRs.getInt(1)).thenReturn(2);
 
+        when(statement.executeQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name='cqtbl_features';")).thenReturn(tableCheckRs);
         when(statement.executeQuery("PRAGMA journal_mode;")).thenReturn(journalModeRs);
         when(statement.executeQuery("PRAGMA synchronous;")).thenReturn(synchronousRs);
 
         when(connection.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
-        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection).thenReturn(connection);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
+        when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
+        when(connection.createStatement()).thenReturn(statement);
+        when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
+
+        // The objects to add
+        Set<Car> initWithObjects = new HashSet<Car>(2);
+        initWithObjects.add(new Car(1, "Ford", "Focus", Car.Color.BLUE, 5, 9000.50, Arrays.asList("abs", "gps")));
+        initWithObjects.add(new Car(2, "Honda", "Civic", Car.Color.RED, 5, 5000.00, Arrays.asList("airbags")));
+
+        SQLiteIndex<String, Car, Integer> carFeaturesOffHeapIndex = new SQLiteIndex<String, Car, Integer>(
+                Car.FEATURES,
+                OBJECT_TO_ID,
+                ID_TO_OBJECT,
+                ""
+        );
+
+        carFeaturesOffHeapIndex.init(wrappingObjectStore(initWithObjects), createQueryOptions(connectionManager));
+
+        // Verify
+        verify(statement, times(1)).executeQuery("PRAGMA journal_mode;");
+        verify(statement, times(1)).executeQuery("PRAGMA synchronous;");
+
+        // Verify we should not proceed to recreate the table...
+        verify(statement, times(0)).executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (objectKey INTEGER, value TEXT, PRIMARY KEY (objectKey, value)) WITHOUT ROWID;");
+    }
+
+    /**
+     * Verifies that if connectionManager.isApplyUpdateForIndexEnabled() returns true,
+     * and the index table does not exist, init() will create and populate the index table.
+     */
+    @Test
+    public void testInit_IndexTableDoesNotExist() throws Exception{
+        ConnectionManager connectionManager = mock(ConnectionManager.class);
+        Connection connection = mock(Connection.class);
+        Statement statement = mock(Statement.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+
+        java.sql.ResultSet tableCheckRs = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet journalModeRs = mock(java.sql.ResultSet.class);
+        java.sql.ResultSet synchronousRs = mock(java.sql.ResultSet.class);
+        when(tableCheckRs.next()).thenReturn(false); // <- simulates table does not already exist
+        when(journalModeRs.next()).thenReturn(true).thenReturn(false);
+        when(synchronousRs.next()).thenReturn(true).thenReturn(false);
+
+        when(journalModeRs.getString(1)).thenReturn("DELETE");
+        when(synchronousRs.getInt(1)).thenReturn(2);
+
+        when(statement.executeQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name='cqtbl_features';")).thenReturn(tableCheckRs);
+        when(statement.executeQuery("PRAGMA journal_mode;")).thenReturn(journalModeRs);
+        when(statement.executeQuery("PRAGMA synchronous;")).thenReturn(synchronousRs);
+
+        when(connection.prepareStatement("INSERT OR IGNORE INTO " + TABLE_NAME + " values(?, ?);")).thenReturn(preparedStatement);
+        when(connectionManager.getConnection(any(SQLiteIndex.class), anyQueryOptions())).thenReturn(connection);
         when(connectionManager.isApplyUpdateForIndexEnabled(any(SQLiteIndex.class))).thenReturn(true);
         when(connection.createStatement()).thenReturn(statement);
         when(preparedStatement.executeBatch()).thenReturn(new int[] {2});
