@@ -1,5 +1,12 @@
 # CQEngine Release Notes #
 
+### Version 2.11.0 - 2017-06-30 ###
+  * Performance improvement. This version is backward compatible with 2.10.0. However note the following change in behavior.
+  * Updated disk and off-heap indexes to skip reinitialization (resyncing with the contents of the collection) at startup, if index tables already exist. 
+    * This should improve startup speed of IndexedCollections which are persisted to disk.
+    * The old behaviour can be reinstated by setting system property `cqengine.reinit.preexisting.indexes` = `true`.
+  * Enhanced `PojoSerializer.validateObjectIsRoundTripSerializable()` method to perform additional compatibility tests on POJOs.
+
 ### Version 2.10.0 - 2017-06-07 ###
   * Maintenance release. This version is backward compatible with 2.9.3 with the exception of the following packaging issue which affects users of the CQEngine shaded jar only.
   * Fixed packaging issue in shaded jar which existed since CQEngine 2.8.0 (issue #144)
