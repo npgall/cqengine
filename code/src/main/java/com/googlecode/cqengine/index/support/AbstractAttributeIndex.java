@@ -38,6 +38,8 @@ public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, 
 
     protected final Attribute<O, A> attribute;
 
+    private boolean dirty = false;
+
     /**
      * Protected constructor, called by subclasses.
      *
@@ -58,6 +60,19 @@ public abstract class AbstractAttributeIndex<A, O> implements AttributeIndex<A, 
      */
     public Attribute<O, A> getAttribute() {
         return attribute;
+    }
+
+    public static class DirtyIndexException extends RuntimeException {
+        public DirtyIndexException(String message) {
+            super(message);
+        }
+    }
+
+    public void checkDirty() {
+        if (dirty) {
+            throw new DirtyIndexException("Index of attribute: " + attribute.getAttributeName() + " - is in use.");
+        }
+        dirty = true;
     }
 
     /**

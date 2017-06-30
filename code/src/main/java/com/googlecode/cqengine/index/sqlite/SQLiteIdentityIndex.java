@@ -20,10 +20,7 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.sqlite.support.PojoSerializer;
-import com.googlecode.cqengine.index.support.CloseableIterable;
-import com.googlecode.cqengine.index.support.KeyStatistics;
-import com.googlecode.cqengine.index.support.KeyValue;
-import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
+import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
@@ -50,6 +47,7 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     final Class<O> objectType;
     final SimpleAttribute<O, A> primaryKeyAttribute;
     final SimpleAttribute<A, O> foreignKeyAttribute;
+    private boolean dirty = false;
 
     public SQLiteIdentityIndex(final SimpleAttribute<O, A> primaryKeyAttribute) {
         this.sqLiteIndex = new SQLiteIndex<A, O, byte[]>(
@@ -78,6 +76,14 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
     @Override
     public Attribute<O, A> getAttribute() {
         return sqLiteIndex.getAttribute();
+    }
+
+    @Override
+    public void checkDirty() {
+        if (dirty) {
+            throw new AbstractAttributeIndex.DirtyIndexException("Index of attribute: " + primaryKeyAttribute.getAttributeName() + " - is in use.");
+        }
+        dirty = true;
     }
 
     @Override

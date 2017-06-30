@@ -31,4 +31,9 @@ public interface AttributeIndex<A, O> extends Index<O> {
      * @return The attribute indexed by this index
      */
     Attribute<O, A> getAttribute();
+
+    /**
+     * Checks if this index is alredy being used by another collection.
+     */
+    void checkDirty();
 }
