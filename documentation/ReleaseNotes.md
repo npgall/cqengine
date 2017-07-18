@@ -1,5 +1,11 @@
 # CQEngine Release Notes #
 
+### Version 2.12.0 - 2017-07-18 ###
+  * Added support to configure persistence via an optional [`@PersistenceConfig`](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/persistence/support/serialization/PersistenceConfig.java) annotation:
+    * `PersistenceConfig.polymorphic` - configures CQEngine to persist class name with serialized objects, to allow persisted collections to contain a mix of object types within an inheritance hierarchy.
+    * `PersistenceConfig.serializer` - allows to override the default serializer used by CQEngine.
+    * The serialzier is now decoupled from CQEngine internals can can be overridden via the mechanism above to suit some advaned use cases.
+  
 ### Version 2.11.0 - 2017-06-30 ###
   * Performance improvement. This version is backward compatible with 2.10.0. However note the following change in behavior.
   * Updated disk and off-heap indexes to skip reinitialization (resyncing with the contents of the collection) at startup, if index tables already exist. 
