@@ -4,9 +4,7 @@ dist: trusty
 
 jdk:
 - openjdk7
-- oraclejdk7
 - oraclejdk8
-# `openjdk8` not available
 
 install: /bin/true
 
