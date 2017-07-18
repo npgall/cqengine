@@ -17,7 +17,6 @@ package com.googlecode.cqengine.examples.inheritance;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
-import com.googlecode.cqengine.examples.introduction.Car;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.List;

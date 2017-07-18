@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.sqlite.support;
+package com.googlecode.cqengine.persistence.support.serialization;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -13,15 +13,41 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 /**
- * Static utility methods which create instances of Kryo serializer, and which use it to
- * serialize and deserialize objects for use with CQEngine's disk and off-heap indexes and persistence.
+ * Uses <a href="https://github.com/EsotericSoftware/kryo">Kryo</a> to serialize and deserialize objects;
+ * for use with CQEngine's disk and off-heap indexes and persistence.
  * <p/>
  * A {@link #validateObjectIsRoundTripSerializable(Object)} method is also provided, to validate
- * the compatibility of end-user POJOs with CQEngine's disk and off-heap indexes and persistence.
+ * the compatibility of end-user POJOs with this serializer.
  *
  * @author npgall
  */
-public class PojoSerializer {
+public class KryoSerializer<O> implements PojoSerializer<O> {
+
+    protected final Class<O> objectType;
+    protected final boolean polymorphic;
+
+    protected final ThreadLocal<Kryo> kryoCache = new ThreadLocal<Kryo>() {
+        @Override
+        protected Kryo initialValue() {
+            return createKryo(objectType);
+        }
+    };
+
+    /**
+     * Creates a new Kryo serializer which is configured to serialize objects of the given type.
+     *
+     * @param objectType The type of the object
+     * @param persistenceConfig Configuration for the serializer, in particular the polymorphic parameter which
+     *                          if true, causes Kryo to persist the name of the class with every object, to allow
+     *                          the collection to contain a mix of object types within an inheritance hierarchy;
+     *                          if false causes Kryo to skip persisting the name of the class and to assume all objects
+     *                          in the collection will be instances of the same class.
+     *
+     */
+    public KryoSerializer(Class<O> objectType, PersistenceConfig persistenceConfig) {
+        this.objectType = objectType;
+        this.polymorphic = persistenceConfig.polymorphic();
+    }
 
     /**
      * Creates a new instance of Kryo serializer, for use with the given object type.
@@ -33,7 +59,7 @@ public class PojoSerializer {
      * @return a new instance of Kryo serializer
      */
     @SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "WeakerAccess"})
-    public static Kryo createKryo(Class<?> objectType) {
+    protected Kryo createKryo(Class<?> objectType) {
         Kryo kryo = new Kryo();
         // Instantiate serialized objects via a no-arg constructor when possible, falling back to Objenesis...
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
@@ -49,44 +75,62 @@ public class PojoSerializer {
     /**
      * Serializes the given object, using the given instance of Kryo serializer.
      *
-     * @param kryo The instance of Kryo serializer to use
-     * @param objectType The type of the object
      * @param object The object to serialize
      * @return The serialized form of the object as a byte array
      */
-    public static <O> byte[] serialize(Kryo kryo, Class<O> objectType, O object) {
+    @Override
+    public byte[] serialize(O object) {
         if (object == null) {
             throw new NullPointerException("Object was null");
         }
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Output output = new Output(baos);
-            kryo.writeObject(output, object);
+            Kryo kryo = kryoCache.get();
+            if (polymorphic) {
+                kryo.writeClassAndObject(output, object);
+            }
+            else {
+                kryo.writeObject(output, object);
+            }
             output.close();
             return baos.toByteArray();
         }
         catch (Exception e) {
-            throw new IllegalStateException("Failed to serialize object, object type: " + objectType + ". Use the PojoSerializer.validateObjectIsRoundTripSerializable() method, to confirm the object is compatible with CQEngine.", e);
+            throw new IllegalStateException("Failed to serialize object, object type: " + objectType + ". " +
+                    "Configure @PersistenceConfig.polymorphic if the collection will contain a mix of object types. " +
+                    "Use the KryoSerializer.validateObjectIsRoundTripSerializable() method " +
+                    "to test your object is compatible with CQEngine.", e);
         }
     }
 
     /**
      * Deserializes the given bytes, into an object of the given type, using the given instance of Kryo serializer.
      *
-     * @param kryo The instance of Kryo serializer to use
-     * @param objectType The type of the object
      * @param bytes The serialized form of the object as a byte array
      * @return The deserialized object
      */
-    public static <O> O deserialize(Kryo kryo, Class<O> objectType, byte[] bytes) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public O deserialize(byte[] bytes) {
         try {
             Input input = new Input(new ByteArrayInputStream(bytes));
-            O object = kryo.readObject(input, objectType);
+            Kryo kryo = kryoCache.get();
+            O object;
+            if (polymorphic) {
+                object = (O) kryo.readClassAndObject(input);
+            }
+            else {
+                object = kryo.readObject(input, objectType);
+            }
             input.close();
             return object;
         }
         catch (Exception e) {
-            throw new IllegalStateException("Failed to deserialize object, object type: " + objectType + ". Use the PojoSerializer.validateObjectIsRoundTripSerializable() method, to confirm the object is compatible with CQEngine.", e);
+            throw new IllegalStateException("Failed to deserialize object, object type: " + objectType + ". " +
+                    "Configure @PersistenceConfig.polymorphic if the collection will contain a mix of object types. " +
+                    "Use the KryoSerializer.validateObjectIsRoundTripSerializable() method " +
+                    "to test your object is compatible with CQEngine.", e);
         }
     }
 
@@ -106,12 +150,19 @@ public class PojoSerializer {
      */
     @SuppressWarnings("unchecked")
     public static <O> void validateObjectIsRoundTripSerializable(O candidatePojo) {
-        Class<O> objectType = null;
+        Class<O> objectType = (Class<O>) candidatePojo.getClass();
+        KryoSerializer.validateObjectIsRoundTripSerializable(candidatePojo, objectType, PersistenceConfig.DEFAULT_CONFIG);
+    }
+
+    static <O> void validateObjectIsRoundTripSerializable(O candidatePojo, Class<O> objectType, PersistenceConfig persistenceConfig) {
         try {
-            objectType = (Class<O>) candidatePojo.getClass();
-            Kryo kryo = createKryo(objectType);
-            byte[] serialized = serialize(kryo, objectType, candidatePojo);
-            O deserializedPojo = deserialize(kryo, objectType, serialized);
+            KryoSerializer<O> serializer = new KryoSerializer<O>(
+                    objectType,
+                    persistenceConfig
+            );
+            byte[] serialized = serializer.serialize(candidatePojo);
+            O deserializedPojo = serializer.deserialize(serialized);
+            serializer.kryoCache.remove();  // clear cached Kryo instance
             validateObjectEquality(candidatePojo, deserializedPojo);
             validateHashCodeEquality(candidatePojo, deserializedPojo);
         }
