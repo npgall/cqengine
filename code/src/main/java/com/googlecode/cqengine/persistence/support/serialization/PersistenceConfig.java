@@ -13,7 +13,7 @@ public @interface PersistenceConfig {
 
     boolean polymorphic() default false;
 
-    PersistenceConfig DEFAULT_CONFIG = new PersistenceConfig() {
+    static PersistenceConfig DEFAULT_CONFIG = new PersistenceConfig() {
 
         @Override
         public Class<? extends Annotation> annotationType() {
