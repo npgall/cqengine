@@ -285,7 +285,7 @@ In particular, note that `SimpleAttribute` and `MultiValueAttribute` do not perf
 
 As a rule of thumb, if you get a `NullPointerException`, it's probably because you used the wrong type of attribute. The problem will usually go away if you switch your code to use a nullable attribute instead. If you don't know if your data may contain null values, just use the nullable attributes. They contain the logic to check for and handle null values automatically.
 
-The nullable attributes also allow CQEngine to work with object inheritance, where some objects in the collection have certain optional fields (e.g. in subclasses) while others might not.
+The nullable attributes also allow CQEngine to work with [object inheritance](https://github.com/npgall/cqengine/tree/master/code/src/test/java/com/googlecode/cqengine/examples/inheritance), where some objects in the collection have certain optional fields (e.g. in subclasses) while others might not.
 
 #### Creating queries dynamically ####
 
