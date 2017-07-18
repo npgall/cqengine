@@ -51,9 +51,9 @@ public class InheritanceExample {
 
         // Add some objects to the collection...
         cars.add(new Car(1, "mazda 6", "great condition, low mileage", Arrays.asList("nitro boost", "sunroof")));
-        cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
+        cars.add(new Car(2, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
         cars.add(new SportsCar(3, "mazda mx-5", "red and sporty", Arrays.asList("radio"), 9000));
-        cars.add(new SportsCar(3, "porsche 911", "really fast", Arrays.asList("cd player"), 10000));
+        cars.add(new SportsCar(4, "porsche 911", "really fast", Arrays.asList("cd player"), 10000));
 
         System.out.println("Cars which have nitro boost or have a horsepower attribute:- ");
         Query<Car> carsWithNitroBoostOrAHorsepowerAttribute = or(
