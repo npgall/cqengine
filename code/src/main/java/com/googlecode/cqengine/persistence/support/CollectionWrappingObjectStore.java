@@ -106,7 +106,23 @@ public class CollectionWrappingObjectStore<O> implements ObjectStore<O> {
 
     @Override
     public boolean removeAll(Collection<?> c, QueryOptions queryOptions) {
-        return backingCollection.removeAll(c);
+        // The following code is a workaround for a performance bottleneck in JDK 8 and earlier.
+
+        // See the following issues for details:
+        // JDK - https://bugs.openjdk.java.net/browse/JDK-8160751
+        // CQEngine - https://github.com/npgall/cqengine/issues/154
+
+        // We avoid calling backingCollection.removeAll().
+        // The backingCollection is typically backed by a ConcurrentHashMap,
+        // due to being created via Collections.newSetFromMap(new ConcurrentHashMap<O, Boolean>()).
+        // Thus we cannot rely on the good performance of backingCollection.removeAll()
+        // when CQEngine is run on JDK 8 or earlier.
+
+        boolean modified = false;
+        for (Object e : c) {
+            modified |= backingCollection.remove(e);
+        }
+        return modified;
     }
 
     @Override
