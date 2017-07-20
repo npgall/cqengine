@@ -1,5 +1,9 @@
 # CQEngine Release Notes #
 
+### Version 2.12.1 - 2017-07-20 ###
+  * Added workaround for JDK `ConcurrentHashMap` performance bottleneck [JDK-8160751](https://bugs.openjdk.java.net/browse/JDK-8160751), with thanks to zenzondon for reporting it (issue 154)
+  * This may improve performance of `IndexedCollection.update()` and `removeAll()` methods when using on-heap persistence and CQEngine is run on Java 8 or earlier.
+    
 ### Version 2.12.0 - 2017-07-18 ###
   * Added support to configure persistence via an optional [`@PersistenceConfig`](https://github.com/npgall/cqengine/blob/master/code/src/main/java/com/googlecode/cqengine/persistence/support/serialization/PersistenceConfig.java) annotation:
     * `PersistenceConfig.polymorphic` - configures CQEngine to persist class name with serialized objects, to allow persisted collections to contain a mix of object types within an inheritance hierarchy.
