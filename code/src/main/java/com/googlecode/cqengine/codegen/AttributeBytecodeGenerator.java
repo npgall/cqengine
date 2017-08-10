@@ -19,13 +19,14 @@ import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.codegen.support.GeneratedAttributeSupport;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import javassist.*;
-import javassist.Modifier;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.SignatureAttribute;
 
 import java.lang.reflect.*;
 import java.util.*;
 
+import static com.googlecode.cqengine.codegen.AttributeSourceGenerator.*;
+import static com.googlecode.cqengine.codegen.MemberFilters.FIELDS_ONLY;
 import static java.lang.reflect.Modifier.*;
 
 /**
@@ -33,71 +34,106 @@ import static java.lang.reflect.Modifier.*;
  * The synthesized attributes should perform as well at runtime as hand-written ones in most cases.
  * <p/>
  * Generated attributes are loaded into the ClassLoader of the given POJO classes.
+ * <p/>
+ * See {@link MemberFilter} and {@link MemberFilters} for some common filters which can be used with this class
+ * to determine the subset of fields or methods in a POJO for which attributes should be generated.
  */
 public class AttributeBytecodeGenerator {
 
     /**
      * Auto-generates and instantiates a set of attributes which read values from the fields in the given POJO class.
      * <p>
-     * Attributes will be generated for all non-private fields declared directly in the POJO class, and for inherited
-     * fields as well, as long as the access modifiers on inherited fields in their superclass(es) allow those fields to
-     * be accessed from the package of the POJO class. So if the POJO class is in the same package as a superclass,
-     * then attributes will be generated for package-private, protected, and public fields in the superclass. If the
-     * POJO class is in a different package from the superclass, then attributes will be generated for protected and
-     * public fields in the superclass.
+     * This is equivalent to calling {@link #createAttributes(Class, MemberFilter)} with
+     * {@link MemberFilters#FIELDS_ONLY}.
      *
      * @param pojoClass The POJO class containing fields for which attributes are to be created
      * @return A map of field/attribute names to Attribute objects which read values from the fields in the given POJO
      * class
      */
-    @SuppressWarnings("unchecked")
     public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass) {
+        return createAttributes(pojoClass, FIELDS_ONLY);
+    }
+
+    /**
+     * Auto-generates and instantiates a set of attributes which read values from the members (fields or methods)
+     * in the given POJO class.
+     * <p>
+     * By default, attributes will be generated for all non-private members declared directly in the POJO class,
+     * and for inherited members as well, as long as the access modifiers on inherited members in their superclass(es)
+     * allow those members to be accessed from the package of the POJO class. So if the POJO class is in the same
+     * package as a superclass, then attributes will be generated for package-private, protected, and public members
+     * in the superclass. If the POJO class is in a different package from the superclass, then attributes will only be
+     * generated for protected and public members in the superclass.
+     *
+     * @param pojoClass The POJO class containing fields for which attributes are to be created
+     * @param memberFilter A filter which determines the subset of the members of a class (fields and methods)
+     * for which attributes should be generated
+     * @return A map of field/attribute names to Attribute objects which read values from the members in the given POJO
+     * class
+     */
+    @SuppressWarnings("unchecked")
+    public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass, MemberFilter memberFilter) {
         final Map<String, Attribute<O, ?>> attributes = new TreeMap<String, Attribute<O, ?>>();
         Class currentClass = pojoClass;
         while (currentClass != null && currentClass != Object.class) {
-            for (Field field : Arrays.asList(currentClass.getDeclaredFields())) {
+            for (Member member : getMembers(currentClass)) {
                 try {
-                    int modifiers = field.getModifiers();
+                    if (!memberFilter.accept(member)) {
+                        continue;
+                    }
+                    int modifiers = member.getModifiers();
+                    String memberName = member.getName();
+                    String attributeName = member.getName();
+                    Class<?> memberType = getType(member);
+
                     Class<? extends Attribute<O, ?>> attributeClass;
                     if (!isStatic(modifiers) && !isPrivate(modifiers)) {
-                        // If the field is declared in a superclass in a different package,
-                        // only generate an attribute for it, if the field is actually accessible from the subclass,
+                        // If the member is declared in a superclass in a different package,
+                        // only generate an attribute for it, if the member is actually accessible from the subclass;
                         // that is it is declared public or protected...
-                        if (!field.getDeclaringClass().getPackage().getName().equals(pojoClass.getPackage().getName())
+                        if (!member.getDeclaringClass().getPackage().getName().equals(pojoClass.getPackage().getName())
                                 && !(isProtected(modifiers) || isPublic(modifiers))) {
                             continue;
                         }
-                        Class<?> fieldType = field.getType();
-                        if (fieldType.isPrimitive()) {
-                            Class<?> wrapperType = getWrapperForPrimitive(fieldType);
-                            attributeClass = generateSimpleAttributeForField(pojoClass, wrapperType, field.getName(), field.getName());
-                        } else if (Iterable.class.isAssignableFrom(fieldType)) {
-                            ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+                        if (memberType.isPrimitive()) {
+                            Class<?> wrapperType = getWrapperForPrimitive(memberType);
+                            attributeClass = (member instanceof Method)
+                                    ? generateSimpleAttributeForGetter(pojoClass, wrapperType, memberName, attributeName)
+                                    : generateSimpleAttributeForField(pojoClass, wrapperType, memberName, attributeName);
+                        } else if (Iterable.class.isAssignableFrom(memberType)) {
+                            ParameterizedType parameterizedType = getGenericType(member);
                             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                             if (actualTypeArguments.length != 1) {
                                 throw new UnsupportedOperationException();
                             }
                             Class<?> genericType = (Class<?>) actualTypeArguments[0];
-                            attributeClass = generateMultiValueNullableAttributeForField(pojoClass, genericType, field.getName(), true, field.getName());
-                        } else if (fieldType.isArray()) {
-                            Class<?> componentType = fieldType.getComponentType();
+                            attributeClass = (member instanceof Method)
+                                    ? generateMultiValueNullableAttributeForGetter(pojoClass, genericType, memberName, true, attributeName)
+                                    : generateMultiValueNullableAttributeForField(pojoClass, genericType, memberName, true, attributeName);
+                        } else if (memberType.isArray()) {
+                            Class<?> componentType = memberType.getComponentType();
                             if (componentType.isPrimitive()) {
                                 Class<?> wrapperType = getWrapperForPrimitive(componentType);
-                                attributeClass = generateMultiValueNullableAttributeForField(pojoClass, wrapperType, field.getName(), false, field.getName());
+                                attributeClass = (member instanceof Method)
+                                        ? generateMultiValueNullableAttributeForGetter(pojoClass, wrapperType, memberName, false, attributeName)
+                                        : generateMultiValueNullableAttributeForField(pojoClass, wrapperType, memberName, false, attributeName);
                             }
                             else {
-                                attributeClass = generateMultiValueNullableAttributeForField(pojoClass, componentType, field.getName(), true, field.getName());
+                                attributeClass = (member instanceof Method)
+                                        ? generateMultiValueNullableAttributeForGetter(pojoClass, componentType, memberName, true, attributeName)
+                                        : generateMultiValueNullableAttributeForField(pojoClass, componentType, memberName, true, attributeName);
                             }
                         } else {
-                            attributeClass = generateSimpleNullableAttributeForField(pojoClass, fieldType, field.getName(), field.getName());
+                            attributeClass = (member instanceof Method)
+                                    ? generateSimpleNullableAttributeForGetter(pojoClass, memberType, memberName, attributeName)
+                                    : generateSimpleNullableAttributeForField(pojoClass, memberType, memberName, attributeName);
                         }
                         Attribute<O, ?> attribute = attributeClass.newInstance();
                         attributes.put(attribute.getAttributeName(), attribute);
                     }
                 } catch (Throwable e) {
-                    throw new IllegalStateException("Failed to create attribute for field: " + field.toGenericString(), e);
+                    throw new IllegalStateException("Failed to create attribute for member: " + member.toString(), e);
                 }
-
             }
             currentClass = currentClass.getSuperclass();
         }

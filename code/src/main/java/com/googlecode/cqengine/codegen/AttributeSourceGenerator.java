@@ -18,6 +18,9 @@ package com.googlecode.cqengine.codegen;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static com.googlecode.cqengine.codegen.MemberFilters.ALL_MEMBERS;
+import static com.googlecode.cqengine.codegen.MemberFilters.FIELDS_ONLY;
+
 /**
  * Automatically generates source code defining CQEngine attributes for accessing the fields and methods (aka members)
  * of a given target class.
@@ -382,20 +385,6 @@ public class AttributeSourceGenerator {
         put(float.class, Float.class);
         put(double.class, Double.class);
     }};
-
-    static final MemberFilter ALL_MEMBERS = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return true;
-        }
-    };
-
-    static final MemberFilter FIELDS_ONLY = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return member instanceof Field;
-        }
-    };
 
     /**
      * Private constructor, not used.

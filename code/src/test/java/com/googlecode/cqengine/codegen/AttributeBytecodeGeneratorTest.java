@@ -53,6 +53,7 @@ public class AttributeBytecodeGeneratorTest {
     static class SuperCar extends SportsCar { // ...SportCar in turn extends Car
         final double[] tyrePressures;
         final Float[] wheelSpeeds;
+        public Float[] getWheelSpeeds() { return wheelSpeeds; }
 
         public SuperCar(int carId, String name, String description, List<String> features, int horsepower, double[] tyrePressures, Float[] wheelSpeeds) {
             super(carId, name, description, features, horsepower);
@@ -63,7 +64,7 @@ public class AttributeBytecodeGeneratorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testCreateAttributes() {
+    public void testCreateAttributesForFields() {
         SuperCar car1 = new SuperCar(0, "Ford Focus", "Blue", Arrays.asList("sunroof", "radio"), 5000, new double[] {1536.5, 1782.9}, new Float[] {56700.9F, 83321.0F});
         SuperCar car2 = new SuperCar(1, "Ford Fusion", "Red", Arrays.asList("coupe", "cd player"), 6000, new double[] {12746.2, 2973.1}, new Float[] {43424.4F, 61232.7F});
 
@@ -85,6 +86,20 @@ public class AttributeBytecodeGeneratorTest {
         validateAttribute(((Attribute<SuperCar, String>)attributes.get("features")), SuperCar.class, String.class, "features", car2, Arrays.asList("coupe", "cd player"));
         validateAttribute(((Attribute<SuperCar, Double>)attributes.get("tyrePressures")), SuperCar.class, Double.class, "tyrePressures", car2, Arrays.asList(12746.2, 2973.1));
         validateAttribute(((Attribute<SuperCar, Float>)attributes.get("wheelSpeeds")), SuperCar.class, Float.class, "wheelSpeeds", car2, Arrays.asList(43424.4F, 61232.7F));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCreateAttributesForGetterMethods() {
+        SuperCar car1 = new SuperCar(0, "Ford Focus", "Blue", Arrays.asList("sunroof", "radio"), 5000, new double[] {1536.5, 1782.9}, new Float[] {56700.9F, 83321.0F});
+        SuperCar car2 = new SuperCar(1, "Ford Fusion", "Red", Arrays.asList("coupe", "cd player"), 6000, new double[] {12746.2, 2973.1}, new Float[] {43424.4F, 61232.7F});
+
+        Map<String, ? extends Attribute<SuperCar, ?>> attributes = AttributeBytecodeGenerator.createAttributes(SuperCar.class, MemberFilters.GETTER_METHODS_ONLY);
+        assertEquals(1, attributes.size());
+        // Validate attributes reading fields from car1...
+        validateAttribute(((Attribute<SuperCar, Float>)attributes.get("getWheelSpeeds")), SuperCar.class, Float.class, "getWheelSpeeds", car1, Arrays.asList(56700.9F, 83321.0F));
+        // Validate attributes reading fields from car2...
+        validateAttribute(((Attribute<SuperCar, Float>)attributes.get("getWheelSpeeds")), SuperCar.class, Float.class, "getWheelSpeeds", car2, Arrays.asList(43424.4F, 61232.7F));
     }
 
     @Test
