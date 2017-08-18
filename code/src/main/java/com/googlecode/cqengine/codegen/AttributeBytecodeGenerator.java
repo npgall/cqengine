@@ -75,10 +75,15 @@ public class AttributeBytecodeGenerator {
     public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass, MemberFilter memberFilter) {
         final Map<String, Attribute<O, ?>> attributes = new TreeMap<String, Attribute<O, ?>>();
         Class currentClass = pojoClass;
+        Set<String> membersEncountered = new HashSet<String>();
         while (currentClass != null && currentClass != Object.class) {
             for (Member member : getMembers(currentClass)) {
                 try {
                     if (!memberFilter.accept(member)) {
+                        continue;
+                    }
+                    if (membersEncountered.contains(member.getName())) {
+                        // We already generated an attribute for a member with this name in a subclass of the current class...
                         continue;
                     }
                     int modifiers = member.getModifiers();
@@ -130,6 +135,7 @@ public class AttributeBytecodeGenerator {
                         }
                         Attribute<O, ?> attribute = attributeClass.newInstance();
                         attributes.put(attribute.getAttributeName(), attribute);
+                        membersEncountered.add(member.getName());
                     }
                 } catch (Throwable e) {
                     throw new IllegalStateException("Failed to create attribute for member: " + member.toString(), e);
