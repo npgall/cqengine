@@ -10,6 +10,9 @@ import java.lang.reflect.Method;
  */
 public class MemberFilters {
 
+    /**
+     * A filter which matches all members (both fields and methods).
+     */
     public static final MemberFilter ALL_MEMBERS = new MemberFilter() {
         @Override
         public boolean accept(Member member) {
@@ -17,6 +20,9 @@ public class MemberFilters {
         }
     };
 
+    /**
+     * A filter which matches all fields.
+     */
     public static final MemberFilter FIELDS_ONLY = new MemberFilter() {
         @Override
         public boolean accept(Member member) {
@@ -24,6 +30,9 @@ public class MemberFilters {
         }
     };
 
+    /**
+     * A filter which matches all methods.
+     */
     public static final MemberFilter METHODS_ONLY = new MemberFilter() {
         @Override
         public boolean accept(Member member) {
@@ -31,15 +40,26 @@ public class MemberFilters {
         }
     };
 
+    /**
+     * A filter which matches all methods which start with "get", "is" and "has" and where the following character
+     * is in uppercase.
+     */
     public static final MemberFilter GETTER_METHODS_ONLY = new MemberFilter() {
         @Override
         public boolean accept(Member member) {
             return member instanceof Method
-                    && (member.getName().startsWith("get")
-                    || member.getName().startsWith("is")
-                    || member.getName().startsWith("has"));
+                    && (hasGetterPrefix(member.getName(), "get")
+                    || hasGetterPrefix(member.getName(), "is")
+                    || hasGetterPrefix(member.getName(), "has"));
         }
     };
+
+    static boolean hasGetterPrefix(String memberName, String prefix) {
+        int prefixLength = prefix.length();
+        return memberName.length() > prefixLength
+                && memberName.startsWith(prefix)
+                && Character.isUpperCase(memberName.charAt(prefixLength));
+    }
 
     /**
      * Private constructor, not used.

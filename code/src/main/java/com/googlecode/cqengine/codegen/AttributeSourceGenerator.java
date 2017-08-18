@@ -151,9 +151,14 @@ public class AttributeSourceGenerator {
             sb.append("public class CQ").append(targetClass.getSimpleName()).append(" {");
         }
         Class currentClass = targetClass;
+        Set<String> membersEncountered = new HashSet<String>();
         while (currentClass != null && currentClass != Object.class) {
             for (Member member : getMembers(currentClass)) {
                 if (!memberFilter.accept(member)) {
+                    continue;
+                }
+                if (membersEncountered.contains(member.getName())) {
+                    // We already generated an attribute for a member with this name in a subclass of the current class...
                     continue;
                 }
                 int modifiers = member.getModifiers();
@@ -165,6 +170,7 @@ public class AttributeSourceGenerator {
                         if (!separateAttributesClass && currentClass.equals(targetClass)) {
                             sb.append("\n\n");
                             sb.append(generateAttributeForMember(targetClass, member));
+                            membersEncountered.add(member.getName());
                         }
                     }
                     else if (Modifier.isProtected(modifiers)) {
@@ -176,11 +182,13 @@ public class AttributeSourceGenerator {
                                 || member.getDeclaringClass().getPackage().getName().equals(packageOfAttributesClass)) {
                             sb.append("\n\n");
                             sb.append(generateAttributeForMember(targetClass, member));
+                            membersEncountered.add(member.getName());
                         }
                     }
                     else if (Modifier.isPublic(modifiers)) {
                         sb.append("\n\n");
                         sb.append(generateAttributeForMember(targetClass, member));
+                        membersEncountered.add(member.getName());
                     }
                     else {
                         // Package-private member.
@@ -192,6 +200,7 @@ public class AttributeSourceGenerator {
                                 || member.getDeclaringClass().getPackage().getName().equals(packageOfAttributesClass)) {
                             sb.append("\n\n");
                             sb.append(generateAttributeForMember(targetClass, member));
+                            membersEncountered.add(member.getName());
                         }
                     }
                 }
@@ -260,8 +269,8 @@ public class AttributeSourceGenerator {
                 "     * CQEngine attribute for accessing " + memberType.description + " {@code " + objectType + "." + memberName + memberType.accessSuffix + "}.\n" +
                 "     */\n" +
                 "    // Note: For best performance:\n" +
-                "    // - if the list cannot contain null elements change true to false in the following constructor, or\n" +
-                "    // - if the list cannot contain null elements AND the " + memberType.description + " itself cannot " + memberType.produce + " null, replace this\n" +
+                "    // - if the collection cannot contain null elements change true to false in the following constructor, or\n" +
+                "    // - if the collection cannot contain null elements AND the " + memberType.description + " itself cannot " + memberType.produce + " null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<" + objectType + ", " + attributeType + "> " + toUpperCaseWithUnderscores(memberName) + " = new MultiValueNullableAttribute<" + objectType + ", " + attributeType + ">(\"" + toUpperCaseWithUnderscores(memberName) + "\", true) {\n" +
                 "        public Iterable<" + attributeType + "> getNullableValues(" + objectType + " " + objectType.toLowerCase() + ", QueryOptions queryOptions) { return " + objectType.toLowerCase() + "." + memberName + memberType.accessSuffix + "; }\n" +
