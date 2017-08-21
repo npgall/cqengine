@@ -69,8 +69,8 @@ public class AttributeSourceGeneratorTest {
                 "     * CQEngine attribute for accessing field {@code Car.features}.\n" +
                 "     */\n" +
                 "    // Note: For best performance:\n" +
-                "    // - if the list cannot contain null elements change true to false in the following constructor, or\n" +
-                "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
+                "    // - if the collection cannot contain null elements change true to false in the following constructor, or\n" +
+                "    // - if the collection cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>(\"FEATURES\", true) {\n" +
                 "        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return car.features; }\n" +
@@ -141,8 +141,8 @@ public class AttributeSourceGeneratorTest {
                 "     * CQEngine attribute for accessing field {@code Car.features}.\n" +
                 "     */\n" +
                 "    // Note: For best performance:\n" +
-                "    // - if the list cannot contain null elements change true to false in the following constructor, or\n" +
-                "    // - if the list cannot contain null elements AND the field itself cannot be null, replace this\n" +
+                "    // - if the collection cannot contain null elements change true to false in the following constructor, or\n" +
+                "    // - if the collection cannot contain null elements AND the field itself cannot be null, replace this\n" +
                 "    //   MultiValueNullableAttribute with a MultiValueAttribute (and change getNullableValues() to getValues())\n" +
                 "    public static final Attribute<Car, String> FEATURES = new MultiValueNullableAttribute<Car, String>(\"FEATURES\", true) {\n" +
                 "        public Iterable<String> getNullableValues(Car car, QueryOptions queryOptions) { return car.features; }\n" +
