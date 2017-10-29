@@ -29,6 +29,7 @@ com.googlecode.cqengine.persistence.disk
 com.googlecode.cqengine.persistence.offheap
 com.googlecode.cqengine.persistence.onheap
 com.googlecode.cqengine.persistence.support
+com.googlecode.cqengine.persistence.support.serialization
 com.googlecode.cqengine.persistence.support.sqlite
 com.googlecode.cqengine.persistence.wrapping
 com.googlecode.cqengine.quantizer
