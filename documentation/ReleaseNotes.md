@@ -1,5 +1,8 @@
 # CQEngine Release Notes #
 
+### Version 2.12.2 - 2017-10-29 ###
+  * Added support to auto-generate attributes from getter methods in POJOs. Previously it was only possible to auto-generate attributes for fields in POJOs. This new feature is supported by both `AttributeSourceGenerator` and `AttributeBytecodeGenerator`.
+  
 ### Version 2.12.1 - 2017-07-20 ###
   * Added workaround for JDK `ConcurrentHashMap` performance bottleneck [JDK-8160751](https://bugs.openjdk.java.net/browse/JDK-8160751), with thanks to zenzondon for reporting it (issue 154)
   * This may improve performance of `IndexedCollection.update()` and `removeAll()` methods when using on-heap persistence and CQEngine is run on Java 8 or earlier.
