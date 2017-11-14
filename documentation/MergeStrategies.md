@@ -18,7 +18,7 @@ because it is usually necessary to deserialize the candidate objects in order to
 
 ## Merge strategy: _index_ ##
 
-The merge strategy uses indexes to locate the _smallest candidate set_ of objects, however instead of asking the attributes
+The "index" merge strategy uses indexes to locate the _smallest candidate set_ of objects, however instead of asking the attributes
 to return values from the candidate objects, it evaluates the query by performing joins between indexes on-the-fly instead.
 
 Only the final set of objects which actually match the query, will be deserialized; and lazily as the application requests them.
