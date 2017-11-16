@@ -607,6 +607,12 @@ For non-Maven projects, a version built with [maven-shade-plugin](http://maven.a
 
 ---
 
+## Using CQEngine in Scala, Kotlin, or other JVM languages ##
+
+CQEngine should generally be compatible with other JVM languages besides Java too, however it can be necessary to apply a few tricks to make it work. See [OtherJVMLanguages.md](documentation/OtherJVMLanguages.md) for some tips.
+
+---
+
 
 ## Related Projects ##
 
