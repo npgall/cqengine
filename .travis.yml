@@ -6,11 +6,6 @@ jdk:
 - oraclejdk8
 - oraclejdk9
 
-# Java 9 support is still being prepared. Allow failures in Java 9 builds until Java 9 support is finalized...
-matrix:
-  allow_failures:
-    - jdk: oraclejdk9
-
 install: /bin/true
 
 branches:
