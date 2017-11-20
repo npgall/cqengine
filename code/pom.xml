@@ -139,40 +139,40 @@
                             <shadedClassifierName>all</shadedClassifierName>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.googlecode.concurrenttrees</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees</shadedPattern>
+                                    <pattern>com.googlecode.concurrenttrees.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.googlecode.concurrenttrees.</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.esotericsoftware</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.com.esotericsoftware</shadedPattern>
+                                    <pattern>com.esotericsoftware.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.esotericsoftware.</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.org</shadedPattern>
+                                    <pattern>org.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.org.</shadedPattern>
                                     <excludes>
                                         <!-- Don't relocate SQLite as it will be unable to load its native library... -->
                                         <exclude>org.sqlite.**</exclude>
                                     </excludes>
                                 </relocation>
                                 <relocation>
-                                    <pattern>de</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.de</shadedPattern>
+                                    <pattern>de.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.de.</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>javassist</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.javassist</shadedPattern>
+                                    <pattern>javassist.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.javassist.</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.com.google</shadedPattern>
+                                    <pattern>com.google.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.com.google.</shadedPattern>
                                     <excludes>
                                         <!-- Don't relocate CQEngine's own classes... -->
                                         <exclude>com.googlecode.cqengine.**</exclude>
                                     </excludes>
                                 </relocation>
                                 <relocation>
-                                    <pattern>net.jodah</pattern>
-                                    <shadedPattern>com.googlecode.cqengine.lib.net.jodah</shadedPattern>
+                                    <pattern>net.jodah.</pattern>
+                                    <shadedPattern>com.googlecode.cqengine.lib.net.jodah.</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
