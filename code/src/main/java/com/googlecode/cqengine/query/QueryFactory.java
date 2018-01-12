@@ -28,6 +28,7 @@ import com.googlecode.cqengine.query.simple.*;
 import net.jodah.typetools.TypeResolver;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -1285,6 +1286,34 @@ public class QueryFactory {
         List<AttributeOrder<O>> attributeOrders = Arrays.asList(attributeOrder1, attributeOrder2, attributeOrder3,
                 attributeOrder4, attributeOrder5);
         return new OrderByOption<O>(attributeOrders);
+    }
+
+    /**
+     * Converts a {@link Query} to a {@link Predicate} which can evaluate if the the query matches any given object.
+     * The predicate will determine this by invoking {@link Query#matches(Object, QueryOptions)}, supplying null for
+     * the query options.
+     * <p/>
+     * Note that while most queries do not utilize query options and thus will be compatible with this method,
+     * it's possible that some queries might require query options. For those cases, create the predicate via
+     * the counterpart method {@link #predicate(Query, QueryOptions)} instead.
+     *
+     * @param query The query to be converted to a predicate
+     * @return A predicate which can evaluate if the the query matches any given object
+     */
+    public static <O> Predicate<O> predicate(Query<O> query) {
+        return predicate(query, null);
+    }
+
+    /**
+     * Converts a {@link Query} to a {@link Predicate} which can evaluate if the the query matches any given object.
+     * The predicate will determine this by invoking {@link Query#matches(Object, QueryOptions)}.
+     *
+     * @param query The query to be converted to a predicate
+     * @param queryOptions The query options to supply to the {@link Query#matches(Object, QueryOptions)} method
+     * @return A predicate which can evaluate if the the query matches any given object
+     */
+    public static <O> Predicate<O> predicate(Query<O> query, QueryOptions queryOptions) {
+        return object -> query.matches(object, queryOptions);
     }
 
     // ***************************************************************************************************************
