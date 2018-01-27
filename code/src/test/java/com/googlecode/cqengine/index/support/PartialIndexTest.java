@@ -45,21 +45,27 @@ public class PartialIndexTest {
     @Test
     public void testEqualsAndHashCode_PartialNavigableIndex() {
         EqualsVerifier.forClass(PartialNavigableIndex.class)
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
+                .withNonnullFields("filterQuery", "attribute", "backingIndex")
+                .withIgnoredFields("attribute", "indexMapFactory", "valueSetFactory")
+                .suppress(Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
                 .verify();
     }
 
     @Test
     public void testEqualsAndHashCode_PartialDiskIndex() {
         EqualsVerifier.forClass(PartialDiskIndex.class)
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
+                .withNonnullFields("filterQuery", "attribute", "backingIndex")
+                .withIgnoredFields("attribute", "tableNameSuffix")
+                .suppress(Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
                 .verify();
     }
 
     @Test
     public void testEqualsAndHashCode_PartialOffHeapIndex() {
         EqualsVerifier.forClass(PartialOffHeapIndex.class)
-                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
+                .withNonnullFields("filterQuery", "attribute", "backingIndex")
+                .withIgnoredFields("attribute", "tableNameSuffix")
+                .suppress(Warning.STRICT_INHERITANCE, Warning.NONFINAL_FIELDS)
                 .verify();
     }
 

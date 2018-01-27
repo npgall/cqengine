@@ -26,13 +26,11 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  */
 public class LessThan<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
     private final A value;
     private final boolean valueInclusive;
 
     public LessThan(Attribute<O, A> attribute, A value, boolean valueInclusive) {
         super(attribute);
-        this.attribute = attribute;
         this.value = value;
         this.valueInclusive = valueInclusive;
     }

@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
  */
 public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
     private final Pattern regexPattern;
 
     /**
@@ -42,7 +41,6 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
      */
     public StringMatchesRegex(Attribute<O, A> attribute, Pattern regexPattern) {
         super(attribute);
-        this.attribute = attribute;
         this.regexPattern = regexPattern;
     }
 

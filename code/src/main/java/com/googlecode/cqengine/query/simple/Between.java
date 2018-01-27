@@ -26,7 +26,6 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  */
 public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
     private final A lowerValue;
     private final boolean lowerInclusive;
     private final A upperValue;
@@ -34,7 +33,6 @@ public class Between<O, A extends Comparable<A>> extends SimpleQuery<O, A> {
 
     public Between(Attribute<O, A> attribute, A lowerValue, boolean lowerInclusive, A upperValue, boolean upperInclusive) {
         super(attribute);
-        this.attribute = attribute;
         this.lowerValue = lowerValue;
         this.lowerInclusive = lowerInclusive;
         this.upperValue = upperValue;

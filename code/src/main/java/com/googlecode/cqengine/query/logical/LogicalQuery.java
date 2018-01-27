@@ -30,7 +30,7 @@ import java.util.*;
  */
 public abstract class LogicalQuery<O> implements Query<O> {
 
-    private final Collection<Query<O>> childQueries;
+    protected final Collection<Query<O>> childQueries;
     private final List<LogicalQuery<O>> logicalQueries = new ArrayList<LogicalQuery<O>>();
     private final List<SimpleQuery<O, ?>> simpleQueries = new ArrayList<SimpleQuery<O, ?>>();
     private final boolean hasLogicalQueries;
