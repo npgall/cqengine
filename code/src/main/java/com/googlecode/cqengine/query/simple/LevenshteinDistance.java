@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * @author <a href="mailto:ruslan.sennov@gmail.com">Ruslan Sennov</a>
  */
-public class LevensteinDistance<O> extends SimpleQuery<O, String> {
+public class LevenshteinDistance<O> extends SimpleQuery<O, String> {
 
     private final String value;
     private final int maxDistance;
@@ -19,7 +19,7 @@ public class LevensteinDistance<O> extends SimpleQuery<O, String> {
      *
      * @param attribute The attribute on which the assertion is to be made
      */
-    public LevensteinDistance(SimpleAttribute<O, String> attribute, String value, int maxDistance) {
+    public LevenshteinDistance(SimpleAttribute<O, String> attribute, String value, int maxDistance) {
         super(attribute);
         this.value = value;
         this.maxDistance = maxDistance;
@@ -35,12 +35,12 @@ public class LevensteinDistance<O> extends SimpleQuery<O, String> {
 
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, String> attribute, O object, QueryOptions queryOptions) {
-        throw new RuntimeException("Missing Levenstein index on attribute " + attribute.toString());
+        throw new RuntimeException("Missing Levenshtein index on attribute " + attribute.toString());
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, String> attribute, O object, QueryOptions queryOptions) {
-        throw new RuntimeException("Missing Levenstein index on attribute " + attribute.toString());
+        throw new RuntimeException("Missing Levenshtein index on attribute " + attribute.toString());
     }
 
     @Override
@@ -53,7 +53,7 @@ public class LevensteinDistance<O> extends SimpleQuery<O, String> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        LevensteinDistance<?> that = (LevensteinDistance<?>) o;
+        LevenshteinDistance<?> that = (LevenshteinDistance<?>) o;
 
         if (!attribute.equals(that.attribute)) return false;
         if (maxDistance != that.maxDistance) return false;

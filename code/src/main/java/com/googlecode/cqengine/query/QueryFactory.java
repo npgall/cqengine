@@ -1287,8 +1287,8 @@ public class QueryFactory {
         return new OrderByOption<O>(attributeOrders);
     }
 
-    public static <O> LevensteinDistance<O> levensteinDistance(SimpleAttribute<O, String> attribute, String value, int maxDistance) {
-        return new LevensteinDistance<>(attribute, value, maxDistance);
+    public static <O> LevenshteinDistance<O> levenshteinDistance(SimpleAttribute<O, String> attribute, String value, int maxDistance) {
+        return new LevenshteinDistance<>(attribute, value, maxDistance);
     }
 
     // ***************************************************************************************************************

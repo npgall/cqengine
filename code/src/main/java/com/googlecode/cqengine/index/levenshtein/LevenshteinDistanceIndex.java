@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.levenstein;
+package com.googlecode.cqengine.index.levenshtein;
 
 import com.github.liblevenshtein.collection.dictionary.SortedDawg;
 import com.github.liblevenshtein.transducer.Algorithm;
@@ -11,19 +11,27 @@ import com.googlecode.cqengine.index.support.AbstractAttributeIndex;
 import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
-import com.googlecode.cqengine.query.simple.LevensteinDistance;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.simple.LevenshteinDistance;
 import com.googlecode.cqengine.resultset.ResultSet;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
  * @author <a href="mailto:ruslan.sennov@gmail.com">Ruslan Sennov</a>
  */
-public class LevensteinDistanceIndex<O> extends AbstractAttributeIndex<String, O> {
+public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, O> {
 
+    private final TransducerFactory transducerFactory;
     private ITransducer<Candidate> transducer;
     private Map<String, Set<O>> terms;
 
@@ -32,10 +40,9 @@ public class LevensteinDistanceIndex<O> extends AbstractAttributeIndex<String, O
      *
      * @param attribute The attribute on which the index will be built
      */
-    private LevensteinDistanceIndex(Attribute<O, String> attribute) {
-        super(attribute, new HashSet<Class<? extends Query>>() {{
-            add(LevensteinDistance.class);
-        }});
+    private LevenshteinDistanceIndex(Attribute<O, String> attribute, Algorithm transducerAlgorithm) {
+        super(attribute, Collections.singleton(LevenshteinDistance.class));
+        this.transducerFactory = new TransducerFactory(transducerAlgorithm);
     }
 
     @Override
@@ -50,11 +57,11 @@ public class LevensteinDistanceIndex<O> extends AbstractAttributeIndex<String, O
 
     @Override
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
-        if (query instanceof LevensteinDistance) {
-            LevensteinDistance<O> lev = (LevensteinDistance<O>) query;
-            final Iterable<Candidate> it = transducer.transduce(lev.getValue(), lev.getMaxDistance());
+        Class<?> queryClass = query.getClass();
+        if (LevenshteinDistance.class.equals(queryClass)) {
+            LevenshteinDistance<O> lev = (LevenshteinDistance<O>) query;
             Set<O> set = new HashSet<>();
-            it.forEach(candidate -> {
+            transducer.transduce(lev.getValue(), lev.getMaxDistance()).forEach(candidate -> {
                 set.addAll(terms.get(candidate.term()));
             });
             return new ResultSet<O>() {
@@ -103,8 +110,9 @@ public class LevensteinDistanceIndex<O> extends AbstractAttributeIndex<String, O
                     set.clear();
                 }
             };
+        } else {
+            throw new IllegalArgumentException("Unsupported query: " + query);
         }
-        throw new RuntimeException();
     }
 
     @Override
@@ -130,33 +138,52 @@ public class LevensteinDistanceIndex<O> extends AbstractAttributeIndex<String, O
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        CloseableIterator<O> it = objectStore.iterator(queryOptions);
-        terms = new HashMap<>();
-        it.forEachRemaining(o -> {
-            attribute.getValues(o, queryOptions).forEach(term -> {
-                Set<O> objects = terms.computeIfAbsent(term, new Function<String, Set<O>>() {
-                    @Override
-                    public Set<O> apply(String s) {
-                        return new HashSet<>();
-                    }
+        try (CloseableIterator<O> it = objectStore.iterator(queryOptions)) {
+            terms = new HashMap<>();
+            it.forEachRemaining(o -> {
+                attribute.getValues(o, queryOptions).forEach(term -> {
+                    Set<O> objects = terms.computeIfAbsent(term, new Function<String, Set<O>>() {
+                        @Override
+                        public Set<O> apply(String s) {
+                            return new HashSet<>();
+                        }
+                    });
+                    objects.add(o);
                 });
-                objects.add(o);
             });
-        });
-        it.close();
+        }
         SortedDawg dict = new SortedDawg();
         List<String> list = new ArrayList<>(terms.keySet());
         Collections.sort(list);
         dict.addAll(list);
-        transducer = new TransducerBuilder()
-                .dictionary(dict)
-                .algorithm(Algorithm.TRANSPOSITION)
+        transducer = transducerFactory.buildTransducer(dict);
+    }
+
+    public static <O> LevenshteinDistanceIndex<O> onAttribute(Attribute<O, String> attribute) {
+        return new LevenshteinDistanceIndex<>(attribute, Algorithm.STANDARD);
+    }
+
+    public static <O> LevenshteinDistanceIndex<O> withSpellingCorrectionOnAttribute(Attribute<O, String> attribute) {
+        return new LevenshteinDistanceIndex<>(attribute, Algorithm.TRANSPOSITION);
+    }
+
+    public static <O> LevenshteinDistanceIndex<O> withOCRCorrectionOnAttribute(Attribute<O, String> attribute) {
+        return new LevenshteinDistanceIndex<>(attribute, Algorithm.MERGE_AND_SPLIT);
+    }
+}
+
+class TransducerFactory {
+    private final Algorithm transducerAlgorithm;
+
+    TransducerFactory(Algorithm transducerAlgorithm) {
+        this.transducerAlgorithm = transducerAlgorithm;
+    }
+
+    ITransducer<Candidate> buildTransducer(SortedDawg dictionary) {
+        return new TransducerBuilder()
+                .dictionary(dictionary)
+                .algorithm(transducerAlgorithm)
                 .includeDistance(true)
                 .build();
     }
-
-    public static <O> LevensteinDistanceIndex<O> onAttribute(Attribute<O, String> attribute) {
-        return new LevensteinDistanceIndex<>(attribute);
-    }
-
 }
