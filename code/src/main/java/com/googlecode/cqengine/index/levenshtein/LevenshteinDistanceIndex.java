@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
         Class<?> queryClass = query.getClass();
         if (LevenshteinDistance.class.equals(queryClass)) {
             LevenshteinDistance<O> lev = (LevenshteinDistance<O>) query;
-            Set<O> set = new HashSet<>();
+            Set<O> set = new LinkedHashSet<>();
             transducer.transduce(lev.getValue(), lev.getMaxDistance()).forEach(candidate -> {
                 set.addAll(terms.get(candidate.term()));
             });
