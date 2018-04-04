@@ -19,7 +19,7 @@ public class LevenshteinDistance<O> extends SimpleQuery<O, String> {
      *
      * @param attribute The attribute on which the assertion is to be made
      */
-    public LevenshteinDistance(SimpleAttribute<O, String> attribute, String value, int maxDistance) {
+    public LevenshteinDistance(Attribute<O, String> attribute, String value, int maxDistance) {
         super(attribute);
         this.value = value;
         this.maxDistance = maxDistance;
