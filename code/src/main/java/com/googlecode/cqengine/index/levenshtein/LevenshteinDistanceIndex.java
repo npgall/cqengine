@@ -157,6 +157,7 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
         List<String> list = new ArrayList<>(terms.keySet());
         Collections.sort(list);
         dict.addAll(list);
+        dict.finish();
         transducer = transducerFactory.buildTransducer(dict);
     }
 
