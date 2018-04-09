@@ -59,4 +59,11 @@ public class LevenshteinDistance<O> extends SimpleQuery<O, String> {
         if (maxDistance != that.maxDistance) return false;
         return value != null ? value.equals(that.value) : that.value == null;
     }
+
+    @Override
+    public String toString() {
+        return "distance("+ asLiteral(super.getAttributeName())
+                + ", " + asLiteral(value)
+                + ")<=" + maxDistance;
+    }
 }
