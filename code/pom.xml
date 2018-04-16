@@ -249,8 +249,8 @@
             <version>3.20.1</version>
         </dependency>
         <dependency>
-            <groupId>com.github.universal-automata</groupId>
-            <artifactId>liblevenshtein</artifactId>
+            <groupId>ru.finam</groupId>
+            <artifactId>liblevenshtein-lite</artifactId>
             <version>3.0.0</version>
         </dependency>
         <dependency>
