@@ -249,6 +249,11 @@
             <version>3.16.1</version>
         </dependency>
         <dependency>
+            <groupId>ru.finam</groupId>
+            <artifactId>liblevenshtein-lite</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>3.0.3</version>
