@@ -1288,7 +1288,7 @@ public class QueryFactory {
     }
 
     public static <O> LevenshteinDistance<O> levenshteinDistance(Attribute<O, String> attribute, String value, int maxDistance) {
-        return new LevenshteinDistance<>(attribute, value, maxDistance);
+        return new LevenshteinDistance<O>(attribute, value, maxDistance);
     }
 
     // ***************************************************************************************************************

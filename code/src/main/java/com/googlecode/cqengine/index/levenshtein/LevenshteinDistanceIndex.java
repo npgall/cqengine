@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:ruslan.sennov@gmail.com">Ruslan Sennov</a>
@@ -42,7 +41,7 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
      * @param attribute The attribute on which the index will be built
      */
     private LevenshteinDistanceIndex(Attribute<O, String> attribute, Algorithm transducerAlgorithm) {
-        super(attribute, Collections.singleton(LevenshteinDistance.class));
+        super(attribute, Collections.<Class<? extends Query>>singleton(LevenshteinDistance.class));
         this.transducerFactory = new TransducerFactory(transducerAlgorithm);
     }
 
@@ -57,14 +56,14 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
     }
 
     @Override
-    public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
+    public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
         if (LevenshteinDistance.class.equals(queryClass)) {
             LevenshteinDistance<O> lev = (LevenshteinDistance<O>) query;
-            Set<O> set = new LinkedHashSet<>();
-            transducer.transduce(lev.getValue(), lev.getMaxDistance()).forEach(candidate -> {
+            final Set<O> set = new LinkedHashSet<O>();
+            for (Candidate candidate : transducer.transduce(lev.getValue(), lev.getMaxDistance())) {
                 set.addAll(terms.get(candidate.term()));
-            });
+            }
             return new ResultSet<O>() {
                 @Override
                 public Iterator<O> iterator() {
@@ -139,22 +138,28 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
 
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
-        try (CloseableIterator<O> it = objectStore.iterator(queryOptions)) {
-            terms = new HashMap<>();
-            it.forEachRemaining(o -> {
-                attribute.getValues(o, queryOptions).forEach(term -> {
-                    Set<O> objects = terms.computeIfAbsent(term, new Function<String, Set<O>>() {
-                        @Override
-                        public Set<O> apply(String s) {
-                            return new HashSet<>();
-                        }
-                    });
-                    objects.add(o);
-                });
-            });
+        CloseableIterator<O> it = null;
+        try {
+            it = objectStore.iterator(queryOptions);
+            terms = new HashMap<String, Set<O>>();
+            O o;
+            while (it.hasNext()) {
+                o = it.next();
+                for (String term : attribute.getValues(o, queryOptions)) {
+                    if (!terms.containsKey(term)) {
+                        terms.put(term, new HashSet<O>());
+                    }
+                    terms.get(term).add(o);
+                }
+            }
+        } finally {
+            if (it != null) {
+                it.close();
+            }
         }
+
         SortedDawg dict = new SortedDawg();
-        List<String> list = new ArrayList<>(terms.keySet());
+        List<String> list = new ArrayList<String>(terms.keySet());
         Collections.sort(list);
         dict.addAll(list);
         dict.finish();
@@ -162,15 +167,15 @@ public class LevenshteinDistanceIndex<O> extends AbstractAttributeIndex<String, 
     }
 
     public static <O> LevenshteinDistanceIndex<O> onAttribute(Attribute<O, String> attribute) {
-        return new LevenshteinDistanceIndex<>(attribute, Algorithm.STANDARD);
+        return new LevenshteinDistanceIndex<O>(attribute, Algorithm.STANDARD);
     }
 
     public static <O> LevenshteinDistanceIndex<O> withSpellingCorrectionOnAttribute(Attribute<O, String> attribute) {
-        return new LevenshteinDistanceIndex<>(attribute, Algorithm.TRANSPOSITION);
+        return new LevenshteinDistanceIndex<O>(attribute, Algorithm.TRANSPOSITION);
     }
 
     public static <O> LevenshteinDistanceIndex<O> withOCRCorrectionOnAttribute(Attribute<O, String> attribute) {
-        return new LevenshteinDistanceIndex<>(attribute, Algorithm.MERGE_AND_SPLIT);
+        return new LevenshteinDistanceIndex<O>(attribute, Algorithm.MERGE_AND_SPLIT);
     }
 }
 
