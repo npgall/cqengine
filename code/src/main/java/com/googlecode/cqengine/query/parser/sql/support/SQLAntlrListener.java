@@ -161,29 +161,30 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
         }
         addParsedQuery(ctx, QueryFactory.not(QueryFactory.in(attribute, values)));
     }
-
+    
     @Override
-    public void exitStartsWithQuery(SQLGrammarParser.StartsWithQueryContext ctx) {
+    public void exitMatchesRegexQuery(SQLGrammarParser.MatchesRegexQueryContext ctx) {
         Attribute<O, String> attribute = queryParser.getAttribute(ctx.attributeName(), String.class);
-        String value = queryParser.parseValue(attribute, ctx.queryParameterTrailingPercent());
-        value = value.substring(0, value.length() - 1);
-        addParsedQuery(ctx, QueryFactory.startsWith(attribute, value));
-    }
-
-    @Override
-    public void exitEndsWithQuery(SQLGrammarParser.EndsWithQueryContext ctx) {
-        Attribute<O, String> attribute = queryParser.getAttribute(ctx.attributeName(), String.class);
-        String value = queryParser.parseValue(attribute, ctx.queryParameterLeadingPercent());
-        value = value.substring(1, value.length());
-        addParsedQuery(ctx, QueryFactory.endsWith(attribute, value));
-    }
-
-    @Override
-    public void exitContainsQuery(SQLGrammarParser.ContainsQueryContext ctx) {
-        Attribute<O, String> attribute = queryParser.getAttribute(ctx.attributeName(), String.class);
-        String value = queryParser.parseValue(attribute, ctx.queryParameterLeadingAndTrailingPercent());
-        value = value.substring(1, value.length() - 1);
-        addParsedQuery(ctx, QueryFactory.contains(attribute, value));
+        String value = queryParser.parseValue(attribute, ctx.stringQueryParameter());
+        /**
+         * Add escape character '\' before regex keywords 
+         */
+        StringBuilder builder = new StringBuilder(value.length() * 2);
+        for (int i = 0; i < value.length(); i++) {
+          char c = value.charAt(i);
+          if ("[](){}.*+?$^|#\\".indexOf(c) != -1) {
+            builder.append("\\");
+          }
+          builder.append(c);
+        }
+        value = builder.toString();
+        
+        /**
+         * Replace like keywords by regex keywords.
+         */
+        value = value.replace("_", ".");
+        value = value.replace("%", ".*");
+        addParsedQuery(ctx, QueryFactory.matchesRegex(attribute, value));
     }
 
     @Override

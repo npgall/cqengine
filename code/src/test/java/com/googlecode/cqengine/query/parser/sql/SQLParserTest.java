@@ -68,9 +68,9 @@ public class SQLParserTest {
         assertQueriesEquals(not(between(Car.PRICE, 1000.0, 2000.0)), parser.query("SELECT * FROM cars WHERE 'price' NOT BETWEEN 1000.0 AND 2000.0"));
         assertQueriesEquals(in(Car.MANUFACTURER, "Ford", "Honda"), parser.query("SELECT * FROM cars WHERE 'manufacturer' IN ('Ford', 'Honda')"));
         assertQueriesEquals(not(in(Car.MANUFACTURER, "Ford", "Honda")), parser.query("SELECT * FROM cars WHERE 'manufacturer' NOT IN ('Ford', 'Honda')"));
-        assertQueriesEquals(startsWith(Car.MODEL, "Fo"), parser.query("SELECT * FROM cars WHERE 'model' LIKE 'Fo%'"));
-        assertQueriesEquals(endsWith(Car.MODEL, "rd"), parser.query("SELECT * FROM cars WHERE 'model' LIKE '%rd'"));
-        assertQueriesEquals(contains(Car.MODEL, "or"), parser.query("SELECT * FROM cars WHERE 'model' LIKE '%or%'"));
+        assertQueriesEquals(matchesRegex(Car.MODEL, "Fo.*"), parser.query("SELECT * FROM cars WHERE 'model' LIKE 'Fo%'"));
+        assertQueriesEquals(matchesRegex(Car.MODEL, "F.rd"), parser.query("SELECT * FROM cars WHERE 'model' LIKE 'F_rd'"));
+        assertQueriesEquals(matchesRegex(Car.MODEL, ".*or.*"), parser.query("SELECT * FROM cars WHERE 'model' LIKE '%or%'"));
         assertQueriesEquals(has(Car.FEATURES), parser.query("SELECT * FROM cars WHERE 'features' IS NOT NULL"));
         assertQueriesEquals(all(Car.class), parser.query("SELECT * FROM cars"));
         assertQueriesEquals(and(equal(Car.MANUFACTURER, "Ford"), equal(Car.MODEL, "Focus")), parser.query("SELECT * FROM cars WHERE ('manufacturer' = 'Ford' AND 'model' = 'Focus')"));
@@ -80,6 +80,9 @@ public class SQLParserTest {
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE (NOT ('manufacturer' = 'Ford'))"));
         assertQueriesEquals(equal(IS_BLUE, true), parser.query("SELECT * FROM cars WHERE (is_blue = true)"));
         assertQueriesEquals(equal(IS_BLUE, false), parser.query("SELECT * FROM cars WHERE (is_blue = false)"));
+        
+        //Multi bracket support in where clause
+        assertQueriesEquals(equal(IS_BLUE, false), parser.query("SELECT * FROM cars WHERE ( (is_blue = false) )"));
 
         assertQueriesEquals(
                 or(
