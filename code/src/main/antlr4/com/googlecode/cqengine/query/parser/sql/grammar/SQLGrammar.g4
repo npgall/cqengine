@@ -19,10 +19,8 @@ import SQLite;
 start : K_SELECT STAR K_FROM indexedCollection whereClause? orderByClause? EOF ;
 
 indexedCollection : IDENTIFIER | STRING_LITERAL ;
-whereClause : K_WHERE subquery;
+whereClause : K_WHERE query ;
 orderByClause : K_ORDER K_BY attributeOrder ( ',' attributeOrder )* ;
-
-subquery : query | OPEN_PAR subquery CLOSE_PAR;
 
 query : logicalQuery | simpleQuery ;
 
@@ -42,7 +40,9 @@ simpleQuery : equalQuery
             | notBetweenQuery
             | inQuery
             | notInQuery
-            | matchesRegexQuery
+            | startsWithQuery
+            | endsWithQuery
+            | containsQuery
             | hasQuery
             | notHasQuery
             | OPEN_PAR simpleQuery CLOSE_PAR
@@ -58,17 +58,23 @@ betweenQuery : attributeName K_BETWEEN queryParameter K_AND queryParameter ;
 notBetweenQuery : attributeName K_NOT K_BETWEEN queryParameter K_AND queryParameter ;
 inQuery : attributeName K_IN OPEN_PAR queryParameter (',' queryParameter)* CLOSE_PAR ;
 notInQuery : attributeName K_NOT K_IN OPEN_PAR queryParameter (',' queryParameter)* CLOSE_PAR ;
-matchesRegexQuery : attributeName K_LIKE stringQueryParameter ;
+startsWithQuery : attributeName K_LIKE queryParameterTrailingPercent ;
+endsWithQuery : attributeName K_LIKE queryParameterLeadingPercent ;
+containsQuery : attributeName K_LIKE queryParameterLeadingAndTrailingPercent ;
 hasQuery : attributeName K_IS K_NOT K_NULL ;
 notHasQuery : attributeName K_IS K_NULL ;
 
 attributeName : IDENTIFIER | STRING_LITERAL ;
 
+queryParameterTrailingPercent : STRING_LITERAL_WITH_TRAILING_PERCENT ;
+queryParameterLeadingPercent : STRING_LITERAL_WITH_LEADING_PERCENT ;
+queryParameterLeadingAndTrailingPercent : STRING_LITERAL_WITH_LEADING_AND_TRAILING_PERCENT ;
 queryParameter : NUMERIC_LITERAL | STRING_LITERAL | BOOLEAN_LITERAL ;
 
+STRING_LITERAL_WITH_TRAILING_PERCENT : '\'' ( ~[%'] | '\'\'' )* '%\'' ;
+STRING_LITERAL_WITH_LEADING_PERCENT : '\'%' ( ~[%'] | '\'\'' )* '\'' ;
+STRING_LITERAL_WITH_LEADING_AND_TRAILING_PERCENT : '\'%' ( ~[%'] | '\'\'' )* '%\'' ;
 BOOLEAN_LITERAL : 'true' | 'false' ;
-
-stringQueryParameter : STRING_LITERAL ;
 
 attributeOrder : attributeName direction? ;
 direction : K_ASC | K_DESC ;
