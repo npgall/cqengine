@@ -38,9 +38,9 @@ public class CompoundIndex_ManufacturerToyotaColorBlueDoorsThree implements Benc
     private IndexedCollection<Car> indexedCollection;
 
     private final Query<Car> query = and(
-            equal(Car.MANUFACTURER, "Toyota"),
             equal(Car.COLOR, Car.Color.BLUE),
-            equal(Car.DOORS, 3)
+            equal(Car.DOORS, 3),
+            equal(Car.MANUFACTURER, "Toyota")
     );
 
     @Override

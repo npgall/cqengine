@@ -23,7 +23,9 @@ import com.googlecode.cqengine.query.simple.SimpleQuery;
 import com.googlecode.cqengine.query.logical.And;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A query which wraps a {@link CompoundAttribute}, used only in the query engine's internal communication
@@ -71,10 +73,10 @@ public class CompoundQuery<O> implements Query<O> {
     }
 
     public CompoundValueTuple<O> getCompoundValueTuple() {
-        List<Object> attributeValues = new ArrayList<Object>(andQuery.getSimpleQueries().size());
+        Map<Attribute<O, ?>, Object> attributeValues = new HashMap<Attribute<O, ?>, Object>();
         for (SimpleQuery<O, ?> simpleQuery : andQuery.getSimpleQueries()) {
             Equal<O, ?> equal = (Equal<O, ?>) simpleQuery;
-            attributeValues.add(equal.getValue());
+            attributeValues.put(equal.getAttribute(), equal.getValue());
         }
         return new CompoundValueTuple<O>(attributeValues);
     }
