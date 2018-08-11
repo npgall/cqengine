@@ -17,8 +17,12 @@ package com.googlecode.cqengine.index.compound.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A tuple (ordered list) of values, extracted from the fields of an object, according to, and in the same order as, the
@@ -35,8 +39,16 @@ public class CompoundValueTuple<O> {
     private final List<?> attributeValues;
     private final int hashCode;
 
-    public CompoundValueTuple(List<?> attributeValues) {
-        this.attributeValues = attributeValues;
+    public CompoundValueTuple(Map<Attribute<O, ?>, ?> attributeValues) {
+        // Sort the attribute values to enable support of compound queries that do not have the attributes defined in the same order as the compound index
+        final TreeMap<Attribute<O, ?>, Object> attributeValuesSortedByAttributeName = new TreeMap<Attribute<O, ?>, Object>(new Comparator<Attribute<O, ?>>() {
+            @Override
+            public int compare(Attribute<O, ?> o1, Attribute<O, ?> o2) {
+                return o1.getAttributeName().compareTo(o2.getAttributeName());
+            }
+        });
+        attributeValuesSortedByAttributeName.putAll(attributeValues);
+        this.attributeValues = new ArrayList<Object>(attributeValuesSortedByAttributeName.values());
         this.hashCode = attributeValues.hashCode();
     }
 

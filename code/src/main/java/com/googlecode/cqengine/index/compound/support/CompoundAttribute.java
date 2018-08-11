@@ -131,15 +131,25 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
         // Values for first attribute:  1
         // Values for second attribute: "bar", "baz"
         // Values for third attribute:  2.0, 3.0, 4.0
+        //
+        // or in list form :
+        // [[1], [bar, baz], [2.0, 3.0, 4.0]]
+        //
         // ...then we should generate and index the object against the following tuples:
         // [[1, bar, 2.0], [1, bar, 3.0], [1, bar, 4.0], [1, baz, 2.0], [1, baz, 3.0], [1, baz, 4.0]]
+        // Note that ordering is preserved, we take advantage of this below
         List<List<Object>> listsOfValueCombinations = TupleCombinationGenerator.generateCombinations(attributeValueLists);
 
         // STEP 3.
         // Wrap each of the unique combinations in a CompoundValueTuple object...
         List<CompoundValueTuple<O>> tuples = new ArrayList<CompoundValueTuple<O>>(listsOfValueCombinations.size());
         for (List<Object> valueCombination : listsOfValueCombinations) {
-            tuples.add(new CompoundValueTuple<O>(valueCombination));
+            Map<Attribute<O, ?>, Object> mappedTuples = new HashMap<Attribute<O, ?>, Object>();
+            // here we take advantage of the fact that ordering is preserved when the tuples are generated
+            for (int i = 0; i < attributes.size(); i++) {
+                mappedTuples.put(attributes.get(i), valueCombination.get(i));
+            }
+            tuples.add(new CompoundValueTuple<O>(mappedTuples));
         }
         // Return the list of CompoundValueTuple objects...
         return tuples;
@@ -168,5 +178,4 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
                 "attributes=" + attributes +
                 '}';
     }
-
 }
