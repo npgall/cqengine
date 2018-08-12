@@ -17,13 +17,18 @@ package com.googlecode.cqengine.index.compound.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.logical.And;
+import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.SimpleQuery;
-import com.googlecode.cqengine.query.logical.And;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A query which wraps a {@link CompoundAttribute}, used only in the query engine's internal communication
@@ -71,16 +76,18 @@ public class CompoundQuery<O> implements Query<O> {
     }
 
     public CompoundValueTuple<O> getCompoundValueTuple() {
-        List<Object> attributeValues = new ArrayList<Object>(andQuery.getSimpleQueries().size());
+        Map<Attribute<O, ?>, Object> attributeValues = new HashMap<Attribute<O, ?>, Object>();
         for (SimpleQuery<O, ?> simpleQuery : andQuery.getSimpleQueries()) {
             Equal<O, ?> equal = (Equal<O, ?>) simpleQuery;
-            attributeValues.add(equal.getValue());
+            attributeValues.put(equal.getAttribute(), equal.getValue());
         }
         return new CompoundValueTuple<O>(attributeValues);
     }
 
     public static <O> CompoundQuery<O> fromAndQueryIfSuitable(And<O> andQuery) {
-        if (andQuery.hasLogicalQueries()) {
+        andQuery = flatten(andQuery);
+
+        if (andQuery == null) {
             return null;
         }
         List<Attribute<O, ?>> attributeList = new ArrayList<Attribute<O, ?>>(andQuery.getSimpleQueries().size());
@@ -95,4 +102,26 @@ public class CompoundQuery<O> implements Query<O> {
         return new CompoundQuery<O>(andQuery, compoundAttribute);
     }
 
+    /**
+     * Flatten an And query, bringing any nested And queries up the top level query if possible
+     *
+     * @param andQuery the And query to flatten
+     * @return the flattened And query, or null if it cannot be converted into a flat And query
+     */
+    private static <O> And<O> flatten(And<O> andQuery) {
+        final Set<Query<O>> flatQuerySet = new HashSet<Query<O>>();
+        for (LogicalQuery<O> childQuery : andQuery.getLogicalQueries()) {
+            if (childQuery instanceof And) {
+                And<O> flatQuery = flatten((And<O>) childQuery);
+                if (flatQuery == null) {
+                    return null;
+                }
+                flatQuerySet.addAll(flatQuery.getSimpleQueries());
+            } else {
+                return null;
+            }
+        }
+        flatQuerySet.addAll(andQuery.getSimpleQueries());
+        return new And<O>(flatQuerySet);
+    }
 }
