@@ -511,7 +511,7 @@ ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(descending(Ca
 ResultSet<Car> results = cars.retrieve(query, queryOptions(orderBy(descending(Car.PRICE), ascending(Car.DOORS))));
 ```
 
-Note that ordering results as above uses the default _materialize_ ordering strategy. This is relatively expensive, dependent on the number of objects matching the query, and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_. However ordering results in this way also implicitly eliminates duplicates.
+Note that ordering results as above uses the default _materialize_ ordering strategy. This is relatively expensive, dependent on the number of objects matching the query, and can cause latency in accessing the first object. It requires all results to be materialized into a sorted set up-front _before iteration can begin_.
 
 ### Index-accelerated ordering ###
 
