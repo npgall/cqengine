@@ -3,7 +3,6 @@ language: java
 dist: trusty
 
 jdk:
-- openjdk7
 - oraclejdk8
 
 install: /bin/true
