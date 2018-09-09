@@ -3,6 +3,7 @@ package com.googlecode.cqengine.persistence.support.serialization;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
 import de.javakaffee.kryoserializers.ArraysAsListSerializer;
 import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
 import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
@@ -62,9 +63,10 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
     protected Kryo createKryo(Class<?> objectType) {
         Kryo kryo = new Kryo();
         // Instantiate serialized objects via a no-arg constructor when possible, falling back to Objenesis...
-        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+        kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
         // Register the object which this index will persist...
         kryo.register(objectType);
+        kryo.setRegistrationRequired(false);
         // Register additional serializers which are not built-in to Kryo 3.0...
         kryo.register(Arrays.asList().getClass(), new ArraysAsListSerializer());
         UnmodifiableCollectionsSerializer.registerSerializers(kryo);
