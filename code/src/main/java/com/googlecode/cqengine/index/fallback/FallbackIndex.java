@@ -25,6 +25,7 @@ import com.googlecode.cqengine.query.simple.None;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
+import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
 
@@ -128,11 +129,13 @@ public class FallbackIndex<O> implements Index<O> {
             }
             @Override
             public int getRetrievalCost() {
-                return INDEX_RETRIEVAL_COST;
+                // None is a special case where we know it can't match any objects, and therefore retrieval cost is 0...
+                return query instanceof None ? 0 : INDEX_RETRIEVAL_COST;
             }
             @Override
             public int getMergeCost() {
-                return INDEX_MERGE_COST;
+                // None is a special case where we know it can't match any objects, and therefore merge cost is 0...
+                return query instanceof None ? 0 : INDEX_MERGE_COST;
             }
             @Override
             public void close() {

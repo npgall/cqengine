@@ -1,5 +1,11 @@
 # CQEngine Release Notes #
 
+## Version 2.12.4 - 2017-11-24 ###
+  * Performance improvement. Improved handling of Or queries when one clause is None (Thanks to stevebarham for the suggestion and investigation; fixes #167).
+  
+### Version 2.12.3 - 2017-11-20 ###
+  * Updated the configuration of maven-shade-plugin, to fix an issue which can prevent `AttributeBytecodeGenerator` from working correctly when CQEngine is run from the shaded jar.
+  
 ### Version 2.12.2 - 2017-10-29 ###
   * Added support to auto-generate attributes from getter methods in POJOs. Previously it was only possible to auto-generate attributes for fields in POJOs. This new feature is supported by both `AttributeSourceGenerator` and `AttributeBytecodeGenerator`.
   
