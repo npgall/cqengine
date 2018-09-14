@@ -22,6 +22,10 @@ import com.googlecode.cqengine.resultset.common.NonUniqueObjectException;
 
 import java.io.Closeable;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Niall Gallagher
@@ -194,4 +198,26 @@ public abstract class ResultSet<O> implements Iterable<O>, Closeable {
      * IndexedCollection is in use and the types of indexes added to it.
      */
     public abstract void close();
+
+    /**
+     * Creates a {@link Spliterator} over objects matching the query for which this {@link ResultSet} was constructed.
+     *
+     * @return a {@link Spliterator} over objects matching the query for which this {@link ResultSet} was constructed
+     */
+    public Spliterator<O> spliterator() {
+        return Spliterators.spliteratorUnknownSize(this.iterator(), Spliterator.ORDERED);
+    }
+
+    /**
+     * Returns a {@link Stream} of objects matching the query for which this {@link ResultSet} was constructed.
+     * <p>
+     * The stream is configured such that if {@link Stream#close()} is called, {@link ResultSet#close()} will also be
+     * called automatically to close the {@link ResultSet}.
+     * </p>
+     * @return a {@link Stream} of objects matching the query for which this {@link ResultSet} was constructed
+     */
+    public Stream<O> stream() {
+        return StreamSupport.stream(this.spliterator(), false)
+                .onClose(this::close);
+    }
 }

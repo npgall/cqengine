@@ -270,11 +270,6 @@
             <artifactId>typetools</artifactId>
             <version>0.5.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.googlecode.cqengine</groupId>
-            <artifactId>cqengine-stream-support</artifactId>
-            <version>1.1.0</version>
-        </dependency>
 
         <!-- Test-scope dependencies... -->
         <dependency>
