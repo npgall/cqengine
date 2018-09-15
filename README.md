@@ -71,7 +71,7 @@ For more details see [TransactionIsolation](documentation/TransactionIsolation.m
 In CQEngine applications mostly interact with [IndexedCollection](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/IndexedCollection.html), which is an implementation of [java.util.Set](http://docs.oracle.com/javase/6/docs/api/java/util/Set.html), and it provides two additional methods:
 
   * [addIndex(SomeIndex)](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#addIndex(com.googlecode.cqengine.index.Index)) allows indexes to be added to the collection
-  * [retrieve(Query)](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query)) accepts a [Query](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/Query.html) and returns a [ResultSet](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html) providing objects matching that query. `ResultSet` implements [java.lang.Iterable](http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html), so accessing results is achieved by iterating the result set
+  * [retrieve(Query)](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/engine/QueryEngine.html#retrieve(com.googlecode.cqengine.query.Query)) accepts a [Query](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/Query.html) and returns a [ResultSet](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html) providing objects matching that query. `ResultSet` implements [java.lang.Iterable](http://docs.oracle.com/javase/6/docs/api/java/lang/Iterable.html), so accessing results is achieved by iterating the result set, or accessing it as a Java 8+ Stream
 
 Here is a **complete example** of how to build a collection, add indexes and perform queries. It does not discuss _attributes_, which are discussed below.
 
@@ -108,9 +108,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
   Query:
   ```java
     Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
-    for (Car car : cars.retrieve(query1)) {
-        System.out.println(car);
-    }
+    cars.retrieve(query1).forEach(System.out::println);
   ```
   Prints:
   ```
@@ -123,9 +121,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
   Query:
   ```java
     Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
-    for (Car car : cars.retrieve(query2)) {
-        System.out.println(car);
-    }
+    cars.retrieve(query2).forEach(System.out::println);
   ```
   Prints:
   ```
@@ -137,9 +133,7 @@ Note: add import statement to your class: _`import static com.googlecode.cqengin
   Query:
   ```java
     Query<Car> query3 = and(in(Car.FEATURES, "sunroof", "radio"), not(contains(Car.DESCRIPTION, "dirty")));
-    for (Car car : cars.retrieve(query3)) {
-        System.out.println(car);
-    }
+    cars.retrieve(query3).forEach(System.out::println);
   ```
    Prints:
   ```
@@ -167,9 +161,8 @@ public static void main(String[] args) {
                                     "AND price <= 5000.0 " +
                                     "AND color NOT IN ('GREEN', 'WHITE')) " +
                                     "ORDER BY manufacturer DESC, price ASC");
-    for (Car car : results) {
-        System.out.println(car); // Prints: Honda Accord, Ford Fusion, Ford Focus
-    }
+                                    
+    results.forEach(System.out::println); // Prints: Honda Accord, Ford Fusion, Ford Focus
 }
 ```
 
@@ -186,9 +179,8 @@ public static void main(String[] args) {
                                         "lessThanOrEqualTo(\"price\", 5000.0), " +
                                         "not(in(\"color\", GREEN, WHITE))" +
                                     ")");
-    for (Car car : results) {
-        System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
-    }
+                                    
+    results.forEach(System.out::println); // Prints: Ford Focus, Ford Fusion, Honda Accord
 }
 ```
 
@@ -255,11 +247,11 @@ public static final Attribute<Car, Integer> CAR_ID = new SimpleAttribute<Car, In
     public Integer getValue(Car car, QueryOptions queryOptions) { return car.carId; }
 };
 ```
-...or alternatively, if you are using Java 8, from a lambda expression or method reference:
+...or alternatively, from a lambda expression or method reference:
 ```java
 public static final Attribute<Car, Integer> Car_ID = attribute("carId", Car::getCarId);
 ```
-(For Java 8, please read [LambdaAttributes](documentation/LambdaAttributes.md) for more details.)
+(For some caveats on using lambdas, please read [LambdaAttributes](documentation/LambdaAttributes.md))
 
 Usually attributes are defined as anonymous `static` `final` objects like this. Supplying the `"carId"` string parameter to the constructor is actually optional, but it is recommended as it will appear in query `toString`s.
 
@@ -273,7 +265,7 @@ public static final Attribute<Car, String> FEATURES = new MultiValueAttribute<Ca
     public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
 };
 ```
-...or alternatively, if you are using Java 8:
+...or alternatively, from a lambda expression or method reference:
 ```java
 public static final Attribute<Car, String> FEATURES = attribute(String.class, "features", Car::getFeatures);
 ```
@@ -316,9 +308,9 @@ public static final Attribute<Car, Boolean> IS_DIRTY = new SimpleAttribute<Car, 
     public Boolean getValue(Car car, QueryOptions queryOptions) { return car.description.contains("dirty"); }
 };
 ```
-...or, if you are using Java 8:
+...or, the same thing using a lambda:
 ```java
-public static final Attribute<Car, Boolean> IS_DIRTY = attribute("dirty", car -> car.description.contains("dirty"));
+public static final Attribute<Car, Boolean> IS_DIRTY = attribute("is_dirty", car -> car.description.contains("dirty"));
 ```
 
 A `HashIndex` could be built on the virtual attribute above, enabling fast retrievals of cars which are either dirty or not dirty, without needing to scan the collection.
@@ -438,19 +430,7 @@ cars.addIndex(DiskIndex.onAttribute(Car.MANUFACTURER));
 
 ### Querying with persistence ###
 
-When either the `IndexedCollection`, or one or more indexes are located off-heap or on disk, take care to close the ResultSet when finished reading.
-```java
-ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"));
-try {
-    for (Car car : results) {
-        System.out.println(car);
-    }
-}
-finally {
-    results.close(); // ..close the ResultSet when finished reading!
-}
-```
-...or alternatively, if you are using Java 8:
+When either the `IndexedCollection`, or one or more indexes are located off-heap or on disk, take care to close the ResultSet when finished reading. You can use a _try-with-resources_ block to achieve this:
 ```java
 try (ResultSet<Car> results = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))) {
     results.forEach(System.out::println);
@@ -478,11 +458,11 @@ CQEngine [ResultSet](http://htmlpreview.github.io/?http://raw.githubusercontent.
     * For query fragments requiring _set intersection_ (`and`-based queries), this will be the _Math.min()_ of merge costs from underlying result sets, because intersections will be re-ordered to perform lowest-merge-cost intersections first
     * For query fragments requiring _set difference_ (`not`-based queries), this will be the merge cost from the first underlying result set
 
+  * [stream()](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#stream()) - Returns a Java 8+ `Stream` allowing CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
+ 
   * [close()](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/resultset/ResultSet.html#close()) -  Releases any resources or closes the transaction which was opened for the query. Whether or not it is necessary to close the ResultSet depends on which implementation of IndexedCollection is in use and the types of indexes added to it.
-
-
+  
 ---
-
 
 ## Deduplicating Results ##
 
@@ -538,15 +518,13 @@ Quantization can be a useful tool to tune the size of indexes, trading a reducti
 
 ## Grouping and Aggregation (GROUP BY, SUM...) ##
 
-CQEngine has been designed with support for grouping and aggregation in mind, but note that this is not built into the CQEngine library itself, because CQEngine is designed to integrate with Java 8 `Stream`s and lambda expressions. So the best approach for grouping or aggregating results, depends on the version of Java in use.
+CQEngine has been designed with support for grouping and aggregation in mind, but note that this is not built into the CQEngine library itself, because CQEngine is designed to integrate with Java 8+ `Stream`s. This allows CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
 
-### Java version 8 or later - streams and lambda expressions ###
+CQEngine `ResultSet` can be converted into a Java 8 `Stream` by calling `ResultSet.stream()`.
 
-When CQEngine is run on Java 8, a CQEngine `ResultSet` can be converted into a Java 8 `Stream`, which will allow CQEngine results to be grouped, aggregated, and transformed in flexible ways using lambda expressions.
+Note that Streams are **evaluated via filtering** and they do not avail of CQEngine indexes. So **for best performance, as much of the overall query as possible should be encapsulated in the CQEngine query**, as opposed to in lamba expressions in the stream. This combination would dramatically outperform a stream and lambda expression alone, which simply filtered the collection.
 
-Thus on Java 8 CQEngine can provide efficient query evaluation leveraging indexes, and then lambda expressions can be used to group or aggregate results. This would dramatically outperform a lambda expression alone, which simply filtered the collection.
-
-Here's how to transform a CQEngine `ResultSet` into a Java 8 `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query. For the complete example and more details, see [Streams](documentation/Streams.md).
+Here's how to transform a `ResultSet` into a `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query.
 ```java
 public static void main(String[] args) {
     IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
@@ -556,27 +534,12 @@ public static void main(String[] args) {
     Set<Car.Color> distinctColorsOfFordCars =
             streamOf(cars.retrieve(equal(Car.MANUFACTURER, "Ford")))
             .map(Car::getColor)
-            .distinct()
             .collect(Collectors.toSet());
 
     System.out.println(distinctColorsOfFordCars);
     // prints: [GREEN, RED]
 }
 ```
-
-**Performance Note**
-
-  * Note that both Java 8 lambda expressions, and LambdaJ expressions below, are primitive transformations which are **evaluated via filtering** and they do not avail of indexes
-
-  * So **for best performance as much of the overall query as possible should be encapsulated in the CQEngine query**, as opposed to in the post-processing lambda or LambdaJ expression
-
-
-### Java versions prior to 8 - use LambdaJ ###
-
-CQEngine also supports grouping and aggregation on Java versions prior to Java 8.
-
-[LambdaJ](http://code.google.com/p/lambdaj/) is a very powerful and highly recommended library for manipulating Java collections, including support for grouping and aggregation, on versions of Java prior to Java 8. Applications requiring fast retrieval and aggregation can thus combine CQEngine with LambdaJ - LambdaJ accepts `Iterable`s as input, and CQEngine's `ResultSet`s implement that interface.
-
 
 ---
 
@@ -626,7 +589,7 @@ CQEngine should generally be compatible with other JVM languages besides Java to
 
 ## Project Status ##
 
-  * CQEngine 2.12.4 is the current release as of writing (November 2017), and is in Maven central
+  * CQEngine 3.0.0 is the current release as of writing (September 2018), and is in Maven central
   * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
