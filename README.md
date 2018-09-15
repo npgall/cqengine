@@ -531,13 +531,12 @@ public static void main(String[] args) {
     cars.addAll(CarFactory.createCollectionOfCars(10));
     cars.addIndex(NavigableIndex.onAttribute(Car.MANUFACTURER));
 
-    Set<Car.Color> distinctColorsOfFordCars =
-            streamOf(cars.retrieve(equal(Car.MANUFACTURER, "Ford")))
+    Set<Car.Color> distinctColorsOfFordCars = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))
+            .stream()
             .map(Car::getColor)
             .collect(Collectors.toSet());
 
-    System.out.println(distinctColorsOfFordCars);
-    // prints: [GREEN, RED]
+    System.out.println(distinctColorsOfFordCars); // prints: [GREEN, RED]
 }
 ```
 
