@@ -84,7 +84,9 @@ public class IndexedCollectionFunctionalTest {
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow scenarios *during development only!*...
-    static final boolean SKIP_SLOW_SCENARIOS = Boolean.valueOf(System.getProperty("cqengine.skip.slow.scenarios", "false"));
+    static final boolean SKIP_SLOW_SCENARIOS =
+            "true".equalsIgnoreCase(System.getProperty("cqengine.skip.slow.scenarios")) // system property
+            || "true".equalsIgnoreCase(System.getenv("cqengine_skip_slow_scenarios")); // environment variable
 
     static final boolean RUN_HIGH_PRIORITY_SCENARIOS_ONLY = false;
 
