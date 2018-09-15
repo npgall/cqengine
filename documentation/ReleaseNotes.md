@@ -1,5 +1,21 @@
 # CQEngine Release Notes #
 
+## Version 3.0.0 - 2018-09-15 ###
+  * CQEngine is now officially compatible with Java 8, 9 & 10; and is no longer compatible with Java 6 & 7.
+  * CQEngine now has tighter integration with Java 8+ streams:
+    * A new method `ResultSet.stream()` has been added, which makes it easier than before to convert a `ResultSet` to a `Stream`.
+    * The dependency on the `cqengine-stream-support` library has been removed as it is no longer necessary.
+  * The 3.x release upgrades many of CQEngine's own dependencies to the latest versions, to ensure that those dependencies are also compatible with the newer versions of Java.
+  * **Backwards compatibility note**
+    * Unfortunately, the upgrade of CQEngine's dependency on the [Kryo serialization library](https://github.com/EsotericSoftware/kryo) from version 3.x to version 5.x may introduce a **backwards incompatibile change** change for some users.
+    * Data saved by Kryo 3.x cannot be read by Kryo 5.x.
+      * This unfortunately means any CQEngine `IndexedCollection`s saved to disk with CQEngine's `DiskPersistence` with earlier versions of CQEngine and Kryo, cannot be read by the newer versions.
+      * As Kryo 3.x is not compatible with newer versions of Java, there is not much that can be done on the CQEngine side to work around this.
+    * **Migration advice**
+      * The Kryo site provides some guidance on how to [migrate to Kryo 5](https://github.com/EsotericSoftware/kryo/wiki/Migration-to-v5).
+      * Essentially, before upgrading to CQEngine 3.x you can export saved objects from an `IndexedCollection` to a different format (e.g. JsonBeans), then upgrade to CQEngine 3.x, and then reimport the objects from JsonBeans to an IndexedCollection.
+    * Users who do not use `DiskPersistence` will not be affected by this, and CQEngine 3.x should be a drop-in replacement for CQEngine 2.x as long as the application is running on Java 8+.
+
 ## Version 2.12.4 - 2017-11-24 ###
   * Performance improvement. Improved handling of Or queries when one clause is None (Thanks to stevebarham for the suggestion and investigation; fixes #167).
   
