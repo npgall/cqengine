@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/npgall/cqengine.svg?branch=master)](https://travis-ci.org/npgall/cqengine)
-[![Maven Central](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/googlecode/cqengine/cqengine/maven-metadata.xml.svg?maxAge=2592000
+[![Maven Central](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/googlecode/cqengine/cqengine/maven-metadata.xml.svg?maxAge=86400
 )](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.googlecode.cqengine%22%20AND%20a%3Acqengine)
 
 
