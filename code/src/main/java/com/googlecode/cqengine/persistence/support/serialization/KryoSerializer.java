@@ -1,17 +1,19 @@
 package com.googlecode.cqengine.persistence.support.serialization;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+
+import org.objenesis.strategy.StdInstantiatorStrategy;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
+
 import de.javakaffee.kryoserializers.ArraysAsListSerializer;
 import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
 import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
-import org.objenesis.strategy.StdInstantiatorStrategy;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
 
 /**
  * Uses <a href="https://github.com/EsotericSoftware/kryo">Kryo</a> to serialize and deserialize objects;
@@ -158,7 +160,7 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
 
     static <O> void validateObjectIsRoundTripSerializable(O candidatePojo, Class<O> objectType, PersistenceConfig persistenceConfig) {
         try {
-            KryoSerializer<O> serializer = new KryoSerializer<O>(
+            KryoSerializer<O> serializer = new KryoSerializer<>(
                     objectType,
                     persistenceConfig
             );
@@ -184,4 +186,5 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
             throw new IllegalStateException("The POJO's hashCode after round trip serialization differs from its original hashCode");
         }
     }
+	
 }

@@ -15,4 +15,5 @@ public interface PojoSerializer<O> {
     byte[] serialize(O object);
 
     O deserialize(byte[] bytes);
+	
 }
