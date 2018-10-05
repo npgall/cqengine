@@ -46,8 +46,6 @@ public class CQNQueryDemo {
                                             "not(in(\"color\", GREEN, WHITE))" +
                                         ")");
 
-        for (Car car : results) {
-            System.out.println(car); // Prints: Ford Focus, Ford Fusion, Honda Accord
-        }
+        results.forEach(System.out::println); // Prints: Ford Focus, Ford Fusion, Honda Accord
     }
 }

@@ -16,9 +16,11 @@
 package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.query.logical.And;
+import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
 import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.simple.*;
+import com.googlecode.cqengine.testutil.Car;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -31,6 +33,9 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.googlecode.cqengine.query.QueryFactory.*;
+import static java.util.Collections.singletonList;
+
 /**
  * @author Niall Gallagher
  */
@@ -38,26 +43,22 @@ import java.util.List;
 public class QueriesEqualsAndHashCodeTest {
 
     /**
-     * Returns Query classes whose equals() and hashCode() methods can be validated by EqualsVerifier.
+     * Returns Query classes whose equals() and hashCode() methods can be validated by EqualsVerifier in a uniform way.
      */
-    @SuppressWarnings("unchecked")
     @DataProvider
     public static List<List<Class>> getQueryClassesForAutomatedValidation() {
         return Arrays.asList(
-                Arrays.<Class>asList(And.class),
-                Arrays.<Class>asList(Between.class),
-                Arrays.<Class>asList(Equal.class),
-                Arrays.<Class>asList(ExistsIn.class),
-                Arrays.<Class>asList(GreaterThan.class),
-                Arrays.<Class>asList(Has.class),
-                Arrays.<Class>asList(LessThan.class),
-                Arrays.<Class>asList(Not.class),
-                Arrays.<Class>asList(Or.class),
-                Arrays.<Class>asList(StringContains.class),
-                Arrays.<Class>asList(StringEndsWith.class),
-                Arrays.<Class>asList(StringIsContainedIn.class),
-                Arrays.<Class>asList(StringMatchesRegex.class),
-                Arrays.<Class>asList(StringStartsWith.class)
+                singletonList(Equal.class),
+                singletonList(In.class),
+                singletonList(Has.class),
+                singletonList(LessThan.class),
+                singletonList(GreaterThan.class),
+                singletonList(Between.class),
+                singletonList(StringStartsWith.class),
+                singletonList(StringEndsWith.class),
+                singletonList(StringContains.class),
+                singletonList(StringIsContainedIn.class),
+                singletonList(StringMatchesRegex.class)
         );
     }
 
@@ -68,6 +69,49 @@ public class QueriesEqualsAndHashCodeTest {
     @UseDataProvider(value = "getQueryClassesForAutomatedValidation")
     public void testQueryClass(Class<? extends Query> queryClass) {
         EqualsVerifier.forClass(queryClass)
+                .withIgnoredFields("attributeIsSimple", "simpleAttribute")
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+                .verify();
+    }
+
+    @Test
+    public void testAnd() {
+        EqualsVerifier.forClass(And.class)
+                .withIgnoredFields("logicalQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withPrefabValues(And.class, and(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), and(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
+                .withPrefabValues(LogicalQuery.class, and(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), and(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+                .verify();
+    }
+
+    @Test
+    public void testOr() {
+        EqualsVerifier.forClass(Or.class)
+                .withIgnoredFields("logicalQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withPrefabValues(Or.class, or(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), or(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
+                .withPrefabValues(LogicalQuery.class, or(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), or(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+                .verify();
+    }
+
+    @Test
+    public void testNot() {
+        EqualsVerifier.forClass(Not.class)
+                .withIgnoredFields("logicalQueries", "childQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withPrefabValues(Not.class, not(equal(Car.CAR_ID, 1)), not(equal(Car.CAR_ID, 2)))
+                .withPrefabValues(LogicalQuery.class, not(equal(Car.CAR_ID, 1)), not(equal(Car.CAR_ID, 2)))
+                .withCachedHashCode("cachedHashCode", "calcHashCode", null)
+                .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+                .verify();
+    }
+
+    @Test
+    public void testExistsIn() {
+        EqualsVerifier.forClass(ExistsIn.class)
+                .withIgnoredFields("attributeIsSimple", "simpleAttribute", "attribute")
                 .withCachedHashCode("cachedHashCode", "calcHashCode", null)
                 .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE, Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
                 .verify();
@@ -77,7 +121,7 @@ public class QueriesEqualsAndHashCodeTest {
      * Query class {@link All} has a non-standard hashCode implementation.
      */
     @Test
-    public void testQueryClass_All() {
+    public void testAll() {
         Query<String> allStrings1 = QueryFactory.all(String.class);
         Query<String> allStrings2 = QueryFactory.all(String.class);
         Query<Integer> allIntegers1 = QueryFactory.all(Integer.class);
@@ -101,7 +145,7 @@ public class QueriesEqualsAndHashCodeTest {
      * Query class {@link None} has a non-standard hashCode implementation.
      */
     @Test
-    public void testQueryClass_None() {
+    public void testNone() {
         Query<String> noneStrings1 = QueryFactory.none(String.class);
         Query<String> noneStrings2 = QueryFactory.none(String.class);
         Query<Integer> noneIntegers1 = QueryFactory.none(Integer.class);

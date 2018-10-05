@@ -68,6 +68,15 @@ final val X_1: Attribute[TestClass, Integer] = new SimpleAttribute[TestClass, In
 ```
 The code should then compile and run successfully.
 
+### Alternative workaround ###
+
+Another user [mentioned](https://groups.google.com/d/msg/cqengine-discuss/PDodDlYBNOY/NUuWJ43lAQAJ) it's possible to work around this issue by tweaking Scala to use Java types rather than the ones from Scala. In the Scala main class, set:
+
+```scala
+type jLong = java.lang.Long
+type jInt = java.lang.Integer
+```
+
 # Kotlin #
 
 ## Defining CQEngine attributes in Kotlin ##

@@ -78,6 +78,7 @@ public class In<O, A> extends SimpleQuery<O, A> {
         In<?, ?> in = (In<?, ?>) o;
 
         if (disjoint != in.disjoint) return false;
+        if (!attribute.equals(in.attribute)) return false;
         return values.equals(in.values);
     }
 

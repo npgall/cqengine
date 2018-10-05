@@ -26,11 +26,8 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  */
 public class Has<O, A> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
-
     public Has(Attribute<O, A> attribute) {
         super(attribute);
-        this.attribute = attribute;
     }
 
     @Override

@@ -21,16 +21,21 @@ import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.testutil.Car;
+import com.googlecode.cqengine.testutil.CarFactory;
+
 import net.jodah.typetools.TypeResolver;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for methods in {@link QueryFactory} which are not covered by the functional test.
@@ -97,6 +102,16 @@ public class QueryFactoryTest {
     @Test
     public void testMatchesRegexMethodOverloading() {
         assertEquals(matchesRegex(Car.MODEL, "F.*"), matchesRegex(Car.MODEL, Pattern.compile("F.*")));
+    }
+
+    @Test
+    public void testPredicate() {
+        Car redCar = CarFactory.createCar(1);
+        Car blueCar = CarFactory.createCar(7);
+        Predicate<Car> predicate = predicate(equal(Car.COLOR, Car.Color.BLUE));
+
+        assertFalse(predicate.test(redCar));
+        assertTrue(predicate.test(blueCar));
     }
 
     @Test

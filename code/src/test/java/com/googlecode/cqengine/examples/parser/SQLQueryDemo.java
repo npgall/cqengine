@@ -45,8 +45,6 @@ public class SQLQueryDemo {
                                         "AND color NOT IN ('GREEN', 'WHITE')) " +
                                         "ORDER BY manufacturer DESC, price ASC");
 
-        for (Car car : results) {
-            System.out.println(car); // Prints: Honda Accord, Ford Fusion, Ford Focus
-        }
+        results.forEach(System.out::println); // Prints: Honda Accord, Ford Fusion, Ford Focus
     }
 }

@@ -21,6 +21,7 @@ import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -29,6 +30,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.googlecode.cqengine.query.QueryFactory.equal;
 
 /**
  * @author niall.gallagher
@@ -102,8 +109,49 @@ public class DiskPersistenceTest {
         SQLiteDataSource ds2 = new SQLiteDataSource(new SQLiteConfig());
         ds2.setUrl("bar");
         EqualsVerifier.forClass(DiskPersistence.class)
+                .withIgnoredFields("sqLiteDataSource")
                 .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
                 .withPrefabValues(SQLiteDataSource.class, ds1, ds2)
                 .verify();
+    }
+
+    @Test
+    public void testEndToEndDiskPersistence() {
+        Set<Integer> expectedCarIds = new HashSet<Integer>();
+        Set<Integer> actualCarIds = new HashSet<Integer>();
+        File persistenceFile;
+        {
+            // Create a collection of 50 cars persisted to disk...
+            DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKey(Car.CAR_ID);
+            persistenceFile = persistence.getFile();
+            @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+            IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
+            cars.addIndex(DiskIndex.onAttribute(Car.MANUFACTURER));
+            cars.addAll(CarFactory.createCollectionOfCars(50));
+
+            // Record the carIds of all "Ford" cars...
+            try (ResultSet<Car> blueCars = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))) {
+                for (Car car : blueCars) {
+                    expectedCarIds.add(car.getCarId());
+                }
+                // At this point we discard collection but we leave the persistence file on disk.
+            }
+        }
+        {
+            // Create a new collection, whose data is retrieved from the persistence file created earlier...
+            DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, persistenceFile);
+            IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
+            cars.addIndex(DiskIndex.onAttribute(Car.MANUFACTURER));
+
+            // Record the carIds of all "Ford" cars, as loaded from the persistence file...
+            try (ResultSet<Car> blueCars = cars.retrieve(equal(Car.MANUFACTURER, "Ford"))) {
+                for (Car car : blueCars) {
+                    actualCarIds.add(car.getCarId());
+                }
+            }
+        }
+        // Assert we got the same results both times...
+        Assert.assertEquals(expectedCarIds, actualCarIds);
+        Assert.assertTrue("Failed to delete temp file:" + persistenceFile, persistenceFile.delete());
     }
 }

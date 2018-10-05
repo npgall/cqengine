@@ -30,7 +30,6 @@ import java.util.Iterator;
  */
 public class Or<O> extends LogicalQuery<O> {
 
-    private final Collection<Query<O>> childQueries;
     private final boolean disjoint;
 
     /**
@@ -57,7 +56,6 @@ public class Or<O> extends LogicalQuery<O> {
             throw new IllegalStateException("An 'Or' query cannot have fewer than 2 child queries, " + childQueries.size() + " were supplied");
         }
         this.disjoint = disjoint;
-        this.childQueries = childQueries;
     }
 
     /**

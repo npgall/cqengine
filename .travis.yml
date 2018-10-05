@@ -3,8 +3,14 @@ language: java
 dist: trusty
 
 jdk:
-- openjdk7
-- oraclejdk8
+- openjdk8
+- openjdk9
+- openjdk10
+- openjdk11
+
+matrix:
+  allow_failures:
+    - jdk: openjdk11
 
 install: /bin/true
 

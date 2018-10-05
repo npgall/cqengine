@@ -26,7 +26,6 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  */
 public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A> {
 
-    private final Attribute<O, A> attribute;
     private final A value;
 
     /**
@@ -36,7 +35,6 @@ public class StringEndsWith<O, A extends CharSequence> extends SimpleQuery<O, A>
      */
     public StringEndsWith(Attribute<O, A> attribute, A value) {
         super(attribute);
-        this.attribute = attribute;
         this.value = value;
     }
 
