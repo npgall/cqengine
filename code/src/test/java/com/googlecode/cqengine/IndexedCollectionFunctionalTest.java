@@ -1489,7 +1489,7 @@ public class IndexedCollectionFunctionalTest {
             indexedCollection.clear();
         }
 
-        FlagsEnabled flagsEnabled = scenario.queryOptions.get(FlagsEnabled.class);
+        FlagsEnabled flagsEnabled = scenario.queryOptions.getFlagsEnabled();
         if (flagsEnabled == null) {
             flagsEnabled = new FlagsEnabled();
         }
@@ -1499,7 +1499,7 @@ public class IndexedCollectionFunctionalTest {
         else {
             flagsEnabled.remove(EngineFlags.PREFER_INDEX_MERGE_STRATEGY);
         }
-        scenario.queryOptions.put(FlagsEnabled.class, flagsEnabled);
+        scenario.queryOptions.setFlagsEnabled(flagsEnabled);
 
         try {
             evaluateQuery(indexedCollection, scenario.query, scenario.queryOptions, scenario.expectedResults);
@@ -1570,7 +1570,7 @@ public class IndexedCollectionFunctionalTest {
         }
         try {
             if (expectedResults.containsQueryLogMessages != null) {
-                queryOptions.put(QueryLog.class, new QueryLog(new AppendableCollection()));
+                queryOptions.setQueryLog(new QueryLog(new AppendableCollection()));
             }
             ResultSet<Car> results = indexedCollection.retrieve(query, queryOptions);
             try {
@@ -1620,7 +1620,7 @@ public class IndexedCollectionFunctionalTest {
                     }
                 }
                 if (expectedResults.containsQueryLogMessages != null) {
-                    QueryLog queryLog = queryOptions.get(QueryLog.class);
+                    QueryLog queryLog = queryOptions.getQueryLog();
                     AppendableCollection messages = (AppendableCollection)queryLog.getSink();
                     for (String expectedMessage : expectedResults.containsQueryLogMessages) {
                         assertTrue("QueryLog does not contain message '" + expectedMessage + "' for query: " + query + ", messages contained: " + messages, messages.contains(expectedMessage));

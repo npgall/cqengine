@@ -25,14 +25,6 @@ import com.googlecode.cqengine.index.sqlite.SQLiteIndex;
  */
 public class SQLiteIndexFlags {
 
-    /**
-     * A flag which if enabled causes the SQLiteIndex to temporarily drop the index on a table prior to adding objects,
-     * then to restore the index after objects have been added.
-     * <p/>
-     * This should not be used if other concurrent operations might also be ongoing on the collection. It is intended
-     * for use when the collection is first being populated or similar, such as at application startup.
-     */
-    public static String BULK_IMPORT = "BULK_IMPORT";
 
     /**
      * <p> A 2-values flag that enables externally managed bulk import and specifies it's status.
@@ -49,11 +41,4 @@ public class SQLiteIndexFlags {
         LAST;
     };
 
-    /**
-     * <p> Switches off the 'synchronous' and 'journal_mode' pragmas before executing a bulk import.
-     * Executing a bulk import with 'synchronous' and 'journal_mode' OFF can significantly increase the performances of the operation
-     * at a cost of a slightly higher risk of database corruption in case of system crashes or the power loses.
-     * <p> The default values will be re-instated after the import.
-     */
-    public static String BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING = "BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING";
 }

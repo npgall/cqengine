@@ -40,7 +40,7 @@ public class ArgumentValidationOption {
      * {@link com.googlecode.cqengine.query.option.ArgumentValidationStrategy#SKIP}
      */
     public static <O> boolean isSkip(QueryOptions queryOptions) {
-        ArgumentValidationOption option = queryOptions.get(ArgumentValidationOption.class);
+        ArgumentValidationOption option = queryOptions.getArgumentValidationOption();
         return option != null && ArgumentValidationStrategy.SKIP.equals(option.getStrategy());
     }
 

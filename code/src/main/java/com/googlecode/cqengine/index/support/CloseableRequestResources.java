@@ -71,10 +71,10 @@ public class CloseableRequestResources implements Closeable {
      * @return The existing QueryOptions's CloseableRequestResources or a new instance.
      */
     public static CloseableRequestResources forQueryOptions(final QueryOptions queryOptions) {
-        CloseableRequestResources closeableRequestResources = queryOptions.get(CloseableRequestResources.class);
+        CloseableRequestResources closeableRequestResources = queryOptions.getCloseableRequestResources();
         if (closeableRequestResources == null) {
             closeableRequestResources = new CloseableRequestResources();
-            queryOptions.put(CloseableRequestResources.class, closeableRequestResources);
+            queryOptions.setCloseableRequestResources(closeableRequestResources);
         }
         return closeableRequestResources;
     }
@@ -86,7 +86,7 @@ public class CloseableRequestResources implements Closeable {
      * @param queryOptions The {@link QueryOptions}
      */
     public static void closeForQueryOptions(QueryOptions queryOptions) {
-        closeQuietly(queryOptions.get(CloseableRequestResources.class));
+        closeQuietly(queryOptions.getCloseableRequestResources());
 
     }
     public static void closeQuietly(Closeable closeable) {

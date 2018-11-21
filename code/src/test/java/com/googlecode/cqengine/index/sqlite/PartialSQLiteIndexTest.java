@@ -50,7 +50,7 @@ public class PartialSQLiteIndexTest {
         IndexedCollection<Car> indexedCollection = new ConcurrentIndexedCollection<Car>();
         ConnectionManager connectionManager = temporaryInMemoryDatabase.getConnectionManager(true);
         QueryOptions queryOptions = new QueryOptions();
-        queryOptions.put(ConnectionManager.class, connectionManager);
+        queryOptions.setConnectionManager(connectionManager);
         PartialSQLiteIndex<String, Car, Integer> index = PartialSQLiteIndex.onAttributeWithFilterQuery(Car.MANUFACTURER, OBJECT_TO_ID, ID_TO_OBJECT, between(Car.CAR_ID, 2, 4));
         indexedCollection.addIndex(index, queryOptions);
         indexedCollection.update(Collections.<Car>emptySet(), CarFactory.createCollectionOfCars(10), queryOptions);

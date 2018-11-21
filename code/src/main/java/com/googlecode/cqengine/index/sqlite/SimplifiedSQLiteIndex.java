@@ -81,7 +81,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     static <O, K extends Comparable<K>> Persistence<O, K> getPersistenceFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        Persistence<O, K> persistence = (Persistence<O, K>) queryOptions.get(Persistence.class);
+        Persistence<O, K> persistence = (Persistence<O, K>) queryOptions.getPersistence();
         if (persistence == null) {
             throw new IllegalStateException("A required Persistence object was not supplied in query options");
         }
@@ -90,7 +90,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
 
     static <O> QueryEngine<O> getQueryEngineFromQueryOptions(QueryOptions queryOptions) {
         @SuppressWarnings("unchecked")
-        QueryEngine<O> queryEngine = (QueryEngine<O>) queryOptions.get(QueryEngine.class);
+        QueryEngine<O> queryEngine = (QueryEngine<O>) queryOptions.getQueryEngine();
         if (queryEngine == null) {
             throw new IllegalStateException("The QueryEngine was not supplied in query options");
         }

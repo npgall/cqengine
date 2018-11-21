@@ -32,6 +32,7 @@ import com.googlecode.cqengine.index.support.indextype.NonHeapTypeIndex;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.*;
@@ -418,7 +419,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * {@inheritDoc}
      * <p/>
      * Note objects can be imported into this index rapidly via this method,
-     * by setting flag {@link SQLiteIndexFlags#BULK_IMPORT}. See documentation on that flag for details and caveats.
+     * by setting flag {@link EngineFlags#BULK_IMPORT}. See documentation on that flag for details and caveats.
      */
     @Override
     public boolean addAll(final ObjectSet<O> objectSet, final QueryOptions queryOptions) {
@@ -446,8 +447,8 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
             // Handle the SQLite indexes on the table
             final BulkImportExternallyManged bulkImportExternallyManged = queryOptions.get(BulkImportExternallyManged.class);
-            final boolean isBulkImport = bulkImportExternallyManged == null && FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
-            final boolean isSuspendSyncAndJournaling = FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING);
+            final boolean isBulkImport = bulkImportExternallyManged == null && FlagsEnabled.isFlagEnabled(queryOptions, EngineFlags.BULK_IMPORT);
+            final boolean isSuspendSyncAndJournaling = FlagsEnabled.isFlagEnabled(queryOptions, EngineFlags.BULK_IMPORT_SUSPEND_SYNC_AND_JOURNALING);
             if ((bulkImportExternallyManged != null || isBulkImport) && !objectSet.isEmpty()) {
                 // Drop the SQLite index temporarily (if any) to speed up bulk import...
                 DBQueries.dropIndexOnTable(tableName, connection);
@@ -553,7 +554,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             final Connection connection = connectionManager.getConnection(this, queryOptions);
-            final boolean isBulkImport = queryOptions.get(BulkImportExternallyManged.class) != null || FlagsEnabled.isFlagEnabled(queryOptions, SQLiteIndexFlags.BULK_IMPORT);
+            final boolean isBulkImport = queryOptions.get(BulkImportExternallyManged.class) != null || FlagsEnabled.isFlagEnabled(queryOptions, EngineFlags.BULK_IMPORT);
             if (isBulkImport) {
                 // It's a bulk import, avoid creating the index on the SQLite table...
                 DBQueries.createIndexTable(tableName, primaryKeyAttribute.getAttributeType(), getAttribute().getAttributeType(), connection);
@@ -653,7 +654,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
      * @throws IllegalStateException if the ConnectionManager is not found.
      */
     ConnectionManager getConnectionManager(final QueryOptions queryOptions){
-        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        ConnectionManager connectionManager = queryOptions.getConnectionManager();
         if (connectionManager == null)
             throw new IllegalStateException("A ConnectionManager is required but was not provided in the QueryOptions.");
         return connectionManager;

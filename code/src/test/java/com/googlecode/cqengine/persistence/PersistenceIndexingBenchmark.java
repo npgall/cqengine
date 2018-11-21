@@ -26,6 +26,7 @@ import com.googlecode.cqengine.index.sqlite.support.SQLiteIndexFlags;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
@@ -158,7 +159,7 @@ public class PersistenceIndexingBenchmark {
         for (Car next : CarFactory.createIterableOfCars(total)) {
             if (!batch.offer(next)) {
                 if (BULK_IMPORT_FLAG) {
-                    collection.update(Collections.<Car>emptySet(), batch, QueryFactory.queryOptions(enableFlags(SQLiteIndexFlags.BULK_IMPORT)));
+                    collection.update(Collections.<Car>emptySet(), batch, QueryFactory.queryOptions(enableFlags(EngineFlags.BULK_IMPORT)));
                 }
                 else {
                     collection.update(Collections.<Car>emptySet(), batch);

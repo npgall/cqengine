@@ -92,7 +92,7 @@ public class CollectionQueryEngineTest {
     public void testIsMutable() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         QueryOptions queryOptions = new QueryOptions();
-        queryOptions.put(Persistence.class, OnHeapPersistence.withoutPrimaryKey());
+        queryOptions.setPersistence(OnHeapPersistence.withoutPrimaryKey());
         queryEngine.init(emptyObjectStore(), queryOptions);
 
         Assert.assertTrue(queryEngine.isMutable());
@@ -122,7 +122,7 @@ public class CollectionQueryEngineTest {
     public void testAddNonDuplicateIndex() throws Exception {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         QueryOptions queryOptions = new QueryOptions();
-        queryOptions.put(Persistence.class, OnHeapPersistence.withoutPrimaryKey());
+        queryOptions.setPersistence(OnHeapPersistence.withoutPrimaryKey());
         queryEngine.init(emptyObjectStore(), queryOptions);
 
         queryEngine.addIndex(HashIndex.onAttribute(Car.MANUFACTURER), noQueryOptions());

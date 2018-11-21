@@ -138,7 +138,7 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
     public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
         // Extract the root query from the query options, and check if it contains the filter query...
         @SuppressWarnings("unchecked")
-        Query<O> rootQuery = (Query<O>) queryOptions.get(CollectionQueryEngine.ROOT_QUERY);
+        Query<O> rootQuery = (Query<O>) queryOptions.getRootQuery();
 
         return supportsQueryInternal(backingIndex(), filterQuery, rootQuery, query, queryOptions);
     }

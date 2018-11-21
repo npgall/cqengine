@@ -27,6 +27,7 @@ import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
+import com.googlecode.cqengine.query.option.EngineFlags;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
@@ -43,7 +44,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.googlecode.cqengine.persistence.support.PersistenceFlags.READ_REQUEST;
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 import static com.googlecode.cqengine.query.option.FlagsEnabled.isFlagEnabled;
 
@@ -136,7 +136,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
     @Override
     public Connection getConnection(Index<?> index, QueryOptions queryOptions) {
         // Acquire a read lock IFF the READ_REQUEST flag has been set, otherwise acquire a write lock by default...
-        final Lock connectionLock = isFlagEnabled(queryOptions, READ_REQUEST)
+        final Lock connectionLock = isFlagEnabled(queryOptions, EngineFlags.READ_REQUEST)
                                         ? readWriteLock.readLock() : readWriteLock.writeLock();
 
         connectionLock.lock();
@@ -268,8 +268,8 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      */
     @Override
     public void openRequestScopeResources(QueryOptions queryOptions) {
-        if (queryOptions.get(ConnectionManager.class) == null) {
-            queryOptions.put(ConnectionManager.class, new RequestScopeConnectionManager(this));
+        if (queryOptions.getConnectionManager() == null) {
+            queryOptions.setConnectionManager(new RequestScopeConnectionManager(this));
         }
     }
 
@@ -281,7 +281,7 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
      */
     @Override
     public void closeRequestScopeResources(QueryOptions queryOptions) {
-        ConnectionManager connectionManager = queryOptions.get(ConnectionManager.class);
+        ConnectionManager connectionManager = queryOptions.getConnectionManager();
         if (connectionManager instanceof RequestScopeConnectionManager) {
             ((RequestScopeConnectionManager) connectionManager).close();
             queryOptions.remove(ConnectionManager.class);

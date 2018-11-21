@@ -57,16 +57,16 @@ public class FlagsDisabled {
      * @return The existing QueryOptions's FlagsDisabled or a new instance.
      */
     public static FlagsDisabled forQueryOptions(final QueryOptions queryOptions) {
-        FlagsDisabled flags = queryOptions.get(FlagsDisabled.class);
+        FlagsDisabled flags = queryOptions.getFlagsDisabled();
         if (flags == null) {
             flags = new FlagsDisabled();
-            queryOptions.put(FlagsDisabled.class, flags);
+            queryOptions.setFlagsDisabled(flags);
         }
         return flags;
     }
 
     public static boolean isFlagDisabled(QueryOptions queryOptions, Object flag) {
-        FlagsDisabled flagsDisabled = queryOptions.get(FlagsDisabled.class);
+        FlagsDisabled flagsDisabled = queryOptions.getFlagsDisabled();
         return flagsDisabled != null && flagsDisabled.isFlagDisabled(flag);
     }
 }
