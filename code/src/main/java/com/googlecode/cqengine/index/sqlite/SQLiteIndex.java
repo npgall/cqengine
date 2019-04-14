@@ -470,7 +470,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             Iterable<Row<K, A>> rows = rowIterable(objectSet, primaryKeyAttribute, getAttribute(), queryOptions);
             final int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
 
-            if (isBulkImport || (bulkImportExternallyManged != null && LAST.equals(bulkImportExternallyManged))) {
+            if (isBulkImport || LAST.equals(bulkImportExternallyManged)) {
                 // Bulk import finished, recreate the SQLite index...
                 DBQueries.createIndexOnTable(tableName, connection);
 
@@ -567,7 +567,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             Iterable<K> objectKeys = objectKeyIterable(objectSet, primaryKeyAttribute, queryOptions);
-
+            DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
             int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
             return rowsModified > 0;
         }
