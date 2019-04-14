@@ -64,6 +64,7 @@ public class DiskPersistence<O, A extends Comparable<A>> implements SQLitePersis
     static {
         DEFAULT_PROPERTIES.setProperty("busy_timeout", String.valueOf(Integer.MAX_VALUE)); // wait indefinitely to acquire locks (technically 68 years)
         DEFAULT_PROPERTIES.setProperty("journal_mode", "WAL"); // Use Write-Ahead-Logging which supports concurrent reads and writes
+        DEFAULT_PROPERTIES.setProperty("synchronous", "NORMAL"); // Setting synchronous to normal is safe and faster when using WAL.
     }
 
     protected DiskPersistence(SimpleAttribute<O, A> primaryKeyAttribute, File file, Properties overrideProperties) {

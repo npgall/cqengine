@@ -457,11 +457,14 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                         throw new IllegalStateException("Cannot suspend sync and journaling because it was not possible to read the original 'synchronous' and 'journal_mode' pragmas during the index initialization.");
                     }
                     DBQueries.suspendSyncAndJournaling(connection);
+                } else {
+                    DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
                 }
 
             } else {
                 // Not a bulk import, create indexes...
                 DBQueries.createIndexOnTable(tableName, connection);
+                DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
             }
 
             Iterable<Row<K, A>> rows = rowIterable(objectSet, primaryKeyAttribute, getAttribute(), queryOptions);
