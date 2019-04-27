@@ -457,17 +457,20 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                         throw new IllegalStateException("Cannot suspend sync and journaling because it was not possible to read the original 'synchronous' and 'journal_mode' pragmas during the index initialization.");
                     }
                     DBQueries.suspendSyncAndJournaling(connection);
+                } else {
+                    DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
                 }
 
             } else {
                 // Not a bulk import, create indexes...
                 DBQueries.createIndexOnTable(tableName, connection);
+                DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
             }
 
             Iterable<Row<K, A>> rows = rowIterable(objectSet, primaryKeyAttribute, getAttribute(), queryOptions);
             final int rowsModified = DBQueries.bulkAdd(rows, tableName, connection);
 
-            if (isBulkImport || (bulkImportExternallyManged != null && LAST.equals(bulkImportExternallyManged))) {
+            if (isBulkImport || LAST.equals(bulkImportExternallyManged)) {
                 // Bulk import finished, recreate the SQLite index...
                 DBQueries.createIndexOnTable(tableName, connection);
 
@@ -564,7 +567,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             Iterable<K> objectKeys = objectKeyIterable(objectSet, primaryKeyAttribute, queryOptions);
-
+            DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
             int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
             return rowsModified > 0;
         }
