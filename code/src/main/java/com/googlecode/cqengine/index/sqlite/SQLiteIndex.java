@@ -125,7 +125,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
 
     SQLiteConfig.SynchronousMode pragmaSynchronous;
     SQLiteConfig.JournalMode pragmaJournalMode;
-    boolean canSuspendSyncAndJournaling;
+    boolean canModifySyncAndJournaling;
 
     /**
      * Constructor. Note the index should normally be created via the static factory methods instead.
@@ -453,18 +453,28 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
                 DBQueries.dropIndexOnTable(tableName, connection);
 
                 if (isSuspendSyncAndJournaling) {
-                    if (!canSuspendSyncAndJournaling) {
+                    if (!canModifySyncAndJournaling) {
                         throw new IllegalStateException("Cannot suspend sync and journaling because it was not possible to read the original 'synchronous' and 'journal_mode' pragmas during the index initialization.");
                     }
                     DBQueries.suspendSyncAndJournaling(connection);
-                } else {
+                } else if (canModifySyncAndJournaling) {
+                    // Explicitly (re-)set the configured sync and journaling settings,
+                    // because we performed some DDL operations above. Because, it seems performing some
+                    // DDL operations can cause the previous sync and journaling settings settings to be lost.
+                    // For more details see: https://github.com/npgall/cqengine/issues/227
                     DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
                 }
 
             } else {
                 // Not a bulk import, create indexes...
                 DBQueries.createIndexOnTable(tableName, connection);
-                DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
+                if (canModifySyncAndJournaling) {
+                    // Explicitly (re-)set the configured sync and journaling settings,
+                    // because we performed some DDL operations above. Because, it seems performing some
+                    // DDL operations can cause the previous sync and journaling settings settings to be lost.
+                    // For more details see: https://github.com/npgall/cqengine/issues/227
+                    DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
+                }
             }
 
             Iterable<Row<K, A>> rows = rowIterable(objectSet, primaryKeyAttribute, getAttribute(), queryOptions);
@@ -567,7 +577,15 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
             }
 
             Iterable<K> objectKeys = objectKeyIterable(objectSet, primaryKeyAttribute, queryOptions);
-            DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
+
+            if (canModifySyncAndJournaling) {
+                // Explicitly (re-)set the configured sync and journaling settings,
+                // because we performed some DDL operations above. Because, it seems performing some
+                // DDL operations can cause the previous sync and journaling settings settings to be lost.
+                // For more details see: https://github.com/npgall/cqengine/issues/227
+                DBQueries.setSyncAndJournaling(connection, pragmaSynchronous, pragmaJournalMode);
+            }
+
             int rowsModified = DBQueries.bulkRemove(objectKeys, tableName, connection);
             return rowsModified > 0;
         }
@@ -632,7 +650,7 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
         final Connection connection = connectionManager.getConnection(this, queryOptions);
         pragmaJournalMode = DBQueries.getPragmaJournalModeOrNull(connection);
         pragmaSynchronous = DBQueries.getPragmaSynchronousOrNull(connection);
-        canSuspendSyncAndJournaling = pragmaJournalMode != null && pragmaSynchronous != null;
+        canModifySyncAndJournaling = pragmaJournalMode != null && pragmaSynchronous != null;
 
         doAddAll(ObjectSet.fromObjectStore(objectStore, queryOptions), queryOptions, true);
     }

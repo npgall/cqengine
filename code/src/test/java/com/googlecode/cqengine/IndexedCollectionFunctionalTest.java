@@ -1541,6 +1541,7 @@ public class IndexedCollectionFunctionalTest {
     static void closePersistenceIfNecessary(Persistence<Car, Integer> persistence) {
         if (persistence instanceof DiskPersistence) {
             DiskPersistence diskPersistence = (DiskPersistence) persistence;
+            diskPersistence.close();
             File diskPersistenceFile = diskPersistence.getFile();
             if (!diskPersistenceFile.delete()) {
                 throw new IllegalStateException("Failed to delete temporary disk persistence file: " + diskPersistenceFile);
