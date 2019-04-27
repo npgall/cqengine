@@ -1,5 +1,16 @@
 # CQEngine Release Notes #
 
+## Version 3.1.0 - 2019-04-28 ###
+  * Improved concurrency support in CQEngine DiskPersistence
+    * This resolves issue 227 via pull request 229.
+    * Many thanks to @jayaramcs and @codingchili for help, and to @codingchili for the Pull Request.
+  * CQEngine operates SQLite in WAL mode by default, and this release changes the default sync mode from FULL to NORMAL. For more details see: https://www.sqlite.org/wal.html
+    * Applications requiring the old setting (i.e. sync mode FULL) can override this setting via properties, see documentation in class DiskPersistence for details.
+  * This release also includes an additional (optional) feature to use the Shared-Cache Mode in SQLite for DiskPersistence. For more details see: https://www.sqlite.org/sharedcache.html
+    * Shared-Cache Mode can significantly improve throughput (especially read throughput) and reduce latency for DiskPersistence. However it supports less concurrency for writes, and so it is not enabled by default. The benefit may be application-dependent.
+    * Applications wishing to improve read throughput and reduce read latency when using DiskPersistence, could experiment with that setting. It can be enabled by configuring a property. See documentation in class DiskPersistence for details.
+ 
+
 ## Version 3.0.0 - 2018-09-15 ###
   * CQEngine is now officially compatible with Java 8, 9 & 10; and is no longer compatible with Java 6 & 7.
   * CQEngine now has tighter integration with Java 8+ streams:
