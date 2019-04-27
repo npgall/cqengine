@@ -589,7 +589,7 @@ CQEngine should generally be compatible with other JVM languages besides Java to
 
 ## Project Status ##
 
-  * CQEngine 3.0.0 is the current release as of writing (September 2018), and is in Maven central
+  * CQEngine 3.1.0 is the current release as of writing (April 2019), and is in Maven central
   * A [ReleaseNotes](documentation/ReleaseNotes.md) page has been added to document changes between releases
   * API / JavaDocs are available [here](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/index.html)
 
