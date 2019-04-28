@@ -1,5 +1,9 @@
 # CQEngine Release Notes #
 
+## Version 3.2.0 - 2019-04-28 ###
+  * CQEngine is now compatible with Java 11 (Java 8, 9, 10, 11).
+  * This release is practically identical to 3.1.0, except CQEngine's own dependencies are upgraded to versions which are now all compatible with Java 11.
+
 ## Version 3.1.0 - 2019-04-28 ###
   * Improved concurrency support in CQEngine DiskPersistence
     * This resolves issue 227 via pull request 229.
