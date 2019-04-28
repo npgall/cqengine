@@ -4,11 +4,11 @@ dist: trusty
 
 jdk:
 - openjdk8
-- openjdk11
+- oraclejdk11
 
 matrix:
   allow_failures:
-    - jdk: openjdk11
+    - jdk: oraclejdk11
 
 install: /bin/true
 
