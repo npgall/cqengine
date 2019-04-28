@@ -98,7 +98,7 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
             output.close();
             return baos.toByteArray();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             throw new IllegalStateException("Failed to serialize object, object type: " + objectType + ". " +
                     "Configure @PersistenceConfig.polymorphic if the collection will contain a mix of object types. " +
                     "Use the KryoSerializer.validateObjectIsRoundTripSerializable() method " +
@@ -128,7 +128,7 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
             input.close();
             return object;
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             throw new IllegalStateException("Failed to deserialize object, object type: " + objectType + ". " +
                     "Configure @PersistenceConfig.polymorphic if the collection will contain a mix of object types. " +
                     "Use the KryoSerializer.validateObjectIsRoundTripSerializable() method " +

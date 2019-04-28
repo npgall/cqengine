@@ -27,6 +27,7 @@ import com.googlecode.cqengine.testutil.CarFactory;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
@@ -36,6 +37,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.googlecode.cqengine.query.QueryFactory.equal;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author niall.gallagher
@@ -153,5 +155,51 @@ public class DiskPersistenceTest {
         // Assert we got the same results both times...
         Assert.assertEquals(expectedCarIds, actualCarIds);
         Assert.assertTrue("Failed to delete temp file:" + persistenceFile, persistenceFile.delete());
+    }
+
+
+    // ================================================================================================
+    // === Manual tests, used to verify disk persistence compatibility between CQEngine versions... ===
+    // ================================================================================================
+
+    @Test @Ignore
+    public void testSaveToDisk() {
+        Set<Car> collectionOfCars = CarFactory.createCollectionOfCars(50);
+        Set<Integer> expectedCarIds = collectionOfCars.stream().map(Car::getCarId).collect(toSet());
+
+        File persistenceFile = new File("cqengine-persisted.dat");
+        System.out.println("Persistence file: " + persistenceFile.getAbsolutePath());
+
+        // Create a collection (it will initially be empty if the file does not exist)...
+        DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, persistenceFile);
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
+
+        // Populate the collection (saving it to disk)...
+        cars.addAll(collectionOfCars);
+
+        // Sanity check that we saved the cars correctly...
+        Set<Integer> actualCarIds = cars.stream().map(Car::getCarId).collect(toSet());
+
+        Assert.assertEquals(expectedCarIds, actualCarIds);
+        System.out.println("Saved to disk: " + actualCarIds);
+    }
+
+    @Test @Ignore
+    public void testReadFromDisk() {
+        Set<Car> collectionOfCars = CarFactory.createCollectionOfCars(50);
+        Set<Integer> expectedCarIds = collectionOfCars.stream().map(Car::getCarId).collect(toSet());
+
+        File persistenceFile = new File("cqengine-persisted.dat");
+        System.out.println("Persistence file: " + persistenceFile.getAbsolutePath());
+
+        // Create a collection (it will read from the pre-existing file on disk)...
+        DiskPersistence<Car, Integer> persistence = DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, persistenceFile);
+        IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(persistence);
+
+        // Retrieve the cars from disk...
+        Set<Integer> actualCarIds = cars.stream().map(Car::getCarId).collect(toSet());
+
+        Assert.assertEquals(expectedCarIds, actualCarIds);
+        System.out.println("Loaded from disk: " + actualCarIds);
     }
 }

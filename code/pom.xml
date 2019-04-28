@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>CQEngine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
@@ -236,13 +236,13 @@
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.22.0-GA</version>
+            <version>3.25.0-GA</version>
         </dependency>
 
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.23.1</version>
+            <version>3.27.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
@@ -252,7 +252,7 @@
         <dependency>
             <groupId>de.javakaffee</groupId>
             <artifactId>kryo-serializers</artifactId>
-            <version>0.42</version>
+            <version>0.45</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.esotericsoftware.kryo</groupId>
@@ -263,19 +263,19 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2</version>
         </dependency>
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>typetools</artifactId>
-            <version>0.5.0</version>
+            <version>0.6.1</version>
         </dependency>
 
         <!-- Test-scope dependencies... -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.22.0</version>
+            <version>2.27.0</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -299,14 +299,14 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
-            <version>26.0-jre</version>
+            <version>27.1-jre</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>2.5.2</version>
+            <version>3.1.8</version>
             <scope>test</scope>
         </dependency>
 
