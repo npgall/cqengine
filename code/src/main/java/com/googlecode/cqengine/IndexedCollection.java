@@ -17,6 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -131,4 +132,11 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      */
     @Override
     void addIndex(Index<O> index, QueryOptions queryOptions);
+
+    /**
+     * Returns the {@link Persistence} used by the the collection.
+     *
+     * @return The {@link Persistence} used by the the collection
+     */
+    Persistence<O, ?> getPersistence();
 }

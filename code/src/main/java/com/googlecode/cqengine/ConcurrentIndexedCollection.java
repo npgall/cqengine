@@ -98,6 +98,14 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
         this.indexEngine = queryEngine;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Persistence<O, ?> getPersistence() {
+        return persistence;
+    }
+
     // ----------- Query Engine Methods -------------
 
     /**
