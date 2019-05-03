@@ -29,9 +29,12 @@ public class StringParser extends ValueParser<String> {
 
     public static String stripQuotes(String stringValue) {
         int length = stringValue.length();
+        // Strip leading and trailing single quotes...
         if (length >= 2 && stringValue.charAt(0) == '\'' && stringValue.charAt(length - 1) == '\'') {
-            return stringValue.substring(1, length - 1);
+            stringValue = stringValue.substring(1, length - 1);
         }
+        // Convert double single quotes (which is how a single quote is escaped), to one single quote...
+        stringValue = stringValue.replace("''", "'");
         return stringValue;
     }
 }

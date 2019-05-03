@@ -88,6 +88,7 @@ public class SQLParserTest {
         assertQueriesEquals(equal(Car.PRICE, 3.1), parser.query("SELECT * FROM cars WHERE 'price' = 3.1"));
         assertQueriesEquals(equal(Car.PRICE, 3.1), parser.query("SELECT * FROM cars WHERE 'price' = +3.1"));
         assertQueriesEquals(equal(Car.PRICE, -3.1), parser.query("SELECT * FROM cars WHERE 'price' = -3.1"));
+        assertQueriesEquals(equal(Car.MODEL, "Sam's car"), parser.query("SELECT * FROM cars WHERE 'model' = 'Sam''s car'"));
 
         assertQueriesEquals(
                 or(
