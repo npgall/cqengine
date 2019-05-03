@@ -841,8 +841,8 @@ IDENTIFIER
  ;
 
 NUMERIC_LITERAL
- : DIGIT+ ( '.' DIGIT* )? ( E [-+]? DIGIT+ )?
- | '.' DIGIT+ ( E [-+]? DIGIT+ )?
+ : [-+]? DIGIT+ ( '.' DIGIT* )? ( E [-+]? DIGIT+ )?
+ | [-+]? '.' DIGIT+ ( E [-+]? DIGIT+ )?
  ;
 
 BIND_PARAMETER

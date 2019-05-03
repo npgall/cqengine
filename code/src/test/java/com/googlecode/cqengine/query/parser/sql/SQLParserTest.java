@@ -80,6 +80,14 @@ public class SQLParserTest {
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("SELECT * FROM cars WHERE (NOT ('manufacturer' = 'Ford'))"));
         assertQueriesEquals(equal(IS_BLUE, true), parser.query("SELECT * FROM cars WHERE (is_blue = true)"));
         assertQueriesEquals(equal(IS_BLUE, false), parser.query("SELECT * FROM cars WHERE (is_blue = false)"));
+        assertQueriesEquals(equal(Car.DOORS, 3), parser.query("SELECT * FROM cars WHERE 'doors' = 3"));
+        assertQueriesEquals(equal(Car.DOORS, 3), parser.query("SELECT * FROM cars WHERE 'doors' = +3"));
+        assertQueriesEquals(equal(Car.DOORS, -3), parser.query("SELECT * FROM cars WHERE 'doors' = -3"));
+        assertQueriesEquals(equal(Car.PRICE, 3.0), parser.query("SELECT * FROM cars WHERE 'price' = 3"));
+        assertQueriesEquals(equal(Car.PRICE, -3.0), parser.query("SELECT * FROM cars WHERE 'price' = -3"));
+        assertQueriesEquals(equal(Car.PRICE, 3.1), parser.query("SELECT * FROM cars WHERE 'price' = 3.1"));
+        assertQueriesEquals(equal(Car.PRICE, 3.1), parser.query("SELECT * FROM cars WHERE 'price' = +3.1"));
+        assertQueriesEquals(equal(Car.PRICE, -3.1), parser.query("SELECT * FROM cars WHERE 'price' = -3.1"));
 
         assertQueriesEquals(
                 or(
