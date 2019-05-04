@@ -50,6 +50,10 @@ public class AttributeBytecodeGeneratorTest {
         }
     }
 
+    static class AnotherPojoWithGetter {
+        Integer getBar() { return 1; }
+    }
+
     static class SuperCar extends SportsCar { // ...SportCar in turn extends Car
         final double[] tyrePressures;
         final Float[] wheelSpeeds;
@@ -100,6 +104,17 @@ public class AttributeBytecodeGeneratorTest {
         validateAttribute(((Attribute<SuperCar, Float>)attributes.get("getWheelSpeeds")), SuperCar.class, Float.class, "getWheelSpeeds", car1, Arrays.asList(56700.9F, 83321.0F));
         // Validate attributes reading fields from car2...
         validateAttribute(((Attribute<SuperCar, Float>)attributes.get("getWheelSpeeds")), SuperCar.class, Float.class, "getWheelSpeeds", car2, Arrays.asList(43424.4F, 61232.7F));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCreateAttributesForGetterMethods_HumanReadable() {
+        AnotherPojoWithGetter pojo = new AnotherPojoWithGetter();
+
+        Map<String, ? extends Attribute<AnotherPojoWithGetter, ?>> attributes = AttributeBytecodeGenerator.createAttributes(AnotherPojoWithGetter.class, MemberFilters.GETTER_METHODS_ONLY, AttributeNameProducers.USE_HUMAN_READABLE_NAMES_FOR_GETTERS);
+        assertEquals(1, attributes.size());
+
+        validateAttribute(((Attribute<AnotherPojoWithGetter, Integer>)attributes.get("bar")), AnotherPojoWithGetter.class, Integer.class, "bar", pojo, Collections.singletonList(1));
     }
 
     @Test

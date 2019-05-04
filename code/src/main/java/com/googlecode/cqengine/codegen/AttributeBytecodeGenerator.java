@@ -24,6 +24,7 @@ import javassist.bytecode.SignatureAttribute;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.googlecode.cqengine.codegen.AttributeSourceGenerator.*;
 import static com.googlecode.cqengine.codegen.MemberFilters.FIELDS_ONLY;
@@ -58,6 +59,24 @@ public class AttributeBytecodeGenerator {
      * Auto-generates and instantiates a set of attributes which read values from the members (fields or methods)
      * in the given POJO class.
      * <p>
+     * This is equivalent to calling {@link #createAttributes(Class, MemberFilter, Function)} with
+     * {@link MemberFilters#FIELDS_ONLY} and {@link AttributeNameProducers#USE_MEMBER_NAMES_VERBATIM}.
+     *
+     * @param pojoClass The POJO class containing fields for which attributes are to be created
+     * @param memberFilter A filter which determines the subset of the members of a class (fields and methods)
+     * for which attributes should be generated
+     * @return A map of field/attribute names to Attribute objects which read values from the members in the given POJO
+     * class
+     */
+    @SuppressWarnings("unchecked")
+    public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass, MemberFilter memberFilter) {
+        return createAttributes(pojoClass, memberFilter, AttributeNameProducers.USE_MEMBER_NAMES_VERBATIM);
+    }
+
+    /**
+     * Auto-generates and instantiates a set of attributes which read values from the members (fields or methods)
+     * in the given POJO class.
+     * <p>
      * By default, attributes will be generated for all non-private members declared directly in the POJO class,
      * and for inherited members as well, as long as the access modifiers on inherited members in their superclass(es)
      * allow those members to be accessed from the package of the POJO class. So if the POJO class is in the same
@@ -68,11 +87,13 @@ public class AttributeBytecodeGenerator {
      * @param pojoClass The POJO class containing fields for which attributes are to be created
      * @param memberFilter A filter which determines the subset of the members of a class (fields and methods)
      * for which attributes should be generated
+     * @param attributeNameProducer A function which generates a name for an attribute, given the {@link Member}
+     * for which the attribute will be generated
      * @return A map of field/attribute names to Attribute objects which read values from the members in the given POJO
      * class
      */
     @SuppressWarnings("unchecked")
-    public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass, MemberFilter memberFilter) {
+    public static <O> Map<String, ? extends Attribute<O, ?>> createAttributes(Class<O> pojoClass, MemberFilter memberFilter, Function<Member, String> attributeNameProducer) {
         final Map<String, Attribute<O, ?>> attributes = new TreeMap<String, Attribute<O, ?>>();
         Class currentClass = pojoClass;
         Set<String> membersEncountered = new HashSet<String>();
@@ -88,7 +109,7 @@ public class AttributeBytecodeGenerator {
                     }
                     int modifiers = member.getModifiers();
                     String memberName = member.getName();
-                    String attributeName = member.getName();
+                    String attributeName = attributeNameProducer.apply(member);
                     Class<?> memberType = getType(member);
 
                     Class<? extends Attribute<O, ?>> attributeClass;

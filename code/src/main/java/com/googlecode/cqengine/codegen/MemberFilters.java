@@ -10,48 +10,36 @@ import java.lang.reflect.Method;
  */
 public class MemberFilters {
 
+    enum GetterPrefix { get, is, has }
+
     /**
      * A filter which matches all members (both fields and methods).
      */
-    public static final MemberFilter ALL_MEMBERS = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return true;
-        }
-    };
+    public static final MemberFilter ALL_MEMBERS = member -> true;
 
     /**
      * A filter which matches all fields.
      */
-    public static final MemberFilter FIELDS_ONLY = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return member instanceof Field;
-        }
-    };
+    public static final MemberFilter FIELDS_ONLY = member -> member instanceof Field;
 
     /**
      * A filter which matches all methods.
      */
-    public static final MemberFilter METHODS_ONLY = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return member instanceof Method;
-        }
-    };
+    public static final MemberFilter METHODS_ONLY = member -> member instanceof Method;
 
     /**
      * A filter which matches all methods which start with "get", "is" and "has" and where the following character
      * is in uppercase.
      */
-    public static final MemberFilter GETTER_METHODS_ONLY = new MemberFilter() {
-        @Override
-        public boolean accept(Member member) {
-            return member instanceof Method
-                    && (hasGetterPrefix(member.getName(), "get")
-                    || hasGetterPrefix(member.getName(), "is")
-                    || hasGetterPrefix(member.getName(), "has"));
+    public static final MemberFilter GETTER_METHODS_ONLY = member -> {
+        if (member instanceof Method) {
+            for (GetterPrefix prefix : GetterPrefix.values()) {
+                if (hasGetterPrefix(member.getName(), prefix.name())) {
+                    return true;
+                }
+            }
         }
+        return false;
     };
 
     static boolean hasGetterPrefix(String memberName, String prefix) {
