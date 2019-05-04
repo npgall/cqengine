@@ -49,6 +49,14 @@ public interface QueryEngine<O> {
     public void addIndex(Index<O> index, QueryOptions queryOptions);
 
     /**
+     * Removes the given index from the collection.
+     *
+     * @param index The index to remove
+     * @param queryOptions Optional parameters for the index
+     */
+    public void removeIndex(Index<O> index, QueryOptions queryOptions);
+
+    /**
      * Returns the set of indexes which were previously added to the collection via the
      * {@link #addIndex(com.googlecode.cqengine.index.Index, QueryOptions)} method.
      *

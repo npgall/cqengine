@@ -123,7 +123,7 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
     boolean update(Iterable<O> objectsToRemove, Iterable<O> objectsToAdd, QueryOptions queryOptions);
 
     /**
-     * {@inheritDoc}
+     * @see #addIndex(Index, QueryOptions)
      */
     void addIndex(Index<O> index);
 
@@ -132,6 +132,17 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      */
     @Override
     void addIndex(Index<O> index, QueryOptions queryOptions);
+
+    /**
+     * @see #removeIndex(Index, QueryOptions)
+     */
+    void removeIndex(Index<O> index);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void removeIndex(Index<O> index, QueryOptions queryOptions);
 
     /**
      * Returns the {@link Persistence} used by the the collection.

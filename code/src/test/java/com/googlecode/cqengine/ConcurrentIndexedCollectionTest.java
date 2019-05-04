@@ -24,6 +24,7 @@ import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.persistence.offheap.OffHeapPersistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.query.QueryFactory;
+import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
 import com.googlecode.cqengine.testutil.Car;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -139,6 +140,17 @@ public class ConcurrentIndexedCollectionTest extends TestCase {
 
         Assert.assertEquals(1, indexes.size());
         Assert.assertEquals(HashIndex.class, indexes.get(0).getClass());
+    }
+
+    public void testRemoveIndex() {
+        IndexedCollection<Car> indexedCollection = new ConcurrentIndexedCollection<Car>();
+        HashIndex<Integer, Car> index = HashIndex.onAttribute(Car.CAR_ID);
+
+        indexedCollection.addIndex(index);
+        Assert.assertEquals(1, IteratorUtil.countElements(indexedCollection.getIndexes()));
+
+        indexedCollection.removeIndex(index);
+        Assert.assertEquals(0, IteratorUtil.countElements(indexedCollection.getIndexes()));
     }
 
 

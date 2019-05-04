@@ -94,8 +94,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     private final ConcurrentMap<Query<O>, Index<O>> standingQueryIndexes = new ConcurrentHashMap<Query<O>, Index<O>>();
     // Fallback index (handles queries which other indexes don't support)...
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
-    // Initially true, updated as indexes are added in addIndex()...
-    private volatile boolean allIndexesAreMutable = true;
+    // Updated as indexes are added or removed, this is used by the isMutable() method...
+    private final Set<Index<O>> immutableIndexes = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public CollectionQueryEngine() {
     }
@@ -133,20 +133,17 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     @Override
     public void addIndex(Index<O> index, QueryOptions queryOptions) {
         if (index instanceof StandingQueryIndex) {
-            allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             StandingQueryIndex<O> standingQueryIndex = (StandingQueryIndex<O>) index;
             addStandingQueryIndex(standingQueryIndex, standingQueryIndex.getStandingQuery(), queryOptions);
         }
         else if (index instanceof CompoundIndex) {
-            allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             CompoundIndex<O> compoundIndex = (CompoundIndex<O>) index;
             CompoundAttribute<O> compoundAttribute = compoundIndex.getAttribute();
             addCompoundIndex(compoundIndex, compoundAttribute, queryOptions);
         }
         else if (index instanceof AttributeIndex) {
-            allIndexesAreMutable = allIndexesAreMutable && index.isMutable();
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
@@ -162,6 +159,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         }
         else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
+        }
+        if (!index.isMutable()) {
+            immutableIndexes.add(index);
         }
     }
 
@@ -229,6 +229,66 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         queryOptions.put(Persistence.class, persistence);
         compoundIndex.init(objectStore, queryOptions);
     }
+
+    // -------------------- Methods for removing indexes --------------------
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeIndex(Index<O> index, QueryOptions queryOptions) {
+        boolean removed;
+        if (index instanceof StandingQueryIndex) {
+            @SuppressWarnings({"unchecked"})
+            StandingQueryIndex<O> standingQueryIndex = (StandingQueryIndex<O>) index;
+
+            removed = standingQueryIndexes.remove(standingQueryIndex.getStandingQuery(), standingQueryIndex);
+        }
+        else if (index instanceof CompoundIndex) {
+            @SuppressWarnings({"unchecked"})
+            CompoundIndex<O> compoundIndex = (CompoundIndex<O>) index;
+            CompoundAttribute<O> compoundAttribute = compoundIndex.getAttribute();
+
+            removed = compoundIndexes.remove(compoundAttribute, compoundIndex);
+        }
+        else if (index instanceof AttributeIndex) {
+            @SuppressWarnings({"unchecked"})
+            AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
+            Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
+
+            if (indexedAttribute instanceof StandingQueryAttribute) {
+                @SuppressWarnings("unchecked")
+                StandingQueryAttribute<O> standingQueryAttribute = (StandingQueryAttribute<O>) indexedAttribute;
+                Query<O> standingQuery = standingQueryAttribute.getQuery();
+
+                removed = standingQueryIndexes.remove(standingQuery, index);
+            }
+            else {
+                Set<Index<O>> indexesOnThisAttribute = attributeIndexes.get(indexedAttribute);
+
+                removed = indexesOnThisAttribute.remove(attributeIndex);
+
+                if (attributeIndex instanceof UniqueIndex) {
+                    // Remove from UniqueIndexes as well...
+                    removed = uniqueIndexes.remove(indexedAttribute, attributeIndex) || removed;
+                }
+
+                if (indexesOnThisAttribute.isEmpty()) {
+                    // If there are no more indexes left on this attribute,
+                    // remove the Set which was used to store indexes on the attribute also...
+                    attributeIndexes.remove(indexedAttribute);
+                }
+            }
+        }
+        else {
+            throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
+        }
+        if (removed && !index.isMutable()) {
+            // Remove from the set of immutable indexes; this is used by ensureMutable() and the isMutable() method...
+            immutableIndexes.remove(index);
+        }
+    }
+
 
     // -------------------- Method for accessing indexes --------------------
 
@@ -1200,14 +1260,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      */
     @Override
     public boolean isMutable() {
-        return allIndexesAreMutable;
+        return immutableIndexes.isEmpty();
     }
 
     /**
      * Throws an {@link IllegalStateException} if all indexes are not mutable.
      */
     void ensureMutable() {
-        if (!allIndexesAreMutable) {
+        if (!immutableIndexes.isEmpty()) {
             throw new IllegalStateException("Cannot modify indexes, an immutable index has been added.");
         }
     }
