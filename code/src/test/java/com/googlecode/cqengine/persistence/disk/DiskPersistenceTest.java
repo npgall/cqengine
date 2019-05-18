@@ -111,7 +111,7 @@ public class DiskPersistenceTest {
         SQLiteDataSource ds2 = new SQLiteDataSource(new SQLiteConfig());
         ds2.setUrl("bar");
         EqualsVerifier.forClass(DiskPersistence.class)
-                .withIgnoredFields("sqLiteDataSource", "persistentConnection", "closed")
+                .withIgnoredFields("sqLiteDataSource", "persistentConnection", "closed", "useReadWriteLock", "readWriteLock")
                 .suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE)
                 .withPrefabValues(SQLiteDataSource.class, ds1, ds2)
                 .verify();

@@ -25,6 +25,7 @@ import com.googlecode.cqengine.index.sqlite.support.DBQueries;
 import com.googlecode.cqengine.index.sqlite.support.DBUtils;
 import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.persistence.disk.DiskPersistence;
+import com.googlecode.cqengine.persistence.support.sqlite.LockReleasingConnection;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteOffHeapIdentityIndex;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -32,9 +33,6 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 
 import java.io.Closeable;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -285,40 +283,6 @@ public class OffHeapPersistence<O, A extends Comparable<A>> implements SQLitePer
         if (connectionManager instanceof RequestScopeConnectionManager) {
             ((RequestScopeConnectionManager) connectionManager).close();
             queryOptions.remove(ConnectionManager.class);
-        }
-    }
-
-    /**
-     * Wraps a {@link Connection} in a proxy object which delegates all method calls to it, and which additionally
-     * unlocks the given lock whenever the {@link Connection#close()} method is closed.
-     * <p/>
-     * Unlocks the lock at most once, ignoring subsequent calls.
-     */
-    static class LockReleasingConnection implements InvocationHandler {
-        final Connection targetConnection;
-        final Lock lockToUnlock;
-        boolean unlockedAlready = false;
-
-        LockReleasingConnection(Connection targetConnection, Lock lockToUnlock) {
-            this.targetConnection = targetConnection;
-            this.lockToUnlock = lockToUnlock;
-        }
-
-        public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
-            Object result = m.invoke(targetConnection, args);
-            if(m.getName().equals("close") && !unlockedAlready){
-                lockToUnlock.unlock();
-                unlockedAlready = true;
-            }
-            return result;
-        }
-
-        static Connection wrap(Connection targetConnection, Lock lockToUnlock) {
-            return (Connection) Proxy.newProxyInstance(
-                    targetConnection.getClass().getClassLoader(),
-                    new Class<?>[] { Connection.class },
-                    new LockReleasingConnection(targetConnection, lockToUnlock)
-            );
         }
     }
 
