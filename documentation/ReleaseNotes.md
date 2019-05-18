@@ -1,5 +1,13 @@
 # CQEngine Release Notes #
 
+## Version 3.3.0 - 2019-05-18 ###
+  * Added `IndexedCollection.removeIndex()` method, which allows to remove/drop indexes from the collection (resolves issue #208).
+  * Added support in `AttributeBytecodeGenerator` to auto-generate attributes with human-readable names from getter methods (resolves issue #181).
+  * Fixed handling of escaped quotes in SQL queries (resolves issue #207).
+  * Updated SQL grammar to allow negative numbers in SQL queries (resolves issue #213).
+  * Added `IndexedCollection.getPersistence()` method (resolves issue #226).
+  * Updated `shared_cache` mode of `DiskPersistence`, to use a read-write lock by default. This should prevent exceptions being thrown when concurrent write operations cannot be supported by the SQLite shared cache (can be disabled via properties).
+
 ## Version 3.2.0 - 2019-04-28 ###
   * CQEngine is now compatible with Java 11 (Java 8, 9, 10, 11).
   * This release is practically identical to 3.1.0, except CQEngine's own dependencies are upgraded to versions which are now all compatible with Java 11.
