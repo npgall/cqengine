@@ -360,6 +360,8 @@ Store the collection in native memory, within the JVM process but outside the Ja
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(OffHeapPersistence.onPrimaryKey(Car.CAR_ID));
 ```
 
+Note that the off-heap persistence will automatically create an index on the specified primary key attribute, so there is no need to add an index on that attribute later.
+
 **Disk**
 
 Store the collection in a temp file on disk (then see `DiskPersistence.getFile()`):
@@ -370,6 +372,8 @@ Or, store the collection in a particular file on disk:
 ```java
 IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>(DiskPersistence.onPrimaryKeyInFile(Car.CAR_ID, new File("cars.dat")));
 ```
+
+Note that the disk persistence will automatically create an index on the specified primary key attribute, so there is no need to add an index on that attribute later.
 
 **Wrapping**
 
