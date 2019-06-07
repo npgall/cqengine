@@ -191,7 +191,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Ensure there is not already an identity index added for this attribute...
             for (Index<O> existingIndex : indexesOnThisAttribute) {
                 if (existingIndex instanceof IdentityAttributeIndex) {
-                    throw new IllegalStateException("An identity index for persistence has already been added, and no additional non-heap indexes are allowed, on attribute: " + attribute);
+                    throw new IllegalStateException("An index has already been added on the primary key attribute used for persistence, and no additional non-heap indexes are allowed on that attribute: " + attribute);
                 }
             }
         }
