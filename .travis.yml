@@ -6,10 +6,6 @@ jdk:
 - openjdk8
 - oraclejdk11
 
-matrix:
-  allow_failures:
-    - jdk: oraclejdk11
-
 install: /bin/true
 
 branches:
