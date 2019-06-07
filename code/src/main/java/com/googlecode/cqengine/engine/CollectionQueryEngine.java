@@ -365,18 +365,30 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
     <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
-        // First check if a UniqueIndex is available, as this will have the lowest cost...
+        // First, check if a standing query index is available for the query...
+        ResultSet<O> lowestCostResultSet = retrieveFromStandingQueryIndexIfAvailable(query, queryOptions);
+        if (lowestCostResultSet != null) {
+            // A standing query index is available for this query.
+            // Results from standing query indexes are considered to have the lowest cost, so we simply return these results...
+            return lowestCostResultSet;
+        }
+        // At this point, no standing query indexes were available,
+        // so we proceed to check for other indexes on the attribute...
+
+        // Check if a UniqueIndex is available, as this will have the lowest cost of attribute-based indexes...
         Index<O> uniqueIndex = uniqueIndexes.get(query.getAttribute());
         if (uniqueIndex!= null && uniqueIndex.supportsQuery(query, queryOptions)){
             return uniqueIndex.retrieve(query, queryOptions);
         }
 
+        // At this point, we did not find any UniqueIndex, so we now check for other attribute-based indexes
+        // and we determine which one has the lowest retrieval cost...
+
+        int lowestRetrievalCost = 0;
         // Examine other (non-unique) indexes...
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
-        ResultSet<O> lowestCostResultSet = null;
-        int lowestRetrievalCost = 0;
         for (Index<O> index : indexesOnAttribute) {
             if (index.supportsQuery(query, queryOptions)) {
                 ResultSet<O> thisIndexResultSet = index.retrieve(query, queryOptions);
@@ -949,16 +961,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
 
         // Check if we can process this query from a standing query index...
-        Index<O> standingQueryIndex = standingQueryIndexes.get(query);
-        if (standingQueryIndex != null) {
-            // No deduplication required for standing queries.
-            if (standingQueryIndex instanceof StandingQueryIndex) {
-                return standingQueryIndex.retrieve(query, queryOptions);
-            }
-            else {
-                return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
-            }
-        } // else no suitable standing query index exists, process the query normally...
+        ResultSet<O> resultSetFromStandingQueryIndex = retrieveFromStandingQueryIndexIfAvailable(query, queryOptions);
+        if (resultSetFromStandingQueryIndex != null) {
+            // A standing query index was available, return its results...
+            return resultSetFromStandingQueryIndex;
+        }
+        // ..else no standing query index was available, process the query normally...
+
 
         if (query instanceof SimpleQuery) {
             // No deduplication required for a single SimpleQuery.
@@ -1117,14 +1126,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * <p/>
      * The algorithm then returns a {@link FilteringResultSet} which iterates the {@link ResultSet} with the
      * <i>lowest</i> <u>merge cost</u>. During iteration, this {@link FilteringResultSet} calls a
-     * {@link FilteringResultSet#isValid(Object, com.googlecode.cqengine.query.option.QueryOptions)} method for each object. This algorithm implements that method to
+     * {@link FilteringResultSet#isValid(Object, QueryOptions)} method for each object. This algorithm implements that method to
      * return true if the object matches all of the {@link SimpleQuery}s which had the <i>more expensive</i>
      * <u>merge costs</u>.
      * <p/>
      * As such the {@link ResultSet} which had the lowest merge cost drives the iteration.  Note therefore that this
      * method <i>does <u>not</u> perform set intersections in the conventional sense</i> (i.e. using
      * {@link Set#contains(Object)}). It has been tested empirically that it is usually cheaper to invoke
-     * {@link Query#matches(Object, com.googlecode.cqengine.query.option.QueryOptions)} to test each object in the smallest set against queries which would match the
+     * {@link Query#matches(Object, QueryOptions)} to test each object in the smallest set against queries which would match the
      * more expensive sets, rather than perform several hash lookups and equality tests between multiple sets.
      *
      * @param queries A collection of {@link SimpleQuery} objects to be retrieved and intersected
@@ -1203,6 +1212,31 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         else {
             return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
         }
+    }
+
+    /**
+     * Checks if the given query can be answered from a standing query index, and if so returns
+     * a {@link ResultSet} which does so.
+     * If the query cannot be answered from a standing query index, returns null.
+     *
+     * @param query The query to evaluate
+     * @param queryOptions Query options supplied for the query
+     * @return A {@link ResultSet} which answers the query from a standing query index, or null if no such index
+     * is available
+     */
+    ResultSet<O> retrieveFromStandingQueryIndexIfAvailable(Query<O> query, final QueryOptions queryOptions) {
+        // Check if we can process this query from a standing query index...
+        Index<O> standingQueryIndex = standingQueryIndexes.get(query);
+        if (standingQueryIndex != null) {
+            // No deduplication required for standing queries.
+            if (standingQueryIndex instanceof StandingQueryIndex) {
+                return standingQueryIndex.retrieve(query, queryOptions);
+            }
+            else {
+                return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
+            }
+        } // else no suitable standing query index exists, process the query normally...
+        return null;
     }
 
     /**

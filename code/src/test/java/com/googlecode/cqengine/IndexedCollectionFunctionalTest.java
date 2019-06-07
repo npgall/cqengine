@@ -1241,7 +1241,7 @@ public class IndexedCollectionFunctionalTest {
                     );
                 }},
                 new MacroScenario() {{
-                    name = "standing query index";
+                    name = "standing query index on entire query";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(ConcurrentIndexedCollection.class);
                     queriesToEvaluate = singletonList(
@@ -1256,6 +1256,42 @@ public class IndexedCollectionFunctionalTest {
                     );
                     indexCombinations = indexCombinations(
                             indexCombination(StandingQueryIndex.onQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))))
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "standing query index on nested logical query";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(all(Car.class), or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE)));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 5;
+                                    retrievalCost = 10;
+                                    mergeCost = 5;
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(StandingQueryIndex.onQuery(or(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.BLUE))))
+                    );
+                }},
+                new MacroScenario() {{
+                    name = "standing query index on nested simple query";
+                    dataSet = SMALL_DATASET;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = singletonList(
+                            new QueryToEvaluate() {{
+                                query = and(equal(Car.MANUFACTURER, "Ford"), equal(Car.COLOR, Car.Color.RED));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 2;
+                                    retrievalCost = 10;
+                                    mergeCost = 3; // there are 3 RED cars in total (although only 2 of them are Ford)
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            indexCombination(StandingQueryIndex.onQuery(equal(Car.COLOR, Car.Color.RED)))
                     );
                 }},
                 new MacroScenario() {{
