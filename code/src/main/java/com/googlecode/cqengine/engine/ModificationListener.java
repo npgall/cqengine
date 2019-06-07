@@ -55,4 +55,11 @@ public interface ModificationListener<O> {
      * @param queryOptions Optional parameters for the update
      */
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions);
+
+    /**
+     * Notifies the listener that it has been removed from the collection, so that it can take action
+     * to delete internal data structures.
+     * @param queryOptions Optional parameters for the update
+     */
+    public void destroy(QueryOptions queryOptions);
 }

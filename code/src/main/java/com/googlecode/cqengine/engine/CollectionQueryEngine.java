@@ -125,6 +125,16 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         });
     }
 
+    /**
+     * This is a no-op here, as currently the {@link ModificationListener#destroy(QueryOptions)} method
+     * is only used by indexes.
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        // No-op
+    }
+
     // -------------------- Methods for adding indexes --------------------
 
     /**
@@ -287,6 +297,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Remove from the set of immutable indexes; this is used by ensureMutable() and the isMutable() method...
             immutableIndexes.remove(index);
         }
+        // Notify the index that it has been removed, so that it can delete underlying storage used if necessary...
+        index.destroy(queryOptions);
     }
 
 

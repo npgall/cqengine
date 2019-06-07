@@ -117,6 +117,15 @@ public class StandingQueryIndex<O> implements Index<O>, OnHeapTypeIndex {
     }
 
     /**
+     * This is a no-op for this type of index.
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        // No-op
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

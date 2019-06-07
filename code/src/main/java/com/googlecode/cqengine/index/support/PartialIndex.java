@@ -17,6 +17,7 @@ package com.googlecode.cqengine.index.support;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.engine.CollectionQueryEngine;
+import com.googlecode.cqengine.engine.ModificationListener;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.compound.CompoundIndex;
@@ -230,6 +231,16 @@ public abstract class PartialIndex<A, O, I extends AttributeIndex<A, O>> impleme
     @Override
     public void init(ObjectStore<O> objectStore, QueryOptions queryOptions) {
         backingIndex().init(new FilteredObjectStore<O>(objectStore, filterQuery), queryOptions);
+    }
+
+    /**
+     * Calls {@link ModificationListener#destroy(QueryOptions)} on the backing index.
+     *
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        backingIndex().destroy(queryOptions);
     }
 
     @Override

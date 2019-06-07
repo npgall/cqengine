@@ -404,6 +404,15 @@ public class SuffixTreeIndex<A extends CharSequence, O> extends AbstractAttribut
     }
 
     /**
+     * This is a no-op for this type of index.
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        // No-op
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

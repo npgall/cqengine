@@ -74,6 +74,16 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
         backingIndex.init(objectStore, queryOptions);
     }
 
+    /**
+     * Calls {@link SQLiteIndex#destroy(QueryOptions)} on the wrapped index.
+     *
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        backingIndex().destroy(queryOptions);
+    }
+
     @Override
     public Index<O> getEffectiveIndex() {
         return this;

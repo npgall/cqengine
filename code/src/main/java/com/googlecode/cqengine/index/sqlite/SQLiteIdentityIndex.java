@@ -128,6 +128,16 @@ public class SQLiteIdentityIndex<A extends Comparable<A>, O> implements Identity
         sqLiteIndex.init(objectStore, queryOptions);
     }
 
+    /**
+     * Calls {@link SQLiteIndex#destroy(QueryOptions)} on the wrapped index.
+     *
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        sqLiteIndex.destroy(queryOptions);
+    }
+
     @Override
     public CloseableIterable<A> getDistinctKeys(QueryOptions queryOptions) {
         return sqLiteIndex.getDistinctKeys(queryOptions);

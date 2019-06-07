@@ -656,6 +656,22 @@ public class SQLiteIndex<A extends Comparable<A>, O, K> extends AbstractAttribut
     }
 
     /**
+     * Drops the table which underpins this index from the SQLite database.
+     *
+     * @param queryOptions Optional parameters for the update
+     */
+    @Override
+    public void destroy(QueryOptions queryOptions) {
+        ConnectionManager connectionManager = getConnectionManager(queryOptions);
+        if (!connectionManager.isApplyUpdateForIndexEnabled(this)) {
+            return;
+        }
+
+        final Connection connection = connectionManager.getConnection(this, queryOptions);
+        DBQueries.dropIndexTable(tableName, connection);
+    }
+
+    /**
      * Utility method to create the index table if needed.
      *
      * @param connection The {@link Connection}.
