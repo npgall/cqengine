@@ -364,38 +364,45 @@ public class TransactionalIndexedCollection<O> extends ConcurrentIndexedCollecti
 
         // Get the current Version and acquire an (uncontended) read lock on it...
         final Version thisVersion = acquireReadLockForCurrentVersion();
+        try {
 
-        // Return the results matching the query such that:
-        // - STEP 1: When the ResultSet.close() method is called, we decrement the readers count
-        //   to record that this thread is no longer reading this version.
-        // - STEP 2: We filter out from the results any objects which might not be fully committed yet
-        //   (as configured by writing threads for this version of the collection).
-        ResultSet<O> results = super.retrieve(query, queryOptions);
+            // Return the results matching the query such that:
+            // - STEP 1: When the ResultSet.close() method is called, we decrement the readers count
+            //   to record that this thread is no longer reading this version.
+            // - STEP 2: We filter out from the results any objects which might not be fully committed yet
+            //   (as configured by writing threads for this version of the collection).
+            ResultSet<O> results = super.retrieve(query, queryOptions);
 
-        // STEP 1: Wrap the results to intercept ResultSet.close()...
-        CloseableResultSet<O> versionReadingResultSet = new CloseableResultSet<O>(results, query, queryOptions) {
-            @Override
-            public void close() {
-                super.close();
-                // Release the read lock for this version when ResultSet.close() is called...
-                thisVersion.lock.readLock().unlock();
-            }
-        };
-        // STEP 2: Apply filtering as necessary...
-        if (thisVersion.objectsToExclude.iterator().hasNext()) {
-            // Apply the filtering to omit uncommitted objects...
-            return new CloseableFilteringResultSet<O>(versionReadingResultSet, query, queryOptions) {
+            // STEP 1: Wrap the results to intercept ResultSet.close()...
+            CloseableResultSet<O> versionReadingResultSet = new CloseableResultSet<O>(results, query, queryOptions) {
                 @Override
-                public boolean isValid(O object, QueryOptions queryOptions) {
-                    @SuppressWarnings("unchecked")
-                    Iterable<O> objectsToExclude = (Iterable<O>)thisVersion.objectsToExclude;
-                    return !iterableContains(objectsToExclude, object);
+                public void close() {
+                    super.close();
+                    // Release the read lock for this version when ResultSet.close() is called...
+                    thisVersion.lock.readLock().unlock();
                 }
             };
+            // STEP 2: Apply filtering as necessary...
+            if (thisVersion.objectsToExclude.iterator().hasNext()) {
+                // Apply the filtering to omit uncommitted objects...
+                return new CloseableFilteringResultSet<O>(versionReadingResultSet, query, queryOptions) {
+                    @Override
+                    public boolean isValid(O object, QueryOptions queryOptions) {
+                        @SuppressWarnings("unchecked")
+                        Iterable<O> objectsToExclude = (Iterable<O>) thisVersion.objectsToExclude;
+                        return !iterableContains(objectsToExclude, object);
+                    }
+                };
+            } else {
+                // As there were no objects to exclude, then we can return the results directly without filtering...
+                return versionReadingResultSet;
+            }
         }
-        else {
-            // As there were no objects to exclude, then we can return the results directly without filtering...
-            return versionReadingResultSet;
+        catch (RuntimeException e) {
+            // Release the read lock we acquired above, because due to throwing an exception,
+            // we will not be returning a CloseableResultSet which otherwise would allow it to be released later...
+            thisVersion.lock.readLock().unlock();
+            throw e;
         }
     }
 
