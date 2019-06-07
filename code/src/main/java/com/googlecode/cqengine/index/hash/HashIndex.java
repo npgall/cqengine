@@ -46,9 +46,9 @@ import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNe
  * <p/>
  * Supports query types:
  * <ul>
- *     <li>
- *         {@link Equal}
- *     </li>
+ *     <li>{@link Equal}</li>
+ *     <li>{@link In}</li>
+ *     <li>{@link Has}</li>
  * </ul>
  * </ul>
  * The constructor of this index accepts {@link Factory} objects, from which it will create the map and value sets it
