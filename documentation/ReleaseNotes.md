@@ -1,5 +1,11 @@
 # CQEngine Release Notes #
 
+## Version 3.4.0 - 2019-06-07 ###
+  * Added null checking to constructors of query objects (resolves issue #223)
+  * Fixed bug which prevented standing query indexes from being considered for nested simple queries (resolves issue #232)
+  * Improved exception handling in `TransactionalIndexedCollection` `retrieve()` method, to ensure that read locks are released in the case that an unexpected exception was thrown (resolves issue #235)
+  * Added `destroy()` method to indexes, which is now called when they are removed from the collection; allows disk and off-heap based indexes to free storage/memory when removed.
+
 ## Version 3.3.0 - 2019-05-18 ###
   * Added `IndexedCollection.removeIndex()` method, which allows to remove/drop indexes from the collection (resolves issue #208).
   * Added support in `AttributeBytecodeGenerator` to auto-generate attributes with human-readable names from getter methods (resolves issue #181).
