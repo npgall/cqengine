@@ -20,6 +20,8 @@ import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
+import static com.googlecode.cqengine.query.support.QueryValidation.checkObjectTypeNotNull;
+
 /**
  * A query which matches all objects in the collection.
  * <p/>
@@ -32,7 +34,7 @@ public class All<O> extends SimpleQuery<O, O> {
     final Class<O> objectType;
 
     public All(Class<O> objectType) {
-        super(new SelfAttribute<O>(objectType, "true"));
+        super(new SelfAttribute<O>(checkObjectTypeNotNull(objectType), "all"));
         this.objectType = objectType;
     }
 

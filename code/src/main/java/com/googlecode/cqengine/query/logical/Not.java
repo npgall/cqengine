@@ -20,6 +20,8 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.Collections;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Represents a logical negation on a child query, which when evaluated yields the set complement of the result set
  * from the child query.
@@ -32,7 +34,7 @@ public class Not<O> extends LogicalQuery<O> {
     private final Query<O> negatedQuery;
 
     public Not(Query<O> negatedQuery) {
-        super(Collections.singleton(negatedQuery));
+        super(Collections.singleton(requireNonNull(negatedQuery, "The negated query cannot be null")));
         this.negatedQuery = negatedQuery;
     }
 

@@ -21,6 +21,8 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.regex.Pattern;
 
+import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
+
 /**
  * Asserts that an attribute's value matches a regular expression.
  * <p/>
@@ -41,7 +43,7 @@ public class StringMatchesRegex<O, A extends CharSequence> extends SimpleQuery<O
      */
     public StringMatchesRegex(Attribute<O, A> attribute, Pattern regexPattern) {
         super(attribute);
-        this.regexPattern = regexPattern;
+        this.regexPattern = checkQueryValueNotNull(regexPattern);
     }
 
 

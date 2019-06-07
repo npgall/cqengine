@@ -19,6 +19,8 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
+import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
+
 /**
  * Asserts than an attribute equals a certain value.
  *
@@ -30,7 +32,7 @@ public class Equal<O, A> extends SimpleQuery<O, A> {
 
     public Equal(Attribute<O, A> attribute, A value) {
         super(attribute);
-        this.value = value;
+        this.value = checkQueryValueNotNull(value);
     }
 
     public A getValue() {

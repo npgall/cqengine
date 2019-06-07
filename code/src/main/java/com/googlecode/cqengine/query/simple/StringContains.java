@@ -19,6 +19,8 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
+import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
+
 /**
  * Asserts than a {@link CharSequence}-based attribute ends with a given {@link CharSequence}-based suffix.
 
@@ -35,7 +37,7 @@ public class StringContains<O, A extends CharSequence> extends SimpleQuery<O, A>
      */
     public StringContains(Attribute<O, A> attribute, A value) {
         super(attribute);
-        this.value = value;
+        this.value = checkQueryValueNotNull(value);
     }
 
     public A getValue() {

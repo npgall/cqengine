@@ -20,6 +20,8 @@ import com.googlecode.cqengine.attribute.SelfAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
+import static com.googlecode.cqengine.query.support.QueryValidation.checkObjectTypeNotNull;
+
 /**
  * A query which matches no objects in the collection.
  * <p/>
@@ -32,7 +34,7 @@ public class None<O> extends SimpleQuery<O, O> {
     final Class<O> objectType;
 
     public None(Class<O> objectType) {
-        super(new SelfAttribute<O>(objectType, "false"));
+        super(new SelfAttribute<O>(checkObjectTypeNotNull(objectType), "none"));
         this.objectType = objectType;
     }
 

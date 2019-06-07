@@ -45,6 +45,7 @@ public abstract class LogicalQuery<O> implements Query<O> {
      * @param childQueries The child queries which this {@code LogicalQuery} is to logically connect
      */
     public LogicalQuery(Collection<Query<O>> childQueries) {
+        Objects.requireNonNull(childQueries, "The child queries supplied to a logical query cannot be null");
         for (Query<O> query : childQueries) {
             if (query instanceof LogicalQuery) {
                 logicalQueries.add((LogicalQuery<O>) query);

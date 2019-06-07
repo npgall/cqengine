@@ -111,9 +111,7 @@ public abstract class SimplifiedSQLiteIndex<A extends Comparable<A>, O, K extend
                 @SuppressWarnings("unchecked")
                 AttributeIndex<K, O> attributeIndex = (AttributeIndex<K, O>) index;
                 if (primaryKeyAttribute.equals(attributeIndex.getAttribute())) {
-                    if (attributeIndex.supportsQuery(QueryFactory.equal(primaryKeyAttribute, null), queryOptions)) {
-                        return attributeIndex;
-                    }
+                    return attributeIndex;
                 }
             }
         }

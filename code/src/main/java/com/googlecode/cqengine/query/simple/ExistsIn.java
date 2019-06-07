@@ -23,6 +23,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Asserts than an object exists in a foreign collection, based on an attribute in the local collection being equal
@@ -44,11 +45,11 @@ final IndexedCollection<F> foreignCollection;
     }
 
     public ExistsIn(IndexedCollection<F> foreignCollection, Attribute<O, A> localKeyAttribute, Attribute<F, A> foreignKeyAttribute, Query<F> foreignRestrictions) {
-        super(localKeyAttribute);
-        this.foreignCollection = foreignCollection;
-        this.localKeyAttribute = localKeyAttribute;
-        this.foreignKeyAttribute = foreignKeyAttribute;
-        this.foreignRestrictions = foreignRestrictions;
+        super(requireNonNull(localKeyAttribute, "The localKeyAttribute cannot be null"));
+        this.foreignCollection = requireNonNull(foreignCollection, "The foreignCollection cannot be null");
+        this.localKeyAttribute = requireNonNull(localKeyAttribute, "The localKeyAttribute cannot be null");
+        this.foreignKeyAttribute = requireNonNull(foreignKeyAttribute, "The foreignKeyAttribute cannot be null");
+        this.foreignRestrictions = foreignRestrictions; // ..this may be null
     }
 
     @Override
