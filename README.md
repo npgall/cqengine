@@ -527,7 +527,7 @@ CQEngine has been designed with support for grouping and aggregation in mind, bu
 
 CQEngine `ResultSet` can be converted into a Java 8 `Stream` by calling `ResultSet.stream()`.
 
-Note that Streams are **evaluated via filtering** and they do not avail of CQEngine indexes. So **for best performance, as much of the overall query as possible should be encapsulated in the CQEngine query**, as opposed to in lamba expressions in the stream. This combination would dramatically outperform a stream and lambda expression alone, which simply filtered the collection.
+Note that Streams are **evaluated via filtering** and they do not avail of CQEngine indexes. So **for best performance, as much of the overall query as possible should be encapsulated in the CQEngine query**, as opposed to in lambda expressions in the stream. This combination would dramatically outperform a stream and lambda expression alone, which simply filtered the collection.
 
 Here's how to transform a `ResultSet` into a `Stream`, to compute the distinct set of Colors of cars which match a CQEngine query.
 ```java
