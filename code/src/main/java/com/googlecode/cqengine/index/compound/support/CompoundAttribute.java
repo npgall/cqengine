@@ -78,7 +78,7 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
         if (attributes.size() < 2) {
             throw new IllegalStateException("Cannot create a compound index on fewer than two attributes: " + attributes.size());
         }
-        this.attributes = attributes;
+        this.attributes = deduplicateAndSort(attributes);
     }
 
     public int size() {
@@ -131,15 +131,25 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
         // Values for first attribute:  1
         // Values for second attribute: "bar", "baz"
         // Values for third attribute:  2.0, 3.0, 4.0
+        //
+        // or in list form :
+        // [[1], [bar, baz], [2.0, 3.0, 4.0]]
+        //
         // ...then we should generate and index the object against the following tuples:
         // [[1, bar, 2.0], [1, bar, 3.0], [1, bar, 4.0], [1, baz, 2.0], [1, baz, 3.0], [1, baz, 4.0]]
+        // note that ordering of attributes is preserved, we take advantage of this below
         List<List<Object>> listsOfValueCombinations = TupleCombinationGenerator.generateCombinations(attributeValueLists);
 
         // STEP 3.
         // Wrap each of the unique combinations in a CompoundValueTuple object...
         List<CompoundValueTuple<O>> tuples = new ArrayList<CompoundValueTuple<O>>(listsOfValueCombinations.size());
         for (List<Object> valueCombination : listsOfValueCombinations) {
-            tuples.add(new CompoundValueTuple<O>(valueCombination));
+            Map<Attribute<O, ?>, Object> mappedTuples = new HashMap<Attribute<O, ?>, Object>();
+            // here we take advantage of the fact that ordering of attributes is preserved when the tuples are generated
+            for (int i = 0; i < attributes.size(); i++) {
+                mappedTuples.put(attributes.get(i), valueCombination.get(i));
+            }
+            tuples.add(new CompoundValueTuple<O>(mappedTuples));
         }
         // Return the list of CompoundValueTuple objects...
         return tuples;
@@ -169,4 +179,15 @@ public class CompoundAttribute<O> implements Attribute<O, CompoundValueTuple<O>>
                 '}';
     }
 
+    private static <O> List<Attribute<O, ?>> deduplicateAndSort(List<Attribute<O, ?>> attributes) {
+        final List<Attribute<O, ?>> deduplicatedAttributes = new ArrayList<Attribute<O, ?>>(new HashSet<Attribute<O, ?>>(attributes));
+
+        Collections.sort(deduplicatedAttributes, new Comparator<Attribute<O, ?>>() {
+            @Override
+            public int compare(Attribute<O, ?> o1, Attribute<O, ?> o2) {
+                return o1.getAttributeName().compareTo(o2.getAttributeName());
+            }
+        });
+        return deduplicatedAttributes;
+    }
 }

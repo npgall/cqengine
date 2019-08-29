@@ -15,6 +15,7 @@
  */
 package com.googlecode.cqengine;
 
+import com.google.common.collect.ImmutableMap;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.StandingQueryAttribute;
@@ -526,7 +527,7 @@ public class IndexedCollectionFunctionalTest {
                                             String manufacturer = (String) tupleValues.next();
                                             String model = (String) tupleValues.next();
                                             String quantizedModel = "Focus".equals(model) ? "Focus" : "Other";
-                                            return new CompoundValueTuple<Car>(Arrays.asList(manufacturer, quantizedModel));
+                                            return new CompoundValueTuple<Car>(ImmutableMap.<Attribute<Car, ?>, Object>of(Car.MANUFACTURER, manufacturer, Car.MODEL, quantizedModel));
                                         }
                                     }, Car.MANUFACTURER, Car.MODEL)
                             ),
