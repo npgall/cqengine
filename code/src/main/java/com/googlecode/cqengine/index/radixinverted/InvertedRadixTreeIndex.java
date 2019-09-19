@@ -33,6 +33,7 @@ import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.In;
+import com.googlecode.cqengine.query.simple.LongestPrefix;
 import com.googlecode.cqengine.query.simple.StringIsContainedIn;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
@@ -82,6 +83,7 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
             add(Equal.class);
             add(In.class);
             add(StringIsContainedIn.class);
+            add(LongestPrefix.class);
         }});
         this.nodeFactory = nodeFactory;
         this.tree = new ConcurrentInvertedRadixTree<StoredResultSet<O>>(nodeFactory);
@@ -165,8 +167,61 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
                     return queryOptions;
                 }
             };
-        }
-        else {
+        } else if (queryClass.equals(LongestPrefix.class)) {
+            @SuppressWarnings("unchecked")
+            final LongestPrefix<O, A> longestPrefix = (LongestPrefix<O, A>) query;
+            return new ResultSet<O>() {
+
+                @Override
+                public Iterator<O> iterator() {
+                    ResultSet<O> rs = tree.getValueForLongestKeyPrefixing(longestPrefix.getValue());
+                    return rs == null ? Collections.<O>emptySet().iterator() : rs.iterator();
+                }
+
+                @Override
+                public boolean contains(O object) {
+                    ResultSet<O> rs = tree.getValueForLongestKeyPrefixing(longestPrefix.getValue());
+                    return rs.contains(object);
+                }
+
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+
+                @Override
+                public Query<O> getQuery() {
+                    return query;
+                }
+
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
+
+                @Override
+                public int getRetrievalCost() {
+                    return INDEX_RETRIEVAL_COST;
+                }
+
+                @Override
+                public int getMergeCost() {
+                    ResultSet<O> rs = tree.getValueForLongestKeyPrefixing(longestPrefix.getValue());
+                    return rs.getMergeCost();
+                }
+
+                @Override
+                public int size() {
+                    ResultSet<O> rs = tree.getValueForLongestKeyPrefixing(longestPrefix.getValue());
+                    return rs.size();
+                }
+
+                @Override
+                public void close() {
+                    // No-OP
+                }
+            };
+        } else {
             throw new IllegalArgumentException("Unsupported query: " + query);
         }
     }
