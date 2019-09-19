@@ -212,6 +212,19 @@ public class QueryFactory {
     public static <O, A extends CharSequence> StringStartsWith<O, A> startsWith(Attribute<O, A> attribute, A attributeValue) {
         return new StringStartsWith<O, A>(attribute, attributeValue);
     }
+    
+    /**
+     * Creates a {@link LongestPrefix} query which finds the row with the longest matching prefix
+     * 
+     * @param attribute The attribute to which the query refers
+     * @param attributeValue The value to be asserted by the query
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link LongestPrefix} query
+     */
+    public static <O, A extends CharSequence> LongestPrefix<O, A> longestPrefix(Attribute<O, A> attribute, A attributeValue) {
+        return new LongestPrefix<>(attribute, attributeValue);
+    }
 
     /**
      * Creates a {@link StringEndsWith} query which asserts that an attribute ends with a certain string fragment.
