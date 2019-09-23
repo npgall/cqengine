@@ -6,6 +6,22 @@ import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
+/**
+ * LongestPrefix queries are used to find the longest prefix in a dataset for a given query term.
+ * Given a data set with the following records
+ * 
+ * <pre>
+ * | id | code   | Operator  |
+ * | 0  | 35387  | Foo       |
+ * | 1  | 35385  | Bar       |
+ * | 2  | 353855 | A.N.Other |
+ * </pre>
+ * A longest prefix query using a  query as shown below would return the entity with id 0
+ * <p/>
+ *  {@code Query<Foo> query1 = longestPrefix(Foo.CODE, "35387123456")); }
+ * 
+ * @author Glen Lockhart
+ */
 public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> {
 
     private final A value;
@@ -33,7 +49,7 @@ public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> 
         if (this == o) return true;
         if (!(o instanceof LongestPrefix)) return false;
 
-        LongestPrefix that = (LongestPrefix) o;
+        LongestPrefix<?, ?> that = (LongestPrefix<?, ?>) o;
 
         if (!attribute.equals(that.attribute)) return false;
         if (!value.equals(that.value)) return false;
