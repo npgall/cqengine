@@ -15,26 +15,25 @@
  */
 package com.googlecode.cqengine.index.fallback;
 
-import java.util.Collections;
-import java.util.Iterator;
-
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.All;
-import com.googlecode.cqengine.query.simple.LongestPrefix;
 import com.googlecode.cqengine.query.simple.None;
-import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
+import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
+import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
+
+import java.util.*;
 
 /**
  * A special index which when asked to retrieve data simply scans the underlying collection for matching objects.
  * This index does not maintain any data structure of its own.
  * <p/>
- * This index supports <b>most</b> query types <b>except {@link LongestPrefix}</b>, because it it relies on the supplied query object itself
+ * This index supports <b>all</b> query types, because it it relies on the supplied query object itself
  * to determine if objects in the collection match the query, by calling
  * {@link Query#matches(Object, com.googlecode.cqengine.query.option.QueryOptions)}.
  * <p/>
@@ -43,8 +42,6 @@ import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
  * <p/>
  * The time complexity of retrievals from this fallback index is usually O(n) - linear, proportional to the number of
  * objects in the collection.
- * <p/>
- * The {@link LongestPrefix} <b>cannot</b> be supported by this index as simply iterating / or using {@link Query#matches(Object, com.googlecode.cqengine.query.option.QueryOptions)} will result in incorrect results
  *
  * @author Niall Gallagher
  */
@@ -78,15 +75,12 @@ public class FallbackIndex<O> implements Index<O> {
     /**
      * {@inheritDoc}
      * <p/>
-     * <b>This implementation generally returns true, as this index supports all types of query except for the longestPrefix query.</b>
+     * <b>This implementation always returns true, as this index supports all types of query.</b>
      *
-     * @return false if the query is a longestPrefix query, true for all other types of query
+     * @return true, this index supports all types of query
      */
     @Override
     public boolean supportsQuery(Query<O> query, QueryOptions queryOptions) {
-        if(query instanceof LongestPrefix) {
-            return false;
-        }
         return true;
     }
 
