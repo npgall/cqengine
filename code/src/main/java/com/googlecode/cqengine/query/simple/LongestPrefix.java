@@ -2,8 +2,14 @@ package com.googlecode.cqengine.query.simple;
 
 import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
@@ -69,6 +75,46 @@ public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> 
         return "longestPrefix(" + asLiteral(super.getAttributeName()) +
                 ", " + asLiteral(value) +
                 ")";
+    }
+    public Iterator<O> getLongestMatchesForPrefix(ObjectSet<O> objectSet, QueryOptions queryOptions) {
+        
+        List<O> current = new ArrayList<>(); 
+        if(attributeIsSimple) {
+            int currentCount = -1;
+            Iterator<O> it = objectSet.iterator();
+            while(it.hasNext()) {
+                O object = it.next();
+                CharSequence attributeValue = simpleAttribute.getValue(object, queryOptions);
+                int count = matchesValue(value, attributeValue, queryOptions);
+                if(count==0) {
+                    continue;
+                }
+                else if(count > currentCount) {
+                    currentCount = count;
+                    current.clear();
+                    current.add(object);
+                } else if(count == currentCount) {
+                    current.add(object);
+                }
+            }
+        }
+        
+        return current.iterator();
+        
+    }
+    
+    public static int matchesValue(CharSequence aValue, CharSequence bValue, QueryOptions queryOptions) {
+        int charsMatched = 0;
+        for (int i = 0, length = Math.min(aValue.length(), bValue.length()); i < length; i++) {
+            if (aValue.charAt(i) != bValue.charAt(i)) {
+                break;
+            }
+            charsMatched++;
+        }
+        if(charsMatched == bValue.length()) {
+            return charsMatched;
+        }
+        return 0;
     }
 
 }

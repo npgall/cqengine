@@ -132,6 +132,7 @@ public class IndexedCollectionFunctionalTest {
     static final Set<Car> REGULAR_DATASET = CarFactory.createCollectionOfCars(1000);
     static final Set<Car> SMALL_DATASET = CarFactory.createCollectionOfCars(10);
     private static IndexedCollection<MobileTerminating> mobileTerminatingCache;
+    private static IndexedCollection<MobileTerminating> mobileTerminatingCacheNoIndex;
     
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
@@ -1536,6 +1537,9 @@ public class IndexedCollectionFunctionalTest {
         mobileTerminatingCache = new ConcurrentIndexedCollection<MobileTerminating>();
         mobileTerminatingCache.addIndex(InvertedRadixTreeIndex.onAttribute(MobileTerminating.PREFIX));
         mobileTerminatingCache.addAll(MobileTerminatingFactory.getCollectionOfMobileTerminating());
+        
+        mobileTerminatingCacheNoIndex = new ConcurrentIndexedCollection<MobileTerminating>();
+        mobileTerminatingCacheNoIndex.addAll(MobileTerminatingFactory.getCollectionOfMobileTerminating());
     }
     @Test
     @UseDataProvider(value = "mobileTerminatingScenarios")
@@ -1543,7 +1547,23 @@ public class IndexedCollectionFunctionalTest {
                
         Query<MobileTerminating> q = longestPrefix(MobileTerminating.PREFIX, prefix);
         
-        ResultSet<MobileTerminating> res = mobileTerminatingCache.retrieve(q, queryOptions(orderBy(ascending(MobileTerminating.OPERATOR_NAME))));
+        validateLongestPrefixWithCache(q, mobileTerminatingCache, expectedOperator, expectedCount);
+    }
+    
+    @Test
+    @UseDataProvider(value = "mobileTerminatingScenarios")
+    public void testLongestPrefixWithoutIndex(String prefix, String expectedOperator, Integer expectedCount) {
+               
+        Query<MobileTerminating> q = longestPrefix(MobileTerminating.PREFIX, prefix);
+        
+        validateLongestPrefixWithCache(q, mobileTerminatingCacheNoIndex, expectedOperator, expectedCount);
+    }
+    
+    
+    public void validateLongestPrefixWithCache(Query<MobileTerminating> q, IndexedCollection<MobileTerminating> cache, String expectedOperator, Integer expectedCount) {
+        
+        
+        ResultSet<MobileTerminating> res = cache.retrieve(q, queryOptions(orderBy(ascending(MobileTerminating.OPERATOR_NAME))));
         
         assertEquals(expectedCount, (Integer)res.size());
         Iterator<String> expectedOperators = Arrays.asList(expectedOperator.split(",")).iterator();
@@ -1554,19 +1574,9 @@ public class IndexedCollectionFunctionalTest {
         }
     }
     
-    @Test(expected= IllegalStateException.class)
-    public void testLongestPrefixWithoutIndex() {
-        //Without the index, this test would return multiple results with different length prefixes, which is incorrect
-        IndexedCollection<MobileTerminating> cache = new ConcurrentIndexedCollection<>();
-        cache.addAll(MobileTerminatingFactory.getCollectionOfMobileTerminating());
-        Query<MobileTerminating> q = longestPrefix(MobileTerminating.PREFIX, "35380");
-        
-        ResultSet<MobileTerminating> res = cache.retrieve(q, queryOptions(orderBy(ascending(MobileTerminating.OPERATOR_NAME))));
-        
-        
-    }
-    //@Test
-    //@UseDataProvider(value = "expandMacroScenarios")
+
+    @Test
+    @UseDataProvider(value = "expandMacroScenarios")
     @SuppressWarnings("unchecked")
     public void testScenario(Scenario scenario) {
         if (RUN_HIGH_PRIORITY_SCENARIOS_ONLY && !scenario.highPriority) {
