@@ -82,6 +82,7 @@ public class CQNParserTest {
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("not(equal(\"manufacturer\", \"Ford\"))"));
         assertQueriesEquals(equal(Car.CAR_ID, -1), parser.query("equal(\"carId\", -1)"));
         assertQueriesEquals(equal(Car.PRICE, -1.5), parser.query("equal(\"price\", -1.5)"));
+        assertQueriesEquals(isPrefixOf(Car.MANUFACTURER, "Ford"), parser.query("isPrefixOf(\"manufacturer\", \"Ford\")"));
         assertQueriesEquals(longestPrefix(MobileTerminating.PREFIX, "12345"), mtParser.query("longestPrefix(\"prefix\", \"12345\")"));
         assertQueriesEquals(
                 or(

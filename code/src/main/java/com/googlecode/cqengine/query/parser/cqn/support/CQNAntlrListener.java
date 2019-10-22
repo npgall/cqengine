@@ -209,6 +209,13 @@ public class CQNAntlrListener<O> extends CQNGrammarBaseListener {
         String value = queryParser.parseValue(attribute, ctx.stringQueryParameter());
         addParsedQuery(ctx, QueryFactory.longestPrefix(attribute, value));
     }
+    
+    @Override
+    public void exitIsPrefixOfQuery(CQNGrammarParser.IsPrefixOfQueryContext ctx) {
+        Attribute<O, String> attribute = queryParser.getAttribute(ctx.attributeName(), String.class);
+        String value = queryParser.parseValue(attribute, ctx.stringQueryParameter());
+        addParsedQuery(ctx, QueryFactory.isPrefixOf(attribute, value));
+    }
 
     /** This handler is called for all queries, allows us to validate that no handlers are missing. */
     @Override

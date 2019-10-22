@@ -43,6 +43,7 @@ simpleQuery : equalQuery
             | allQuery
             | noneQuery
             | longestPrefixQuery
+            | isPrefixOfQuery
             ;
 
 equalQuery : 'equal' LPAREN attributeName ',' queryParameter RPAREN ;
@@ -62,6 +63,7 @@ hasQuery : 'has' LPAREN attributeName RPAREN ;
 allQuery : 'all' LPAREN objectType '.class' RPAREN ;
 noneQuery : 'none' LPAREN objectType '.class' RPAREN ;
 longestPrefixQuery : 'longestPrefix' LPAREN attributeName ',' stringQueryParameter RPAREN ;
+isPrefixOfQuery : 'isPrefixOf' LPAREN attributeName ',' stringQueryParameter RPAREN ;
 
 objectType : Identifier ;
 attributeName : StringLiteral ;
