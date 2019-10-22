@@ -46,6 +46,7 @@ import static com.googlecode.cqengine.query.QueryFactory.orderBy;
 import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
 import static com.googlecode.cqengine.query.QueryFactory.startsWith;
 import static com.googlecode.cqengine.query.QueryFactory.threshold;
+import static com.googlecode.cqengine.query.QueryFactory.isPrefixOf;
 import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -555,6 +556,13 @@ public class IndexedCollectionFunctionalTest {
                                 queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
                                 expectedResults = new ExpectedResults() {{
                                     size = 1000;
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = isPrefixOf(Car.MANUFACTURER, "BMW2");
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 100;
                                 }};
                             }}
                     );

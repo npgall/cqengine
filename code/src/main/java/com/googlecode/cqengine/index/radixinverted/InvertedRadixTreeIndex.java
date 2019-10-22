@@ -15,6 +15,13 @@
  */
 package com.googlecode.cqengine.index.radixinverted;
 
+import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNecessary;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.concurrenttrees.radix.node.NodeFactory;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
@@ -35,16 +42,12 @@ import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.In;
 import com.googlecode.cqengine.query.simple.LongestPrefix;
 import com.googlecode.cqengine.query.simple.StringIsContainedIn;
+import com.googlecode.cqengine.query.simple.StringIsPrefixOf;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnion;
 import com.googlecode.cqengine.resultset.connective.ResultSetUnionAll;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNecessary;
 
 /**
  * An index backed by a {@link ConcurrentInvertedRadixTree}.
@@ -79,11 +82,17 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
      * Package-private constructor, used by static factory methods.
      */
     protected InvertedRadixTreeIndex(Attribute<O, A> attribute, NodeFactory nodeFactory) {
-        super(attribute, new HashSet<Class<? extends Query>>() {{
+        super(attribute, new HashSet<Class<? extends Query>>() {/**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+        {
             add(Equal.class);
             add(In.class);
             add(StringIsContainedIn.class);
             add(LongestPrefix.class);
+            add(StringIsPrefixOf.class);
         }});
         this.nodeFactory = nodeFactory;
         this.tree = new ConcurrentInvertedRadixTree<StoredResultSet<O>>(nodeFactory);
@@ -219,6 +228,71 @@ public class InvertedRadixTreeIndex<A extends CharSequence, O> extends AbstractA
                 @Override
                 public int size() {
                     ResultSet<O> rs = tree.getValueForLongestKeyPrefixing(longestPrefix.getValue());
+                    if(null != rs) {
+                        return rs.size();
+                    }
+                    return 0;
+                }
+
+                @Override
+                public void close() {
+                    // No-OP
+                }
+            };
+        } else if (queryClass.equals(StringIsPrefixOf.class)) {
+            @SuppressWarnings("unchecked")
+            final StringIsPrefixOf<O, A> isPrefixOf = (StringIsPrefixOf<O, A>) query;
+            return new ResultSet<O>() {
+                private ResultSet<O> getRS() {
+                    Iterable<? extends ResultSet<O>> resultSets = tree.getValuesForKeysPrefixing(isPrefixOf.getValue());
+                    return unionResultSets(resultSets, query, queryOptions);
+                }
+                @Override
+                public Iterator<O> iterator() {
+                    return getRS().iterator();
+                }
+
+                @Override
+                public boolean contains(O object) {
+                    ResultSet<O> rs = getRS();
+                    if(null != rs) {
+                        return rs.contains(object);
+                    }
+                    return false;
+                }
+
+                @Override
+                public boolean matches(O object) {
+                    return query.matches(object, queryOptions);
+                }
+
+                @Override
+                public Query<O> getQuery() {
+                    return query;
+                }
+
+                @Override
+                public QueryOptions getQueryOptions() {
+                    return queryOptions;
+                }
+
+                @Override
+                public int getRetrievalCost() {
+                    return INDEX_RETRIEVAL_COST;
+                }
+
+                @Override
+                public int getMergeCost() {
+                    ResultSet<O> rs = getRS();
+                    if(null != rs) {
+                        return rs.getMergeCost();
+                    }
+                    return 0;
+                }
+
+                @Override
+                public int size() {
+                    ResultSet<O> rs = getRS();
                     if(null != rs) {
                         return rs.size();
                     }
