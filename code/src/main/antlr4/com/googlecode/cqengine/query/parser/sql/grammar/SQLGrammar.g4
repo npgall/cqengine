@@ -45,6 +45,7 @@ simpleQuery : equalQuery
             | containsQuery
             | hasQuery
             | notHasQuery
+            | isPrefixOfQuery
             | OPEN_PAR simpleQuery CLOSE_PAR
             ;
 
@@ -63,6 +64,7 @@ endsWithQuery : attributeName K_LIKE queryParameterLeadingPercent ;
 containsQuery : attributeName K_LIKE queryParameterLeadingAndTrailingPercent ;
 hasQuery : attributeName K_IS K_NOT K_NULL ;
 notHasQuery : attributeName K_IS K_NULL ;
+isPrefixOfQuery : queryParameter K_LIKE attributeName PIPE2 queryParameterTrailingPercent ;
 
 attributeName : IDENTIFIER | STRING_LITERAL ;
 

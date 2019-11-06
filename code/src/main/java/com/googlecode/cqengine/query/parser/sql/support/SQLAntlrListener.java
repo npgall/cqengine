@@ -169,6 +169,13 @@ public class SQLAntlrListener<O> extends SQLGrammarBaseListener {
         value = value.substring(0, value.length() - 1);
         addParsedQuery(ctx, QueryFactory.startsWith(attribute, value));
     }
+    
+    @Override
+    public void exitIsPrefixOfQuery(SQLGrammarParser.IsPrefixOfQueryContext ctx) {
+        Attribute<O, String> attribute = queryParser.getAttribute(ctx.attributeName(), String.class);
+        String value = queryParser.parseValue(attribute, ctx.queryParameter());
+        addParsedQuery(ctx, QueryFactory.isPrefixOf(attribute, value));
+    }
 
     @Override
     public void exitEndsWithQuery(SQLGrammarParser.EndsWithQueryContext ctx) {

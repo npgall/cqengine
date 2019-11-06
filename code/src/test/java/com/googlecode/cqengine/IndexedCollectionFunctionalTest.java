@@ -15,26 +15,86 @@
  */
 package com.googlecode.cqengine;
 
+import static com.googlecode.cqengine.query.QueryFactory.all;
+import static com.googlecode.cqengine.query.QueryFactory.and;
+import static com.googlecode.cqengine.query.QueryFactory.applyThresholds;
+import static com.googlecode.cqengine.query.QueryFactory.ascending;
+import static com.googlecode.cqengine.query.QueryFactory.between;
+import static com.googlecode.cqengine.query.QueryFactory.contains;
+import static com.googlecode.cqengine.query.QueryFactory.deduplicate;
+import static com.googlecode.cqengine.query.QueryFactory.descending;
+import static com.googlecode.cqengine.query.QueryFactory.endsWith;
+import static com.googlecode.cqengine.query.QueryFactory.equal;
+import static com.googlecode.cqengine.query.QueryFactory.forObjectsMissing;
+import static com.googlecode.cqengine.query.QueryFactory.forStandingQuery;
+import static com.googlecode.cqengine.query.QueryFactory.greaterThan;
+import static com.googlecode.cqengine.query.QueryFactory.greaterThanOrEqualTo;
+import static com.googlecode.cqengine.query.QueryFactory.has;
+import static com.googlecode.cqengine.query.QueryFactory.in;
+import static com.googlecode.cqengine.query.QueryFactory.isContainedIn;
+import static com.googlecode.cqengine.query.QueryFactory.lessThan;
+import static com.googlecode.cqengine.query.QueryFactory.lessThanOrEqualTo;
+import static com.googlecode.cqengine.query.QueryFactory.longestPrefix;
+import static com.googlecode.cqengine.query.QueryFactory.matchesRegex;
+import static com.googlecode.cqengine.query.QueryFactory.missingFirst;
+import static com.googlecode.cqengine.query.QueryFactory.missingLast;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.none;
+import static com.googlecode.cqengine.query.QueryFactory.not;
+import static com.googlecode.cqengine.query.QueryFactory.or;
+import static com.googlecode.cqengine.query.QueryFactory.orderBy;
+import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.startsWith;
+import static com.googlecode.cqengine.query.QueryFactory.threshold;
+import static com.googlecode.cqengine.query.QueryFactory.isPrefixOf;
+import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.AssumptionViolatedException;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.attribute.StandingQueryAttribute;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.compound.CompoundIndex;
 import com.googlecode.cqengine.index.compound.support.CompoundValueTuple;
 import com.googlecode.cqengine.index.disk.DiskIndex;
 import com.googlecode.cqengine.index.disk.PartialDiskIndex;
+import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.navigable.PartialNavigableIndex;
 import com.googlecode.cqengine.index.offheap.OffHeapIndex;
 import com.googlecode.cqengine.index.offheap.PartialOffHeapIndex;
-import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
-import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
-import com.googlecode.cqengine.index.compound.CompoundIndex;
-import com.googlecode.cqengine.index.hash.HashIndex;
-import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.radixreversed.ReversedRadixTreeIndex;
+import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.index.suffix.SuffixTreeIndex;
+import com.googlecode.cqengine.index.support.AbstractMapBasedAttributeIndex;
 import com.googlecode.cqengine.index.support.indextype.DiskTypeIndex;
 import com.googlecode.cqengine.index.support.indextype.OffHeapTypeIndex;
 import com.googlecode.cqengine.index.unique.UniqueIndex;
@@ -46,29 +106,21 @@ import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.quantizer.IntegerQuantizer;
 import com.googlecode.cqengine.quantizer.Quantizer;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.*;
+import com.googlecode.cqengine.query.option.DeduplicationStrategy;
+import com.googlecode.cqengine.query.option.EngineFlags;
+import com.googlecode.cqengine.query.option.FlagsEnabled;
+import com.googlecode.cqengine.query.option.QueryLog;
+import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import com.googlecode.cqengine.testutil.DiskConcurrentIndexedCollection;
+import com.googlecode.cqengine.testutil.MobileTerminating;
+import com.googlecode.cqengine.testutil.MobileTerminatingFactory;
 import com.googlecode.cqengine.testutil.OffHeapConcurrentIndexedCollection;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.AssumptionViolatedException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.googlecode.cqengine.query.QueryFactory.*;
-import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
 
 /**
  * Tests CQEngine handing a wide range of queries, with different configurations of indexes.
@@ -80,7 +132,9 @@ public class IndexedCollectionFunctionalTest {
 
     static final Set<Car> REGULAR_DATASET = CarFactory.createCollectionOfCars(1000);
     static final Set<Car> SMALL_DATASET = CarFactory.createCollectionOfCars(10);
-
+    private static IndexedCollection<MobileTerminating> mobileTerminatingCache;
+    private static IndexedCollection<MobileTerminating> mobileTerminatingCacheNoIndex;
+    
     // Note: Unfortunately ObjectLockingIndexedCollection can slow down the functional test a lot when
     // disk indexes are in use (because it splits bulk inserts into a separate transaction per object).
     // Set this true to skip the slow scenarios *during development only!*...
@@ -502,6 +556,13 @@ public class IndexedCollectionFunctionalTest {
                                 queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
                                 expectedResults = new ExpectedResults() {{
                                     size = 1000;
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = isPrefixOf(Car.MANUFACTURER, "BMW2");
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 100;
                                 }};
                             }}
                     );
@@ -1455,6 +1516,72 @@ public class IndexedCollectionFunctionalTest {
         }
         return scenarios;
     }
+
+    
+    @DataProvider
+    public static Object[][] mobileTerminatingScenarios() {
+        return new Object[][] {
+            {"35380",          "op1",       1},
+            {"35380123",       "op1",       1},
+            {"3538123",        "op2",       1},
+            {"35382",          "op3",       1},
+            {"353822",         "op4",       1},
+            {"35387",          "op5",       1},
+            {"3538712345",     "op6",       1},
+            {"44123",          "op7",       1},
+            {"4480",           "op8,op9",   2},
+            {"33380",          "op10",      1},
+            {"33381",          "op11",      1},
+            {"1234",           "op12",      1},
+            {"111",            "op13",      1},
+            {"777",            "",          0},
+            {"353",            "na",        1},
+            {"354",            "",          0},
+        };
+    }
+    
+    @BeforeClass
+    public static void setupMTCache() {
+        mobileTerminatingCache = new ConcurrentIndexedCollection<MobileTerminating>();
+        mobileTerminatingCache.addIndex(InvertedRadixTreeIndex.onAttribute(MobileTerminating.PREFIX));
+        mobileTerminatingCache.addAll(MobileTerminatingFactory.getCollectionOfMobileTerminating());
+        
+        mobileTerminatingCacheNoIndex = new ConcurrentIndexedCollection<MobileTerminating>();
+        mobileTerminatingCacheNoIndex.addAll(MobileTerminatingFactory.getCollectionOfMobileTerminating());
+    }
+    @Test
+    @UseDataProvider(value = "mobileTerminatingScenarios")
+    public void testLongestPrefix(String prefix, String expectedOperator, Integer expectedCount) {
+               
+        Query<MobileTerminating> q = longestPrefix(MobileTerminating.PREFIX, prefix);
+        
+        validateLongestPrefixWithCache(q, mobileTerminatingCache, expectedOperator, expectedCount);
+    }
+    
+    @Test
+    @UseDataProvider(value = "mobileTerminatingScenarios")
+    public void testLongestPrefixWithoutIndex(String prefix, String expectedOperator, Integer expectedCount) {
+               
+        Query<MobileTerminating> q = longestPrefix(MobileTerminating.PREFIX, prefix);
+        
+        validateLongestPrefixWithCache(q, mobileTerminatingCacheNoIndex, expectedOperator, expectedCount);
+    }
+    
+    
+    public void validateLongestPrefixWithCache(Query<MobileTerminating> q, IndexedCollection<MobileTerminating> cache, String expectedOperator, Integer expectedCount) {
+        
+        
+        ResultSet<MobileTerminating> res = cache.retrieve(q, queryOptions(orderBy(ascending(MobileTerminating.OPERATOR_NAME))));
+        
+        assertEquals(expectedCount, (Integer)res.size());
+        Iterator<String> expectedOperators = Arrays.asList(expectedOperator.split(",")).iterator();
+        Iterator<MobileTerminating> resIt = res.iterator();
+        while(resIt.hasNext()) {
+            MobileTerminating mt = resIt.next();
+            assertEquals(expectedOperators.next(), mt.getOperatorName());
+        }
+    }
+    
 
     @Test
     @UseDataProvider(value = "expandMacroScenarios")

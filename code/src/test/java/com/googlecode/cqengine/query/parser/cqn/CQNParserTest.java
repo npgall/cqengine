@@ -23,6 +23,8 @@ import com.googlecode.cqengine.query.parser.common.ParseResult;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
+import com.googlecode.cqengine.testutil.MobileTerminating;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,7 +50,15 @@ public class CQNParserTest {
         registerAttribute(Car.PRICE);
         registerAttribute(Car.FEATURES);
     }};
+    
+    final CQNParser<MobileTerminating> mtParser = new CQNParser<MobileTerminating>(MobileTerminating.class) {{
+        registerAttribute(MobileTerminating.PREFIX);
+        registerAttribute(MobileTerminating.OPERATOR_NAME);
+        registerAttribute(MobileTerminating.REGION);
+        registerAttribute(MobileTerminating.ZONE);
+    }};
 
+    
     @Test
     public void testValidQueries() {
         assertQueriesEquals(equal(Car.MANUFACTURER, "Ford"), parser.query("equal(\"manufacturer\", \"Ford\")"));
@@ -72,7 +82,8 @@ public class CQNParserTest {
         assertQueriesEquals(not(equal(Car.MANUFACTURER, "Ford")), parser.query("not(equal(\"manufacturer\", \"Ford\"))"));
         assertQueriesEquals(equal(Car.CAR_ID, -1), parser.query("equal(\"carId\", -1)"));
         assertQueriesEquals(equal(Car.PRICE, -1.5), parser.query("equal(\"price\", -1.5)"));
-
+        assertQueriesEquals(isPrefixOf(Car.MANUFACTURER, "Ford"), parser.query("isPrefixOf(\"manufacturer\", \"Ford\")"));
+        assertQueriesEquals(longestPrefix(MobileTerminating.PREFIX, "12345"), mtParser.query("longestPrefix(\"prefix\", \"12345\")"));
         assertQueriesEquals(
                 or(
                         and( // Cars less than 5K which have at least 4 doors
@@ -164,10 +175,12 @@ public class CQNParserTest {
         Assert.assertEquals(queryOptions(orderBy(ascending(Car.MANUFACTURER), descending(Car.CAR_ID))), parseResult.getQueryOptions());
     }
 
-    static void assertQueriesEquals(Query<Car> expected, Query<Car> actual) {
+    static <T> void assertQueriesEquals(Query<T> expected, Query<T> actual) {
         Assert.assertEquals(expected, actual);
         Assert.assertEquals(expected.toString(), actual.toString());
     }
+    
+    
 
     @Test
     public void testRetrieve() {
