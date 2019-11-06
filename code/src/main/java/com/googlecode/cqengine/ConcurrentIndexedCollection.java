@@ -20,6 +20,7 @@ import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources;
+import com.googlecode.cqengine.metadata.MetadataEngine;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
@@ -68,6 +69,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     protected final Persistence<O, ?> persistence;
     protected final ObjectStore<O> objectStore;
     protected final QueryEngineInternal<O> indexEngine;
+    protected final MetadataEngine<O> metadataEngine;
 
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings, using {@link OnHeapPersistence}.
@@ -96,6 +98,11 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
             closeRequestScopeResourcesIfNecessary(queryOptions);
         }
         this.indexEngine = queryEngine;
+        this.metadataEngine = new MetadataEngine<>(
+                this,
+                () -> openRequestScopeResourcesIfNecessary(null),
+                this::closeRequestScopeResourcesIfNecessary
+        );
     }
 
     /**
@@ -104,6 +111,11 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     @Override
     public Persistence<O, ?> getPersistence() {
         return persistence;
+    }
+
+    @Override
+    public MetadataEngine<O> getMetadataEngine() {
+        return metadataEngine;
     }
 
     // ----------- Query Engine Methods -------------

@@ -15,12 +15,14 @@
  */
 package com.googlecode.cqengine.index.support;
 
+import com.googlecode.cqengine.metadata.KeyFrequency;
+
 /**
  * Statistics of an index key.
  *
  * @author niall.gallagher
  */
-public class KeyStatistics<A> {
+public class KeyStatistics<A> implements KeyFrequency<A> {
 
     final A key;
     final Integer count;
@@ -36,6 +38,14 @@ public class KeyStatistics<A> {
 
     public Integer getCount() {
         return count;
+    }
+
+    /**
+     * Equivalent to {@link #getCount()}.
+     */
+    @Override
+    public int getFrequency() {
+        return getCount();
     }
 
     @Override
@@ -65,9 +75,6 @@ public class KeyStatistics<A> {
 
     @Override
     public String toString() {
-        return "KeyStatistics{" +
-                "key=" + key +
-                ", count=" + count +
-                '}';
+        return key + " " + count;
     }
 }

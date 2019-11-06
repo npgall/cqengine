@@ -17,6 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.metadata.MetadataEngine;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
@@ -43,7 +44,7 @@ import java.util.Set;
 public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
 
     /**
-     * {@inheritDoc}
+     * Shortcut for calling {@link #retrieve(Query, QueryOptions)} without supplying any query options.
      */
     ResultSet<O> retrieve(Query<O> query);
 
@@ -150,4 +151,10 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      * @return The {@link Persistence} used by the the collection
      */
     Persistence<O, ?> getPersistence();
+
+    /**
+     * Returns the {@link MetadataEngine}, which can retrieve metadata and statistics from indexes
+     * on the distribution of attribute values in the collection.
+     */
+    MetadataEngine<O> getMetadataEngine();
 }
