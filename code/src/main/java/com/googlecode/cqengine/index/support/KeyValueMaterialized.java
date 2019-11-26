@@ -15,6 +15,8 @@
  */
 package com.googlecode.cqengine.index.support;
 
+import java.util.Objects;
+
 /**
  * Encapsulates a key-value pair.
  *
@@ -38,6 +40,20 @@ public class KeyValueMaterialized<A, O> implements KeyValue<A, O> {
     @Override
     public O getValue() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KeyValueMaterialized<?, ?> that = (KeyValueMaterialized<?, ?>) o;
+        return key.equals(that.key) &&
+                value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
     }
 
     @Override

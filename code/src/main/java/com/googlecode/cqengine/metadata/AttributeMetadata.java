@@ -1,5 +1,7 @@
 package com.googlecode.cqengine.metadata;
 
+import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.support.*;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
@@ -10,6 +12,16 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Provides access to basic metadata for a given attribute, in unsorted order.
+ * <p>
+ * This requires in advance, an index which implements the {@link KeyStatisticsAttributeIndex} interface,
+ * to be added to the collection on the given attribute. See {@link MetadataEngine} for more details.
+ * <p>
+ * This object can be accessed first by calling {@link IndexedCollection#getMetadataEngine()} to access the
+ * {@link MetadataEngine}, and then by calling {@link MetadataEngine#getAttributeMetadata(Attribute)} for a given
+ * attribute.
+ */
 public class AttributeMetadata<A, O> {
 
     private final KeyStatisticsIndex<A, O> index;

@@ -1,6 +1,24 @@
+/**
+ * Copyright 2012-2019 Niall Gallagher
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.googlecode.cqengine.metadata;
 
+import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.index.support.KeyValue;
+import com.googlecode.cqengine.index.support.SortedKeyStatisticsAttributeIndex;
 import com.googlecode.cqengine.index.support.SortedKeyStatisticsIndex;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
@@ -8,11 +26,22 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class NavigableAttributeMetadata<A extends Comparable<A>, O> extends AttributeMetadata<A, O> {
+/**
+ * Provides access to metadata in sorted order for a given attribute. Allows attribute values to be traversed
+ * in ascending or descending order, and supports range queries. See {@link MetadataEngine} for more details.
+ * <p>
+ * This requires in advance, an index which implements the {@link SortedKeyStatisticsAttributeIndex} interface,
+ * to be added to the collection on the given attribute.
+ * <p>
+ * This object can be accessed first by calling {@link IndexedCollection#getMetadataEngine()} to access the
+ * {@link MetadataEngine}, and then by calling {@link MetadataEngine#getSortedAttributeMetadata(Attribute)} for a given
+ * attribute.
+ */
+public class SortedAttributeMetadata<A extends Comparable<A>, O> extends AttributeMetadata<A, O> {
 
     private final SortedKeyStatisticsIndex<A, O> index;
 
-    NavigableAttributeMetadata(SortedKeyStatisticsIndex<A, O> index, Supplier<QueryOptions> openResourcesHandler, Consumer<QueryOptions> closeResourcesHandler) {
+    SortedAttributeMetadata(SortedKeyStatisticsIndex<A, O> index, Supplier<QueryOptions> openResourcesHandler, Consumer<QueryOptions> closeResourcesHandler) {
         super(index, openResourcesHandler, closeResourcesHandler);
         this.index = index;
     }
