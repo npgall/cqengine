@@ -592,6 +592,41 @@ public class IndexedCollectionFunctionalTest {
                                     size = 3;
                                     carIdsAnyOrder = asSet(6, 7, 8);
                                 }};
+                            }},
+                            // Test comparative queries enclosed in logical queries...
+                            new QueryToEvaluate() {{
+                                query = and(all(Car.class), min(Car.PRICE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1;
+                                    carIdsAnyOrder = asSet(4);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = and(none(Car.class), min(Car.PRICE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 0;
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = or(none(Car.class), min(Car.PRICE));
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1;
+                                    carIdsAnyOrder = asSet(4);
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = or(all(Car.class), min(Car.PRICE));
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 10;
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = not(min(Car.PRICE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 9;
+                                }};
                             }}
                     );
                     indexCombinations = indexCombinations(

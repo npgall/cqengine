@@ -43,6 +43,9 @@ public class And<O> extends LogicalQuery<O> {
      */
     @Override
     public boolean matches(O object, QueryOptions queryOptions) {
+        if (super.hasComparativeQueries()) {
+            throw new UnsupportedOperationException("This method is not supported on logical queries which encapsulate comparative queries");
+        }
         for (Query<O> query : super.getSimpleQueries()) {
             if (!query.matches(object, queryOptions)) {
                 return false;

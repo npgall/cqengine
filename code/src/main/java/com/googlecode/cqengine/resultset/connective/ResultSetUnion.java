@@ -40,30 +40,18 @@ public class ResultSetUnion<O> extends ResultSet<O> {
     // ResultSets (not in any particular order)...
     final Iterable<?extends ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
-    final boolean indexMergeStrategyEnabled;
+    final boolean useIndexMergeStrategy;
 
     public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
         this(resultSets, query, queryOptions, false);
     }
 
-    public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
+    public ResultSetUnion(Iterable<? extends ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean useIndexMergeStrategy) {
         List<ResultSet<O>> costCachingResultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
         this.resultSets = costCachingResultSets;
         this.query = query;
         this.queryOptions = queryOptions;
-
-        // If index merge strategy is enabled, validate that we can actually use it for this particular union...
-        if (indexMergeStrategyEnabled) {
-            for (ResultSet resultSet : costCachingResultSets) {
-                if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
-                    // We cannot use index merge strategy for this union
-                    // because at least one ResultSet is not backed by an index...
-                    indexMergeStrategyEnabled = false;
-                    break;
-                }
-            }
-        }
-        this.indexMergeStrategyEnabled = indexMergeStrategyEnabled;
+        this.useIndexMergeStrategy = useIndexMergeStrategy;
     }
 
     @Override
@@ -95,7 +83,7 @@ public class ResultSetUnion<O> extends ResultSet<O> {
 
         // An iterator which wraps the UNION ALL iterator, filtering out objects which are contained in ResultSets
         // iterated earlier - so effectively implementing UNION (with duplicates eliminated)...
-        if (indexMergeStrategyEnabled) {
+        if (useIndexMergeStrategy) {
             return new FilteringIterator<O>(unionAllIterator, queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {

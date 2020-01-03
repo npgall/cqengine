@@ -80,7 +80,7 @@ public class CompoundQuery<O> implements Query<O> {
     }
 
     public static <O> CompoundQuery<O> fromAndQueryIfSuitable(And<O> andQuery) {
-        if (andQuery.hasLogicalQueries()) {
+        if (andQuery.hasLogicalQueries() || andQuery.hasComparativeQueries()) {
             return null;
         }
         List<Attribute<O, ?>> attributeList = new ArrayList<Attribute<O, ?>>(andQuery.getSimpleQueries().size());

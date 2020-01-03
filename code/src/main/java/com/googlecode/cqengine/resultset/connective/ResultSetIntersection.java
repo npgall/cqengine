@@ -36,32 +36,16 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
     // ResultSets sorted in ascending order of merge cost...
     final List<ResultSet<O>> resultSets;
     final QueryOptions queryOptions;
-    final boolean indexMergeStrategyEnabled;
+    final boolean useIndexMergeStrategy;
 
-    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions) {
-        this(resultSets, query, queryOptions, false);
-    }
-
-    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean indexMergeStrategyEnabled) {
+    public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean useIndexMergeStrategy) {
         this.query = query;
         this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
         List<ResultSet<O>> sortedResultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
         this.resultSets = sortedResultSets;
-
-        // If index merge strategy is enabled, validate that we can actually use it for this particular intersection...
-        if (indexMergeStrategyEnabled) {
-            for (ResultSet resultSet : sortedResultSets) {
-                if (resultSet.getRetrievalCost() == Integer.MAX_VALUE) {
-                    // We cannot use index merge strategy for this intersection
-                    // because at least one ResultSet is not backed by an index...
-                    indexMergeStrategyEnabled = false;
-                    break;
-                }
-            }
-        }
-        this.indexMergeStrategyEnabled = indexMergeStrategyEnabled;
+        this.useIndexMergeStrategy = useIndexMergeStrategy;
     }
 
     @Override
@@ -74,7 +58,7 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
         }
         ResultSet<O> lowestMergeCostResultSet = resultSets.get(0);
         final List<ResultSet<O>> moreExpensiveResultSets = resultSets.subList(1, resultSets.size());
-        if (indexMergeStrategyEnabled) {
+        if (useIndexMergeStrategy) {
             return new FilteringIterator<O>(lowestMergeCostResultSet.iterator(), queryOptions) {
                 @Override
                 public boolean isValid(O object, QueryOptions queryOptions) {

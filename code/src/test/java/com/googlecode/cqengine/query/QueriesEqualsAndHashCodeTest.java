@@ -78,7 +78,7 @@ public class QueriesEqualsAndHashCodeTest {
     @Test
     public void testAnd() {
         EqualsVerifier.forClass(And.class)
-                .withIgnoredFields("logicalQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withIgnoredFields("logicalQueries", "simpleQueries", "comparativeQueries", "hasLogicalQueries", "hasSimpleQueries", "hasComparativeQueries", "size")
                 .withPrefabValues(And.class, and(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), and(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
                 .withPrefabValues(LogicalQuery.class, and(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), and(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
                 .withCachedHashCode("cachedHashCode", "calcHashCode", null)
@@ -89,7 +89,7 @@ public class QueriesEqualsAndHashCodeTest {
     @Test
     public void testOr() {
         EqualsVerifier.forClass(Or.class)
-                .withIgnoredFields("logicalQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withIgnoredFields("logicalQueries", "simpleQueries", "comparativeQueries", "hasLogicalQueries", "hasSimpleQueries", "hasComparativeQueries", "size")
                 .withPrefabValues(Or.class, or(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), or(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
                 .withPrefabValues(LogicalQuery.class, or(equal(Car.CAR_ID, 1), equal(Car.CAR_ID, 2)), or(equal(Car.CAR_ID, 3), equal(Car.CAR_ID, 4)))
                 .withCachedHashCode("cachedHashCode", "calcHashCode", null)
@@ -100,7 +100,7 @@ public class QueriesEqualsAndHashCodeTest {
     @Test
     public void testNot() {
         EqualsVerifier.forClass(Not.class)
-                .withIgnoredFields("logicalQueries", "childQueries", "simpleQueries", "hasLogicalQueries", "hasSimpleQueries", "size")
+                .withIgnoredFields("logicalQueries", "childQueries", "simpleQueries", "comparativeQueries", "hasLogicalQueries", "hasSimpleQueries", "hasComparativeQueries", "size")
                 .withPrefabValues(Not.class, not(equal(Car.CAR_ID, 1)), not(equal(Car.CAR_ID, 2)))
                 .withPrefabValues(LogicalQuery.class, not(equal(Car.CAR_ID, 1)), not(equal(Car.CAR_ID, 2)))
                 .withCachedHashCode("cachedHashCode", "calcHashCode", null)

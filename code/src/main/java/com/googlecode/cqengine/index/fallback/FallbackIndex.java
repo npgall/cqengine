@@ -129,7 +129,7 @@ public class FallbackIndex<O> implements Index<O> {
             }
             @Override
             public boolean matches(O object) {
-                return query.matches(object, queryOptions);
+                return query instanceof ComparativeQuery ? contains(object) : query.matches(object, queryOptions);
             }
             @Override
             public int getRetrievalCost() {
