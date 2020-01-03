@@ -56,11 +56,11 @@ public class GeneralFunctionalTest {
         cars.addIndex(InvertedRadixTreeIndex.onAttribute(Car.MODEL));
         cars.addIndex(SuffixTreeIndex.onAttribute(Car.MODEL));
 
-        cars.add(new Car(1, "Ford",   "Focus",  Car.Color.BLUE,  5, 9000.50, Collections.<String>emptyList()));
-        cars.add(new Car(2, "Ford",   "Fiesta", Car.Color.BLUE,  2, 5000.00, Collections.<String>emptyList()));
-        cars.add(new Car(3, "Ford",   "F-150",  Car.Color.RED,   2, 9500.00, Collections.<String>emptyList()));
-        cars.add(new Car(4, "Honda",  "Civic",  Car.Color.RED,   5, 5000.00, Collections.<String>emptyList()));
-        cars.add(new Car(5, "Toyota", "Prius",  Car.Color.BLACK, 3, 9700.00, Collections.<String>emptyList()));
+        cars.add(new Car(1, "Ford",   "Focus",  Car.Color.BLUE,  5, 9000.50, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(2, "Ford",   "Fiesta", Car.Color.BLUE,  2, 5000.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(3, "Ford",   "F-150",  Car.Color.RED,   2, 9500.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(4, "Honda",  "Civic",  Car.Color.RED,   5, 5000.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(5, "Toyota", "Prius",  Car.Color.BLACK, 3, 9700.00, Collections.<String>emptyList(), Collections.emptyList()));
 
         // Ford cars...
         assertThat(carIdsIn(cars.retrieve(equal(Car.MANUFACTURER, "Ford"))), is(setOf(1, 2, 3)));

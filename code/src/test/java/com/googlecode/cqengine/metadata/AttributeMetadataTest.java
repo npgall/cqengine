@@ -25,6 +25,7 @@ import com.googlecode.cqengine.testutil.Car;
 import com.googlecode.cqengine.testutil.CarFactory;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -109,9 +110,9 @@ public class AttributeMetadataTest {
     @Test
     public void testGetKeysAndValues() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
-        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList());
-        Car car2 = new Car(2, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList());
-        Car car3 = new Car(3, "Honda", "Accord", Car.Color.RED, 4, 3000.0, emptyList());
+        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList(), Collections.emptyList());
+        Car car2 = new Car(2, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList(), Collections.emptyList());
+        Car car3 = new Car(3, "Honda", "Accord", Car.Color.RED, 4, 3000.0, emptyList(), Collections.emptyList());
         cars.addAll(asList(car1, car2, car3));
 
         // Add an unsorted index on Car.MANUFACTURER (a HashIndex)...

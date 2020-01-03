@@ -1,46 +1,35 @@
-/**
- * Copyright 2012-2015 Niall Gallagher
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package com.googlecode.cqengine.query.simple;
+package com.googlecode.cqengine.query.comparative;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
-import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.persistence.support.ObjectSet;
+import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
- * The superclass of {@link Query}s which make assertions on attribute values.
+ * A superclass of classes implementing {@link ComparativeQuery}.
+ * This class simply factors out some repetitive logic from subclasses.
  *
- * @param <A> The type of the attribute on which this query makes assertions
- * @param <O> The type of the object containing the attribute
+ * @param <A> The type of the attribute to which this query relates
+ * @param <O> The type of the objects in the collection
  *
  * @author Niall Gallagher
  */
-public abstract class SimpleQuery<O, A> implements Query<O> {
+public abstract class SimpleComparativeQuery<O, A> implements ComparativeQuery<O, A> {
 
     protected final boolean attributeIsSimple;
     protected final Attribute<O, A> attribute;
     protected final SimpleAttribute<O, A> simpleAttribute;
+
+
     // Lazy calculate and cache hash code...
     private transient int cachedHashCode = 0;
 
     /**
-     * Creates a new {@link SimpleQuery} initialized to make assertions on values of the specified attribute
+     * Creates a new {@link SimpleComparativeQuery} initialized to make assertions on values of the specified attribute
      * @param attribute The attribute on which the assertion is to be made
      */
-    public SimpleQuery(Attribute<O, A> attribute) {
+    public SimpleComparativeQuery(Attribute<O, A> attribute) {
         if (attribute == null) {
             throw new IllegalArgumentException("The attribute argument was null.");
         }
@@ -82,20 +71,6 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
     }
 
     @Override
-    public final boolean matches(O object, QueryOptions queryOptions) {
-        if (attributeIsSimple) {
-            return matchesSimpleAttribute(simpleAttribute, object, queryOptions);
-        }
-        else {
-            return matchesNonSimpleAttribute(attribute, object, queryOptions);
-        }
-    }
-
-    protected abstract boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions);
-
-    protected abstract boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions);
-
-    @Override
     public int hashCode() {
         // Lazy calculate and cache hash code...
         int h = this.cachedHashCode;
@@ -109,13 +84,26 @@ public abstract class SimpleQuery<O, A> implements Query<O> {
         return h;
     }
 
-    abstract protected int calcHashCode();
-
-    public static String asLiteral(Object value) {
-        return value instanceof String ? "\"" + value + "\"" : String.valueOf(value);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SimpleComparativeQuery)) return false;
+        SimpleComparativeQuery<?, ?> that = (SimpleComparativeQuery<?, ?>) o;
+        return this.hashCode() == that.hashCode() &&
+                this.attribute.equals(that.attribute)
+                && this.getClass().equals(that.getClass());
     }
 
-    public static String asLiteral(String value) {
-        return "\"" + value + "\"";
+    protected abstract int calcHashCode();
+
+    @Override
+    public Iterable<O> getMatches(ObjectSet<O> objectsInCollection, QueryOptions queryOptions) {
+        return attributeIsSimple
+                ? getMatchesForSimpleAttribute(simpleAttribute, objectsInCollection, queryOptions)
+                : getMatchesForNonSimpleAttribute(attribute, objectsInCollection, queryOptions);
     }
+
+    public abstract Iterable<O> getMatchesForSimpleAttribute(SimpleAttribute<O, A> attribute, ObjectSet<O> objectsInCollection, QueryOptions queryOptions);
+
+    public abstract Iterable<O> getMatchesForNonSimpleAttribute(Attribute<O, A> attribute, ObjectSet<O> objectsInCollection, QueryOptions queryOptions);
 }

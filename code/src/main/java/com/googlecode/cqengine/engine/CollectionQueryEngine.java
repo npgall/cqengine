@@ -34,6 +34,7 @@ import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreResultSet;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
+import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
@@ -376,7 +377,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
-    <A> ResultSet<O> getResultSetWithLowestRetrievalCost(SimpleQuery<O, A> query, QueryOptions queryOptions) {
+    <A> ResultSet<O> retrieveSimpleQuery(SimpleQuery<O, A> query, QueryOptions queryOptions) {
         // First, check if a standing query index is available for the query...
         ResultSet<O> lowestCostResultSet = retrieveFromStandingQueryIndexIfAvailable(query, queryOptions);
         if (lowestCostResultSet != null) {
@@ -398,6 +399,42 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         int lowestRetrievalCost = 0;
         // Examine other (non-unique) indexes...
+        Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
+
+        // Choose the index with the lowest retrieval cost for this query...
+        for (Index<O> index : indexesOnAttribute) {
+            if (index.supportsQuery(query, queryOptions)) {
+                ResultSet<O> thisIndexResultSet = index.retrieve(query, queryOptions);
+                int thisIndexRetrievalCost = thisIndexResultSet.getRetrievalCost();
+                if (lowestCostResultSet == null || thisIndexRetrievalCost < lowestRetrievalCost) {
+                    lowestCostResultSet = thisIndexResultSet;
+                    lowestRetrievalCost = thisIndexRetrievalCost;
+                }
+            }
+        }
+
+        if (lowestCostResultSet == null) {
+            // This should never happen (would indicate a bug);
+            // the fallback index should have been selected in worst case...
+            throw new IllegalStateException("Failed to locate an index supporting query: " + query);
+        }
+        return new CostCachingResultSet<O>(lowestCostResultSet);
+    }
+
+    /**
+     * Returns a {@link ResultSet} from the index with the lowest retrieval cost which supports the given query.
+     * <p/>
+     * For a definition of retrieval cost see {@link ResultSet#getRetrievalCost()}.
+     *
+     * @param query The query which refers to an attribute
+     * @param queryOptions Optional parameters for the query
+     * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
+     */
+    <A> ResultSet<O> retrieveComparativeQuery(ComparativeQuery<O, A> query, QueryOptions queryOptions) {
+        // Determine which of the indexes on the query's attribute have the lowest retrieval cost...
+        int lowestRetrievalCost = 0;
+        ResultSet<O> lowestCostResultSet = null;
+
         Iterable<Index<O>> indexesOnAttribute = getIndexesOnAttribute(query.getAttribute());
 
         // Choose the index with the lowest retrieval cost for this query...
@@ -985,7 +1022,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // No deduplication required for a single SimpleQuery.
             // Return the ResultSet from the index with the lowest retrieval cost which supports
             // this query and the attribute on which it is based...
-            return getResultSetWithLowestRetrievalCost((SimpleQuery<O, ?>) query, queryOptions);
+            return retrieveSimpleQuery((SimpleQuery<O, ?>) query, queryOptions);
+        }
+        else if (query instanceof ComparativeQuery) {
+            // Return the ResultSet from the index with the lowest retrieval cost which supports
+            // this query and the attribute on which it is based...
+            return retrieveComparativeQuery((ComparativeQuery<O, ?>) query, queryOptions);
         }
         else if (query instanceof And) {
             final And<O> and = (And<O>) query;
@@ -1159,7 +1201,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // Work around type erasure...
             @SuppressWarnings({"unchecked"})
             SimpleQuery<O, A> queryTyped = (SimpleQuery<O, A>) query;
-            ResultSet<O> resultSet = getResultSetWithLowestRetrievalCost(queryTyped, queryOptions);
+            ResultSet<O> resultSet = retrieveSimpleQuery(queryTyped, queryOptions);
             resultSets.add(resultSet);
         }
         @SuppressWarnings("unchecked")
@@ -1208,7 +1250,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
                     @Override
                     public ResultSet<O> next() {
-                        return getResultSetWithLowestRetrievalCost(queriesIterator.next(), queryOptions);
+                        return retrieveSimpleQuery(queriesIterator.next(), queryOptions);
                     }
                 };
             }

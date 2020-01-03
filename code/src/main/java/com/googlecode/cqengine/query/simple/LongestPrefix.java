@@ -1,16 +1,16 @@
 package com.googlecode.cqengine.query.simple;
 
-import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
+import com.googlecode.cqengine.query.comparative.SimpleComparativeQuery;
 import com.googlecode.cqengine.query.option.QueryOptions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.googlecode.cqengine.query.simple.SimpleQuery.asLiteral;
+import static com.googlecode.cqengine.query.support.QueryValidation.checkQueryValueNotNull;
 
 /**
  * LongestPrefix queries are used to find the longest prefix in a dataset for a given query term.
@@ -28,7 +28,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  * 
  * @author Glen Lockhart
  */
-public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> {
+public class LongestPrefix<O, A extends CharSequence> extends SimpleComparativeQuery<O, A> {
 
     private final A value;
     public LongestPrefix(Attribute<O, A> attribute, A value) {
@@ -37,17 +37,6 @@ public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> 
     }
     public A getValue() {
         return value;
-    }
-    @Override
-    protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        CharSequence attributeValue = attribute.getValue(object, queryOptions);
-        //swap the order of values
-        return StringStartsWith.matchesValue(value, attributeValue, queryOptions);
-    }
-    @Override
-    protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        // longest prefix doesn't make sense for non-simple attributes
-        return false;
     }
     
     @Override
@@ -71,50 +60,67 @@ public class LongestPrefix<O, A extends CharSequence> extends SimpleQuery<O, A> 
     }
 
     @Override
-    public String toString() {
-        return "longestPrefix(" + asLiteral(super.getAttributeName()) +
-                ", " + asLiteral(value) +
-                ")";
+    public Iterable<O> getMatchesForSimpleAttribute(SimpleAttribute<O, A> attribute, ObjectSet<O> objectsInCollection, QueryOptions queryOptions) {
+        List<O> results = new ArrayList<>();
+        int currentCount = -1;
+        for (O object : objectsInCollection) {
+            CharSequence attributeValue = attribute.getValue(object, queryOptions);
+            int count = countPrefixChars(value, attributeValue);
+            if (count == 0) {
+                continue;
+            }
+            if (count > currentCount) {
+                currentCount = count;
+                results.clear();
+                results.add(object);
+            } else if (count == currentCount) {
+                results.add(object);
+            }
+        }
+        return results;
     }
-    public Iterator<O> getLongestMatchesForPrefix(ObjectSet<O> objectSet, QueryOptions queryOptions) {
-        
-        List<O> current = new ArrayList<>(); 
-        if(attributeIsSimple) {
-            int currentCount = -1;
-            Iterator<O> it = objectSet.iterator();
-            while(it.hasNext()) {
-                O object = it.next();
-                CharSequence attributeValue = simpleAttribute.getValue(object, queryOptions);
-                int count = matchesValue(value, attributeValue, queryOptions);
-                if(count==0) {
+
+    @Override
+    public Iterable<O> getMatchesForNonSimpleAttribute(Attribute<O, A> attribute, ObjectSet<O> objectsInCollection, QueryOptions queryOptions) {
+        List<O> results = new ArrayList<>();
+        int currentCount = -1;
+        for (O object : objectsInCollection) {
+            Iterable<A> attributeValues = attribute.getValues(object, queryOptions);
+            for (A attributeValue : attributeValues) {
+                int count = countPrefixChars(value, attributeValue);
+                if (count == 0) {
                     continue;
                 }
-                else if(count > currentCount) {
+                if (count > currentCount) {
                     currentCount = count;
-                    current.clear();
-                    current.add(object);
-                } else if(count == currentCount) {
-                    current.add(object);
+                    results.clear();
+                    results.add(object);
+                } else if (count == currentCount) {
+                    results.add(object);
                 }
             }
         }
-        
-        return current.iterator();
-        
+        return results;
     }
-    
-    public static int matchesValue(CharSequence aValue, CharSequence bValue, QueryOptions queryOptions) {
+
+    @Override
+    public String toString() {
+        return "longestPrefix(" + asLiteral(super.getAttributeName()) + ", " + asLiteral(value) + ")";
+    }
+
+    /**
+     * Returns the length of the given candidate prefix if it is a prefix of the given main sequence.
+     * Returns 0 if the candidate is not actually a prefix of the main sequence.
+     */
+    static int countPrefixChars(CharSequence mainSequence, CharSequence candidatePrefix) {
         int charsMatched = 0;
-        for (int i = 0, length = Math.min(aValue.length(), bValue.length()); i < length; i++) {
-            if (aValue.charAt(i) != bValue.charAt(i)) {
+        for (int i = 0, length = Math.min(mainSequence.length(), candidatePrefix.length()); i < length; i++) {
+            if (mainSequence.charAt(i) != candidatePrefix.charAt(i)) {
                 break;
             }
             charsMatched++;
         }
-        if(charsMatched == bValue.length()) {
-            return charsMatched;
-        }
-        return 0;
+        return charsMatched == candidatePrefix.length() ? charsMatched : 0;
     }
 
 }

@@ -48,11 +48,11 @@ public class CQEngineDemo {
         cars.addIndex(InvertedRadixTreeIndex.onAttribute(Car.MODEL));
         cars.addIndex(SuffixTreeIndex.onAttribute(Car.MODEL));
 
-        cars.add(new Car(1, "Ford",   "Focus",  Color.BLUE,  5, 9000.50, Collections.<String>emptyList()));
-        cars.add(new Car(2, "Ford",   "Fiesta", Color.BLUE,  2, 5000.00, Collections.<String>emptyList()));
-        cars.add(new Car(3, "Ford",   "F-150",  Color.RED,   2, 9500.00, Collections.<String>emptyList()));
-        cars.add(new Car(4, "Honda",  "Civic",  Color.RED,   5, 5000.00, Collections.<String>emptyList()));
-        cars.add(new Car(5, "Toyota", "Prius",  Color.BLACK, 3, 9700.00, Collections.<String>emptyList()));
+        cars.add(new Car(1, "Ford",   "Focus",  Color.BLUE,  5, 9000.50, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(2, "Ford",   "Fiesta", Color.BLUE,  2, 5000.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(3, "Ford",   "F-150",  Color.RED,   2, 9500.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(4, "Honda",  "Civic",  Color.RED,   5, 5000.00, Collections.<String>emptyList(), Collections.emptyList()));
+        cars.add(new Car(5, "Toyota", "Prius",  Color.BLACK, 3, 9700.00, Collections.<String>emptyList(), Collections.emptyList()));
 
         Query<Car> query;
 

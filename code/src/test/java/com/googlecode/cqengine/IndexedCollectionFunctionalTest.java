@@ -544,6 +544,65 @@ public class IndexedCollectionFunctionalTest {
                     );
                 }},
                 new MacroScenario() {{
+                    name = "comparative queries";
+                    dataSet = SMALL_DATASET;
+                    alsoEvaluateWithIndexMergeStrategy = false;
+                    collectionImplementations = classes(ConcurrentIndexedCollection.class);
+                    queriesToEvaluate = asList(
+                            new QueryToEvaluate() {{
+                                query = min(Car.PRICE); // will invoke Min.getMatchesForSimpleAttribute() for the noIndexes() scenario
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1;
+                                    carIdsAnyOrder = asSet(4); // car with the lowest price
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = max(Car.PRICE); // will invoke Max.getMatchesForSimpleAttribute() for the noIndexes() scenario
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1;
+                                    carIdsAnyOrder = asSet(9); // car with the highest price
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = min(Car.KEYWORDS); // will invoke Min.getMatchesForNonSimpleAttribute() for the noIndexes() scenario
+                                expectedResults = new ExpectedResults() {{
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(2, 5); // cars with keyword "alpha"
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = max(Car.KEYWORDS);  // will invoke Max.getMatchesForNonSimpleAttribute() for the noIndexes() scenario
+                                expectedResults = new ExpectedResults() {{
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(1, 9);  // cars with keyword "zulu"
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = longestPrefix(Car.KEYWORDS, "very-good-car-indeed");
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 2;
+                                    carIdsAnyOrder = asSet(6, 8); // cars with keyword "very-good-car" and not keyword "very-good"
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = longestPrefix(Car.MANUFACTURER, "Toyota2");
+                                queryOptions = queryOptions(deduplicate(DeduplicationStrategy.MATERIALIZE));
+                                expectedResults = new ExpectedResults() {{
+                                    size = 3;
+                                    carIdsAnyOrder = asSet(6, 7, 8);
+                                }};
+                            }}
+                    );
+                    indexCombinations = indexCombinations(
+                            noIndexes(),
+                            indexCombination(NavigableIndex.onAttribute(Car.PRICE)),
+                            indexCombination(NavigableIndex.onAttribute(Car.KEYWORDS)),
+                            indexCombination(InvertedRadixTreeIndex.onAttribute(Car.KEYWORDS))
+
+                    );
+                }},
+                new MacroScenario() {{
                     name = "off-heap collection";
                     dataSet = SMALL_DATASET;
                     collectionImplementations = classes(OffHeapConcurrentIndexedCollection.class);

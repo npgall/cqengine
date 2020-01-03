@@ -15,12 +15,13 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.query.simple.SimpleQuery;
 
 /**
- * An interface implemented by all {@link Query} subclasses, both those descending from
- * {@link com.googlecode.cqengine.query.simple.SimpleQuery} and from
- * {@link com.googlecode.cqengine.query.logical.LogicalQuery}.
+ * An interface implemented by all {@link Query} subclasses, including those descending from
+ * {@link SimpleQuery}, {@link ComparativeQuery} and {@link LogicalQuery}.
  *
  * @author ngallagher
  * @since 2012-04-30 16:52

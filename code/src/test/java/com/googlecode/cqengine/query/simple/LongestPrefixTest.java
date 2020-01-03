@@ -99,10 +99,19 @@ public class LongestPrefixTest {
     @Test
     public void testLongestPrefix() {
         Attribute<String, String> stringIdentity = new SelfAttribute<String>(String.class, "identity");
-        assertTrue(longestPrefix(stringIdentity, "35387123456").matches("35387", noQueryOptions()));
-        assertTrue(longestPrefix(stringIdentity, "35387").matches("35387", noQueryOptions()));
-        assertFalse(longestPrefix(stringIdentity, "35386123456").matches("35387", noQueryOptions()));
-        assertFalse(longestPrefix(stringIdentity, "35386123456").matches("35387", noQueryOptions()));
-        assertFalse(longestPrefix(stringIdentity, "3538").matches("35387", noQueryOptions()));
+        assertTrue(LongestPrefix.countPrefixChars( "35387123456", "35387") > 0);
+        assertEquals(5, LongestPrefix.countPrefixChars( "35387123456", "35387"));
+
+        assertTrue(LongestPrefix.countPrefixChars("35387", "35387") > 0);
+        assertEquals(5, LongestPrefix.countPrefixChars("35387", "35387"));
+
+        assertFalse(LongestPrefix.countPrefixChars("35386123456", "35387") > 0);
+        assertEquals(0, LongestPrefix.countPrefixChars("35386123456", "35387"));
+
+        assertFalse(LongestPrefix.countPrefixChars("35386123456", "35387") > 0);
+        assertEquals(0, LongestPrefix.countPrefixChars("35386123456", "35387"));
+
+        assertFalse(LongestPrefix.countPrefixChars("3538", "35387") > 0);
+        assertEquals(0, LongestPrefix.countPrefixChars("3538", "35387"));
     }
 }

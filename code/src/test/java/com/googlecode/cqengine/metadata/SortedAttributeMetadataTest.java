@@ -21,6 +21,8 @@ import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.testutil.Car;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static com.googlecode.cqengine.metadata.AttributeMetadataTest.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -165,9 +167,9 @@ public class SortedAttributeMetadataTest {
     @Test
     public void testGetKeysAndValues() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
-        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList());
-        Car car2 = new Car(2, "Toyota", "Prius", Car.Color.BLUE, 4, 2000.0, emptyList());
-        Car car3 = new Car(3, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList());
+        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList(), Collections.emptyList());
+        Car car2 = new Car(2, "Toyota", "Prius", Car.Color.BLUE, 4, 2000.0, emptyList(), Collections.emptyList());
+        Car car3 = new Car(3, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList(), Collections.emptyList());
         cars.addAll(asList(car1, car2, car3));
 
         // Add a sorted index on Car.MANUFACTURER (a NavigableIndex)...
@@ -196,9 +198,9 @@ public class SortedAttributeMetadataTest {
     @Test
     public void testGetKeysAndValuesDescending() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<>();
-        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList());
-        Car car2 = new Car(2, "Toyota", "Prius", Car.Color.BLUE, 4, 2000.0, emptyList());
-        Car car3 = new Car(3, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList());
+        Car car1 = new Car(1, "Ford", "Taurus", Car.Color.GREEN, 4, 1000.0, emptyList(), Collections.emptyList());
+        Car car2 = new Car(2, "Toyota", "Prius", Car.Color.BLUE, 4, 2000.0, emptyList(), Collections.emptyList());
+        Car car3 = new Car(3, "Honda", "Civic", Car.Color.BLUE, 4, 2000.0, emptyList(), Collections.emptyList());
         cars.addAll(asList(car1, car2, car3));
 
         // Add a sorted index on Car.MANUFACTURER (a NavigableIndex)...

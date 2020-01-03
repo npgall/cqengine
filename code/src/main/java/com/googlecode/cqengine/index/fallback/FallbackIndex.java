@@ -18,6 +18,7 @@ package com.googlecode.cqengine.index.fallback;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
 import com.googlecode.cqengine.persistence.support.ObjectStore;
+import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.All;
@@ -106,8 +107,8 @@ public class FallbackIndex<O> implements Index<O> {
                 else if (query instanceof None) {
                     return Collections.<O>emptyList().iterator();
                 } 
-                else if (query instanceof LongestPrefix) {
-                    return ((LongestPrefix<O,?>)query).getLongestMatchesForPrefix(objectSet, queryOptions);
+                else if (query instanceof ComparativeQuery) {
+                    return ((ComparativeQuery<O, ?>)query).getMatches(objectSet, queryOptions).iterator();
                 }
                 else {
                     return new FilteringIterator<O>(objectSet.iterator(), queryOptions) {

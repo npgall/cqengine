@@ -54,6 +54,10 @@ public class Car {
         public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.features; }
     };
 
+    public static final MultiValueAttribute<Car, String> KEYWORDS = new MultiValueAttribute<Car, String>("keywords") {
+        public Iterable<String> getValues(Car car, QueryOptions queryOptions) { return car.keywords; }
+    };
+
     public enum Color {RED, GREEN, BLUE, BLACK, WHITE}
     final int carId;
     final String manufacturer;
@@ -62,8 +66,9 @@ public class Car {
     final int doors;
     final double price;
     final List<String> features;
+    final List<String> keywords;
 
-    public Car(int carId, String manufacturer, String model, Color color, int doors, double price, List<String> features) {
+    public Car(int carId, String manufacturer, String model, Color color, int doors, double price, List<String> features, List<String> keywords) {
         this.carId = carId;
         this.manufacturer = manufacturer;
         this.model = model;
@@ -71,6 +76,7 @@ public class Car {
         this.doors = doors;
         this.price = price;
         this.features = features;
+        this.keywords = keywords;
     }
 
     public int getCarId() {
@@ -111,6 +117,7 @@ public class Car {
                 ", doors=" + doors +
                 ", price=" + price +
                 ", features=" + features +
+                ", keywords=" + keywords +
                 '}';
     }
 

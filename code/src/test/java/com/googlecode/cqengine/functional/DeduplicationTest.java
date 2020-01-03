@@ -40,7 +40,7 @@ public class DeduplicationTest {
     @Test
     public void testDeduplication_Materialize() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
+        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList(), Collections.emptyList()));
         cars.addIndex(HashIndex.onAttribute(Car.COLOR));
         cars.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
 
@@ -60,7 +60,7 @@ public class DeduplicationTest {
     @Test
     public void testDeduplication_Logical() {
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
-        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList()));
+        cars.add(new Car(1, "Ford", "Focus", BLUE, 5, 1000.0, Collections.<String>emptyList(), Collections.emptyList()));
         cars.addIndex(HashIndex.onAttribute(Car.COLOR));
         cars.addIndex(HashIndex.onAttribute(Car.MANUFACTURER));
 
