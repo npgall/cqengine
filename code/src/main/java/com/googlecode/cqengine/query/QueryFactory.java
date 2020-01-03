@@ -20,6 +20,7 @@ import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.attribute.support.*;
 import com.googlecode.cqengine.entity.MapEntity;
 import com.googlecode.cqengine.entity.PrimaryKeyedMapEntity;
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
 import com.googlecode.cqengine.query.comparative.Max;
 import com.googlecode.cqengine.query.comparative.Min;
 import com.googlecode.cqengine.query.logical.And;

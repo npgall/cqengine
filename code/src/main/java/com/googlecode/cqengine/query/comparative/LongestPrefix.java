@@ -1,9 +1,8 @@
-package com.googlecode.cqengine.query.simple;
+package com.googlecode.cqengine.query.comparative;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
-import com.googlecode.cqengine.query.comparative.SimpleComparativeQuery;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import java.util.ArrayList;

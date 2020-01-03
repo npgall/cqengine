@@ -2,6 +2,7 @@ package com.googlecode.cqengine.query;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.persistence.support.ObjectSet;
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 /**
@@ -18,7 +19,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
  * sort lower or higher (respectively) are the results of those queries.
  * <p>
  * Note that comparative queries are not always implemented via the {@link Comparable} interface. For example, the
- * {@link com.googlecode.cqengine.query.simple.LongestPrefix} query examines the lengths of matched prefixes, rather
+ * {@link LongestPrefix} query examines the lengths of matched prefixes, rather
  * than the relative ordering of objects in the collection as determined by {@link Comparable}. Therefore, this
  * interface does not require that the generic type A extend Comparable per-se.
  *

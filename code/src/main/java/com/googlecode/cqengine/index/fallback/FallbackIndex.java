@@ -22,12 +22,10 @@ import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.All;
-import com.googlecode.cqengine.query.simple.LongestPrefix;
 import com.googlecode.cqengine.query.simple.None;
 import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
-import com.googlecode.cqengine.resultset.stored.StoredSetBasedResultSet;
 
 import java.util.*;
 

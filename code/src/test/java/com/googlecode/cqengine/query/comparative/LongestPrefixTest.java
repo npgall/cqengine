@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.query.simple;
+package com.googlecode.cqengine.query.comparative;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static org.junit.Assert.*;

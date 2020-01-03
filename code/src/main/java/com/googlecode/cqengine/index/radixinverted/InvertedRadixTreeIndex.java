@@ -40,7 +40,7 @@ import com.googlecode.cqengine.query.option.DeduplicationOption;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.In;
-import com.googlecode.cqengine.query.simple.LongestPrefix;
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
 import com.googlecode.cqengine.query.simple.StringIsContainedIn;
 import com.googlecode.cqengine.query.simple.StringIsPrefixOf;
 import com.googlecode.cqengine.resultset.ResultSet;
