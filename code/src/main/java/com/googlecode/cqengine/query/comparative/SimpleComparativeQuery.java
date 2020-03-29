@@ -84,16 +84,6 @@ public abstract class SimpleComparativeQuery<O, A> implements ComparativeQuery<O
         return h;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SimpleComparativeQuery)) return false;
-        SimpleComparativeQuery<?, ?> that = (SimpleComparativeQuery<?, ?>) o;
-        return this.hashCode() == that.hashCode() &&
-                this.attribute.equals(that.attribute)
-                && this.getClass().equals(that.getClass());
-    }
-
     protected abstract int calcHashCode();
 
     @Override

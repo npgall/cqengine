@@ -24,6 +24,16 @@ public class Min<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Min)) return false;
+
+        Min min = (Min) o;
+
+        return super.attribute.equals(min.attribute);
+    }
+
+    @Override
     protected int calcHashCode() {
         return super.attribute.hashCode();
     }
@@ -34,24 +44,7 @@ public class Min<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
         Set<O> results = new HashSet<>();
         for (O object : objectsInCollection) {
             A attributeValue = attribute.getValue(object, queryOptions);
-            if (minimumValue == null) {
-                minimumValue = attributeValue;
-                results.add(object);
-                continue;
-            }
-            final int cmp = attributeValue.compareTo(minimumValue);
-            if (cmp == 0) {
-                // We found another object whose attribute value is the same as the current minimum value.
-                // Add that object to the set of results...
-                results.add(object);
-            }
-            else if (cmp < 0) {
-                // We found an object whose attribute value is less than the minimum value found so far.
-                // Clear all results encountered so far, and add this object to the set of results...
-                minimumValue = attributeValue;
-                results.clear();
-                results.add(object);
-            }
+            minimumValue = evaluate(object, attributeValue, minimumValue, (Set<O>) results);
         }
         return results;
     }
@@ -63,26 +56,37 @@ public class Min<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
         for (O object : objectsInCollection) {
             Iterable<A> attributeValues = attribute.getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
-                if (minimumValue == null) {
-                    minimumValue = attributeValue;
-                    results.add(object);
-                    continue;
-                }
-                final int cmp = attributeValue.compareTo(minimumValue);
-                if (cmp == 0) {
-                    // We found another object whose attribute value is the same as the current minimum value.
-                    // Add that object to the set of results...
-                    results.add(object);
-                } else if (cmp < 0) {
-                    // We found an object whose attribute value is less than the minimum value found so far.
-                    // Clear all results encountered so far, and add this object to the set of results...
-                    minimumValue = attributeValue;
-                    results.clear();
-                    results.add(object);
-                }
+                minimumValue = evaluate(object, attributeValue, minimumValue, results);
             }
         }
         return results;
+    }
+
+    /**
+     * Helper method which evaluates each attribute value encountered. Adds the object to the given set of
+     * results if the attribute value equals the max, or clears the results if a new maximum value is detected.
+     *
+     * @return The new maximum value
+     */
+    A evaluate(O currentObject, A currentAttributeValue, A currentMinimumValue, Set<O> results) {
+        if (currentMinimumValue == null) {
+            currentMinimumValue = currentAttributeValue;
+            results.add(currentObject);
+            return currentMinimumValue;
+        }
+        final int cmp = currentAttributeValue.compareTo(currentMinimumValue);
+        if (cmp == 0) {
+            // We found another object whose attribute value is the same as the current minimum value.
+            // Add that object to the set of results...
+            results.add(currentObject);
+        } else if (cmp < 0) {
+            // We found an object whose attribute value is less than the minimum value found so far.
+            // Clear all results encountered so far, and add this object to the set of results...
+            currentMinimumValue = currentAttributeValue;
+            results.clear();
+            results.add(currentObject);
+        }
+        return currentMinimumValue;
     }
 
     @Override

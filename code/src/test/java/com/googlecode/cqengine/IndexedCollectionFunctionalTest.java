@@ -564,6 +564,20 @@ public class IndexedCollectionFunctionalTest {
                                 }};
                             }},
                             new QueryToEvaluate() {{
+                                query = min(Car.DOORS);
+                                expectedResults = new ExpectedResults() {{
+                                    size = 1;
+                                    carIdsAnyOrder = asSet(9); // cars with 2 doors
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
+                                query = max(Car.DOORS);
+                                expectedResults = new ExpectedResults() {{
+                                    size = 5;
+                                    carIdsAnyOrder = asSet(0, 3, 4, 6, 8); // cars with 5 doors
+                                }};
+                            }},
+                            new QueryToEvaluate() {{
                                 query = min(Car.KEYWORDS); // will invoke Min.getMatchesForNonSimpleAttribute() for the noIndexes() scenario
                                 expectedResults = new ExpectedResults() {{
                                     size = 2;
@@ -574,7 +588,7 @@ public class IndexedCollectionFunctionalTest {
                                 query = max(Car.KEYWORDS);  // will invoke Max.getMatchesForNonSimpleAttribute() for the noIndexes() scenario
                                 expectedResults = new ExpectedResults() {{
                                     size = 2;
-                                    carIdsAnyOrder = asSet(1, 9);  // cars with keyword "zulu"
+                                    carIdsAnyOrder = asSet(1, 9); // cars with keyword "zulu"
                                 }};
                             }},
                             new QueryToEvaluate() {{

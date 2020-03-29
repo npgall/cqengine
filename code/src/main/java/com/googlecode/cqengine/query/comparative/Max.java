@@ -25,6 +25,16 @@ public class Max<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Max)) return false;
+
+        Max max = (Max) o;
+
+        return super.attribute.equals(max.attribute);
+    }
+
+    @Override
     protected int calcHashCode() {
         return super.attribute.hashCode();
     }
@@ -35,23 +45,7 @@ public class Max<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
         Set<O> results = new HashSet<>();
         for (O object : objectsInCollection) {
             A attributeValue = attribute.getValue(object, queryOptions);
-            if (maximumValue == null) {
-                maximumValue = attributeValue;
-                results.add(object);
-                continue;
-            }
-            final int cmp = attributeValue.compareTo(maximumValue);
-            if (cmp == 0) {
-                // We found another object whose attribute value is the same as the current maximum value.
-                // Add that object to the set of results...
-                results.add(object);
-            } else if (cmp > 0) {
-                // We found an object whose attribute value is greater than the maximum value found so far.
-                // Clear all results encountered so far, and add this object to the set of results...
-                maximumValue = attributeValue;
-                results.clear();
-                results.add(object);
-            }
+            maximumValue = evaluate(object, attributeValue, maximumValue, (Set<O>) results);
         }
         return results;
     }
@@ -63,26 +57,37 @@ public class Max<O, A extends Comparable<A>> extends SimpleComparativeQuery<O, A
         for (O object : objectsInCollection) {
             Iterable<A> attributeValues = attribute.getValues(object, queryOptions);
             for (A attributeValue : attributeValues) {
-                if (maximumValue == null) {
-                    maximumValue = attributeValue;
-                    results.add(object);
-                    continue;
-                }
-                final int cmp = attributeValue.compareTo(maximumValue);
-                if (cmp == 0) {
-                    // We found another object whose attribute value is the same as the current maximum value.
-                    // Add that object to the set of results...
-                    results.add(object);
-                } else if (cmp > 0) {
-                    // We found an object whose attribute value is greater than the maximum value found so far.
-                    // Clear all results encountered so far, and add this object to the set of results...
-                    maximumValue = attributeValue;
-                    results.clear();
-                    results.add(object);
-                }
+                maximumValue = evaluate(object, attributeValue, maximumValue, results);
             }
         }
         return results;
+    }
+
+    /**
+     * Helper method which evaluates each attribute value encountered. Adds the object to the given set of
+     * results if the attribute value equals the max, or clears the results if a new maximum value is detected.
+     *
+     * @return The new maximum value
+     */
+    A evaluate(O currentObject, A currentAttributeValue, A currentMaximumValue, Set<O> results) {
+        if (currentMaximumValue == null) {
+            currentMaximumValue = currentAttributeValue;
+            results.add(currentObject);
+            return currentMaximumValue;
+        }
+        final int cmp = currentAttributeValue.compareTo(currentMaximumValue);
+        if (cmp == 0) {
+            // We found another object whose attribute value is the same as the current maximum value.
+            // Add that object to the set of results...
+            results.add(currentObject);
+        } else if (cmp > 0) {
+            // We found an object whose attribute value is greater than the maximum value found so far.
+            // Clear all results encountered so far, and add this object to the set of results...
+            currentMaximumValue = currentAttributeValue;
+            results.clear();
+            results.add(currentObject);
+        }
+        return currentMaximumValue;
     }
 
     @Override

@@ -45,10 +45,8 @@ public class LongestPrefix<O, A extends CharSequence> extends SimpleComparativeQ
 
         LongestPrefix<?, ?> that = (LongestPrefix<?, ?>) o;
 
-        if (!attribute.equals(that.attribute)) return false;
-        if (!value.equals(that.value)) return false;
-
-        return true;
+        if (!super.attribute.equals(that.attribute)) return false;
+        return this.value.equals(that.value);
     }
 
     @Override

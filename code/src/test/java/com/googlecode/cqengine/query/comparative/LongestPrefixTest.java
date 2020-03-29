@@ -8,6 +8,7 @@ import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.testutil.MobileTerminating;
 import com.googlecode.cqengine.testutil.MobileTerminatingFactory;
@@ -113,5 +114,33 @@ public class LongestPrefixTest {
 
         assertFalse(LongestPrefix.countPrefixChars("3538", "35387") > 0);
         assertEquals(0, LongestPrefix.countPrefixChars("3538", "35387"));
+    }
+
+    @Test
+    public void testConstructor_ArgumentValidation() {
+        {
+            IllegalArgumentException expectedIAE = null;
+            try {
+                new LongestPrefix<>(null, "");
+            } catch (IllegalArgumentException e) {
+                expectedIAE = e;
+            }
+            assertNotNull(expectedIAE);
+        }
+        {
+            NullPointerException expectedNPE = null;
+            try {
+                new LongestPrefix<>(QueryFactory.selfAttribute(String.class), null);
+            } catch (NullPointerException e) {
+                expectedNPE = e;
+            }
+            assertNotNull(expectedNPE);
+        }
+    }
+
+    @Test
+    public void testGetAttributeType() {
+        Class<String> attributeType = new LongestPrefix<>(selfAttribute(String.class), "").getAttributeType();
+        assertEquals(String.class, attributeType);
     }
 }

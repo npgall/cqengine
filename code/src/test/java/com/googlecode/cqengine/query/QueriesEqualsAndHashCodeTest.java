@@ -15,6 +15,9 @@
  */
 package com.googlecode.cqengine.query;
 
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
+import com.googlecode.cqengine.query.comparative.Max;
+import com.googlecode.cqengine.query.comparative.Min;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
@@ -58,7 +61,10 @@ public class QueriesEqualsAndHashCodeTest {
                 singletonList(StringEndsWith.class),
                 singletonList(StringContains.class),
                 singletonList(StringIsContainedIn.class),
-                singletonList(StringMatchesRegex.class)
+                singletonList(StringMatchesRegex.class),
+                singletonList(LongestPrefix.class),
+                singletonList(Min.class),
+                singletonList(Max.class)
         );
     }
 
