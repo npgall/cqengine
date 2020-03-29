@@ -1,7 +1,7 @@
 # CQEngine Release Notes #
 
 ## Version 3.5.0 - 2020-03-29 ###
-  * Added MetadataEngine API - a high level API for accessing metadata from indexes
+  * Added [MetadataEngine API](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/metadata/MetadataEngine.html) - a high level API for accessing metadata from indexes
     * Accessible via `IndexedCollection.getMetadataEngine()`
     * Supports:
       * Frequency distributions (the counts of each attribute value)
@@ -11,7 +11,7 @@
       * Get a stream of attribute values and associated objects from an index between attribute values x and y
       * Count distinct keys (how many distinct attribute values are in an index)
       * Count for a specific key (how many objects match a specific attribute value)
-  * Added support for "comparative queries"
+  * Added support for "[comparative queries](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/query/ComparativeQuery.html)"
     * These are a type of query which can only be answered by comparing objects in the collection with each other
     * Comparative queries included:
       * `LongestPrefix` - find the longest stored prefix in a collection for a given query term
