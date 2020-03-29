@@ -1,5 +1,25 @@
 # CQEngine Release Notes #
 
+## Version 3.5.0 - 2020-03-29 ###
+  * Added MetadataEngine API - a high level API for accessing metadata from indexes
+    * Accessible via `IndexedCollection.getMetadataEngine()`
+    * Supports:
+      * Frequency distributions (the counts of each attribute value)
+      * Distinct keys (what are the distinct attribute values in an index)
+      * Distinct keys within a range (what are the distinct attribute values in an index between x and y)
+      * Get a stream of attribute values and associated objects from an index (ascending/descending order)
+      * Get a stream of attribute values and associated objects from an index between attribute values x and y
+      * Count distinct keys (how many distinct attribute values are in an index)
+      * Count for a specific key (how many objects match a specific attribute value)
+  * Added support for "comparative queries"
+    * These are a type of query which can only be answered by comparing objects in the collection with each other
+    * Comparative queries included:
+      * `LongestPrefix` - find the longest stored prefix in a collection for a given query term
+        * Many thanks to Glen Lockhart (glockhart) for contributing this! (resolves #253)
+      * `Min` - find the objects which have the minimum value for an attribute
+      * `Max` - find the objects which have the maximum value for an attribute
+
+
 ## Version 3.4.0 - 2019-06-07 ###
   * Added null checking to constructors of query objects (resolves issue #223)
   * Fixed bug which prevented standing query indexes from being considered for nested simple queries (resolves issue #232)
