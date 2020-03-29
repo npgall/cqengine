@@ -23,6 +23,7 @@ com.googlecode.cqengine.index.suffix
 com.googlecode.cqengine.index.support
 com.googlecode.cqengine.index.support.indextype
 com.googlecode.cqengine.index.unique
+com.googlecode.cqengine.metadata
 com.googlecode.cqengine.persistence
 com.googlecode.cqengine.persistence.composite
 com.googlecode.cqengine.persistence.disk
@@ -34,6 +35,7 @@ com.googlecode.cqengine.persistence.support.sqlite
 com.googlecode.cqengine.persistence.wrapping
 com.googlecode.cqengine.quantizer
 com.googlecode.cqengine.query
+com.googlecode.cqengine.query.comparative
 com.googlecode.cqengine.query.logical
 com.googlecode.cqengine.query.option
 com.googlecode.cqengine.query.parser.common
