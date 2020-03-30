@@ -16,8 +16,9 @@
     * Comparative queries included:
       * `LongestPrefix` - find the longest stored prefix in a collection for a given query term
         * Many thanks to Glen Lockhart (glockhart) for contributing this! (resolves #253)
-      * `Min` - find the objects which have the minimum value for an attribute
-      * `Max` - find the objects which have the maximum value for an attribute
+      * The following queries should be considered **beta** (they will be renamed and augmented in the next release)
+        * `Min` - find the objects which have the minimum value for an attribute
+        * `Max` - find the objects which have the maximum value for an attribute
 
 
 ## Version 3.4.0 - 2019-06-07 ###
