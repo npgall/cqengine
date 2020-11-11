@@ -49,7 +49,8 @@ public class BenchmarkRunner {
             new NonOptimalIndexes_ManufacturerToyotaColorBlueDoorsThree(),
             new StandingQueryIndex_ManufacturerToyotaColorBlueDoorsNotFive(),
             new RadixTreeIndex_ModelStartsWithP(),
-            new SuffixTreeIndex_ModelContainsG()
+            new SuffixTreeIndex_ModelContainsG(),
+            new MaterializedOrder_CardId()
     );
 
     public static void main(String[] args) {
