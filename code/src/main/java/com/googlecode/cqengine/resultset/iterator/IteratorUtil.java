@@ -183,7 +183,7 @@ public class IteratorUtil {
 
     /**
      * Sorts the results returned by the given iterator, returning the sorted results as a new iterator, by performing
-     * an insertion-sort into an intermediate set in memory.
+     * an merge-sort into an intermediate array in memory.
      * <p/>
      * Time complexity for building an insertion sorted set is <code>O(merge_cost * log(merge_cost))</code>, and then
      * iterating it makes this <b><code>O(merge_cost^2 * log(merge_cost))</code></b>. (Merge cost is an approximation
@@ -195,11 +195,12 @@ public class IteratorUtil {
      * @return An iterator which returns the objects in sorted order
      */
     public static <O> Iterator<O> materializedSort(Iterator<O> unsortedIterator, Comparator<O> comparator) {
-        Set<O> materializedSet = new TreeSet<O>(comparator);
+        final List<O> result = new ArrayList<>();
         while (unsortedIterator.hasNext()) {
-            materializedSet.add(unsortedIterator.next());
+            result.add(unsortedIterator.next());
         }
-        return materializedSet.iterator();
+        result.sort(comparator);
+        return result.iterator();
     }
 
     /**

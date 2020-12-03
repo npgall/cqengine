@@ -153,4 +153,15 @@ public class BenchmarkUnitTest {
         assertEquals(100, task.runQueryCountResults_CQEngine());
         assertEquals(100, task.runQueryCountResults_CQEngineStatistics());
     }
+
+    @Test
+    public void testMaterializedOrder_CardId() {
+        BenchmarkTask task = new MaterializedOrder_CardId();
+        task.init(collection);
+
+        assertEquals(1000, task.runQueryCountResults_IterationNaive());
+        assertEquals(1000, task.runQueryCountResults_IterationOptimized());
+        assertEquals(1000, task.runQueryCountResults_CQEngine());
+        assertEquals(1000, task.runQueryCountResults_CQEngineStatistics());
+    }
 }
