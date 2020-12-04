@@ -183,11 +183,13 @@ public class IteratorUtil {
 
     /**
      * Sorts the results returned by the given iterator, returning the sorted results as a new iterator, by performing
-     * an merge-sort into an intermediate array in memory.
+     * a merge-sort into an intermediate array in memory.
      * <p/>
-     * Time complexity for building an insertion sorted set is <code>O(merge_cost * log(merge_cost))</code>, and then
-     * iterating it makes this <b><code>O(merge_cost^2 * log(merge_cost))</code></b>. (Merge cost is an approximation
-     * of the cost of iterating all elements in any result set.)
+     * The time complexity for copying the objects into the intermediate array is O(n), and then the cost of sorting is
+     * additionally O(n log(n)). So overall complexity is O(n) + O(n log(n)).
+     * <p>
+     * Note this method does not perform any deduplication of objects. It can be combined with
+     * {@link #materializedDeduplicate(Iterator)} to achieve that.
      *
      * @param unsortedIterator An iterator which provides unsorted objects
      * @param comparator The comparator to use for sorting
@@ -207,7 +209,7 @@ public class IteratorUtil {
      * De-duplicates the results returned by the given iterator, by wrapping it in a
      * {@link MaterializedDeduplicatedIterator}.
      */
-    public static <O> Iterator<O> materializedDeuplicate(Iterator<O> iterator) {
+    public static <O> Iterator<O> materializedDeduplicate(Iterator<O> iterator) {
         return new MaterializedDeduplicatedIterator<O>(iterator);
     }
 }

@@ -24,40 +24,30 @@ import java.util.*;
 /**
  * A {@code ResultSet} which wraps another {@code ResultSet}, providing an {@link #iterator()} method which returns
  * objects from the wrapped ResultSet in sorted order according to a comparator supplied to the constructor of this
- * {@code ResultSet}, AND which implicitly deduplicates the objects returned as well.
+ * {@code ResultSet}.
  * <p/>
- * Note that the {@link #size()} method does not necessarily reflect the outcome of that deduplication.
- * As deduplication is expensive, the constructor accepts a boolean flag to specify if the size() method should perform
- * deduplication.
- * <p/>
- * Deduplication is implemented by copying objects from the wrapped {@link ResultSet} into a sorted set on-demand when
- * the {@link #iterator()} method is called, and then returning an iterator over that set.
- * <p/>
- * Insertion-sorting, and <u>then iterating</u> objects in this manner has
- * <b><code>O(merge_cost^2 * log(merge_cost))</code></b> time complexity.
- * See the {@link #iterator()} and {@link #getMergeCost()} methods for details.
+ * This is implemented by copying objects into an intermediate array in memory, and then performing merge-sort
+ * on that array.
+ * <p>
+ * The time complexity for copying the objects into the intermediate array is O(n), and then the cost of sorting is
+ * additionally O(n log(n)). So overall complexity is O(n) + O(n log(n)). The {@link #getMergeCost()} method computes
+ * an approximation of that time complexity, in addition to accounting for an additional O(n) to iterate the final
+ * results.
  *
  * @author Niall Gallagher
  */
 public class MaterializedOrderedResultSet<O> extends WrappedResultSet<O> {
 
     final Comparator<O> comparator;
-    final boolean deduplicateSize;
 
     /**
      * @param wrappedResultSet The ResultSet to be ordered.
      * @param comparator The comparator to use for ordering
-     * @param deduplicateSize If true, the {@link #size()} method will deduplicate results such that the count it
-     *                        returns will match the number of objects returned by the {@link #iterator()} method (but
-     *                        this deduplication is expensive); if false, the size() method will not deduplicate, and so
-     *                        the size reported might sometimes be greater then the number of objects which the
-     *                        {@link #iterator()} method returns (but this computation is inexpensive).
      *
      */
-    public MaterializedOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator, boolean deduplicateSize) {
+    public MaterializedOrderedResultSet(ResultSet<O> wrappedResultSet, Comparator<O> comparator) {
         super(wrappedResultSet);
         this.comparator = comparator;
-        this.deduplicateSize = deduplicateSize;
     }
 
     /**
@@ -75,29 +65,30 @@ public class MaterializedOrderedResultSet<O> extends WrappedResultSet<O> {
     }
 
     /**
-     * Time complexity for building an insertion sorted set is <code>O(merge_cost * log(merge_cost))</code>, and then
-     * iterating it makes this <b><code>O(merge_cost^2 * log(merge_cost))</code></b>. (Merge cost is an approximation
-     * of the cost of iterating all elements in any result set.)
-     * <p/>
-     * Returns the merge cost of the wrapped {@link ResultSet} <b>squared</b> (as a simplification).
+     * Merge cost is an approximation of the cost of iterating all elements in any result set. Therefore, this
+     * method attempts to calculate that approximately.
+     * <p>
+     * The time complexity for copying the objects into the intermediate array is O(n). The cost of sorting that array
+     * is O(n log(n)). The cost to iterate that resulting array is then O(n).
+     * So overall complexity is O(2n) + O(n log(n)).
      *
-     * @return The merge cost of the wrapped {@link ResultSet} <b>squared</b> (as a simplification)
+     * @return Where merge_cost is the {@link ResultSet#getMergeCost()} of the wrapped result set,
+     * this will return ((2 * merge_cost) + (merge_cost * log(merge_cost)))
      */
     @Override
     public int getMergeCost() {
         long mergeCost = super.getMergeCost();
-        return (int)Math.min(mergeCost * mergeCost, Integer.MAX_VALUE);
+        mergeCost = (2 * mergeCost) + (mergeCost * (long)Math.log(mergeCost));
+        mergeCost = mergeCost < 0 ? Long.MAX_VALUE : mergeCost; // in case it overflowed to a negative number
+        return (int)Math.min(mergeCost, Integer.MAX_VALUE); // in case it is larger than an int
     }
 
     /**
      * {@inheritDoc}
-     * <p/>
-     * Note that whether or not this method deduplicates results is specified by the parameter supplied to the
-     * constructor of this ResultSet.
      */
     @Override
     public int size() {
-        return deduplicateSize ? IteratorUtil.countElements(this) : super.size();
+        return IteratorUtil.countElements(this);
     }
 
     /**

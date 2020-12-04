@@ -159,9 +159,9 @@ public class BenchmarkUnitTest {
         BenchmarkTask task = new MaterializedOrder_CardId();
         task.init(collection);
 
-        assertEquals(1000, task.runQueryCountResults_IterationNaive());
-        assertEquals(1000, task.runQueryCountResults_IterationOptimized());
-        assertEquals(1000, task.runQueryCountResults_CQEngine());
-        assertEquals(1000, task.runQueryCountResults_CQEngineStatistics());
+        assertEquals(100, task.runQueryCountResults_IterationNaive());
+        assertEquals(100, task.runQueryCountResults_IterationOptimized());
+        assertEquals(100, task.runQueryCountResults_CQEngine());
+        assertEquals(100, task.runQueryCountResults_CQEngineStatistics());
     }
 }

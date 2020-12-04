@@ -615,21 +615,15 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         ResultSet<O> resultSet;
         resultSet = retrieveRecursive(query, queryOptions);
 
-        // Check if we need to wrap ResultSet to order and/or deduplicate results (deduplicate using MATERIAIZE rather
-        // than LOGICAL_ELIMINATION strategy)...
-        final boolean applyMaterializedDeduplication = DeduplicationOption.isMaterialize(queryOptions);
+        // Check if we need to order results...
         if (orderByOption != null) {
-            // An OrderByOption was specified, wrap the results in an MaterializedOrderedResultSet.
-            // -> This will implicitly sort AND deduplicate the results returned by the ResultSet.iterator() method.
-            // -> However note this does not mean we will also deduplicate the count returned by ResultSet.size()!
-            // -> Deduplicating the count returned by size() is expensive, so we only do this if the client
-            //    requested both ordering AND deduplication explicitly (hence we pass applyMaterializeDeduplication)...
+            // Wrap the results in an MaterializedOrderedResultSet.
             Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
-            resultSet = new MaterializedOrderedResultSet<O>(resultSet, comparator, applyMaterializedDeduplication);
+            resultSet = new MaterializedOrderedResultSet<O>(resultSet, comparator);
         }
-        else if (applyMaterializedDeduplication) {
-            // A DeduplicationOption was specified, wrap the results in an MaterializedDeduplicatedResultSet,
-            // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
+        // Check if we need to deduplicate results (deduplicate using MATERIALIZE rather than LOGICAL_ELIMINATION strategy)...
+        if (DeduplicationOption.isMaterialize(queryOptions)) {
+            // Wrap the results in an MaterializedDeduplicatedResultSet.
             resultSet = new MaterializedDeduplicatedResultSet<O>(resultSet);
         }
         return resultSet;

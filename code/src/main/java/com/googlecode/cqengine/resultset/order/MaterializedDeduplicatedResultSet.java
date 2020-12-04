@@ -48,7 +48,7 @@ public class MaterializedDeduplicatedResultSet<O> extends WrappedResultSet<O> {
      */
     @Override
     public Iterator<O> iterator() {
-        return IteratorUtil.materializedDeuplicate(super.iterator());
+        return IteratorUtil.materializedDeduplicate(super.iterator());
     }
 
     /**
