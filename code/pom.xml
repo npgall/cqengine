@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.cqengine</groupId>
     <artifactId>cqengine</artifactId>
-    <version>3.6.0</version>
+    <version>3.6.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>CQEngine</name>
     <description>Collection Query Engine: NoSQL indexing and query engine for Java collections with ultra-low latency</description>
@@ -23,7 +23,7 @@
         <url>https://github.com/npgall/${project.artifactId}.git</url>
         <connection>scm:git:https://github.com/npgall/${project.artifactId}.git</connection>
         <developerConnection>scm:git:git@github.com:npgall/${project.artifactId}.git</developerConnection>
-        <tag>3.6.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
