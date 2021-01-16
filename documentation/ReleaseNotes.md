@@ -1,5 +1,15 @@
 # CQEngine Release Notes #
 
+## Version 3.6.0 - 2021-01-15 ###
+  * Performance improvement when ordering results (potentially up to 5-6X), with thanks to @voldyman for the contribution
+    * See pull request https://github.com/npgall/cqengine/pull/273 for performance analysis
+  * **Backward compatibility**
+    * The **deduplication characteristics have been slightly changed** in this release to allow for the performance improvement; and developers should be aware of this before upgrading
+    * CQEngine's documentation has always stated _"By default, CQEngine does not perform de-duplication of results; however it can be instructed to do so"_. This remains the case. 
+    * However, in previous releases, the (less performant) sorting algorithm had a side effect that it inherently performed deduplication as well. Therefore, applications which wanted the results to be ordered and deduplicated, but which only requested ordering and did not request deduplication explicitly, in many cases would have found that the results were both ordered and deduplicated.
+    * As of this release, if an application only requests results to be ordered, but it does not request results to be deduplicated explicitly, then it is more likely that the application will see duplicated results.
+    * So in a nutshell, if your application needs results to be deduplicated, it should request that explicitly (per the [documentation](https://github.com/npgall/cqengine/blob/master/documentation/DeduplicationStrategies.md) which has always recommended that). 
+  
 ## Version 3.5.0 - 2020-03-29 ###
   * Added [MetadataEngine API](http://htmlpreview.github.io/?http://raw.githubusercontent.com/npgall/cqengine/master/documentation/javadoc/apidocs/com/googlecode/cqengine/metadata/MetadataEngine.html) - a high level API for accessing metadata from indexes
     * Accessible via `IndexedCollection.getMetadataEngine()`
