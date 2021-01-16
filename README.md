@@ -554,10 +554,8 @@ The [MetadataEngine](http://htmlpreview.github.io/?http://raw.githubusercontent.
 
 It provides access to the following:
   * Frequency distributions (the counts of each attribute value stored in an index)
-  * Distinct keys (the distinct attribute values in an index)
-  * Distinct keys within a range (the distinct attribute values in an index, between x and y)
-  * Streams of attribute values and associated objects stored in an index (ascending/descending order)
-  * Streams of attribute values and associated objects stored in an index, between attribute values x and y
+  * Distinct keys (the distinct attribute values in an index, optionally within a range between x and y)
+  * Streams of attribute values and associated objects stored in an index (ascending/descending order, optionally within a range between x and y)
   * Count of distinct keys (how many distinct attribute values are in an index)
   * Count for a specific key (how many objects match a specific attribute value)
 
