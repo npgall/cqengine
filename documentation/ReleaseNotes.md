@@ -6,7 +6,7 @@
   * **Backward compatibility**
     * The **deduplication characteristics have been slightly changed** in this release to allow for the performance improvement; and developers should be aware of this before upgrading
     * CQEngine's documentation has always stated _"By default, CQEngine does not perform de-duplication of results; however it can be instructed to do so"_. This remains the case. 
-    * However, in previous releases, the (less performant) sorting algorithm had a side effect that it inherently performed deduplication as well. Therefore, applications which wanted the results to be ordered and deduplicated, but which only requested ordering and did not request deduplication explicitly, in many cases would have found that the results were both ordered and deduplicated.
+    * However, in previous releases, when ordering was requested, the (less performant) sorting algorithm had a side effect that it inherently performed deduplication as well. Therefore, applications which wanted the results to be ordered and deduplicated, but which only requested ordering and did not request deduplication explicitly, in many cases would have found that the results were both ordered and deduplicated.
     * As of this release, if an application only requests results to be ordered, but it does not request results to be deduplicated explicitly, then it is more likely that the application will see duplicated results.
     * So in a nutshell, if your application needs results to be deduplicated, it should request that explicitly (per the [documentation](https://github.com/npgall/cqengine/blob/master/documentation/DeduplicationStrategies.md) which has always recommended that). 
   
