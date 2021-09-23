@@ -84,6 +84,37 @@ public class FilteringIteratorTest {
         assertThat(iterator.hasNext(), is(false));
     }
 
+    @Test
+    public void testFilteringState() {
+        List<String> testList = Arrays.asList("aaa", "bbb", "aab", "bba");
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
+            @Override
+            public boolean isValid(String object, QueryOptions queryOptions) {
+                return false;
+            }
+        };
+
+        assertThat(iterator.hasNext(), is(false));
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testFilterNullValues() {
+        List<String> testList = Arrays.asList("aaa", null, "aab", "bba");
+        FilteringIterator<String> iterator = new FilteringIterator<String>(testList.iterator(), noQueryOptions()) {
+            @Override
+            public boolean isValid(String object, QueryOptions queryOptions) {
+                return true;
+            }
+        };
+
+        assertThat(iterator.hasNext(), is(true));
+        assertThat("first string value", iterator.next(), is("aaa"));
+        assertThat(iterator.hasNext(), is(true));
+        assertThat("second null value", iterator.next(), nullValue());
+        assertThat(iterator.hasNext(), is(true));
+    }
+
     @Test(expected = NoSuchElementException.class)
     public void testEmptyDelegate() {
         List<String> testList = Arrays.asList();
