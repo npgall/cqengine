@@ -39,6 +39,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.countElements;
@@ -142,6 +145,21 @@ public class CollectionQueryEngineTest {
 
         // The two-branch or() query should have been evaluated by scanning the collection only once...
         Assert.assertEquals(iterationCountingSet.size(), iterationCountingSet.getItemsIteratedCount());
+    }
+
+    @Test
+    public void testFallbackIndexToStream() {
+        IndexedCollection<Car> collection = new ConcurrentIndexedCollection<Car>();
+        collection.addAll(CarFactory.createCollectionOfCars(10));
+
+        Query<Car> query = equal(Car.MANUFACTURER, "0xabc");
+        ResultSet<Car> resultSet = collection.retrieve(query);
+
+        List<Car> carsList = resultSet.stream().collect(Collectors.toList());
+        Iterator<Integer> carIds = resultSet.stream().map(Car::getCarId).iterator();
+
+        Assert.assertEquals(0, carsList.size());
+        Assert.assertFalse(carIds.hasNext());
     }
 
     @Test
