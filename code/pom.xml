@@ -193,7 +193,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.2</version>
+                <version>0.8.7</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -243,18 +243,18 @@
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.25.0-GA</version>
+            <version>3.28.0-GA</version>
         </dependency>
 
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.27.2.1</version>
+            <version>3.36.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
-            <version>5.0.0-RC1</version>
+            <version>5.2.0</version>
         </dependency>
         <dependency>
             <groupId>de.javakaffee</groupId>
@@ -275,14 +275,14 @@
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>typetools</artifactId>
-            <version>0.6.1</version>
+            <version>0.6.3</version>
         </dependency>
 
         <!-- Test-scope dependencies... -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.27.0</version>
+            <version>2.28.2</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -294,7 +294,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -306,14 +306,14 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
-            <version>27.1-jre</version>
+            <version>31.0.1-jre</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.1.8</version>
+            <version>3.7.1</version>
             <scope>test</scope>
         </dependency>
 
