@@ -717,6 +717,17 @@ public class QueryFactory {
         return result;
     }
 
+
+
+    public static AttrStringOptions applyAttrStringOptions(AttrStringOption... attrStringOptions) {
+        return new AttrStringOptions(Arrays.asList(attrStringOptions));
+    }
+
+
+    public static AttrStringOption attrStringOption(Object key, String value) {
+        return new AttrStringOption(key, value);
+    }
+
     /**
      * Creates a {@link Thresholds} object which may be added to query options.
      * It encapsulates individual {@link Threshold} objects which are to override default values for thresholds which

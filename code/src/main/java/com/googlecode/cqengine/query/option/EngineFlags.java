@@ -77,5 +77,7 @@ public enum EngineFlags {
      * ordering. This will improve retrieval speed, at the expense of allowing the relative ordering of objects having
      * one attribute value in common, and having other differing attribute values, to be slightly inexact.
      */
-    INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES
+    INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES,
+
+    INDEX_ORDERING_ALLOW_COMPUTE_LONGEST_PREFIX_MATCH
 }

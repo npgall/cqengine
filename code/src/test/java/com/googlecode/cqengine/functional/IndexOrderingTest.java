@@ -38,8 +38,8 @@ public class IndexOrderingTest {
 
     public static void main(String[] args) {
         final int NUM_ITERATIONS = 1000;
-        final int[] numObjects = {10000, 10000, 100000};
-        final double[] selectivityThreshold = {0.0, 0.5, 1.0};
+        final int[] numObjects = {10000};
+        final double[] selectivityThreshold = {1.0};
 
         IndexedCollection<Car> cars = new ConcurrentIndexedCollection<Car>();
         cars.addAll(CarFactory.createCollectionOfCars(1000000));

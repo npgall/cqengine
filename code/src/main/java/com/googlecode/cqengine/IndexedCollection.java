@@ -17,6 +17,7 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
 import com.googlecode.cqengine.metadata.MetadataEngine;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.query.Query;
@@ -157,4 +158,14 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      * on the distribution of attribute values in the collection.
      */
     MetadataEngine<O> getMetadataEngine();
+
+    
+    
+    IndexOrderingConcurrentTreeHolder getSingletonConcurrentTreeHolder();
+    
+
+
+
+
+    // get concurrent radix tree
 }

@@ -18,6 +18,7 @@ package com.googlecode.cqengine;
 import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
 import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.metadata.MetadataEngine;
@@ -28,6 +29,9 @@ import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.persistence.support.ObjectStoreAsSet;
 import com.googlecode.cqengine.persistence.support.PersistenceFlags;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
+import com.googlecode.cqengine.query.option.AttrStringOptions;
+import com.googlecode.cqengine.query.option.ConcurrentRadixTreeLongestPrefixMatch;
 import com.googlecode.cqengine.query.option.FlagsEnabled;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -35,6 +39,7 @@ import com.googlecode.cqengine.resultset.closeable.CloseableResultSet;
 
 import java.util.*;
 
+import static com.googlecode.cqengine.query.QueryFactory.in;
 import static com.googlecode.cqengine.query.QueryFactory.queryOptions;
 import static java.util.Collections.singleton;
 
@@ -70,6 +75,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     protected final ObjectStore<O> objectStore;
     protected final QueryEngineInternal<O> indexEngine;
     protected final MetadataEngine<O> metadataEngine;
+    protected IndexOrderingConcurrentTreeHolder indexOrderingConcurrentTreeHolder;
 
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings, using {@link OnHeapPersistence}.
@@ -135,6 +141,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         final QueryOptions finalQueryOptions = openRequestScopeResourcesIfNecessary(queryOptions);
         flagAsReadRequest(finalQueryOptions);
+        indexEngine.setConcurrentInvertedRadixTree(getSingletonConcurrentTreeHolder());
         ResultSet<O> results = indexEngine.retrieve(query, finalQueryOptions);
         return new CloseableResultSet<O>(results, query, finalQueryOptions) {
             @Override
@@ -576,5 +583,19 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
      */
     protected static void flagAsReadRequest(QueryOptions queryOptions) {
         FlagsEnabled.forQueryOptions(queryOptions).add(PersistenceFlags.READ_REQUEST);
+    }
+
+
+
+
+    @Override
+    public IndexOrderingConcurrentTreeHolder getSingletonConcurrentTreeHolder() {
+        return IndexOrderingConcurrentTreeHolder.INSTANCE;
+    }
+
+
+    @Override
+    public void setConcurrentInvertedRadixTree(IndexOrderingConcurrentTreeHolder singletonConcurrentTreeHolder) {
+        this.indexOrderingConcurrentTreeHolder = singletonConcurrentTreeHolder;
     }
 }

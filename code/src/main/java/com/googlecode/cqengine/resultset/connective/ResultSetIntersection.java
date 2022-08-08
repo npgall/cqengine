@@ -22,14 +22,18 @@ import com.googlecode.cqengine.resultset.filter.FilteringIterator;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.common.QueryCostComparators;
 import com.googlecode.cqengine.resultset.iterator.IteratorUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * A ResultSet which provides a view onto the intersection of other ResultSets.
  *
  * @author Niall Gallagher
  */
+@Slf4j
 public class ResultSetIntersection<O> extends ResultSet<O> {
 
     final Query<O> query;
@@ -39,11 +43,27 @@ public class ResultSetIntersection<O> extends ResultSet<O> {
     final boolean useIndexMergeStrategy;
 
     public ResultSetIntersection(Iterable<ResultSet<O>> resultSets, Query<O> query, QueryOptions queryOptions, boolean useIndexMergeStrategy) {
+        log.info(String.format("Method ResultSetIntersection, query %s,queryOptions %s",query,queryOptions));
         this.query = query;
         this.queryOptions = queryOptions;
         // Sort the supplied result sets in ascending order of merge cost...
+
+        log.info("Before sort:");
+        int index = 0;
+        for(ResultSet<O> resultSet:resultSets){
+            List<O> resultSetList = StreamSupport.stream(resultSet.spliterator(), false).collect(Collectors.toList());
+            log.info(String.format("ResultSet %s in iteration :  %d  ",resultSetList,(index+1)));
+            index++;
+        }
         List<ResultSet<O>> sortedResultSets = ResultSets.wrapWithCostCachingIfNecessary(resultSets);
         Collections.sort(sortedResultSets, QueryCostComparators.getMergeCostComparator());
+        log.info("After sort:");
+        index = 0;
+        for(ResultSet<O> resultSet:sortedResultSets){
+            List<O> resultSetList = StreamSupport.stream(resultSet.spliterator(), false).collect(Collectors.toList());
+            log.info(String.format("ResultSet %s in iteration :  %d  ",resultSetList,(index+1)));
+            index++;
+        }
         this.resultSets = sortedResultSets;
         this.useIndexMergeStrategy = useIndexMergeStrategy;
     }

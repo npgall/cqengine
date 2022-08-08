@@ -1,12 +1,12 @@
 /**
  * Copyright 2012-2015 Niall Gallagher
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,14 @@
 package com.googlecode.cqengine.engine;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
+import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
+import com.googlecode.cqengine.index.indexOrdering.LongestPrefixMatchExampleCode;
+import com.googlecode.cqengine.index.indexOrdering.LookUpIdentifier;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
 import com.googlecode.cqengine.index.sqlite.SimplifiedSQLiteIndex;
@@ -36,6 +41,7 @@ import com.googlecode.cqengine.persistence.support.ObjectStoreResultSet;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.comparative.LongestPrefix;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
@@ -60,10 +66,13 @@ import com.googlecode.cqengine.resultset.order.AttributeOrdersComparator;
 import com.googlecode.cqengine.resultset.order.MaterializedDeduplicatedResultSet;
 import com.googlecode.cqengine.resultset.order.MaterializedOrderedResultSet;
 import com.googlecode.cqengine.index.support.CloseableRequestResources.CloseableResourceGroup;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.EngineFlags.INDEX_ORDERING_ALLOW_FAST_ORDERING_OF_MULTI_VALUED_ATTRIBUTES;
@@ -78,6 +87,7 @@ import static com.googlecode.cqengine.resultset.iterator.IteratorUtil.groupAndSo
  *
  * @author Niall Gallagher
  */
+@Slf4j
 public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     // A key used to store the root query in the QueryOptions, so it may be accessed by partial indexes...
@@ -97,6 +107,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Updated as indexes are added or removed, this is used by the isMutable() method...
     private final Set<Index<O>> immutableIndexes = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private IndexOrderingConcurrentTreeHolder indexOrderingConcurrentRadixTreeHolder;
 
     public CollectionQueryEngine() {
     }
@@ -110,7 +121,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (objectStore instanceof SQLiteObjectStore) {
             // If the collection is backed by a SQLiteObjectStore, add the backing index of the SQLiteObjectStore
             // so that it can also be used as a regular index to accelerate queries...
-            SQLiteObjectStore<O, ? extends Comparable<?>> sqLiteObjectStore = (SQLiteObjectStore<O, ? extends Comparable<?>>)objectStore;
+            SQLiteObjectStore<O, ? extends Comparable<?>> sqLiteObjectStore = (SQLiteObjectStore<O, ? extends Comparable<?>>) objectStore;
             SQLiteIdentityIndex<? extends Comparable<?>, O> backingIndex = sqLiteObjectStore.getBackingIndex();
             addIndex(backingIndex, queryOptions);
         }
@@ -147,14 +158,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             @SuppressWarnings({"unchecked"})
             StandingQueryIndex<O> standingQueryIndex = (StandingQueryIndex<O>) index;
             addStandingQueryIndex(standingQueryIndex, standingQueryIndex.getStandingQuery(), queryOptions);
-        }
-        else if (index instanceof CompoundIndex) {
+        } else if (index instanceof CompoundIndex) {
             @SuppressWarnings({"unchecked"})
             CompoundIndex<O> compoundIndex = (CompoundIndex<O>) index;
             CompoundAttribute<O> compoundAttribute = compoundIndex.getAttribute();
             addCompoundIndex(compoundIndex, compoundAttribute, queryOptions);
-        }
-        else if (index instanceof AttributeIndex) {
+        } else if (index instanceof AttributeIndex) {
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
@@ -163,12 +172,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 StandingQueryAttribute<O> standingQueryAttribute = (StandingQueryAttribute<O>) indexedAttribute;
                 Query<O> standingQuery = standingQueryAttribute.getQuery();
                 addStandingQueryIndex(index, standingQuery, queryOptions);
-            }
-            else {
+            } else {
                 addAttributeIndex(attributeIndex, queryOptions);
             }
-        }
-        else {
+        } else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
         }
         if (!index.isMutable()) {
@@ -208,7 +215,6 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         queryOptions.put(Persistence.class, persistence);
         attributeIndex.init(objectStore, queryOptions);
     }
-
 
 
     /**
@@ -254,15 +260,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             StandingQueryIndex<O> standingQueryIndex = (StandingQueryIndex<O>) index;
 
             removed = standingQueryIndexes.remove(standingQueryIndex.getStandingQuery(), standingQueryIndex);
-        }
-        else if (index instanceof CompoundIndex) {
+        } else if (index instanceof CompoundIndex) {
             @SuppressWarnings({"unchecked"})
             CompoundIndex<O> compoundIndex = (CompoundIndex<O>) index;
             CompoundAttribute<O> compoundAttribute = compoundIndex.getAttribute();
 
             removed = compoundIndexes.remove(compoundAttribute, compoundIndex);
-        }
-        else if (index instanceof AttributeIndex) {
+        } else if (index instanceof AttributeIndex) {
             @SuppressWarnings({"unchecked"})
             AttributeIndex<?, O> attributeIndex = (AttributeIndex<?, O>) index;
             Attribute<O, ?> indexedAttribute = attributeIndex.getAttribute();
@@ -273,8 +277,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 Query<O> standingQuery = standingQueryAttribute.getQuery();
 
                 removed = standingQueryIndexes.remove(standingQuery, index);
-            }
-            else {
+            } else {
                 Set<Index<O>> indexesOnThisAttribute = attributeIndexes.get(indexedAttribute);
 
                 removed = indexesOnThisAttribute.remove(attributeIndex);
@@ -290,8 +293,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     attributeIndexes.remove(indexedAttribute);
                 }
             }
-        }
-        else {
+        } else {
             throw new IllegalStateException("Unexpected type of index: " + (index == null ? null : index.getClass().getName()));
         }
         if (removed && !index.isMutable()) {
@@ -318,6 +320,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         indexes.addAll(this.compoundIndexes.values());
         indexes.addAll(this.standingQueryIndexes.values());
         return indexes;
+    }
+
+    @Override
+    public void setConcurrentInvertedRadixTree(IndexOrderingConcurrentTreeHolder singletonConcurrentTreeHolder) {
+        this.indexOrderingConcurrentRadixTreeHolder = singletonConcurrentTreeHolder;
     }
 
     /**
@@ -390,7 +397,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         // Check if a UniqueIndex is available, as this will have the lowest cost of attribute-based indexes...
         Index<O> uniqueIndex = uniqueIndexes.get(query.getAttribute());
-        if (uniqueIndex!= null && uniqueIndex.supportsQuery(query, queryOptions)){
+        if (uniqueIndex != null && uniqueIndex.supportsQuery(query, queryOptions)) {
             return uniqueIndex.retrieve(query, queryOptions);
         }
 
@@ -492,10 +499,10 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // Check if an index is actually available to support it...
                 AttributeOrder<O> firstOrder = allSortOrders.iterator().next();
                 @SuppressWarnings("unchecked")
-                Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>)firstOrder.getAttribute();
+                Attribute<O, Comparable> firstAttribute = (Attribute<O, Comparable>) firstOrder.getAttribute();
                 if (firstAttribute instanceof OrderControlAttribute) {
                     @SuppressWarnings("unchecked")
-                    Attribute<O, Comparable> firstAttributeDelegate = ((OrderControlAttribute)firstAttribute).getDelegateAttribute();
+                    Attribute<O, Comparable> firstAttributeDelegate = ((OrderControlAttribute) firstAttribute).getDelegateAttribute();
                     firstAttribute = firstAttributeDelegate;
                 }
 
@@ -519,7 +526,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     // efficiently. Now check if an index exists which would allow index ordering...
                     for (Index<O> index : this.getIndexesOnAttribute(firstAttribute)) {
                         if (index instanceof SortedKeyStatisticsAttributeIndex && !index.isQuantized()) {
-                            indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>)index;
+                            indexForOrdering = (SortedKeyStatisticsAttributeIndex<?, O>) index;
                             break;
                         }
                     }
@@ -538,15 +545,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         // Index ordering has been requested explicitly.
                         // Don't bother calculating query selectivity, assign low selectivity so we will use the index...
                         querySelectivity = 0.0;
-                    }
-                    else if (!indexForOrdering.supportsQuery(has(firstAttribute), queryOptions)) {
+                    } else if (!indexForOrdering.supportsQuery(has(firstAttribute), queryOptions)) {
                         // Index ordering was not requested explicitly, and we cannot calculate the selectivity.
                         // In this case even though we have an index which supports index ordering,
                         // we don't have enough information to say that it would be beneficial.
                         // Assign high selectivity so that the materialize strategy will be used instead...
                         querySelectivity = 1.0;
-                    }
-                    else {
+                    } else {
                         // The index supports has() queries, which allows us to calculate selectivity.
                         // Calculate query selectivity, based on the query cardinality and index cardinality...
                         final int queryCardinality = retrieveRecursive(query, queryOptions).getMergeCost();
@@ -558,13 +563,11 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         if (indexCardinality == 0) {
                             // Handle edge case where the index is empty.
                             querySelectivity = 1.0; // treat is as if the query has high selectivity (tend to use materialize).
-                        }
-                        else if (queryCardinality > indexCardinality) {
+                        } else if (queryCardinality > indexCardinality) {
                             // Handle edge case where query cardinality is greater than index cardinality.
                             querySelectivity = 0.0; // treat is as if the query has low selectivity (tend to use index ordering).
-                        }
-                        else {
-                            querySelectivity = 1.0 - queryCardinality / (double)indexCardinality;
+                        } else {
+                            querySelectivity = 1.0 - queryCardinality / (double) indexCardinality;
                         }
                     }
 
@@ -585,11 +588,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         if (indexForOrdering != null) {
             // Retrieve results, using an index to accelerate ordering...
             resultSet = retrieveWithIndexOrdering(query, queryOptions, orderByOption, indexForOrdering);
+            resultSet = handleConcurrentRadixTree(resultSet, query, queryOptions, orderByOption, indexForOrdering);
+
             if (queryLog != null) {
                 queryLog.log("orderingStrategy: index");
             }
-        }
-        else {
+        } else {
             // Retrieve results, without using an index to accelerate ordering...
             resultSet = retrieveWithoutIndexOrdering(query, queryOptions, orderByOption);
             if (queryLog != null) {
@@ -606,6 +610,86 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 CloseableRequestResources.closeForQueryOptions(queryOptions);
             }
         };
+    }
+
+    private ResultSet<O> handleConcurrentRadixTree(ResultSet<O> resultSet, Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
+        String lookup = AttrStringOptions.getAttrStringOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_LOOKUP);
+
+        LongestPrefix longestPrefix = queryOptions.get(LongestPrefix.class);
+
+
+        ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(new LookUpIdentifier(lookup, longestPrefix.getAttributeName()));
+
+        Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefix.getValue());
+
+
+        Set<String> prefixingSet = new HashSet<>();
+
+        for(String element:keysPrefixing) {
+            prefixingSet.add(element);
+        }
+
+
+        List<O> data = StreamSupport.stream(resultSet.spliterator(), false).collect(Collectors.toList());
+
+        List<O> filteredListLongest = new ArrayList<>();
+        for(O element: data)
+        {
+            if(prefixingSet.contains(((LongestPrefixMatchExampleCode)element).getANumber())){
+                filteredListLongest.add(element);
+                break;
+            }
+        }
+
+        return new ResultSet<O>(){
+
+            @Override
+            public Iterator iterator() {
+                return filteredListLongest.iterator();
+            }
+
+            @Override
+            public boolean contains(Object object) {
+                return false;
+            }
+
+            @Override
+            public boolean matches(Object object) {
+                return false;
+            }
+
+            @Override
+            public Query getQuery() {
+                return null;
+            }
+
+            @Override
+            public QueryOptions getQueryOptions() {
+                return null;
+            }
+
+            @Override
+            public int getRetrievalCost() {
+                return 0;
+            }
+
+            @Override
+            public int getMergeCost() {
+                return 0;
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @Override
+            public void close() {
+
+            }
+        };
+        // i need to get the fields name from the results to identify where is the values that i need to work with.
+
     }
 
     /**
@@ -626,8 +710,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             //    requested both ordering AND deduplication explicitly (hence we pass applyMaterializeDeduplication)...
             Comparator<O> comparator = new AttributeOrdersComparator<O>(orderByOption.getAttributeOrders(), queryOptions);
             resultSet = new MaterializedOrderedResultSet<O>(resultSet, comparator, applyMaterializedDeduplication);
-        }
-        else if (applyMaterializedDeduplication) {
+        } else if (applyMaterializedDeduplication) {
             // A DeduplicationOption was specified, wrap the results in an MaterializedDeduplicatedResultSet,
             // which will deduplicate (but not sort) results. O(n) time complexity to subsequently iterate...
             resultSet = new MaterializedDeduplicatedResultSet<O>(resultSet);
@@ -646,14 +729,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         // If the client wrapped the first attribute by which results should be ordered in an OrderControlAttribute,
         // assign it here...
-        @SuppressWarnings("unchecked")
-        final OrderControlAttribute<O> orderControlAttribute =
+        @SuppressWarnings("unchecked") final OrderControlAttribute<O> orderControlAttribute =
                 (primarySortOrder.getAttribute() instanceof OrderControlAttribute)
-                        ? (OrderControlAttribute<O>)primarySortOrder.getAttribute() : null;
+                        ? (OrderControlAttribute<O>) primarySortOrder.getAttribute() : null;
 
         // If the first attribute by which results should be ordered was wrapped, unwrap it, and assign it here...
-        @SuppressWarnings("unchecked")
-        final Attribute<O, Comparable> primarySortAttribute =
+        @SuppressWarnings("unchecked") final Attribute<O, Comparable> primarySortAttribute =
                 (orderControlAttribute == null)
                         ? (Attribute<O, Comparable>) primarySortOrder.getAttribute()
                         : (Attribute<O, Comparable>) orderControlAttribute.getDelegateAttribute();
@@ -663,8 +744,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         final boolean attributeCanHaveZeroValues = !(primarySortAttribute instanceof SimpleAttribute);
         final boolean attributeCanHaveMoreThanOneValue = !(primarySortAttribute instanceof SimpleAttribute || primarySortAttribute instanceof SimpleNullableAttribute);
 
-        @SuppressWarnings("unchecked")
-        final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);
+        @SuppressWarnings("unchecked") final RangeBounds<?> rangeBoundsFromQuery = getBoundsFromQuery(query, primarySortAttribute);
 
         return new ResultSet<O>() {
             @Override
@@ -681,18 +761,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     // Concatenate the main results and the missing objects, accounting for which batch should come first...
                     if (orderControlAttribute instanceof OrderMissingFirstAttribute) {
                         combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(missingResults, mainResults));
-                    }
-                    else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
+                    } else if (orderControlAttribute instanceof OrderMissingLastAttribute) {
                         combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(mainResults, missingResults));
-                    }
-                    else if (primarySortOrder.isDescending()) {
+                    } else if (primarySortOrder.isDescending()) {
                         combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(mainResults, missingResults));
-                    }
-                    else {
+                    } else {
                         combinedResults = ConcatenatingIterator.concatenate(Arrays.asList(missingResults, mainResults));
                     }
-                }
-                else {
+                } else {
                     combinedResults = mainResults;
                 }
 
@@ -701,6 +777,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     // and so otherwise could be returned more than once...
                     combinedResults = new MaterializedDeduplicatedIterator<O>(combinedResults);
                 }
+
                 return combinedResults;
             }
 
@@ -709,8 +786,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.contains(object);
-                }
-                finally {
+                } finally {
                     rs.close();
                 }
             }
@@ -735,8 +811,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.getRetrievalCost();
-                }
-                finally {
+                } finally {
                     rs.close();
                 }
             }
@@ -746,8 +821,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.getMergeCost();
-                }
-                finally {
+                } finally {
                     rs.close();
                 }
             }
@@ -757,8 +831,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
                 try {
                     return rs.size();
-                }
-                finally {
+                } finally {
                     rs.close();
                 }
             }
@@ -768,6 +841,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
             }
         };
+
+        ///
     }
 
     Iterator<O> retrieveWithIndexOrderingMainResults(final Query<O> query, QueryOptions queryOptions, SortedKeyStatisticsIndex<?, O> indexForOrdering, List<AttributeOrder<O>> allSortOrders, RangeBounds<?> rangeBoundsFromQuery, boolean attributeCanHaveMoreThanOneValue, boolean primarySortDescending) {
@@ -789,8 +864,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     return keysAndValuesInRange.hasNext() ? keysAndValuesInRange.next().getValue() : endOfData();
                 }
             };
-        }
-        else {
+        } else {
             sorted = concatenate(groupAndSort(keysAndValuesInRange, new AttributeOrdersComparator<O>(sortOrdersForBucket, queryOptions)));
         }
 
@@ -844,8 +918,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 // No index is available to accelerate the index merge strategy...
                 indexAcceleratedQueryResults.close();
                 // We fall back to filtering via query.matches() below.
-            }
-            else {
+            } else {
                 // Ensure that indexAcceleratedQueryResults is closed at the end of processing the request...
                 final CloseableResourceGroup closeableResourceGroup = CloseableRequestResources.forQueryOptions(queryOptions).addGroup();
                 closeableResourceGroup.add(indexAcceleratedQueryResults);
@@ -919,8 +992,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     typedBounds.upperBound, typedBounds.upperInclusive,
                     queryOptions
             ).iterator();
-        }
-        else {
+        } else {
             return index.getKeysAndValuesDescending(
                     typedBounds.lowerBound, typedBounds.lowerInclusive,
                     typedBounds.upperBound, typedBounds.upperInclusive,
@@ -949,9 +1021,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         List<SimpleQuery<O, ?>> candidateRangeQueries = Collections.emptyList();
         if (query instanceof SimpleQuery) {
             candidateRangeQueries = Collections.<SimpleQuery<O, ?>>singletonList((SimpleQuery<O, ?>) query);
-        }
-        else if (query instanceof And) {
-            And<O> and = (And<O>)query;
+        } else if (query instanceof And) {
+            And<O> and = (And<O>) query;
             if (and.hasSimpleQueries()) {
                 candidateRangeQueries = and.getSimpleQueries();
             }
@@ -963,14 +1034,12 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                     GreaterThan<O, A> bound = (GreaterThan<O, A>) candidate;
                     lowerBound = bound.getValue();
                     lowerInclusive = bound.isValueInclusive();
-                }
-                else if (candidate instanceof LessThan) {
+                } else if (candidate instanceof LessThan) {
                     @SuppressWarnings("unchecked")
                     LessThan<O, A> bound = (LessThan<O, A>) candidate;
                     upperBound = bound.getValue();
                     upperInclusive = bound.isValueInclusive();
-                }
-                else if (candidate instanceof Between) {
+                } else if (candidate instanceof Between) {
                     @SuppressWarnings("unchecked")
                     Between<O, A> bound = (Between<O, A>) candidate;
                     lowerBound = bound.getLowerValue();
@@ -1017,20 +1086,16 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             return resultSetFromStandingQueryIndex;
         }
         // ..else no standing query index was available, process the query normally...
-
-
         if (query instanceof SimpleQuery) {
             // No deduplication required for a single SimpleQuery.
             // Return the ResultSet from the index with the lowest retrieval cost which supports
             // this query and the attribute on which it is based...
             return retrieveSimpleQuery((SimpleQuery<O, ?>) query, queryOptions);
-        }
-        else if (query instanceof ComparativeQuery) {
+        } else if (query instanceof ComparativeQuery) {
             // Return the ResultSet from the index with the lowest retrieval cost which supports
             // this query and the attribute on which it is based...
             return retrieveComparativeQuery((ComparativeQuery<O, ?>) query, queryOptions);
-        }
-        else if (query instanceof And) {
+        } else if (query instanceof And) {
             final And<O> and = (And<O>) query;
 
             // Check if we can process this And query from a compound index...
@@ -1066,12 +1131,19 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                             if (needToProcessSimpleQueries) {
                                 needToProcessSimpleQueries = false;
                                 // Retrieve results for simple queries from indexes...
-                                return retrieveIntersectionOfSimpleQueries(and.getSimpleQueries(), queryOptions, indexMergeStrategyEnabled);
+                                ResultSet<O> resultSetSimple = retrieveIntersectionOfSimpleQueries(and.getSimpleQueries(), queryOptions, indexMergeStrategyEnabled);
+                                List<O> resultFromSimple = StreamSupport.stream(resultSetSimple.spliterator(), false).collect(Collectors.toList());
+                                log.info(String.format("ResultSet %s from retrieveIntersectionOfSimpleQueries for query  and.getSimpleQueries():  %s  ", resultFromSimple, and.getSimpleQueries()));
+                                return resultSetSimple;
+
                             }
                             if (needToProcessComparativeQueries) {
                                 needToProcessComparativeQueries = false;
                                 // Retrieve results for comparative queries from indexes...
-                                return retrieveIntersectionOfComparativeQueries(and.getComparativeQueries(), queryOptions);
+                                ResultSet<O> comparativeQueryResultSet = retrieveIntersectionOfComparativeQueries(and.getComparativeQueries(), queryOptions);
+                                List<O> resultFromComparative = StreamSupport.stream(comparativeQueryResultSet.spliterator(), false).collect(Collectors.toList());
+                                log.info(String.format("ResultSet %s from retrieveIntersectionOfComparativeQueries for query  and.getComparativeQueries():  %s  ", resultFromComparative, and.getComparativeQueries()));
+                                return comparativeQueryResultSet;
                             }
                             // Recursively call this method for logical queries...
                             return retrieveRecursive(logicalQueriesIterator.next(), queryOptions);
@@ -1081,8 +1153,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             };
             boolean useIndexMergeStrategy = shouldUseIndexMergeStrategy(indexMergeStrategyEnabled, and.hasComparativeQueries(), resultSetsToMerge);
             return new ResultSetIntersection<O>(resultSetsToMerge, query, queryOptions, useIndexMergeStrategy);
-        }
-        else if (query instanceof Or) {
+        } else if (query instanceof Or) {
             final Or<O> or = (Or<O>) query;
             // If the Or query indicates child queries are disjoint,
             // ignore any instruction to perform deduplication in the queryOptions supplied...
@@ -1097,8 +1168,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                         return DeduplicationOption.class.equals(key) ? null : super.get(key);
                     }
                 };
-            }
-            else {
+            } else {
                 // Use the supplied queryOptions...
                 queryOptionsForOrUnion = queryOptions;
             }
@@ -1140,8 +1210,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             if (DeduplicationOption.isLogicalElimination(queryOptionsForOrUnion)) {
                 boolean useIndexMergeStrategy = shouldUseIndexMergeStrategy(indexMergeStrategyEnabled, or.hasComparativeQueries(), resultSetsToUnion);
                 union = new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, useIndexMergeStrategy);
-            }
-            else {
+            } else {
                 union = new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
             }
 
@@ -1163,16 +1232,14 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 };
             }
             return union;
-        }
-        else if (query instanceof Not) {
+        } else if (query instanceof Not) {
             final Not<O> not = (Not<O>) query;
             // No deduplication required for negation (the entire collection is a Set, contains no duplicates).
             // Retrieve the ResultSet for the negated query, by calling this method recursively...
             ResultSet<O> resultSetToNegate = retrieveRecursive(not.getNegatedQuery(), queryOptions);
             // Return the negation of this result set, by subtracting it from the entire collection of objects...
             return new ResultSetDifference<O>(getEntireCollectionAsResultSet(query, queryOptions), resultSetToNegate, query, queryOptions, indexMergeStrategyEnabled);
-        }
-        else {
+        } else {
             throw new IllegalStateException("Unexpected type of query object: " + getClassNameNullSafe(query));
         }
     }
@@ -1221,7 +1288,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             resultSets.add(resultSet);
         }
         @SuppressWarnings("unchecked")
-        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>) (Collection<? extends Query<O>>) queries;
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new And<O>(queriesTyped);
 
         boolean useIndexMergeStrategy = indexMergeStrategyEnabled && indexesAvailableForAllResultSets(resultSets);
@@ -1242,7 +1309,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             resultSets.add(resultSet);
         }
         @SuppressWarnings("unchecked")
-        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>) (Collection<? extends Query<O>>) queries;
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new And<O>(queriesTyped);
 
         // We always use index merge strategy to merge results for comparative queries...
@@ -1281,6 +1348,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 return new UnmodifiableIterator<ResultSet<O>>() {
 
                     Iterator<SimpleQuery<O, ?>> queriesIterator = queries.iterator();
+
                     @Override
                     public boolean hasNext() {
                         return queriesIterator.hasNext();
@@ -1294,7 +1362,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
         };
         @SuppressWarnings("unchecked")
-        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>) (Collection<? extends Query<O>>) queries;
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new Or<O>(queriesTyped);
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
@@ -1302,8 +1370,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             boolean indexMergeStrategyEnabled = isFlagEnabled(queryOptions, PREFER_INDEX_MERGE_STRATEGY);
             boolean useIndexMergeStrategy = indexMergeStrategyEnabled && indexesAvailableForAllResultSets(resultSetsToUnion);
             return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, useIndexMergeStrategy);
-        }
-        else {
+        } else {
             return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
         }
     }
@@ -1319,6 +1386,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
                 return new UnmodifiableIterator<ResultSet<O>>() {
 
                     Iterator<ComparativeQuery<O, ?>> queriesIterator = queries.iterator();
+
                     @Override
                     public boolean hasNext() {
                         return queriesIterator.hasNext();
@@ -1332,14 +1400,13 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             }
         };
         @SuppressWarnings("unchecked")
-        Collection<Query<O>> queriesTyped = (Collection<Query<O>>)(Collection<? extends Query<O>>)queries;
+        Collection<Query<O>> queriesTyped = (Collection<Query<O>>) (Collection<? extends Query<O>>) queries;
         Query<O> query = queriesTyped.size() == 1 ? queriesTyped.iterator().next() : new Or<O>(queriesTyped);
         // Perform deduplication as necessary...
         if (DeduplicationOption.isLogicalElimination(queryOptions)) {
             // Note: we always use the index merge strategy to merge results for comparative queries...
             return new ResultSetUnion<O>(resultSetsToUnion, query, queryOptions, true);
-        }
-        else {
+        } else {
             return new ResultSetUnionAll<O>(resultSetsToUnion, query, queryOptions);
         }
     }
@@ -1361,8 +1428,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             // No deduplication required for standing queries.
             if (standingQueryIndex instanceof StandingQueryIndex) {
                 return standingQueryIndex.retrieve(query, queryOptions);
-            }
-            else {
+            } else {
                 return standingQueryIndex.retrieve(equal(forStandingQuery(query), Boolean.TRUE), queryOptions);
             }
         } // else no suitable standing query index exists, process the query normally...
