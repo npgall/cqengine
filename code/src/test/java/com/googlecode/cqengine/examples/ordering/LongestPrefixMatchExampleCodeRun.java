@@ -16,12 +16,15 @@ import com.googlecode.cqengine.query.QueryFactory;
 import com.googlecode.cqengine.query.option.AttrStringOptions;
 import com.googlecode.cqengine.query.option.ConcurrentRadixTreeLongestPrefixMatch;
 import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
 
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static com.googlecode.cqengine.query.option.EngineThresholds.INDEX_ORDERING_SELECTIVITY;
+import static org.junit.Assert.*;
 
 public class LongestPrefixMatchExampleCodeRun {
 
@@ -34,7 +37,7 @@ public class LongestPrefixMatchExampleCodeRun {
 
 
     @Test
-    public void testNewDesignedSoluation() {
+    public void testNewDesignedSolution() {
 
 
         final NodeFactory nodeFactory = new DefaultCharArrayNodeFactory();
@@ -50,6 +53,7 @@ public class LongestPrefixMatchExampleCodeRun {
         longestPrefixMatchExampleCodes.addIndex(HashIndex.onAttribute(LongestPrefixMatchExampleCode.bVALID_FROM));
         longestPrefixMatchExampleCodes.addIndex(HashIndex.onAttribute(LongestPrefixMatchExampleCode.cVALID_TO));
 
+        LongestPrefixMatchExampleCode expectedLongest = new LongestPrefixMatchExampleCode("3222", new Long(9), new Long(16), "C1");
         // add cars objects to collection-
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("32221", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("3222", new Long(9), new Long(16), "C1"));
@@ -97,38 +101,15 @@ public class LongestPrefixMatchExampleCodeRun {
 
         System.out.println("finalResult:");
 
-        longestPrefixMatchExampleCodes.retrieve(query_Time, queryOptions).forEach(System.out::println);
+        ResultSet<LongestPrefixMatchExampleCode> actualResult = longestPrefixMatchExampleCodes.retrieve(query_Time, queryOptions);
 
-//        List<LongestPrefixMatchExampleCode> finalResult = StreamSupport.stream(resultData.spliterator(), false).collect(Collectors.toList());
-//
-//        finalResult.forEach(System.out::println);
-
-
-//        System.out.println(Iterables.toString(tree.getKeysPrefixing("322211")));
-//
-//
-//        Iterable<CharSequence> keysPrefixing = tree.getKeysPrefixing("322211");
-//
-//        Iterator<CharSequence> iterator = keysPrefixing.iterator();
-//
-//        Set<CharSequence> charSequences = new HashSet<>();
-//
-//
-//
-//        while(iterator.hasNext()){
-//            charSequences.add(iterator.next());
-//        }
-//
-//
-//        Query<LongestPrefixMatchExampleCode> in_Query = new In(LongestPrefixMatchExampleCode.A_NUMBER, false,charSequences);
-//
-//
-//        System.out.println("In Query");
-//        Query<LongestPrefixMatchExampleCode> finalQuery1 = and(query_Time,in_Query);
-//
-//        ResultSet<LongestPrefixMatchExampleCode> finalResult1 = longestPrefixMatchExampleCodes.retrieve(finalQuery1,queryOptions);
-//
-//        finalResult1.forEach(System.out::println);
+        Iterator<LongestPrefixMatchExampleCode> actualIterator = actualResult.iterator();
+        LongestPrefixMatchExampleCode actualElement = actualIterator.next();
+        assertEquals(expectedLongest.getANumber(),actualElement.getANumber());
+        assertEquals(expectedLongest.getBValidFrom(),actualElement.getBValidFrom());
+        assertEquals(expectedLongest.getCValidTo(),actualElement.getCValidTo());
+        assertEquals(expectedLongest.getDResult(),actualElement.getDResult());
+        assertEquals(actualIterator.hasNext(),false);
 //
 
 
