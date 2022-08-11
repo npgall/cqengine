@@ -17,12 +17,10 @@ package com.googlecode.cqengine.engine;
 
 import com.googlecode.concurrenttrees.common.LazyIterator;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
 import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
-import com.googlecode.cqengine.index.indexOrdering.LongestPrefixMatchExampleCode;
 import com.googlecode.cqengine.index.indexOrdering.LookUpIdentifier;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
@@ -587,9 +585,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         ResultSet<O> resultSet;
         if (indexForOrdering != null) {
             // Retrieve results, using an index to accelerate ordering...
-            resultSet = retrieveWithIndexOrdering(query, queryOptions, orderByOption, indexForOrdering);
-            resultSet = handleConcurrentRadixTree(resultSet, query, queryOptions, orderByOption, indexForOrdering);
-
+            And and = handleConcurrentRadixTree(query, queryOptions, orderByOption, indexForOrdering);
+            resultSet = retrieveWithIndexOrdering(and, queryOptions, orderByOption, indexForOrdering);
             if (queryLog != null) {
                 queryLog.log("orderingStrategy: index");
             }
@@ -612,82 +609,31 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         };
     }
 
-    private ResultSet<O> handleConcurrentRadixTree(ResultSet<O> resultSet, Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
-        String lookup = AttrStringOptions.getAttrStringOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_LOOKUP);
+    private And handleConcurrentRadixTree(Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
+        String lookup = (String) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_LOOKUP);
 
-        LongestPrefix longestPrefix = queryOptions.get(LongestPrefix.class);
-
-
-        ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(new LookUpIdentifier(lookup, longestPrefix.getAttributeName()));
-
-        Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefix.getValue());
+        Attribute<O,String> longestPrefixAttr = (Attribute<O,String>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTE);
 
 
-        Set<String> prefixingSet = new HashSet<>();
+        String longestPrefixValue = (String) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUE);
+
+
+        ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(new LookUpIdentifier(lookup, longestPrefixAttr.getAttributeName()));
+
+        Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefixValue);
+
+        List<String> prefixingList = new ArrayList<>();
 
         for(String element:keysPrefixing) {
-            prefixingSet.add(element);
+            prefixingList.add(element);
         }
 
+        Query in = in(longestPrefixAttr, prefixingList);
 
-        List<O> data = StreamSupport.stream(resultSet.spliterator(), false).collect(Collectors.toList());
+        And and = and(in, query);
 
-        List<O> filteredListLongest = new ArrayList<>();
-        for(O element: data)
-        {
-            if(prefixingSet.contains(((LongestPrefixMatchExampleCode)element).getANumber())){
-                filteredListLongest.add(element);
-                break;
-            }
-        }
 
-        return new ResultSet<O>(){
-
-            @Override
-            public Iterator iterator() {
-                return filteredListLongest.iterator();
-            }
-
-            @Override
-            public boolean contains(Object object) {
-                return false;
-            }
-
-            @Override
-            public boolean matches(Object object) {
-                return false;
-            }
-
-            @Override
-            public Query getQuery() {
-                return null;
-            }
-
-            @Override
-            public QueryOptions getQueryOptions() {
-                return null;
-            }
-
-            @Override
-            public int getRetrievalCost() {
-                return 0;
-            }
-
-            @Override
-            public int getMergeCost() {
-                return 0;
-            }
-
-            @Override
-            public int size() {
-                return 0;
-            }
-
-            @Override
-            public void close() {
-
-            }
-        };
+        return and;
         // i need to get the fields name from the results to identify where is the values that i need to work with.
 
     }

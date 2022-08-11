@@ -15,12 +15,12 @@
  */
 package com.googlecode.cqengine.query.option;
 
-public class AttrStringOption {
+public class AttrObjectOption {
 
     final Object key;
-    final String value;
+    final Object value;
 
-    public AttrStringOption(Object key, String value) {
+    public AttrObjectOption(Object key, Object value) {
         this.key = key;
         this.value = value;
     }
@@ -30,16 +30,16 @@ public class AttrStringOption {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof AttrStringOption)) {
+        if (!(o instanceof AttrObjectOption)) {
             return false;
         }
 
-        AttrStringOption attrStringOption = (AttrStringOption) o;
+        AttrObjectOption attrObjectOption = (AttrObjectOption) o;
 
-        if (!key.equals(attrStringOption.key)) {
+        if (!key.equals(attrObjectOption.key)) {
             return false;
         }
-        return value.equals(attrStringOption.value);
+        return value.equals(attrObjectOption.value);
 
     }
 

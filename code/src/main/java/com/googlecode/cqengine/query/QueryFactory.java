@@ -719,13 +719,13 @@ public class QueryFactory {
 
 
 
-    public static AttrStringOptions applyAttrStringOptions(AttrStringOption... attrStringOptions) {
-        return new AttrStringOptions(Arrays.asList(attrStringOptions));
+    public static AttrObjectOptions applyAttrObjectOptions(AttrObjectOption... attrObjectOptions) {
+        return new AttrObjectOptions(Arrays.asList(attrObjectOptions));
     }
 
 
-    public static AttrStringOption attrStringOption(Object key, String value) {
-        return new AttrStringOption(key, value);
+    public static AttrObjectOption attrObjectOption(Object key, Object value) {
+        return new AttrObjectOption(key, value);
     }
 
     /**

@@ -15,19 +15,17 @@
  */
 package com.googlecode.cqengine.query.option;
 
-import com.googlecode.cqengine.query.QueryFactory;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AttrStringOptions {
+public class AttrObjectOptions {
 
-    final Map<Object, String> attrStringOptions = new LinkedHashMap();
+    final Map<Object, Object> attrStringOptions = new LinkedHashMap();
 
-    public AttrStringOptions(Collection<AttrStringOption> attrStringOptions) {
-        for (AttrStringOption attrStringOption : attrStringOptions) {
-            this.attrStringOptions.put(attrStringOption.key, attrStringOption.value);
+    public AttrObjectOptions(Collection<AttrObjectOption> attrObjectOptions) {
+        for (AttrObjectOption attrObjectOption : attrObjectOptions) {
+            this.attrStringOptions.put(attrObjectOption.key, attrObjectOption.value);
         }
     }
 
@@ -36,10 +34,10 @@ public class AttrStringOptions {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof AttrStringOptions)) {
+        if (!(o instanceof AttrObjectOptions)) {
             return false;
         }
-        AttrStringOptions that = (AttrStringOptions) o;
+        AttrObjectOptions that = (AttrObjectOptions) o;
         return attrStringOptions.equals(that.attrStringOptions);
     }
 
@@ -48,7 +46,7 @@ public class AttrStringOptions {
         return attrStringOptions.hashCode();
     }
 
-    public String getAttrStringOption(Object key) {
+    public Object getAttrObjectOption(Object key) {
         return attrStringOptions.get(key);
     }
 
@@ -57,8 +55,8 @@ public class AttrStringOptions {
         return attrStringOptions.toString();
     }
 
-    public static String getAttrStringOption(QueryOptions queryOptions, Object key) {
-        AttrStringOptions attrStringOptions = queryOptions.get(AttrStringOptions.class);
-        return attrStringOptions == null ? null : attrStringOptions.getAttrStringOption(key);
+    public static Object getAttrObjectOption(QueryOptions queryOptions, Object key) {
+        AttrObjectOptions attrObjectOptions = queryOptions.get(AttrObjectOptions.class);
+        return attrObjectOptions == null ? null : attrObjectOptions.getAttrObjectOption(key);
     }
 }
