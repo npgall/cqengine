@@ -628,7 +628,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             prefixingList.add(element);
         }
 
-        Query in = in(longestPrefixAttr, prefixingList);
+        Query in = in(longestPrefixAttr, prefixingList); /// in("longestPrefixMatchAtrr",list)
 
         And and = and(in, query);
 

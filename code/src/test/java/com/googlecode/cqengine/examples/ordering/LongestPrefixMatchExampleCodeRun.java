@@ -52,6 +52,8 @@ public class LongestPrefixMatchExampleCodeRun {
 
         LongestPrefixMatchExampleCode expectedLongest = new LongestPrefixMatchExampleCode("3222", new Long(9), new Long(16), "C1");
         // add cars objects to collection-
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("89761", new Long(4), new Long(7), "A1"));
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("67894", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("32221", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("3222", new Long(9), new Long(16), "C1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchExampleCode("322", new Long(17), new Long(21), "D1"));
