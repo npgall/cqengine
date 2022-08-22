@@ -16,7 +16,8 @@
 package com.googlecode.cqengine.engine;
 
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
+import com.googlecode.cqengine.index.indexOrdering.ConcurrentInvertedRadixTreesHolder;
+import com.googlecode.cqengine.index.indexOrdering.IConcurrentInvertedRadixTreesHolder;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
@@ -66,5 +67,5 @@ public interface QueryEngine<O> {
      */
     public Iterable<Index<O>> getIndexes();
 
-    void setConcurrentInvertedRadixTree(IndexOrderingConcurrentTreeHolder singletonConcurrentTreeHolder);
+    void setConcurrentInvertedRadixTree(IConcurrentInvertedRadixTreesHolder singletonConcurrentTreeHolder);
 }

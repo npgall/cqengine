@@ -17,7 +17,8 @@ package com.googlecode.cqengine;
 
 import com.googlecode.cqengine.engine.QueryEngine;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
+import com.googlecode.cqengine.index.indexOrdering.ConcurrentInvertedRadixTreesHolder;
+import com.googlecode.cqengine.index.indexOrdering.IConcurrentInvertedRadixTreesHolder;
 import com.googlecode.cqengine.metadata.MetadataEngine;
 import com.googlecode.cqengine.persistence.Persistence;
 import com.googlecode.cqengine.query.Query;
@@ -159,13 +160,13 @@ public interface IndexedCollection<O> extends Set<O>, QueryEngine<O> {
      */
     MetadataEngine<O> getMetadataEngine();
 
-    
-    
-    IndexOrderingConcurrentTreeHolder getSingletonConcurrentTreeHolder();
-    
+
+
+    void setConcurrentInvertedRadixTree(IConcurrentInvertedRadixTreesHolder singletonConcurrentTreeHolder);
 
 
 
+    IConcurrentInvertedRadixTreesHolder getConcurrentInvertedRadixTree();
 
     // get concurrent radix tree
 }

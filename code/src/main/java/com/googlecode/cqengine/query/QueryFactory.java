@@ -721,8 +721,8 @@ public class QueryFactory {
 
     public static AttrObjectOptions applyAttrObjectOptions(AttrObjectOption... attrObjectOptions) {
         return new AttrObjectOptions(Arrays.asList(attrObjectOptions));
-    }
 
+    }
 
     public static AttrObjectOption attrObjectOption(Object key, Object value) {
         return new AttrObjectOption(key, value);

@@ -18,7 +18,8 @@ package com.googlecode.cqengine;
 import com.googlecode.cqengine.engine.QueryEngineInternal;
 import com.googlecode.cqengine.engine.CollectionQueryEngine;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
+import com.googlecode.cqengine.index.indexOrdering.ConcurrentInvertedRadixTreesHolder;
+import com.googlecode.cqengine.index.indexOrdering.IConcurrentInvertedRadixTreesHolder;
 import com.googlecode.cqengine.index.support.CloseableIterator;
 import com.googlecode.cqengine.index.support.CloseableRequestResources;
 import com.googlecode.cqengine.metadata.MetadataEngine;
@@ -72,7 +73,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     protected final ObjectStore<O> objectStore;
     protected final QueryEngineInternal<O> indexEngine;
     protected final MetadataEngine<O> metadataEngine;
-    protected IndexOrderingConcurrentTreeHolder indexOrderingConcurrentTreeHolder;
+    protected IConcurrentInvertedRadixTreesHolder indexOrderingConcurrentTreeHolder;
 
     /**
      * Creates a new {@link ConcurrentIndexedCollection} with default settings, using {@link OnHeapPersistence}.
@@ -138,7 +139,7 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     public ResultSet<O> retrieve(Query<O> query, QueryOptions queryOptions) {
         final QueryOptions finalQueryOptions = openRequestScopeResourcesIfNecessary(queryOptions);
         flagAsReadRequest(finalQueryOptions);
-        indexEngine.setConcurrentInvertedRadixTree(getSingletonConcurrentTreeHolder());
+        indexEngine.setConcurrentInvertedRadixTree(getConcurrentInvertedRadixTree());
         ResultSet<O> results = indexEngine.retrieve(query, finalQueryOptions);
         return new CloseableResultSet<O>(results, query, finalQueryOptions) {
             @Override
@@ -583,16 +584,14 @@ public class ConcurrentIndexedCollection<O> implements IndexedCollection<O> {
     }
 
 
-
-
     @Override
-    public IndexOrderingConcurrentTreeHolder getSingletonConcurrentTreeHolder() {
-        return IndexOrderingConcurrentTreeHolder.INSTANCE;
+    public void setConcurrentInvertedRadixTree(IConcurrentInvertedRadixTreesHolder singletonConcurrentTreeHolder) {
+        this.indexOrderingConcurrentTreeHolder = singletonConcurrentTreeHolder;
     }
 
 
     @Override
-    public void setConcurrentInvertedRadixTree(IndexOrderingConcurrentTreeHolder singletonConcurrentTreeHolder) {
-        this.indexOrderingConcurrentTreeHolder = singletonConcurrentTreeHolder;
+    public IConcurrentInvertedRadixTreesHolder getConcurrentInvertedRadixTree() {
+        return this.indexOrderingConcurrentTreeHolder;
     }
 }

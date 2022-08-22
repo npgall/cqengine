@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b6b85673-d7c1-4e0f-8d02-dbe9c5ab574d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_esotericsoftware_kryo_5_0_0_RC1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_esotericsoftware_minlog_1_3_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_esotericsoftware_reflectasm_1_11_7.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_code_findbugs_jsr305_3_0_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_errorprone_error_prone_annotations_2_2_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_guava_failureaccess_1_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_guava_guava_27_1_jre.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_guava_guava_testlib_27_1_jre.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_guava_listenablefuture_9999_0_empty_to_avoid_conflict_with_guava.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_google_j2objc_j2objc_annotations_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_googlecode_concurrent_trees_concurrent_trees_2_6_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__com_tngtech_java_junit_dataprovider_1_13_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__de_javakaffee_kryo_serializers_0_45.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__junit_junit_4_12.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__net_bytebuddy_byte_buddy_1_9_10.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__net_bytebuddy_byte_buddy_agent_1_9_10.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__net_jodah_typetools_0_6_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__nl_jqno_equalsverifier_equalsverifier_3_1_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_antlr_antlr4_runtime_4_7_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_checkerframework_checker_qual_2_5_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_codehaus_mojo_animal_sniffer_annotations_1_17.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_hamcrest_hamcrest_core_1_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_javassist_javassist_3_25_0_GA.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_mockito_mockito_core_2_27_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_objenesis_objenesis_2_6.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_projectlombok_lombok_1_18_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_slf4j_slf4j_api_1_7_26.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_slf4j_slf4j_simple_1_7_26.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/libraries/Maven__org_xerial_sqlite_jdbc_3_27_2_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/runConfigurations.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/index/indexOrdering/LongestPrefixMatchTwoColumnsExampleCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/code/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/engine/CollectionQueryEngine.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/engine/CollectionQueryEngine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/index/indexOrdering/LongestPrefixMatchExampleCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/index/indexOrdering/LongestPrefixMatchOneColumnExampleCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/query/QueryFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/query/QueryFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/query/option/ConcurrentRadixTreeLongestPrefixMatch.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/com/googlecode/cqengine/query/option/ConcurrentRadixTreeLongestPrefixMatch.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/src/test/java/com/googlecode/cqengine/examples/ordering/LongestPrefixMatchExampleCodeRun.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/test/java/com/googlecode/cqengine/examples/ordering/LongestPrefixMatchExampleCodeRun.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="2D8DFTm2BoVlht1R109SWDwx4q3" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../reference-data-service" />
+    <property name="nodejs_package_manager_path" value="npm" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b6b85673-d7c1-4e0f-8d02-dbe9c5ab574d" name="Changes" comment="" />
+      <created>1660071714697</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1660071714697</updated>
+      <workItem from="1660071716504" duration="1217000" />
+      <workItem from="1660214085759" duration="1613000" />
+      <workItem from="1660346170311" duration="118000" />
+      <workItem from="1660552195230" duration="1242000" />
+      <workItem from="1660603098359" duration="11000" />
+      <workItem from="1660741596150" duration="144000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+</project>

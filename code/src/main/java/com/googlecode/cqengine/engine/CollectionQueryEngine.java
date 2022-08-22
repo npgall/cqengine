@@ -20,7 +20,8 @@ import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.cqengine.attribute.*;
 import com.googlecode.cqengine.index.AttributeIndex;
 import com.googlecode.cqengine.index.Index;
-import com.googlecode.cqengine.index.indexOrdering.IndexOrderingConcurrentTreeHolder;
+import com.googlecode.cqengine.index.indexOrdering.ConcurrentInvertedRadixTreesHolder;
+import com.googlecode.cqengine.index.indexOrdering.IConcurrentInvertedRadixTreesHolder;
 import com.googlecode.cqengine.index.indexOrdering.LookUpIdentifier;
 import com.googlecode.cqengine.index.sqlite.IdentityAttributeIndex;
 import com.googlecode.cqengine.index.sqlite.SQLiteIdentityIndex;
@@ -39,7 +40,6 @@ import com.googlecode.cqengine.persistence.support.ObjectStoreResultSet;
 import com.googlecode.cqengine.persistence.support.sqlite.SQLiteObjectStore;
 import com.googlecode.cqengine.query.ComparativeQuery;
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.comparative.LongestPrefix;
 import com.googlecode.cqengine.query.logical.And;
 import com.googlecode.cqengine.query.logical.LogicalQuery;
 import com.googlecode.cqengine.query.logical.Not;
@@ -105,7 +105,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     private final FallbackIndex<O> fallbackIndex = new FallbackIndex<O>();
     // Updated as indexes are added or removed, this is used by the isMutable() method...
     private final Set<Index<O>> immutableIndexes = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private IndexOrderingConcurrentTreeHolder indexOrderingConcurrentRadixTreeHolder;
+    private IConcurrentInvertedRadixTreesHolder indexOrderingConcurrentRadixTreeHolder;
 
     public CollectionQueryEngine() {
     }
@@ -138,6 +138,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     /**
      * This is a no-op here, as currently the {@link ModificationListener#destroy(QueryOptions)} method
      * is only used by indexes.
+     *
      * @param queryOptions Optional parameters for the update
      */
     @Override
@@ -183,8 +184,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     /**
      * Adds an {@link AttributeIndex}.
+     *
      * @param attributeIndex The index to add
-     * @param <A> The type of objects indexed
+     * @param <A>            The type of objects indexed
      */
     <A> void addAttributeIndex(AttributeIndex<A, O> attributeIndex, QueryOptions queryOptions) {
         Attribute<O, A> attribute = attributeIndex.getAttribute();
@@ -217,8 +219,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     /**
      * Adds either a {@link StandingQueryIndex} or a regular index build on a {@link StandingQueryAttribute}.
+     *
      * @param standingQueryIndex The index to add
-     * @param standingQuery The query on which the index is based
+     * @param standingQuery      The query on which the index is based
      */
     void addStandingQueryIndex(Index<O> standingQueryIndex, Query<O> standingQuery, QueryOptions queryOptions) {
         Index<O> existingIndex = standingQueryIndexes.putIfAbsent(standingQuery, standingQueryIndex);
@@ -232,7 +235,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     /**
      * Adds a {@link CompoundIndex}.
-     * @param compoundIndex The index to add
+     *
+     * @param compoundIndex     The index to add
      * @param compoundAttribute The compound attribute on which the index is based
      */
     void addCompoundIndex(CompoundIndex<O> compoundIndex, CompoundAttribute<O> compoundAttribute, QueryOptions queryOptions) {
@@ -321,7 +325,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
     }
 
     @Override
-    public void setConcurrentInvertedRadixTree(IndexOrderingConcurrentTreeHolder singletonConcurrentTreeHolder) {
+    public void setConcurrentInvertedRadixTree(IConcurrentInvertedRadixTreesHolder singletonConcurrentTreeHolder) {
         this.indexOrderingConcurrentRadixTreeHolder = singletonConcurrentTreeHolder;
     }
 
@@ -378,7 +382,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * <p/>
      * For a definition of retrieval cost see {@link ResultSet#getRetrievalCost()}.
      *
-     * @param query The query which refers to an attribute
+     * @param query        The query which refers to an attribute
      * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
@@ -431,7 +435,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * <p/>
      * For a definition of retrieval cost see {@link ResultSet#getRetrievalCost()}.
      *
-     * @param query The query which refers to an attribute
+     * @param query        The query which refers to an attribute
      * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} from the index with the lowest retrieval cost which supports the given query
      */
@@ -585,8 +589,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         ResultSet<O> resultSet;
         if (indexForOrdering != null) {
             // Retrieve results, using an index to accelerate ordering...
-            And and = handleConcurrentRadixTree(query, queryOptions, orderByOption, indexForOrdering);
-            resultSet = retrieveWithIndexOrdering(and, queryOptions, orderByOption, indexForOrdering);
+            Query<O> queryToManipulate = query;
+            queryToManipulate = handleConcurrentRadixTree(queryToManipulate, queryOptions, orderByOption, indexForOrdering);
+            resultSet = retrieveWithIndexOrdering(queryToManipulate, queryOptions, orderByOption, indexForOrdering);
             if (queryLog != null) {
                 queryLog.log("orderingStrategy: index");
             }
@@ -609,31 +614,33 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         };
     }
 
-    private And handleConcurrentRadixTree(Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
-        String lookup = (String) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_LOOKUP);
+    private Query<O> handleConcurrentRadixTree(Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
 
-        Attribute<O,String> longestPrefixAttr = (Attribute<O,String>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTE);
-
-
-        String longestPrefixValue = (String) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUE);
+        Query<O> finalQuery = query;
 
 
-        ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(new LookUpIdentifier(lookup, longestPrefixAttr.getAttributeName()));
+        List<Attribute<O, String>> longestPrefixAttrs = (List<Attribute<O, String>>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTES);
 
-        Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefixValue);
 
-        List<String> prefixingList = new ArrayList<>();
+        List<String> longestPrefixValues = (List<String>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUES);
 
-        for(String element:keysPrefixing) {
-            prefixingList.add(element);
+
+        int index = 0;
+        for (Attribute<O, String> attr : longestPrefixAttrs) {
+
+            ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(attr.getAttributeName());
+            Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefixValues.get(index));
+            List<String> prefixingList = new ArrayList<>();
+            for (String element : keysPrefixing) {
+                prefixingList.add(element);
+            }
+            Query<O> in = in(longestPrefixAttrs.get(index), prefixingList);
+            finalQuery = and(in, finalQuery);
+            index++;
+
+
         }
-
-        Query in = in(longestPrefixAttr, prefixingList); /// in("longestPrefixMatchAtrr",list)
-
-        And and = and(in, query);
-
-
-        return and;
+        return finalQuery;
         // i need to get the fields name from the results to identify where is the values that i need to work with.
 
     }
@@ -852,8 +859,8 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * This method will add any resources which need to be closed to {@link CloseableRequestResources} in the query options.
      *
      * @param sortedCandidateResults The candidate results to be filtered
-     * @param query The query
-     * @param queryOptions The query options
+     * @param query                  The query
+     * @param queryOptions           The query options
      * @return A filtered iterator which returns the subset of candidate objects which match the query
      */
     Iterator<O> filterIndexOrderingCandidateResults(final Iterator<O> sortedCandidateResults, final Query<O> query, final QueryOptions queryOptions) {
@@ -901,7 +908,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * Called when using an index to order results, to determine if or how results within each bucket
      * in that index should be sorted.
      * <p/>
-     *
+     * <p>
      * We must sort results within each bucket, when:
      * <ol>
      *     <li>
@@ -918,9 +925,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      *     </li>
      * </ol>
      *
-     * @param allSortOrders The user-specified sort orders
+     * @param allSortOrders                    The user-specified sort orders
      * @param attributeCanHaveMoreThanOneValue If the primary attribute used for sorting can return more than one value
-     * @param index The index from which the bucket is accessed
+     * @param index                            The index from which the bucket is accessed
      * @return A list of AttributeOrder objects representing the sort order to apply to objects in the bucket
      */
     static <O> List<AttributeOrder<O>> determineAdditionalSortOrdersForIndexOrdering(List<AttributeOrder<O>> allSortOrders, boolean attributeCanHaveMoreThanOneValue, Index<O> index, QueryOptions queryOptions) {
@@ -1017,9 +1024,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * object as appropriate for {@link And}, {@link Or}, {@link Not} respectively. These {@link ResultSet} objects
      * will take care of performing intersections or unions etc. on the child {@link ResultSet}s.
      *
-     * @param query A query representing some assertions which sought objects must match
+     * @param query        A query representing some assertions which sought objects must match
      * @param queryOptions Optional parameters for the query
-     * supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
+     *                     supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      * @return A {@link ResultSet} which provides objects matching the given query
      */
     ResultSet<O> retrieveRecursive(Query<O> query, final QueryOptions queryOptions) {
@@ -1219,7 +1226,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * {@link Query#matches(Object, QueryOptions)} to test each object in the smallest set against queries which would match the
      * more expensive sets, rather than perform several hash lookups and equality tests between multiple sets.
      *
-     * @param queries A collection of {@link SimpleQuery} objects to be retrieved and intersected
+     * @param queries      A collection of {@link SimpleQuery} objects to be retrieved and intersected
      * @param queryOptions Optional parameters for the query
      * @return A {@link ResultSet} which provides objects matching the intersection of results for each of the
      * {@link SimpleQuery}s
@@ -1281,9 +1288,9 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * this also ensures that duplicate objects are not returned more than once, by means of logical elimination via
      * set theory rather than maintaining a record of all objects iterated.
      *
-     * @param queries A collection of {@link SimpleQuery} objects to be retrieved and unioned
+     * @param queries      A collection of {@link SimpleQuery} objects to be retrieved and unioned
      * @param queryOptions Optional parameters for the query
-     * supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
+     *                     supplied specifying strategy {@link DeduplicationStrategy#LOGICAL_ELIMINATION}
      * @return A {@link ResultSet} which provides objects matching the union of results for each of the
      * {@link SimpleQuery}s
      */
@@ -1362,7 +1369,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * a {@link ResultSet} which does so.
      * If the query cannot be answered from a standing query index, returns null.
      *
-     * @param query The query to evaluate
+     * @param query        The query to evaluate
      * @param queryOptions Query options supplied for the query
      * @return A {@link ResultSet} which answers the query from a standing query index, or null if no such index
      * is available
@@ -1417,6 +1424,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
     /**
      * {@inheritDoc}
+     *
      * @param queryOptions
      */
     @Override
@@ -1464,6 +1472,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
      * Iterates through all indexes and for each index invokes the given index operation. If the operation returns
      * false for any index, stops iterating and returns false. If the operation returns true for every index,
      * returns true after all indexes have been iterated.
+     *
      * @param indexOperation The operation to perform on each index.
      * @return true if the operation returned true for all indexes and so all indexes were iterated, false if the
      * operation returned false for any index and so iteration was stopped
