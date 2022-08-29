@@ -1,4 +1,4 @@
-package com.googlecode.cqengine.index.indexOrdering;
+package com.googlecode.cqengine.examples.ordering;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;

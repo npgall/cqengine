@@ -334,6 +334,11 @@
             <version>3.1.8</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.cqengine</groupId>
+            <artifactId>cqengine</artifactId>
+            <version>3.5.0</version>
+        </dependency>
 
     </dependencies>
     <profiles>

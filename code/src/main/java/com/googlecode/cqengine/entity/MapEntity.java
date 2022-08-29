@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Wrapper for Map to allow efficient use in an IndexCollection.
+ * Wrapper for Map to allow efficient use in an .
  * MapEntities can be created via {@link QueryFactory#mapEntity(Map)}. Attributes can be created to read the entries
  * in these maps, using {@link QueryFactory#mapAttribute(Object, Class)}.
  * <p/>
