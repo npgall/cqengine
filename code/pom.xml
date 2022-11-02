@@ -222,7 +222,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.7</version>
+                <version>4.10.1</version>
                 <executions>
                     <execution>
                         <id>antlr</id>
@@ -270,7 +270,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.2</version>
+            <version>4.10.1</version>
         </dependency>
         <dependency>
             <groupId>net.jodah</groupId>
