@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ConcurrentInvertedRadixTreesHolder implements IConcurrentInvertedRadixTreesHolder {
 
-    private final Map<String, ConcurrentInvertedRadixTree> concurrentInvertedRadixTreeHashMap;
+    private final Map<String, IndexedConcurrentInvertedRadixTree> concurrentInvertedRadixTreeHashMap;
 
 
     public ConcurrentInvertedRadixTreesHolder() {
@@ -18,15 +18,15 @@ public class ConcurrentInvertedRadixTreesHolder implements IConcurrentInvertedRa
         return concurrentInvertedRadixTreeHashMap.containsKey(fieldName);
     }
 
-    public ConcurrentInvertedRadixTree getConcurrentInvertedRadixTree(String fieldName) {
+    public IndexedConcurrentInvertedRadixTree getConcurrentInvertedRadixTree(String fieldName) {
         return concurrentInvertedRadixTreeHashMap.get(fieldName);
     }
 
-    public void addConcurrentInvertedRadixTree(String fieldName, ConcurrentInvertedRadixTree concurrentInvertedRadixTree) {
+    public void addConcurrentInvertedRadixTree(String fieldName, IndexedConcurrentInvertedRadixTree concurrentInvertedRadixTree) {
         concurrentInvertedRadixTreeHashMap.put(fieldName, concurrentInvertedRadixTree);
     }
 
-    public void deleteConcurrentInvertedRadixTree(String fieldName) {
+    public void deleteIndexedConcurrentInvertedRadixTree(String fieldName) {
         concurrentInvertedRadixTreeHashMap.remove(fieldName);
     }
 

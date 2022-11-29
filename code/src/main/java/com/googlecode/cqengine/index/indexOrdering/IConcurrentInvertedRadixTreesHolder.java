@@ -6,14 +6,14 @@ public interface IConcurrentInvertedRadixTreesHolder {
 
     boolean containsKey(String fieldName);
 
-    ConcurrentInvertedRadixTree getConcurrentInvertedRadixTree(String fieldName);
+    IndexedConcurrentInvertedRadixTree getConcurrentInvertedRadixTree(String fieldName);
 
 
-    void addConcurrentInvertedRadixTree(String fieldName, ConcurrentInvertedRadixTree concurrentInvertedRadixTree);
+    void addConcurrentInvertedRadixTree(String fieldName, IndexedConcurrentInvertedRadixTree concurrentInvertedRadixTree);
 
 
 
-    void deleteConcurrentInvertedRadixTree(String fieldName);
+    void deleteIndexedConcurrentInvertedRadixTree(String fieldName);
 
 
 }

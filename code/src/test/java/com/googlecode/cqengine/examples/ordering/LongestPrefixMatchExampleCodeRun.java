@@ -52,8 +52,8 @@ public class LongestPrefixMatchExampleCodeRun {
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("89761", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("67894", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("32221", new Long(11), new Long(17), "A1"));
-        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("3222", new Long(9), new Long(16), "C1"));
-        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("3222", new Long(9), new Long(18), "D1"));
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("32", new Long(9), new Long(16), "C1"));
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("32", new Long(9), new Long(18), "D1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("32", new Long(7), new Long(15), "D1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("328", new Long(9), new Long(10), "E1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchOneColumnExampleCode("4561", new Long(8), new Long(15), "F1"));
@@ -66,8 +66,6 @@ public class LongestPrefixMatchExampleCodeRun {
         // two cases combined
 //        Query<NationalShortCode> query_Time = or(queryTime_case1, queryTime1_case2);
         Query<LongestPrefixMatchOneColumnExampleCode> query_Time = queryTime_case1;
-
-        longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(forObjectsMissing(LongestPrefixMatchOneColumnExampleCode.a_NUMBER)));
 
         longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(LongestPrefixMatchOneColumnExampleCode.a_NUMBER));
 
@@ -85,7 +83,7 @@ public class LongestPrefixMatchExampleCodeRun {
         attributesValues.add("322211");
 
 
-        QueryOptions queryOptions = QueryFactory.queryOptions(orderBy(descending(missingLast(LongestPrefixMatchOneColumnExampleCode.a_NUMBER))),
+        QueryOptions queryOptions = QueryFactory.queryOptions(orderBy(descending(LongestPrefixMatchOneColumnExampleCode.a_NUMBER)),
                 applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)),
                 applyAttrObjectOptions(attrObjectOption(ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTES, attributeList),
                         attrObjectOption(ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUES, attributesValues)));
@@ -94,14 +92,18 @@ public class LongestPrefixMatchExampleCodeRun {
 
         ConcurrentInvertedRadixTree tree1 = new ConcurrentInvertedRadixTree(nodeFactory);
 
-        List<ConcurrentInvertedRadixTree> trees = new ArrayList<>();
+        IndexedConcurrentInvertedRadixTree indexedConcurrentInvertedRadixTree = new IndexedConcurrentInvertedRadixTree(tree1);
 
-        trees.add(tree1);
+        List<IndexedConcurrentInvertedRadixTree> trees = new ArrayList<>();
 
-        AtomicInteger indexForTree = new AtomicInteger(0);
+        trees.add(indexedConcurrentInvertedRadixTree);
+
+
         longestPrefixMatchExampleCodes.forEach(element -> {
-            tree1.put(element.getANumber(), indexForTree.get());
-            indexForTree.getAndIncrement();
+            tree1.put(element.getANumber(), indexedConcurrentInvertedRadixTree.getIndex());
+            Integer index = indexedConcurrentInvertedRadixTree.getIndex();
+            index++;
+            indexedConcurrentInvertedRadixTree.setIndex(index);
         });
 
 
@@ -109,7 +111,7 @@ public class LongestPrefixMatchExampleCodeRun {
         attributeList.forEach(element -> {
             System.out.println(String.format("Pretty print for tree of Field %s: ", attributeList.get(indexForPrint.get()).getAttributeName()));
 
-            String actual = PrettyPrinter.prettyPrint(trees.get(indexForPrint.get()));
+            String actual = PrettyPrinter.prettyPrint(trees.get(indexForPrint.get()).getConcurrentInvertedRadixTree());
 
             System.out.println(actual);
 
@@ -132,22 +134,7 @@ public class LongestPrefixMatchExampleCodeRun {
 
         ResultSet<LongestPrefixMatchOneColumnExampleCode> longestPrefixMatchExampleCodeResultSet = longestPrefixMatchExampleCodes.retrieve(query_Time, queryOptions);
 
-        Iterator<LongestPrefixMatchOneColumnExampleCode> iterator = longestPrefixMatchExampleCodeResultSet.iterator();
-
-        List<LongestPrefixMatchOneColumnExampleCode> listLongestPrefixMatch = new ArrayList<>();
-
-        int max_lengthForANumber = 0;
-
-        while (iterator.hasNext()) {
-            LongestPrefixMatchOneColumnExampleCode next = iterator.next();
-            if (next.getANumber().length() >= max_lengthForANumber) {
-                max_lengthForANumber = next.getANumber().length();
-                listLongestPrefixMatch.add(next);
-
-            }
-        }
-
-        System.out.println(listLongestPrefixMatch);
+        longestPrefixMatchExampleCodeResultSet.forEach(System.out::println);
 
 
     }
@@ -173,8 +160,8 @@ public class LongestPrefixMatchExampleCodeRun {
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("67894", "45678", new Long(4), new Long(7), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("32221", "45671", new Long(11), new Long(17), "A1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("3222", "4567", new Long(12), new Long(16), "C1"));
-        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("322", "45", new Long(9), new Long(18), "D1"));
-        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("322", "45", new Long(7), new Long(15), "D1"));
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("3222", "4567", new Long(9), new Long(18), "D1"));
+        longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("3222", "4567", new Long(7), new Long(15), "D1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("328", "49", new Long(9), new Long(10), "E1"));
         longestPrefixMatchExampleCodes.add(new LongestPrefixMatchTwoColumnsExampleCode("4561", "45671", new Long(8), new Long(15), "F1"));
 
@@ -187,12 +174,12 @@ public class LongestPrefixMatchExampleCodeRun {
 //        Query<NationalShortCode> query_Time = or(queryTime_case1, queryTime1_case2);
         Query<LongestPrefixMatchTwoColumnsExampleCode> query_Time = queryTime_case1;
 
-        longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(forObjectsMissing(LongestPrefixMatchTwoColumnsExampleCode.a_NUMBER)));
+        //longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(forObjectsMissing(LongestPrefixMatchTwoColumnsExampleCode.a_NUMBER)));
 
         longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(LongestPrefixMatchTwoColumnsExampleCode.a_NUMBER));
 
 
-        longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(forObjectsMissing(LongestPrefixMatchTwoColumnsExampleCode.b_NUMBER)));
+        //longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(forObjectsMissing(LongestPrefixMatchTwoColumnsExampleCode.b_NUMBER)));
 
         longestPrefixMatchExampleCodes.addIndex(NavigableIndex.onAttribute(LongestPrefixMatchTwoColumnsExampleCode.b_NUMBER));
 
@@ -211,8 +198,8 @@ public class LongestPrefixMatchExampleCodeRun {
         attributesValues.add("45671");
 
 
-        QueryOptions queryOptions = QueryFactory.queryOptions(orderBy(descending(missingLast(LongestPrefixMatchTwoColumnsExampleCode.a_NUMBER))
-                        , descending(missingLast(LongestPrefixMatchTwoColumnsExampleCode.b_NUMBER))),
+        QueryOptions queryOptions = QueryFactory.queryOptions(orderBy(descending(LongestPrefixMatchTwoColumnsExampleCode.a_NUMBER)
+                        , descending(LongestPrefixMatchTwoColumnsExampleCode.b_NUMBER)),
                 applyThresholds(threshold(INDEX_ORDERING_SELECTIVITY, 1.0)),
                 applyAttrObjectOptions(attrObjectOption(ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTES, attributeList),
                         attrObjectOption(ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUES, attributesValues)));
@@ -224,17 +211,27 @@ public class LongestPrefixMatchExampleCodeRun {
 
         ConcurrentInvertedRadixTree tree2 = new ConcurrentInvertedRadixTree(nodeFactory);
 
-        List<ConcurrentInvertedRadixTree> trees = new ArrayList<>();
 
-        trees.add(tree1);
+        IndexedConcurrentInvertedRadixTree indexedConcurrentInvertedRadixTree1 = new IndexedConcurrentInvertedRadixTree(tree1);
 
-        trees.add(tree2);
+        IndexedConcurrentInvertedRadixTree indexedConcurrentInvertedRadixTree2 = new IndexedConcurrentInvertedRadixTree(tree2);
+
+        List<IndexedConcurrentInvertedRadixTree> trees = new ArrayList<>();
+
+        trees.add(indexedConcurrentInvertedRadixTree1);
+
+        trees.add(indexedConcurrentInvertedRadixTree2);
 
         AtomicInteger indexForTree = new AtomicInteger(0);
         longestPrefixMatchExampleCodes.forEach(element -> {
-            tree1.put(element.getANumber(), indexForTree.get());
-            tree2.put(element.getBNumber(), indexForTree.get());
-            indexForTree.getAndIncrement();
+            Integer indexForA  = trees.get(0).getIndex();
+            tree1.put(element.getANumber(), indexForA);
+            indexForA++;
+            trees.get(0).setIndex(indexForA);
+            Integer indexForB  = trees.get(1).getIndex();
+            tree2.put(element.getBNumber(), indexForB);
+            indexForB++;
+            trees.get(1).setIndex(indexForB);
         });
 
 
@@ -242,7 +239,7 @@ public class LongestPrefixMatchExampleCodeRun {
         attributeList.forEach(element -> {
             System.out.println(String.format("Pretty print for tree of Field %s: ", attributeList.get(indexForPrint.get()).getAttributeName()));
 
-            String actual = PrettyPrinter.prettyPrint(trees.get(indexForPrint.get()));
+            String actual = PrettyPrinter.prettyPrint(trees.get(indexForPrint.get()).getConcurrentInvertedRadixTree());
 
             System.out.println(actual);
 
@@ -264,24 +261,8 @@ public class LongestPrefixMatchExampleCodeRun {
 
         ResultSet<LongestPrefixMatchTwoColumnsExampleCode> longestPrefixMatchExampleCodeResultSet = longestPrefixMatchExampleCodes.retrieve(query_Time, queryOptions);
 
-        Iterator<LongestPrefixMatchTwoColumnsExampleCode> iterator = longestPrefixMatchExampleCodeResultSet.iterator();
 
-        List<LongestPrefixMatchTwoColumnsExampleCode> listLongestPrefixMatch = new ArrayList<>();
-
-        int max_lengthForANumber = 0;
-        int max_lengthForBNumber = 0;
-
-        while (iterator.hasNext()) {
-            LongestPrefixMatchTwoColumnsExampleCode next = iterator.next();
-            if (next.getANumber().length() >= max_lengthForANumber && next.getBNumber().length() >= max_lengthForBNumber) {
-                max_lengthForANumber = next.getANumber().length();
-                max_lengthForBNumber = next.getBNumber().length();
-                listLongestPrefixMatch.add(next);
-
-            }
-        }
-
-        System.out.println(listLongestPrefixMatch);
+        longestPrefixMatchExampleCodeResultSet.forEach(System.out::println);
 
 
     }

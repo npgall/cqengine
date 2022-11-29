@@ -17,8 +17,8 @@ package com.googlecode.cqengine.query.option;
 
 public class AttrObjectOption {
 
-    final Object key;
-    final Object value;
+    private final Object key;
+    private final Object value;
 
     public AttrObjectOption(Object key, Object value) {
         this.key = key;
@@ -43,10 +43,28 @@ public class AttrObjectOption {
 
     }
 
+
+    public Object getKey() {
+        return key;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
     @Override
     public int hashCode() {
         int result = key.hashCode();
         result = 31 * result + value.hashCode();
         return result;
+    }
+
+
+    @Override
+    public String toString() {
+        return "AttrObjectOption{" +
+                "key=" + key +
+                ", value=" + value +
+                '}';
     }
 }

@@ -25,7 +25,7 @@ public class AttrObjectOptions {
 
     public AttrObjectOptions(Collection<AttrObjectOption> attrObjectOptions) {
         for (AttrObjectOption attrObjectOption : attrObjectOptions) {
-            this.attrStringOptions.put(attrObjectOption.key, attrObjectOption.value);
+            this.attrStringOptions.put(attrObjectOption.getKey(), attrObjectOption.getValue());
         }
     }
 

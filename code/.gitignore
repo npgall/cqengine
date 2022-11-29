@@ -1,0 +1,56 @@
+###
+# Eclipse
+###
+.classpath
+.cproject
+.project
+.settings
+/bin/
+
+###
+# IntelliJ
+###
+*.iml
+.idea
+.attach*
+###
+# Maven
+###
+target/
+target.*/
+
+###
+# Maven shade plugin
+###
+*dependency-reduced-pom.xml
+
+###
+# Build artifacts
+###
+*.class
+*.o
+*.so
+*.jar
+
+
+###
+# vi(m) temp files 
+###
+*.swp
+*.swo
+*.swn
+
+###
+# Visual Studio
+###
+.vscode/
+
+###
+# Misc files
+###
+org.kde.konsole.desktop
+
+###
+# Open API generated files
+####
+*.openapi-generator

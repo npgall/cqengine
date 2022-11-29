@@ -64,6 +64,9 @@ import com.googlecode.cqengine.resultset.order.MaterializedOrderedResultSet;
 import com.googlecode.cqengine.index.support.CloseableRequestResources.CloseableResourceGroup;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -590,6 +593,7 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
             Query<O> queryToManipulate = query;
             queryToManipulate = handleConcurrentRadixTree(queryToManipulate, queryOptions, orderByOption, indexForOrdering);
             resultSet = retrieveWithIndexOrdering(queryToManipulate, queryOptions, orderByOption, indexForOrdering);
+            resultSet = filterResultBaseOnLongest(queryToManipulate,queryOptions,resultSet);
             if (queryLog != null) {
                 queryLog.log("orderingStrategy: index");
             }
@@ -612,6 +616,194 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
         };
     }
 
+    private ResultSet<O> filterResultBaseOnLongest(Query<O> query, QueryOptions queryOptions, ResultSet<O> resultSet)  {
+
+        List<O> result = new ArrayList<>();
+        try {
+
+            List<O> elements = resultSet.stream().collect(Collectors.toList());
+
+            Map<String,Integer> maxLengthPerAttributeMap = new HashMap<>();
+
+
+            List<Attribute<O, String>> longestPrefixAttrs = (List<Attribute<O, String>>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_ATTRIBUTES);
+
+            if(longestPrefixAttrs== null || longestPrefixAttrs.isEmpty()){
+                return resultSet;
+            }
+
+
+            if(!elements.isEmpty()){
+
+                handleFirstRecordLongest(result, elements, maxLengthPerAttributeMap, longestPrefixAttrs);
+
+                handlemostlongestrecords(result, elements, maxLengthPerAttributeMap, longestPrefixAttrs);
+
+
+            }
+
+
+
+        }catch (NoSuchFieldException noSuchFieldException){
+            log.error(noSuchFieldException.getMessage());
+        }
+
+        return new ResultSet<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                return result.iterator();
+            }
+
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
+                try {
+                    return rs.contains(object);
+                } finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public boolean matches(O object) {
+                return query.matches(object, queryOptions);
+            }
+
+            @Override
+            public Query<O> getQuery() {
+                return query;
+            }
+
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+
+            @Override
+            public int getRetrievalCost() {
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
+                try {
+                    return rs.getRetrievalCost();
+                } finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public int getMergeCost() {
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
+                try {
+                    return rs.getMergeCost();
+                } finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public int size() {
+                ResultSet<O> rs = retrieveWithoutIndexOrdering(query, queryOptions, null);
+                try {
+                    return rs.size();
+                } finally {
+                    rs.close();
+                }
+            }
+
+            @Override
+            public void close() {
+
+            }
+        };
+
+
+
+    }
+
+    private void handleFirstRecordLongest(List<O> result, List<O> elements, Map<String, Integer> maxLengthPerAttributeMap, List<Attribute<O, String>> longestPrefixAttrs) throws NoSuchFieldException {
+        result.add(elements.get(0));
+        for(Attribute<O, String> attribute: longestPrefixAttrs) {
+
+            char c[] = attribute.getAttributeName().toCharArray();
+            c[0] = Character.toLowerCase(c[0]);
+            String attributeName = new String(c);
+            Field field = result.get(0).getClass().getDeclaredField(attributeName);
+
+            String value = (String)runGetter(field, result.get(0));
+
+            maxLengthPerAttributeMap.put(attribute.getAttributeName(), value.length());
+
+        }
+    }
+
+    private void handlemostlongestrecords(List<O> result, List<O> elements, Map<String, Integer> maxLengthPerAttributeMap, List<Attribute<O, String>> longestPrefixAttrs) throws NoSuchFieldException {
+        for(O element : elements) {
+
+            if(element== result.get(0)){
+                continue;
+            }
+            boolean isRecordContainsLongest = true;
+            for(Attribute<O, String> attribute: longestPrefixAttrs) {
+
+                char c[] = attribute.getAttributeName().toCharArray();
+                c[0] = Character.toLowerCase(c[0]);
+                String attributeName = new String(c);
+                Field field = element.getClass().getDeclaredField(attributeName);
+
+                String value = (String)runGetter(field, element);
+
+                Integer maxLength = maxLengthPerAttributeMap.get(attribute.getAttributeName());
+
+                if(maxLength > value.length()) {
+                    isRecordContainsLongest =false;
+                    break;
+                }
+
+                System.out.println(value);
+
+            }
+
+            if(isRecordContainsLongest) {
+                result.add(element);
+            }else{
+                break;
+            }
+
+
+        }
+    }
+
+
+    public  Object runGetter(Field field, O o)
+    {
+        // MZ: Find the correct method
+        for (Method method : o.getClass().getDeclaredMethods())
+        {
+            if ((method.getName().startsWith("get")) && (method.getName().length() == (field.getName().length() + 3)))
+            {
+                if (method.getName().toLowerCase().endsWith(field.getName().toLowerCase()))
+                {
+                    // MZ: Method found, run it
+                    try
+                    {
+                        return method.invoke(o);
+                    }
+                    catch (IllegalAccessException e)
+                    {
+                        log.error("Could not determine method: " + method.getName());
+                    }
+                    catch (InvocationTargetException e)
+                    {
+                        log.error("Could not determine method: " + method.getName());
+                    }
+
+                }
+            }
+        }
+
+
+        return null;
+    }
+
     private Query<O> handleConcurrentRadixTree(Query<O> query, QueryOptions queryOptions, OrderByOption<O> orderByOption, SortedKeyStatisticsAttributeIndex<?, O> indexForOrdering) {
 
         Query<O> finalQuery = query;
@@ -622,16 +814,20 @@ public class CollectionQueryEngine<O> implements QueryEngineInternal<O> {
 
         List<String> longestPrefixValues = (List<String>) AttrObjectOptions.getAttrObjectOption(queryOptions, ConcurrentRadixTreeLongestPrefixMatch.CONCURRENT_RADIX_TREE_LONGEST_PREFIX_MATCH_BY_VALUES);
 
+        if(longestPrefixAttrs==null || longestPrefixAttrs.isEmpty()){
+            return finalQuery;
+        }
 
         int index = 0;
         for (Attribute<O, String> attr : longestPrefixAttrs) {
 
-            ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(attr.getAttributeName());
+            ConcurrentInvertedRadixTree concurrentInvertedRadixTree = indexOrderingConcurrentRadixTreeHolder.getConcurrentInvertedRadixTree(attr.getAttributeName()).getConcurrentInvertedRadixTree();
             Iterable<String> keysPrefixing = concurrentInvertedRadixTree.getKeysPrefixing(longestPrefixValues.get(index));
             List<String> prefixingList = new ArrayList<>();
             for (String element : keysPrefixing) {
                 prefixingList.add(element);
             }
+            log.info("KeyPrefixing after filtering: " + prefixingList);
             Query<O> in = in(longestPrefixAttrs.get(index), prefixingList);
             finalQuery = and(in, finalQuery);
             index++;
