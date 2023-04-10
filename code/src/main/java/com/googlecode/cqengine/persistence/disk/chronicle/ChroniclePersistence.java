@@ -31,7 +31,21 @@ public class ChroniclePersistence<O, A extends Comparable<A>> implements ObjectS
 
     private ChronicleMap<A, O> chronicleMap;
 
-    public ChroniclePersistence(SimpleAttribute<O, A> primaryKeyAttribute, File dbFile, Class<A> indexClass, Class<O> objectClass, int indexMaxSize, int objectMaxSize) throws
+
+    /**
+     * Create's a chronicle persistence object, this will save the state to disk with a filesize proportional to the settings
+     *
+     * Note that the maximums below presume the worst case, (eg if your actual object size average is lower than what is set then you will be able to store more entries than indicated)
+     * @param primaryKeyAttribute The primary attribute
+     * @param dbFile The file to store in
+     * @param indexClass The class of the indexing object
+     * @param objectClass The class of the stored object
+     * @param indexMaxSize The maximum expected size of an indexing object
+     * @param objectMaxSize The maximum expected size of a stored object
+     * @param maxEntries The maximum number of entries expected for this store
+     * @throws IOException
+     */
+    public ChroniclePersistence(SimpleAttribute<O, A> primaryKeyAttribute, File dbFile, Class<A> indexClass, Class<O> objectClass, int indexMaxSize, int objectMaxSize, long maxEntries) throws
                                                                                                                                                                    IOException {
         // Timestamps aren't correctly decoded without this delegate..
         TimestampDelegate                       timestampDelegate = new TimestampDelegate();
@@ -51,7 +65,7 @@ public class ChroniclePersistence<O, A extends Comparable<A>> implements ObjectS
                                                                   .name(dbFile.getName())
                                                                   .averageKeySize(indexMaxSize)
                                                                   .averageValueSize(objectMaxSize)
-                                                                  .entries(1000000); // Adjust the expected number of entries as needed
+                                                                  .entries(maxEntries); // Adjust the expected number of entries as needed
         try {
             chronicleMap = mapBuilder.createPersistedTo(dbFile);
         } catch (Exception e) {
