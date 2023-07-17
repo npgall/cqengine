@@ -1,5 +1,8 @@
 # CQEngine Release Notes #
 
+## Version 3.6.1 - 2023-07-17 ###
+* Updated sqlite-jdbc dependency to remove transitive dependency vulnerability with score 8.8 (according to Snyk https://security.snyk.io/vuln/SNYK-JAVA-ORGXERIAL-5596891)
+
 ## Version 3.6.0 - 2021-01-15 ###
   * Performance improvement when ordering results (potentially up to 5-6X), with thanks to @voldyman for the contribution
     * See pull request https://github.com/npgall/cqengine/pull/273 for performance analysis

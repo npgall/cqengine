@@ -249,7 +249,7 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.27.2.1</version>
+            <version>3.42.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
