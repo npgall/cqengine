@@ -68,9 +68,9 @@ public class KryoSerializer<O> implements PojoSerializer<O> {
         kryo.register(objectType);
         kryo.setRegistrationRequired(false);
         // Register additional serializers which are not built-in to Kryo 3.0...
-        kryo.register(Arrays.asList().getClass(), new ArraysAsListSerializer());
-        UnmodifiableCollectionsSerializer.registerSerializers(kryo);
-        SynchronizedCollectionsSerializer.registerSerializers(kryo);
+//        kryo.register(Arrays.asList().getClass(), new ArraysAsListSerializer());
+//        UnmodifiableCollectionsSerializer.registerSerializers(kryo);
+//        SynchronizedCollectionsSerializer.registerSerializers(kryo);
         return kryo;
     }
 
